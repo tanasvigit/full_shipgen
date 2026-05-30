@@ -21,7 +21,7 @@ import { fleetopsCache } from "@/domain/fleetops/cache/store";
 import { toast } from "sonner";
 import HealthBanner from "@/components/fleetops/health/HealthBanner";
 import { useFleetopsWarnings } from "@/hooks/fleetops/useFleetopsWarnings";
-import { wrapDetailEditDialog } from "@/lib/fleetops/detailEmbedded";
+import FleetMembersPanel from "@/components/fleetops/fleet/FleetMembersPanel";
 
 const COLORS = ["#0066FF", "#16A34A", "#7C3AED", "#EA580C", "#0891B2", "#DC2626"];
 
@@ -170,49 +170,10 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
             </div>
           </TabsContent>
           <TabsContent value="drivers" className="mt-4">
-            <div className="bg-white border border-black/[0.08] rounded-md divide-y divide-black/[0.08]">
-              {fleetDrivers.length === 0 ? (
-                <div className="p-6 text-sm text-[#4B5563] text-center">No drivers associated with this fleet.</div>
-              ) : (
-                fleetDrivers.map((d) => (
-                  <div key={d.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F1F2F5]/50 transition-colors">
-                    <div className="h-8 w-8 bg-blue-600 grid place-items-center rounded-sm font-mono font-bold text-xs text-white">
-                      {String(d.name || "")
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </div>
-                    <DetailEntityLink entityKey="driver" entityId={d.id} className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{d.name}</div>
-                      <div className="text-[10px] font-mono text-[#4B5563]">{d.publicId}</div>
-                    </DetailEntityLink>
-                    <StatusBadge status={d.status} label={statusLabel(d.status)} />
-                  </div>
-                ))
-              )}
-            </div>
+            <FleetMembersPanel fleetId={id} drivers={fleetDrivers} vehicles={[]} onChanged={load} mode="drivers" />
           </TabsContent>
           <TabsContent value="vehicles" className="mt-4">
-            <div className="bg-white border border-black/[0.08] rounded-md divide-y divide-black/[0.08]">
-              {fleetVehicles.length === 0 ? (
-                <div className="p-6 text-sm text-[#4B5563] text-center">No vehicles associated with this fleet.</div>
-              ) : (
-                fleetVehicles.map((v) => (
-                  <div key={v.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F1F2F5]/50 transition-colors">
-                    <div className="h-8 w-8 bg-[#F1F2F5] border border-black/[0.08] grid place-items-center rounded-sm">
-                      <Truck className="h-4 w-4 text-[#374151]" strokeWidth={1.75} />
-                    </div>
-                    <DetailEntityLink entityKey="vehicle" entityId={v.id} className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{v.name}</div>
-                      <div className="text-[10px] font-mono text-[#4B5563]">
-                        {v.plate} · {v.make} {v.model}
-                      </div>
-                    </DetailEntityLink>
-                    <StatusBadge status={v.status} label={statusLabel(v.status)} />
-                  </div>
-                ))
-              )}
-            </div>
+            <FleetMembersPanel fleetId={id} drivers={[]} vehicles={fleetVehicles} onChanged={load} mode="vehicles" />
           </TabsContent>
           <TabsContent value="analytics" className="mt-4">
             <div className="bg-white border border-black/[0.08] rounded-md p-5">

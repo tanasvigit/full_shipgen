@@ -123,15 +123,26 @@ export async function reloadAndPreserveOrdersFilters(page: Page, expected: Recor
   await expectOrdersUrlParams(page, expected);
 }
 
-/** Orders table pagination (client-side, same pattern as drivers/vehicles). */
+/** Orders table pagination — server-side via URL `page` param. */
 export async function paginateOrdersServerTable(page: Page) {
   const next = page.getByTestId("orders-table-next");
   if (!(await next.isVisible()) || !(await next.isEnabled())) return;
+
+  const listPromise = page.waitForResponse(
+    (res) => {
+      if (res.request().method() !== "GET" || !isOrdersListGetUrl(res.url())) return false;
+      const url = new URL(res.url());
+      const pageParam = url.searchParams.get("page");
+      return res.status() >= 200 && res.status() < 400 && pageParam !== null && pageParam !== "1";
+    },
+    { timeout: 30_000 },
+  );
 
   const footer = page.locator('[data-testid="orders-table"]').getByText(/^Page \d+ \/ \d+$/);
   const beforeText = (await footer.textContent()) || "";
 
   await next.click();
+  await listPromise;
 
   await expect
     .poll(async () => (await footer.textContent()) || "", { timeout: 10_000 })
@@ -143,26 +154,30 @@ export async function paginateOrdersServerTable(page: Page) {
   }
 }
 
-/** Client-side orders search (same UX as drivers/vehicles DataTable). */
-export async function searchOrdersClientTable(page: Page, term: string) {
-  const search = page.getByTestId("orders-table-search");
-  await expect(search).toBeVisible();
-  await expect(search).toBeEnabled();
-  await search.fill(term);
-  await expect(search).toHaveValue(term);
-
-  await search.fill("");
-  await expect(search).toHaveValue("");
-}
-
 function isOrdersListGetUrl(url: string) {
   const path = url.replace(/\?.*$/, "");
   return /\/orders(\?|$)/i.test(url) && !/\/orders\/[^/?]+$/i.test(path);
 }
 
-/** @deprecated Use searchOrdersClientTable — orders search matches drivers/vehicles (client-side). */
+/** Server-side orders search — syncs to URL `search` param and refetches list. */
 export async function searchOrdersServerTable(page: Page, term: string) {
-  await searchOrdersClientTable(page, term);
+  const search = page.getByTestId("orders-table-search");
+  await expect(search).toBeVisible();
+  await expect(search).toBeEnabled();
+
+  const listPromise = waitForOrdersListApi(page);
+  await search.fill(term);
+  await listPromise;
+  await expect(search).toHaveValue(term);
+
+  await search.fill("");
+  await waitForOrdersListApi(page);
+  await expect(search).toHaveValue("");
+}
+
+/** @deprecated Use searchOrdersServerTable — orders list uses server-side search. */
+export async function searchOrdersClientTable(page: Page, term: string) {
+  await searchOrdersServerTable(page, term);
 }
 
 export function waitForOrdersListApi(page: Page, options: { method?: string } = {}): Promise<Response> {

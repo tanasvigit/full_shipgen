@@ -14,8 +14,10 @@ import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import MapView from "@/components/common/MapView";
-import OrderCreateDialog from "@/components/fleetops/orders/OrderCreateDialog";
+import OrderScheduleDialog from "@/components/fleetops/orders/modals/OrderScheduleDialog";
 import OrderImportDialog from "@/components/fleetops/orders/OrderImportDialog";
+import OrderListMapOverlay from "@/components/fleetops/orders/OrderListMapOverlay";
+import OrchestratorImportModal from "@/components/fleetops/orchestrator/OrchestratorImportModal";
 import OrdersBulkToolbar from "@/components/fleetops/orders/bulk/OrdersBulkToolbar";
 import OperationalMetricsStrip from "@/components/fleetops/intelligence/OperationalMetricsStrip";
 import RiskAlertsBar from "@/components/fleetops/intelligence/RiskAlertsBar";
@@ -28,7 +30,17 @@ import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 
+import { Input } from "@/components/ui/input";
+
 const OrderKanban = lazy(() => import("@/components/fleetops/orders/OrderKanban"));
+
+const SORT_COLUMN_MAP = {
+  publicId: "public_id",
+  status: "status",
+  priority: "priority",
+  total: "total",
+  "customer.name": "customer_name",
+};
 
 const VIEWS = [
   { id: "table", label: "Table", icon: LayoutList },
@@ -58,8 +70,13 @@ export default function OrdersList() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [orchestratorImportOpen, setOrchestratorImportOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
   const [hiddenColumns, setHiddenColumns] = useState(() => new Set());
+  const [bulkQueryDraft, setBulkQueryDraft] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const searchDebounceRef = useRef(null);
   const { openDetail: openOrderDetail } = useFleetopsDetailDrawer("order");
   const { openDetail: openDriverDetail } = useFleetopsDetailDrawer("driver");
   const { statuses } = useOrderStatuses();
@@ -67,10 +84,18 @@ export default function OrdersList() {
   const { isDemoMode, demoOrders, demoDrivers } = useDemoMode();
   const [drivers, setDrivers] = useState([]);
 
-  const { queryState, patchQuery, orders, loading, reload, refreshBackground } = useOrdersListPage({
+  const { queryState, patchQuery, orders, loading, meta, reload, refreshBackground } = useOrdersListPage({
     isDemoMode,
     demoOrders,
   });
+
+  useEffect(() => {
+    setBulkQueryDraft(queryState.bulk_query || "");
+  }, [queryState.bulk_query]);
+
+  useEffect(() => {
+    setSearchDraft(queryState.search || "");
+  }, [queryState.search]);
 
   const companyChannel = resolveCompanyChannelId();
 
@@ -96,6 +121,29 @@ export default function OrdersList() {
   const setStatusFilter = (status) => patchQuery({ status, page: 1 });
 
   const filtered = orders;
+
+  const handleSearchChange = useCallback(
+    (value) => {
+      setSearchDraft(value);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => {
+        patchQuery({ search: value, page: 1 });
+      }, 350);
+    },
+    [patchQuery],
+  );
+
+  const handleSortChange = useCallback(
+    (columnKey, direction) => {
+      const sort = SORT_COLUMN_MAP[columnKey] || columnKey;
+      patchQuery({ sort, sort_dir: direction, page: 1 });
+    },
+    [patchQuery],
+  );
+
+  const applyBulkQuery = useCallback(() => {
+    patchQuery({ bulk_query: bulkQueryDraft.trim(), page: 1 });
+  }, [bulkQueryDraft, patchQuery]);
 
   const selectedIds = useMemo(() => [...selectedKeys], [selectedKeys]);
 
@@ -215,7 +263,11 @@ export default function OrdersList() {
         breadcrumbs={[{ label: "FleetOps", to: "/fleet-ops" }, { label: "Operations" }, { label: "Orders" }]}
         overline="Operations"
         title="Orders"
-        description={loading ? "Loading orders..." : `${filtered.length} orders · ${statusFilter === "all" ? "all statuses" : statusLabel(statusFilter)}`}
+        description={
+          loading
+            ? "Loading orders..."
+            : `${meta.total ?? filtered.length} orders · ${statusFilter === "all" ? "all statuses" : statusLabel(statusFilter)}`
+        }
         actions={
           <>
             <div className="flex bg-white border border-black/[0.08] rounded-sm p-0.5">
@@ -306,6 +358,34 @@ export default function OrdersList() {
             />
             No driver
           </label>
+          <div className="flex items-center gap-1.5 ml-2 flex-1 min-w-[200px] max-w-md">
+            <Input
+              value={bulkQueryDraft}
+              onChange={(e) => setBulkQueryDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applyBulkQuery()}
+              placeholder="Bulk query (e.g. status:created driver:null)"
+              className="h-7 text-xs"
+              data-testid="orders-filter-bulk-query"
+              title="Advanced bulk filter — comma-separated field:value pairs (status, driver, customer, public_id, …)"
+            />
+            <Button type="button" size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={applyBulkQuery}>
+              Apply
+            </Button>
+            {queryState.bulk_query ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs shrink-0"
+                onClick={() => {
+                  setBulkQueryDraft("");
+                  patchQuery({ bulk_query: "", page: 1 });
+                }}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
           <Button
             type="button"
             size="sm"
@@ -324,13 +404,18 @@ export default function OrdersList() {
 
         <OrdersBulkToolbar
           selectedCount={selectedIds.length}
+          selectedOrderIds={selectedIds}
           onClearSelection={() => setSelectedKeys(new Set())}
           busy={bulkBusy}
           canDispatch={ability.canBulkManage && ability.canDispatchOrder}
           canCancel={ability.canBulkManage && ability.canCancelOrder}
           canDelete={ability.canBulkManage && ability.canDeleteOrder}
           canAssign={ability.canBulkManage && ability.canAssignDriver}
-          canPlanRoutes={selectedIds.length > 0}
+          canSchedule={ability.canBulkManage && ability.canUpdateOrder}
+          canPlanRoutes={selectedIds.length > 0 && (ability.canUpdateOrder || ability.isDispatcher)}
+          canOrchestrator={ability.canDispatchOrder || ability.isDispatcher}
+          onRunOrchestrator={() => navigate("/fleet-ops/operations/orchestrator")}
+          onOrchestratorImport={() => setOrchestratorImportOpen(true)}
           onPlanRoutes={() =>
             navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedIds.join(","))}`)
           }
@@ -338,6 +423,10 @@ export default function OrdersList() {
           onBulkCancel={() => runBulk((ids) => fleetopsService.bulkCancel(ids))}
           onBulkDelete={() => runBulk((ids) => fleetopsService.bulkDeleteOrders(ids))}
           onBulkAssign={(driverId) => runBulk((ids) => fleetopsService.bulkAssignDriver(ids, driverId))}
+          onBulkSchedule={async () => {
+            setSelectedKeys(new Set());
+            await reload();
+          }}
         />
 
         {view === "table" && (
@@ -347,17 +436,18 @@ export default function OrdersList() {
             data={filtered}
             loading={loading}
             loadingMessage="Fetching orders…"
-            searchKeys={[
-              "publicId",
-              "internalId",
-              "trackingNumber",
-              "customer.name",
-              "pickup.name",
-              "dropoff.name",
-              "notes",
-            ]}
+            searchKeys={["publicId", "internalId", "trackingNumber", "customer.name", "pickup.name", "dropoff.name", "notes"]}
+            searchValue={searchDraft}
+            onSearchChange={handleSearchChange}
+            onSortChange={handleSortChange}
             searchInputRef={searchInputRef}
-            pageSize={10}
+            pageSize={queryState.limit}
+            serverPagination={{
+              page: meta.page || queryState.page,
+              lastPage: meta.lastPage || 1,
+              total: meta.total ?? filtered.length,
+              onPageChange: (page) => patchQuery({ page }),
+            }}
             selectable
             selectedKeys={selectedKeys}
             onSelectedKeysChange={setSelectedKeys}
@@ -377,7 +467,21 @@ export default function OrdersList() {
         )}
 
         {view === "map" && (
-          <div className="bg-white border border-black/[0.08] rounded-md overflow-hidden">
+          <div className="bg-white border border-black/[0.08] rounded-md overflow-hidden relative">
+            <OrderListMapOverlay
+              orders={filtered}
+              selectedKeys={selectedKeys}
+              onSelectedKeysChange={setSelectedKeys}
+              focusId={mapFocusId}
+              onFocusOrder={setMapFocusId}
+              canPlanRoutes={ability.canUpdateOrder || ability.isDispatcher}
+              canSchedule={ability.canUpdateOrder}
+              canAssign={ability.canAssignDriver}
+              onPlanRoute={() =>
+                navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedIds.join(","))}`)
+              }
+              onSchedule={() => setScheduleOpen(true)}
+            />
             <div className="h-[min(600px,70vh)] md:h-[600px]">
               <MapView
                 markers={mapMarkers}
@@ -398,6 +502,16 @@ export default function OrdersList() {
 
       <OrderCreateDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => reload()} />
       <OrderImportDialog open={importOpen} onOpenChange={setImportOpen} onImported={() => reload()} />
+      <OrchestratorImportModal open={orchestratorImportOpen} onOpenChange={setOrchestratorImportOpen} />
+      <OrderScheduleDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        orderIds={selectedIds}
+        onScheduled={() => {
+          setSelectedKeys(new Set());
+          reload();
+        }}
+      />
     </div>
   );
 }

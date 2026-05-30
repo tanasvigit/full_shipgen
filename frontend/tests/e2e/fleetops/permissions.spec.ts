@@ -21,12 +21,14 @@ test.describe("FleetOps Day 1 — Permissions G003", () => {
     }
   });
 
-  test("strict intercept — empty permissions hides create order", async ({ page }) => {
+  test("strict intercept — empty permissions shows forbidden fleet-ops shell", async ({ page }) => {
     await interceptUsersMeEmptyPermissions(page);
     await page.reload({ waitUntil: "load" });
-    await gotoRoute(page, "/fleet-ops/operations/orders", { pageTestId: "orders-list-page" });
+    await page.goto("/fleet-ops/operations/orders");
+    await expect(page.getByTestId("fleetops-forbidden")).toBeVisible({ timeout: 45_000 });
     await expect(page.getByTestId("orders-new-button")).toBeHidden();
     await expect(page.getByTestId("orders-import-button")).toBeHidden();
+    await expect(page.getByTestId("orders-bulk-dispatch")).toBeHidden();
   });
 
   test("strict intercept — direct URL to order config shows forbidden or blocks actions", async ({ page }) => {

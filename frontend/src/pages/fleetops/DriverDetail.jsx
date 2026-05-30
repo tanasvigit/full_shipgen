@@ -58,6 +58,8 @@ export default function DriverDetail({
   const [loading, setLoading] = useState(true);
   const [driverApi, setDriverApi] = useState(null);
   const [vehicle, setVehicle] = useState(null);
+  const [hosStatus, setHosStatus] = useState(null);
+  const [activeShift, setActiveShift] = useState(null);
   const formRef = useFormRef();
   const lookups = useFleetopsLookups();
   const editDialog = useFleetopsFormDialog({
@@ -95,6 +97,12 @@ export default function DriverDetail({
         setVehicle(null);
       }
 
+      const [hos, shift] = await Promise.all([
+        fleetopsService.getDriverHosStatus(id).catch(() => null),
+        fleetopsService.getDriverActiveShift(id).catch(() => null),
+      ]);
+      setHosStatus(hos);
+      setActiveShift(shift);
     } catch (err) {
       if (err?.response?.status === 404) {
         toast.error("Driver not found.");
@@ -259,6 +267,21 @@ export default function DriverDetail({
         statusLabel={statusLabel(d.status)}
         healthIssues={complianceIssues}
         lastUpdated={lastUpdated}
+        badges={
+          <>
+            {hosStatus && (
+              <StatusBadge
+                status={hosStatus.status || hosStatus.duty_status || "unknown"}
+                label={`HOS: ${hosStatus.status || hosStatus.duty_status || "—"}`}
+              />
+            )}
+            {activeShift && (
+              <span className="text-xs font-mono text-[#374151]" data-testid="driver-active-shift-header">
+                On shift
+              </span>
+            )}
+          </>
+        }
         onEdit={embedded ? editDialog.openEdit : () => editDialog.setOpen(true)}
         editTestId="driver-edit"
       />

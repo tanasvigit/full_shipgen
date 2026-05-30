@@ -1,7 +1,30 @@
 import MapView from "@/components/common/MapView";
 
-export default function OrderRoutePanel({ order, etaLabel, loading, polyline }) {
+export default function OrderRoutePanel({ order, etaLabel, loading, polyline, waypointMarkers = [] }) {
   if (!order) return null;
+
+  const markers = [
+    ...(waypointMarkers.length
+      ? waypointMarkers
+      : [
+          order.pickup?.lat != null && {
+            id: "pickup",
+            lat: order.pickup.lat,
+            lng: order.pickup.lng,
+            label: "P",
+            popup: order.pickup.name,
+            color: "#10B981",
+          },
+          order.dropoff?.lat != null && {
+            id: "dropoff",
+            lat: order.dropoff.lat,
+            lng: order.dropoff.lng,
+            label: "D",
+            popup: order.dropoff.name,
+            color: "#F59E0B",
+          },
+        ].filter(Boolean)),
+  ];
 
   return (
     <div className="bg-white border border-black/[0.08] rounded-md overflow-hidden">
@@ -15,24 +38,7 @@ export default function OrderRoutePanel({ order, etaLabel, loading, polyline }) 
         <MapView
           loading={loading}
           routePoints={polyline?.length >= 2 ? polyline : undefined}
-          markers={[
-            {
-              id: "pickup",
-              lat: order.pickup.lat,
-              lng: order.pickup.lng,
-              label: "Pickup",
-              popup: order.pickup.name,
-              color: "#10B981",
-            },
-            {
-              id: "dropoff",
-              lat: order.dropoff.lat,
-              lng: order.dropoff.lng,
-              label: "Drop-off",
-              popup: order.dropoff.name,
-              color: "#F59E0B",
-            },
-          ]}
+          markers={markers}
           testid="order-map"
         />
       </div>

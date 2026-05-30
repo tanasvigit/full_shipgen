@@ -1,14 +1,18 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { placeFormSchema } from "@/lib/fleetops/schemas";
 import { PLACE_TYPES } from "@/lib/fleetops/constants";
 import { useFormHandle } from "./formUtils";
+import { fleetopsService } from "@/services/fleetops";
+import { toast } from "sonner";
+import { MapPin } from "lucide-react";
 
 const defaultValues = {
   name: "",
@@ -48,12 +52,40 @@ export function placeValuesFromApi(raw) {
 }
 
 const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) {
+  const [geocoding, setGeocoding] = useState(false);
   const methods = useForm({
     resolver: zodResolver(placeFormSchema),
     defaultValues: { ...defaultValues, ...initialValues },
   });
   const { register, watch, setValue, formState: { errors } } = methods;
   useFormHandle(ref, methods);
+
+  const geocodeAddress = async () => {
+    const parts = [watch("street1"), watch("city"), watch("province"), watch("postalCode"), watch("country")].filter(Boolean);
+    const query = parts.join(", ");
+    if (!query.trim()) {
+      toast.error("Enter an address first");
+      return;
+    }
+    setGeocoding(true);
+    try {
+      const result = await fleetopsService.lookupPlace(query).catch(() => fleetopsService.geocodeQuery({ query }));
+      const place = result?.place || result?.places?.[0] || result;
+      const lat = place?.latitude ?? place?.lat ?? place?.location?.latitude;
+      const lng = place?.longitude ?? place?.lng ?? place?.location?.longitude;
+      if (lat != null && lng != null) {
+        setValue("latitude", String(lat));
+        setValue("longitude", String(lng));
+        toast.success("Coordinates updated");
+      } else {
+        toast.error("No coordinates returned for this address");
+      }
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Geocode failed");
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   return (
     <div id={formId} className="space-y-4" data-testid="place-form">
@@ -115,6 +147,11 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
           <div className="space-y-1.5">
             <Label className="text-xs font-mono uppercase text-[#374151]">Security / dock code</Label>
             <Input {...register("securityAccessCode")} className="bg-[#F5F6F8] border-black/[0.08]" data-testid="place-field-security" />
+          </div>
+          <div className="md:col-span-2 flex justify-end">
+            <Button type="button" variant="outline" size="sm" disabled={geocoding} onClick={geocodeAddress} data-testid="place-geocode-button">
+              <MapPin className="h-3.5 w-3.5 mr-1" /> {geocoding ? "Geocoding…" : "Geocode address"}
+            </Button>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-mono uppercase text-[#374151]">Latitude</Label>

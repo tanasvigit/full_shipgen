@@ -25,6 +25,7 @@ export default function DetailDrawerHeader({
   editTestId = "detail-edit",
   actions = [],
   extraActions,
+  badges,
 }) {
   const blocking = healthIssues.filter((i) => i.level === "blocking").length;
 
@@ -45,6 +46,7 @@ export default function DetailDrawerHeader({
               </span>
             )}
             {status && <StatusBadge status={status} label={statusLabelText || status} />}
+            {badges}
             {blocking > 0 && (
               <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-red-500/10 text-red-700 border border-red-500/20">
                 {blocking} compliance

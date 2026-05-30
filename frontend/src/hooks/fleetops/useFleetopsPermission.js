@@ -1,6 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { createFleetopsPermissionChecker, normalizePermissionNames } from "@/lib/fleetops/permissions";
+import {
+  createFleetopsPermissionChecker,
+  normalizePermissionNames,
+  resolveEffectivePermissions,
+} from "@/lib/fleetops/permissions";
 
 const PERMISSIVE =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_FLEETOPS_PERMISSIVE === "true";
@@ -9,23 +13,36 @@ const PERMISSIVE =
  * FleetOps permission checks — same resolver as useFleetopsAbility (Spatie format).
  */
 export function useFleetopsPermission() {
-  const { user } = useAuth();
-  const permissionsLoaded = Boolean(user?.permissions?.length);
+  const { user, authReady } = useAuth();
 
   const isAdmin = Boolean(user?.isAdmin);
 
+  const effectivePermissions = useMemo(
+    () => resolveEffectivePermissions(user),
+    [user],
+  );
+
+  const permissionSet = useMemo(
+    () => normalizePermissionNames(effectivePermissions),
+    [effectivePermissions],
+  );
+
+  const permissionsResolved = authReady && Boolean(user);
+  const permissionsEmpty = permissionSet.size === 0;
+
   const checker = useMemo(
-    () => createFleetopsPermissionChecker(normalizePermissionNames(user?.permissions), { isAdmin }),
-    [user?.permissions, isAdmin],
+    () => createFleetopsPermissionChecker(permissionSet, { isAdmin }),
+    [permissionSet, isAdmin],
   );
 
   const can = useCallback(
     (action, resource = "order") => {
       if (isAdmin) return true;
-      if (!permissionsLoaded && PERMISSIVE) return true;
+      if (!permissionsResolved) return false;
+      if (permissionsEmpty) return PERMISSIVE;
       return checker.can(action, resource);
     },
-    [checker, permissionsLoaded, isAdmin],
+    [checker, permissionsResolved, permissionsEmpty, isAdmin],
   );
 
   return {

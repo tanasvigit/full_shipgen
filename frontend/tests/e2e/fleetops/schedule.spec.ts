@@ -32,7 +32,13 @@ test.describe("FleetOps Day 1 — Schedule planner", () => {
     await expect(dialog).toBeHidden();
   });
 
-  test("G009 partial — bulk toolbar absent on schedule (no regression)", async ({ page }) => {
-    await expect(page.getByTestId("orders-bulk-toolbar")).toBeHidden();
+  test("G009 — fleet schedule tab loads", async ({ page }) => {
+    await page.getByTestId("schedule-tab-fleet").click();
+    await expect(page.getByTestId("fleet-schedule-view")).toBeVisible({ timeout: 30_000 });
+  });
+
+  test("G010 — best-fit button visible on fleet schedule", async ({ page }) => {
+    await page.getByTestId("schedule-tab-fleet").click();
+    await expect(page.getByTestId("fleet-schedule-best-fit")).toBeVisible();
   });
 });

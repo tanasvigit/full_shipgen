@@ -11,6 +11,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { schedulesService } from "@/services/schedules";
 import { mapDriverRow } from "@/lib/mappers";
 import { detectScheduleConflicts } from "@/lib/fleetops/scheduleConflicts";
+import FleetScheduleView from "@/components/fleetops/schedule/FleetScheduleView";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -58,6 +59,7 @@ function buildRows(drivers, items) {
 }
 
 export default function SchedulePlanner() {
+  const [tab, setTab] = useState("shifts");
   const [weekOffset, setWeekOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [driverRows, setDriverRows] = useState([]);
@@ -127,12 +129,36 @@ export default function SchedulePlanner() {
       <PageHeader
         breadcrumbs={[{ label: "FleetOps", to: "/fleet-ops" }, { label: "Operations" }, { label: "Schedule" }]}
         overline="Operations"
-        title="Weekly Schedule"
+        title={tab === "fleet" ? "Fleet schedule" : "Weekly Schedule"}
         description={
-          loading ? "Loading schedules…" : `${schedule.drivers.length} drivers · ${totalShifts} shifts from API`
+          tab === "fleet"
+            ? "Order capacity scheduling by driver"
+            : loading
+              ? "Loading schedules…"
+              : `${schedule.drivers.length} drivers · ${totalShifts} shifts from API`
         }
         actions={
           <>
+            <div className="flex bg-white border border-black/[0.08] rounded-sm p-0.5 mr-2">
+              <button
+                type="button"
+                onClick={() => setTab("shifts")}
+                className={`px-3 h-8 text-xs font-medium rounded-sm ${tab === "shifts" ? "bg-[#EEF0F4] text-[#0A0E1A]" : "text-[#374151]"}`}
+                data-testid="schedule-tab-shifts"
+              >
+                Driver shifts
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("fleet")}
+                className={`px-3 h-8 text-xs font-medium rounded-sm ${tab === "fleet" ? "bg-[#EEF0F4] text-[#0A0E1A]" : "text-[#374151]"}`}
+                data-testid="schedule-tab-fleet"
+              >
+                Fleet schedule
+              </button>
+            </div>
+            {tab === "shifts" && (
+              <>
             <div className="flex items-center gap-1 border border-black/[0.08] rounded-md px-1 h-10 bg-white" data-testid="schedule-week-nav">
               <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w) => w - 1)}>
                 <ChevronLeft className="h-4 w-4" />
@@ -150,10 +176,16 @@ export default function SchedulePlanner() {
             <Button onClick={() => dialog.setOpen(true)} className="bg-[#0066FF] hover:bg-[#0040CC] text-white h-10 rounded-lg shadow-[0_10px_28px_-8px_rgba(0,102,255,0.45)]" data-testid="schedule-new">
               <Plus className="h-4 w-4 mr-1.5" /> Add shift
             </Button>
+              </>
+            )}
           </>
         }
       />
       <div className="p-6">
+        {tab === "fleet" ? (
+          <FleetScheduleView weekOffset={weekOffset} />
+        ) : (
+          <>
         {!loading && schedule.drivers.length === 0 && (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid="schedule-empty">
             No drivers loaded. Schedule rows need at least one driver in FleetOps.
@@ -242,7 +274,10 @@ export default function SchedulePlanner() {
             </span>
           </div>
         </div>
+          </>
+        )}
       </div>
+      {tab === "shifts" && (
       <FleetOpsFormDialog
         open={dialog.open}
         onOpenChange={dialog.setOpen}
@@ -263,6 +298,7 @@ export default function SchedulePlanner() {
           Recurring templates and timezone rules require backend schedule APIs — not yet exposed on this tenant.
         </p>
       </FleetOpsFormDialog>
+      )}
     </div>
   );
 }

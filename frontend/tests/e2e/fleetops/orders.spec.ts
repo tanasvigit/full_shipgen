@@ -17,7 +17,7 @@ test.describe("FleetOps Day 1 — Orders list", () => {
     await gotoOrdersList(page);
   });
 
-  test("G001 — table pagination, sort, and client search", async ({ page }) => {
+  test("G001 — table pagination, sort, and server search", async ({ page }) => {
     const listPromise = waitForOrdersListApi(page);
     await page.getByTestId("orders-refresh").click();
     const res = await listPromise;
@@ -79,6 +79,13 @@ test.describe("FleetOps Day 1 — Orders list", () => {
     await expectOrdersUrlParams(page, { layout: "kanban" });
     await page.getByTestId("orders-view-table").click();
     await expectOrdersUrlParams(page, { layout: undefined });
+  });
+
+  test("G055 — bulk_query filter syncs to URL", async ({ page }) => {
+    const input = page.getByTestId("orders-filter-bulk-query");
+    await input.fill("status:created");
+    await page.getByRole("button", { name: /^Apply$/i }).click();
+    await expectOrdersUrlParams(page, { bulk_query: "status:created" });
   });
 
   test("G055 — bulk selection and plan routes navigation", async ({ page }) => {

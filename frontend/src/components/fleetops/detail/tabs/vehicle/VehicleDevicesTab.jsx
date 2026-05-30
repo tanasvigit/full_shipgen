@@ -6,7 +6,11 @@ import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { toast } from "sonner";
 
+import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
+
 export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
+  const ability = useFleetopsAbility();
+  const canAttach = ability.canUpdateOrder || ability.isDispatcher;
   const [attached, setAttached] = useState([]);
   const [available, setAvailable] = useState([]);
   const [selected, setSelected] = useState("");
@@ -63,6 +67,7 @@ export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
 
   return (
     <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4" data-testid="vehicle-devices-tab">
+      {canAttach && (
       <div className="flex flex-wrap gap-2 items-end">
         <div className="flex-1 min-w-[200px]">
           <Select value={selected} onValueChange={setSelected}>
@@ -82,6 +87,7 @@ export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
           Attach device
         </Button>
       </div>
+      )}
       <DataTable
         testid="vehicle-devices-table"
         columns={[
@@ -90,11 +96,12 @@ export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
           {
             key: "actions",
             header: "",
-            render: (r) => (
-              <Button variant="ghost" size="sm" onClick={() => detach(r.id)} data-testid={`vehicle-detach-${r.id}`}>
-                Detach
-              </Button>
-            ),
+            render: (r) =>
+              canAttach ? (
+                <Button variant="ghost" size="sm" onClick={() => detach(r.id)} data-testid={`vehicle-detach-${r.id}`}>
+                  Detach
+                </Button>
+              ) : null,
           },
         ]}
         data={attached}

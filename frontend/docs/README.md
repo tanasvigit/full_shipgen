@@ -2,7 +2,7 @@
 
 | Document | Purpose |
 |----------|---------|
-| **[FLEETOPS-GAPS.md](./FLEETOPS-GAPS.md)** | **Gap inventory (v3.1)** — what’s missing vs Ember; §27 G001–G097; ~48% weighted parity today |
+| **[FLEETOPS-GAPS.md](./FLEETOPS-GAPS.md)** | **Gap inventory (v3.3)** — §27 G001–G097; **~65%** weighted parity (Phases 1–2 complete) |
 | **[FLEETOPS-IMPLEMENTATION-PHASES.md](./FLEETOPS-IMPLEMENTATION-PHASES.md)** | **Execution plan** — Phases 1–8 (console 48% → 100%); Phase 9 Navigator/portals |
 | [FLEETOPS-ORDER-LIFECYCLE.md](./FLEETOPS-ORDER-LIFECYCLE.md) | Order lifecycle, APIs, events, state machine (reference) |
 | [SAAS-RELEASE.md](./SAAS-RELEASE.md) | SaaS / deployment release notes |

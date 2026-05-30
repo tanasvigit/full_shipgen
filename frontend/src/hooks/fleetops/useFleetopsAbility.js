@@ -1,65 +1,88 @@
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { createFleetopsPermissionChecker, normalizePermissionNames } from "@/lib/fleetops/permissions";
+import {
+  createFleetopsPermissionChecker,
+  normalizePermissionNames,
+  resolveEffectivePermissions,
+} from "@/lib/fleetops/permissions";
 
 /**
- * Permissive fallback when ability object is merged defensively in UI.
- * Export for tests and optional `ability ?? FLEETOPS_ABILITY_FALLBACK`.
+ * Dev-only escape hatch — never enable in production SaaS.
+ * Set VITE_FLEETOPS_PERMISSIVE=true locally when /users/me returns empty permissions.
  */
-/** Dev-only: set VITE_FLEETOPS_PERMISSIVE=true to allow-all when permissions empty. */
 const PERMISSIVE =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_FLEETOPS_PERMISSIVE === "true";
 
-export const FLEETOPS_ABILITY_FALLBACK = {
-  can: () => PERMISSIVE,
-  cannot: () => false,
-  role: "operator",
+/** Deny-all ability object for tests. Do not use in production UI paths. */
+export const FLEETOPS_ABILITY_DENY_ALL = {
+  can: () => false,
+  cannot: () => true,
+  role: "viewer",
   isAdmin: false,
-  isDispatcher: true,
-  isViewer: false,
+  isDispatcher: false,
+  isViewer: true,
   isDriver: false,
-  canViewOrder: true,
-  canCreateOrder: true,
-  canUpdateOrder: true,
-  canDeleteOrder: true,
-  canDispatchOrder: true,
-  canCancelOrder: true,
-  canAssignDriver: true,
-  canExportOrder: true,
-  canImportOrder: true,
-  canBulkManage: true,
-  canListOrderConfig: true,
-  canViewOrderConfig: true,
-  canCreateOrderConfig: true,
-  canUpdateOrderConfig: true,
-  canDeleteOrderConfig: true,
-  canCloneOrderConfig: true,
-  canEditRoute: true,
-  canCommentOrder: true,
+  permissionsResolved: true,
+  permissionsUnknown: true,
+  canViewOrder: false,
+  canCreateOrder: false,
+  canUpdateOrder: false,
+  canDeleteOrder: false,
+  canDispatchOrder: false,
+  canCancelOrder: false,
+  canAssignDriver: false,
+  canExportOrder: false,
+  canImportOrder: false,
+  canBulkManage: false,
+  canListOrderConfig: false,
+  canViewOrderConfig: false,
+  canCreateOrderConfig: false,
+  canUpdateOrderConfig: false,
+  canDeleteOrderConfig: false,
+  canCloneOrderConfig: false,
+  canEditRoute: false,
+  canCommentOrder: false,
 };
+
+/** @deprecated Use FLEETOPS_ABILITY_DENY_ALL — permissive fallback removed (G003). */
+export const FLEETOPS_ABILITY_FALLBACK = FLEETOPS_ABILITY_DENY_ALL;
 
 /**
  * FleetOps ability checks — `fleet-ops {action} {resource}` (Spatie).
- * Uses the same wildcard + read-alias rules as backend Auth::can().
+ * Fail-closed when permissions are empty unless VITE_FLEETOPS_PERMISSIVE=true.
  */
 export function useFleetopsAbility() {
-  const { user } = useAuth();
-  const permissionsLoaded = Boolean(user?.permissions?.length);
+  const { user, authReady } = useAuth();
 
   const isAdmin = Boolean(user?.isAdmin);
 
+  const effectivePermissions = useMemo(
+    () => resolveEffectivePermissions(user),
+    [user],
+  );
+
+  const permissionSet = useMemo(
+    () => normalizePermissionNames(effectivePermissions),
+    [effectivePermissions],
+  );
+
+  const permissionsResolved = authReady && Boolean(user);
+  const permissionsEmpty = permissionSet.size === 0;
+  const permissionsUnknown = permissionsResolved && permissionsEmpty && !isAdmin;
+
   const checker = useMemo(
-    () => createFleetopsPermissionChecker(normalizePermissionNames(user?.permissions), { isAdmin }),
-    [user?.permissions, isAdmin],
+    () => createFleetopsPermissionChecker(permissionSet, { isAdmin }),
+    [permissionSet, isAdmin],
   );
 
   const can = useCallback(
     (action, resource = "order") => {
       if (isAdmin) return true;
-      if (!permissionsLoaded && PERMISSIVE) return true;
+      if (!permissionsResolved) return false;
+      if (permissionsEmpty) return PERMISSIVE;
       return checker.can(action, resource);
     },
-    [checker, permissionsLoaded, isAdmin],
+    [checker, permissionsResolved, permissionsEmpty, isAdmin],
   );
 
   const cannot = useCallback((action, resource = "order") => !can(action, resource), [can]);
@@ -85,6 +108,8 @@ export function useFleetopsAbility() {
     isDispatcher,
     isViewer,
     isDriver,
+    permissionsResolved,
+    permissionsUnknown,
     canViewOrder: can("view", "order") || can("list", "order"),
     canCreateOrder: can("create", "order"),
     canUpdateOrder: can("update", "order"),

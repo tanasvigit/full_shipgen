@@ -228,6 +228,7 @@ export const fleetopsService = {
     const id = String(orderId);
     const body = {
       order: id,
+      order_uuid: id,
       scheduled_at: scheduledAt,
       driver_id: driverId,
       date,
@@ -256,6 +257,55 @@ export const fleetopsService = {
       }
     }
     throw lastError;
+  },
+
+  async bulkScheduleOrders(orderIds, scheduleOptions = {}) {
+    const ids = (orderIds || []).map(String).filter(Boolean);
+    const successful = [];
+    const failed = [];
+    for (const id of ids) {
+      try {
+        await this.scheduleOrder(id, scheduleOptions);
+        successful.push(id);
+      } catch (error) {
+        failed.push({ id, error });
+      }
+    }
+    return { successful, failed };
+  },
+
+  async searchOrders(query, params = {}) {
+    const q = String(query || "").trim();
+    if (!q) return [];
+    try {
+      const response = await apiClient.get("/orders/search", {
+        params: { query: q, ...params },
+        loading: false,
+      });
+      return unwrapList(response.data, ["orders"]);
+    } catch {
+      const payload = await tryCandidates(RESOURCES.orders, "get", "/search", { query: q, ...params });
+      return unwrapList(payload, ["orders"]);
+    }
+  },
+
+  async listOrderTypes() {
+    try {
+      const response = await apiClient.get("/orders/types", { loading: false });
+      const payload = response.data;
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.types)) return payload.types;
+      return unwrapList(payload, ["types"]);
+    } catch {
+      try {
+        const payload = await tryCandidates(RESOURCES.orders, "get", "/types");
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload?.types)) return payload.types;
+        return unwrapList(payload, ["types"]);
+      } catch {
+        return [];
+      }
+    }
   },
 
   async optimizeOrderRoute(orderId) {
@@ -742,6 +792,133 @@ export const fleetopsService = {
     await tryCandidates(RESOURCES.drivers, "delete", `/${driverId}`);
   },
 
+  async listDriverScheduleItems(driverId) {
+    try {
+      const payload = await tryCandidates(RESOURCES.drivers, "get", `/${driverId}/schedule-items`);
+      return unwrapList(payload, ["schedule_items", "scheduleItems"]);
+    } catch {
+      return [];
+    }
+  },
+
+  async listDriverAvailabilities(driverId) {
+    try {
+      const payload = await tryCandidates(RESOURCES.drivers, "get", `/${driverId}/availabilities`);
+      return unwrapList(payload, ["availabilities"]);
+    } catch {
+      return [];
+    }
+  },
+
+  async getDriverHosStatus(driverId) {
+    try {
+      const payload = await tryCandidates(RESOURCES.drivers, "get", `/${driverId}/hos-status`);
+      return payload?.hos_status || payload?.status || payload;
+    } catch {
+      return null;
+    }
+  },
+
+  async getDriverActiveShift(driverId) {
+    try {
+      const payload = await tryCandidates(RESOURCES.drivers, "get", `/${driverId}/active-shift`);
+      return unwrapEntity(payload, ["shift", "schedule_item", "active_shift"]);
+    } catch {
+      return null;
+    }
+  },
+
+  async createDriverAvailability(driverId, body = {}) {
+    const payload = await tryCandidatesMutate(RESOURCES.drivers, `/${driverId}/availabilities`, body);
+    return unwrapEntity(payload, ["availability"]);
+  },
+
+  async assignDriverToFleet(fleetId, driverId) {
+    const body = { fleet: String(fleetId), driver: String(driverId) };
+    const response = await apiClient.post("/fleets/assign-driver", body);
+    return response.data;
+  },
+
+  async removeDriverFromFleet(fleetId, driverId) {
+    const body = { fleet: String(fleetId), driver: String(driverId) };
+    const response = await apiClient.post("/fleets/remove-driver", body);
+    return response.data;
+  },
+
+  async assignVehicleToFleet(fleetId, vehicleId) {
+    const body = { fleet: String(fleetId), vehicle: String(vehicleId) };
+    const response = await apiClient.post("/fleets/assign-vehicle", body);
+    return response.data;
+  },
+
+  async removeVehicleFromFleet(fleetId, vehicleId) {
+    const body = { fleet: String(fleetId), vehicle: String(vehicleId) };
+    const response = await apiClient.post("/fleets/remove-vehicle", body);
+    return response.data;
+  },
+
+  async assignDriverToVendor(vendorId, driverId) {
+    const response = await apiClient.post(`/vendors/${vendorId}/assign-driver`, { driver: String(driverId) });
+    return response.data;
+  },
+
+  async removeDriverFromVendor(vendorId, driverId) {
+    const response = await apiClient.post(`/vendors/${vendorId}/remove-driver`, { driver: String(driverId) });
+    return response.data;
+  },
+
+  async geocodeQuery(params = {}) {
+    const response = await apiClient.get("/geocoder/query", { params, loading: false });
+    return response.data;
+  },
+
+  async geocodeReverse(params = {}) {
+    const response = await apiClient.get("/geocoder/reverse", { params, loading: false });
+    return response.data;
+  },
+
+  async lookupPlace(query, params = {}) {
+    const response = await apiClient.get("/places/lookup", {
+      params: { query, ...params },
+      loading: false,
+    });
+    return response.data;
+  },
+
+  async resetCustomerCredentials(customerId, body = {}) {
+    const response = await apiClient.post("/customers/reset-credentials", {
+      customer: String(customerId),
+      customer_uuid: String(customerId),
+      ...body,
+    });
+    return response.data;
+  },
+
+  async listIntegratedVendorProviders() {
+    try {
+      const response = await apiClient.get("/integrated-vendors/supported", { loading: false });
+      return unwrapList(response.data, ["providers", "integrated_vendors"]);
+    } catch {
+      try {
+        const rows = await fleetopsService.listIntegratedVendor();
+        return [...new Set(rows.map((r) => r.provider || r.name).filter(Boolean))];
+      } catch {
+        return [];
+      }
+    }
+  },
+
+  async getPlaceMeta(placeId) {
+    const place = await this.getPlace(placeId);
+    return place?.meta || {};
+  },
+
+  async updatePlaceMeta(placeId, metaPatch) {
+    const place = await this.getPlace(placeId);
+    const meta = { ...(place?.meta || {}), ...metaPatch };
+    return this.updatePlace(placeId, { meta });
+  },
+
   async listVehicles(params) {
     const payload = await tryCandidates(RESOURCES.vehicles, "get", "", undefined);
     return unwrapList(payload, ["vehicles"]);
@@ -868,6 +1045,10 @@ export const fleetopsService = {
     return fleetopsService.updateDriver(driverId, { vendorId, facilitator_uuid: vendorId });
   },
 
+  async assignVendorToDriverViaVendor(vendorId, driverId) {
+    return fleetopsService.assignDriverToVendor(vendorId, driverId);
+  },
+
   async listServiceAreas() {
     const store = readDay3Store();
     return store.serviceAreas || [];
@@ -926,6 +1107,15 @@ export const fleetopsService = {
   },
 
   async optimizeRoutes(body = {}) {
+    const orderIds = body.orders || body.order_ids || body.order_uuids || [];
+    if (orderIds.length) {
+      return this.runOrchestrator({
+        mode: body.mode || "optimize_routes",
+        order_ids: orderIds,
+        options: { engine: body.engine || "greedy", ...body.options },
+        prior_assignments: body.prior_assignments,
+      });
+    }
     let lastError;
     try {
       const response = await apiClient.post("/routes/optimize", body);
@@ -942,6 +1132,65 @@ export const fleetopsService = {
       }
     }
     throw lastError;
+  },
+
+  async updateRoute(routeId, body = {}) {
+    const payload = await tryCandidatesMutate(RESOURCES.routes, `/${routeId}`, { route: body, ...body });
+    return unwrapEntity(payload, ["route"]);
+  },
+
+  async deleteRoute(routeId) {
+    await tryCandidates(RESOURCES.routes, "delete", `/${routeId}`);
+  },
+
+  async getRoutingSettings() {
+    try {
+      const payload = await tryCandidates(RESOURCES.settingsRouting, "get", "", undefined);
+      return payload?.routing || payload?.settings || payload || {};
+    } catch {
+      return {};
+    }
+  },
+
+  async listOrchestratorOrders(params = {}) {
+    const response = await apiClient.get("/fleet-ops/orchestrator/orders", { params, loading: false });
+    return unwrapList(response.data, ["orders"]);
+  },
+
+  async getOrchestratorEngines() {
+    const response = await apiClient.get("/fleet-ops/orchestrator/engines", { loading: false });
+    const data = response.data;
+    if (Array.isArray(data?.engines)) return data.engines;
+    if (Array.isArray(data)) return data;
+    return [];
+  },
+
+  async getOrchestratorOrderConfigFields() {
+    const response = await apiClient.get("/fleet-ops/orchestrator/order-config-fields", { loading: false });
+    return response.data?.order_configs || response.data?.configs || unwrapList(response.data, ["order_configs", "configs"]);
+  },
+
+  async runOrchestrator(body = {}) {
+    const response = await apiClient.post("/fleet-ops/orchestrator/run", body, { loading: false });
+    return response.data;
+  },
+
+  async runOrchestratorPreview(body = {}) {
+    const response = await apiClient.get("/fleet-ops/orchestrator/preview", { params: body, loading: false }).catch(async () => {
+      const post = await apiClient.post("/fleet-ops/orchestrator/run", body, { loading: false });
+      return post;
+    });
+    return response.data;
+  },
+
+  async runOrchestratorCommit(body = {}) {
+    const response = await apiClient.post("/fleet-ops/orchestrator/commit", body, { loading: false });
+    return response.data;
+  },
+
+  async importOrchestratorOrders(body = {}) {
+    const response = await apiClient.post("/fleet-ops/orchestrator/import-orders", body, { loading: false });
+    return response.data;
   },
 
   async listServiceRates(params = {}) {
@@ -993,26 +1242,6 @@ export const fleetopsService = {
       }
     }
     return best;
-  },
-
-  async runOrchestratorPreview(body = {}) {
-    const response = await apiClient.post("/orchestration/preview", body, { loading: false }).catch(async (err) => {
-      const fallback = await apiClient.post("/orchestrator/preview", body, { loading: false }).catch(() => {
-        throw err;
-      });
-      return fallback;
-    });
-    return response.data;
-  },
-
-  async runOrchestratorCommit(body = {}) {
-    const response = await apiClient.post("/orchestration/commit", body, { loading: false }).catch(async (err) => {
-      const fallback = await apiClient.post("/orchestrator/commit", body, { loading: false }).catch(() => {
-        throw err;
-      });
-      return fallback;
-    });
-    return response.data;
   },
 
   async listServiceAreaZones(serviceAreaId) {

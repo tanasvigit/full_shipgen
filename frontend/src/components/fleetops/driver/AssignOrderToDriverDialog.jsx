@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
@@ -7,16 +8,32 @@ import { toast } from "sonner";
 export default function AssignOrderToDriverDialog({ open, onOpenChange, driverId, driverName }) {
   const [orders, setOrders] = useState([]);
   const [orderId, setOrderId] = useState("");
+  const [vehicleId, setVehicleId] = useState("");
+  const [vehicles, setVehicles] = useState([]);
+  const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) return;
-    void fleetopsService.listOrders({ limit: 50 }).then((list) => {
-      const rows = Array.isArray(list) ? list : list?.data || [];
-      setOrders(rows.filter((o) => !o.driver_uuid && !o.driver_id));
+    void Promise.all([
+      fleetopsService.listOrdersPage({ without_driver: 1, limit: 100, search: search || undefined }),
+      fleetopsService.listVehicles().catch(() => []),
+    ]).then(([page, vRows]) => {
+      setOrders(page.rows || []);
+      setVehicles(vRows || []);
     });
-  }, [open]);
+  }, [open, search]);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return orders;
+    const term = search.trim().toLowerCase();
+    return orders.filter(
+      (o) =>
+        String(o.publicId || o.public_id || "").toLowerCase().includes(term) ||
+        String(o.customer?.name || "").toLowerCase().includes(term),
+    );
+  }, [orders, search]);
 
   const submit = async () => {
     if (!orderId) {
@@ -26,7 +43,10 @@ export default function AssignOrderToDriverDialog({ open, onOpenChange, driverId
     setBusy(true);
     setError("");
     try {
-      await fleetopsService.assignOrderToDriver(driverId, orderId);
+      await fleetopsService.assignDriverToOrder(orderId, {
+        driverId,
+        vehicleId: vehicleId || undefined,
+      });
       toast.success(`Order assigned to ${driverName || "driver"}`);
       onOpenChange(false);
     } catch (err) {
@@ -48,21 +68,44 @@ export default function AssignOrderToDriverDialog({ open, onOpenChange, driverId
       onSubmit={submit}
       testId="assign-order-to-driver-dialog"
     >
-      <Select value={orderId} onValueChange={setOrderId}>
-        <SelectTrigger data-testid="assign-order-select">
-          <SelectValue placeholder="Select order" />
-        </SelectTrigger>
-        <SelectContent>
-          {orders.map((o) => {
-            const id = String(o.uuid || o.id);
-            return (
-              <SelectItem key={id} value={id}>
-                {o.public_id || o.tracking_number || id}
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
+      <div className="space-y-3">
+        <Input
+          placeholder="Search orders…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          data-testid="assign-order-search"
+        />
+        <Select value={orderId} onValueChange={setOrderId}>
+          <SelectTrigger data-testid="assign-order-select">
+            <SelectValue placeholder="Select order" />
+          </SelectTrigger>
+          <SelectContent>
+            {filtered.map((o) => {
+              const id = String(o.id || o.uuid);
+              return (
+                <SelectItem key={id} value={id}>
+                  {o.publicId || o.public_id || o.tracking_number || id}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+        <Select value={vehicleId} onValueChange={setVehicleId}>
+          <SelectTrigger data-testid="assign-order-vehicle-select">
+            <SelectValue placeholder="Vehicle (optional)" />
+          </SelectTrigger>
+          <SelectContent>
+            {vehicles.map((v) => {
+              const id = String(v.uuid || v.id);
+              return (
+                <SelectItem key={id} value={id}>
+                  {v.name || v.plate || id}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      </div>
     </FleetOpsFormDialog>
   );
 }

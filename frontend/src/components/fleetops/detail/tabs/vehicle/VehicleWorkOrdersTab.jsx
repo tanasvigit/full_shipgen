@@ -40,6 +40,11 @@ export default function VehicleWorkOrdersTab({ vehicleId, enabled = true }) {
             ),
           },
           { key: "status", header: "Status" },
+          {
+            key: "scheduled",
+            header: "Scheduled",
+            render: (r) => r.raw?.scheduled_at || r.raw?.starts_at || "—",
+          },
           { key: "publicId", header: "Public ID" },
         ]}
         data={rows}

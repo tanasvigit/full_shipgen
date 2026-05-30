@@ -157,6 +157,47 @@ export default function OrderConfigWorkflowBuilder({
                         className="h-9 text-sm bg-[#F5F6F8] font-mono"
                       />
                     </div>
+                    <div className="md:col-span-3 space-y-1">
+                      <Label className="text-[10px] font-mono uppercase text-[#6B7280]">Conditional logic (if → goto)</Label>
+                      <Input
+                        value={(node.logic || []).map((l) => `${l.if || l.field || ""}:${l.then || l.goto || ""}`).join(", ")}
+                        disabled={disabled}
+                        placeholder="priority:high → dispatched, status:cancelled → canceled"
+                        onChange={(e) =>
+                          patchNode(index, {
+                            logic: e.target.value
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                              .map((pair) => {
+                                const [cond, target] = pair.split("→").map((x) => x.trim());
+                                const [field, value] = (cond || "").split(":").map((x) => x.trim());
+                                return { if: cond, field, value, then: target, goto: target };
+                              }),
+                          })
+                        }
+                        className="h-9 text-sm bg-[#F5F6F8] font-mono"
+                        data-testid={`workflow-logic-${index}`}
+                      />
+                    </div>
+                    <div className="md:col-span-3 space-y-1">
+                      <Label className="text-[10px] font-mono uppercase text-[#6B7280]">Events (hooks)</Label>
+                      <Input
+                        value={(node.events || []).join(", ")}
+                        disabled={disabled}
+                        placeholder="on_enter, on_complete"
+                        onChange={(e) =>
+                          patchNode(index, {
+                            events: e.target.value
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean),
+                          })
+                        }
+                        className="h-9 text-sm bg-[#F5F6F8] font-mono"
+                        data-testid={`workflow-events-${index}`}
+                      />
+                    </div>
                   </div>
                   <Button
                     type="button"

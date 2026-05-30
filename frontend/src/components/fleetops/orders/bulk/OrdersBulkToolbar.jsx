@@ -10,26 +10,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Truck, Send, Ban, Trash2, X, Route } from "lucide-react";
+import { Truck, Send, Ban, Trash2, X, Route, Calendar, Workflow, Upload } from "lucide-react";
 import BulkAssignDriverDialog from "../modals/BulkAssignDriverDialog";
+import OrderScheduleDialog from "../modals/OrderScheduleDialog";
 
 export default function OrdersBulkToolbar({
   selectedCount,
+  selectedOrderIds = [],
   onClearSelection,
   onBulkDispatch,
   onBulkCancel,
   onBulkDelete,
   onBulkAssign,
+  onBulkSchedule,
   onPlanRoutes,
+  onRunOrchestrator,
+  onOrchestratorImport,
   canPlanRoutes = false,
+  canOrchestrator = false,
   canDispatch = true,
   canCancel = true,
   canDelete = true,
   canAssign = true,
+  canSchedule = true,
   busy = false,
 }) {
   const [confirm, setConfirm] = useState(null);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   if (selectedCount < 1) return null;
 
@@ -71,6 +79,42 @@ export default function OrdersBulkToolbar({
             onClick={() => setAssignOpen(true)}
           >
             <Truck className="h-3.5 w-3.5 mr-1" /> Assign driver
+          </Button>
+        )}
+        {canSchedule && selectedOrderIds.length > 0 && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 bg-white"
+            disabled={busy}
+            data-testid="orders-bulk-schedule"
+            onClick={() => setScheduleOpen(true)}
+          >
+            <Calendar className="h-3.5 w-3.5 mr-1" /> Schedule
+          </Button>
+        )}
+        {canOrchestrator && onRunOrchestrator && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 bg-white"
+            disabled={busy}
+            data-testid="orders-bulk-orchestrator"
+            onClick={onRunOrchestrator}
+          >
+            <Workflow className="h-3.5 w-3.5 mr-1" /> Orchestrator
+          </Button>
+        )}
+        {canOrchestrator && onOrchestratorImport && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 bg-white"
+            disabled={busy}
+            data-testid="orders-orchestrator-import"
+            onClick={onOrchestratorImport}
+          >
+            <Upload className="h-3.5 w-3.5 mr-1" /> Import to pool
           </Button>
         )}
         {canPlanRoutes && onPlanRoutes && (
@@ -151,6 +195,18 @@ export default function OrdersBulkToolbar({
           setAssignOpen(false);
         }}
       />
+
+      {canSchedule && selectedOrderIds.length > 0 && (
+        <OrderScheduleDialog
+          open={scheduleOpen}
+          onOpenChange={setScheduleOpen}
+          orderIds={selectedOrderIds}
+          onScheduled={async () => {
+            await onBulkSchedule?.();
+            setScheduleOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

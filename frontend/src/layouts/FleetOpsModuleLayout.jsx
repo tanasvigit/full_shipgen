@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import FleetOpsDetailHost from "@/components/fleetops/detail/FleetOpsDetailHost";
+import FleetopsPermissionGate from "@/components/fleetops/FleetopsPermissionGate";
 import { fleetopsRealtimeManager } from "@/domain/fleetops/realtime/registry";
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
 import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtimeChannel";
@@ -21,7 +22,9 @@ export default function FleetOpsModuleLayout() {
 
   return (
     <>
-      <Outlet />
+      <FleetopsPermissionGate>
+        <Outlet />
+      </FleetopsPermissionGate>
       <FleetOpsDetailHost />
     </>
   );

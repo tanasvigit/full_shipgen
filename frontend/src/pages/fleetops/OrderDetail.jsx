@@ -29,7 +29,7 @@ import OrderDocumentsPanel from "@/components/fleetops/orders/detail/documents/O
 import OrderRouteEditor from "@/components/fleetops/orders/detail/panels/OrderRouteEditor";
 import AssignDriverDialog from "@/components/fleetops/orders/modals/AssignDriverDialog";
 import OrderLabelDialog from "@/components/fleetops/orders/OrderLabelDialog";
-import { FLEETOPS_ABILITY_FALLBACK, useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
+import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
@@ -73,8 +73,8 @@ export default function OrderDetail({
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const uploadedRef = useRef([]);
-  const ability = useFleetopsAbility() ?? FLEETOPS_ABILITY_FALLBACK;
-  const canAssignDriver = ability.canAssignDriver ?? true;
+  const ability = useFleetopsAbility();
+  const canAssignDriver = ability.canAssignDriver;
 
   const {
     order,

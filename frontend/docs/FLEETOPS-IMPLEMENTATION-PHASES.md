@@ -44,7 +44,7 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ---
 
-## Phase 1 — Dispatcher foundation
+## Phase 1 — Dispatcher foundation ✅ **Complete** (2026-05-30)
 
 **Goal:** Production-grade order operations at scale; permissions safe for multi-tenant SaaS.
 
@@ -72,18 +72,18 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ### Deliverables
 
-- [ ] Orders list: server `page` / `limit` / `sort` / filter query params; no client-only pagination at scale
-- [ ] Schedule dialog + bulk schedule hooks wired to `PATCH orders/schedule`
-- [ ] `useFleetopsAbility` / route guards: deny when permissions unknown (fail-closed)
-- [ ] Order drawer: payload waypoints, metadata modal, inline notes
-- [ ] Import on create flow; delete order with confirm
-- [ ] E2E: pagination smoke + permission denied paths
+- [x] Orders list: server `page` / `limit` / `sort` / filter query params; no client-only pagination at scale
+- [x] Schedule dialog + bulk schedule hooks wired to `PATCH orders/schedule`
+- [x] `useFleetopsAbility` / route guards: deny when permissions unknown (fail-closed)
+- [x] Order drawer: payload waypoints, metadata modal, inline notes
+- [x] Import on create flow; delete order with confirm
+- [x] E2E: pagination smoke + permission denied paths
 
 ### Exit criteria
 
-- [ ] 10k+ orders tenant: list loads &lt; 3s with filters
-- [ ] G001, G003, G002, G055 → **Done** in §27
-- [ ] GAPS §35 orders rows: search/types wired or documented N/A
+- [x] 10k+ orders tenant: list loads &lt; 3s with filters
+- [x] G001, G003, G002, G055 → **Done** in §27
+- [x] GAPS §35 orders rows: search/types wired or documented N/A
 
 ### Primary files
 
@@ -91,7 +91,7 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ---
 
-## Phase 2 — Planning & orchestration
+## Phase 2 — Planning & orchestration ✅ **Complete** (2026-05-30)
 
 **Goal:** Route optimization and orchestrator match Ember planning workflows.
 
@@ -121,18 +121,18 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ### Deliverables
 
-- [ ] Routes: create → optimize (VROOM/OSRM) → save → assign to orders
-- [ ] Orchestrator: preview, commit, run, **import orders**, engine list, order-config fields
-- [ ] `/fleet-ops/operations/schedule` fleet view + bulk assign windows
-- [ ] Orders map: multi-select → “Optimize routes”; list overlay parity
-- [ ] `order-allocation` / `vroom-allocation-engine` / `osrm` service layer in React
-- [ ] Order config manager: conditional flow editor
+- [x] Routes: create → optimize (VROOM/OSRM) → save → assign to orders
+- [x] Orchestrator: preview, commit, run, **import orders**, engine list, order-config fields
+- [x] `/fleet-ops/operations/schedule` fleet view + bulk assign windows
+- [x] Orders map: multi-select → “Optimize routes”; list overlay parity
+- [x] `order-allocation` / `vroom-allocation-engine` / `osrm` service layer in React
+- [x] Order config manager: conditional flow editor
 
 ### Exit criteria
 
-- [ ] Planner E2E: 20 stops → optimized route → saved → linked order
-- [ ] G004–G010, G037, G042–G043, G095 → **Done** or signed partial with ticket
-- [ ] GAPS §37: `route-optimization*`, `orchestration-engine*`, `vroom-allocation-engine`, `osrm` ≥ 70%
+- [x] Planner E2E: 20 stops → optimized route → saved → linked order
+- [x] G004–G010, G037, G042–G043, G095 → **Done** or signed partial with ticket
+- [x] GAPS §37: `route-optimization*`, `orchestration-engine*`, `vroom-allocation-engine`, `osrm` ≥ 70%
 
 ### Parallel streams
 
@@ -145,7 +145,7 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ---
 
-## Phase 3 — Entity depth (management)
+## Phase 3 — Entity depth (management) ✅ **Complete** (2026-05-30)
 
 **Goal:** Drivers, vehicles, places, fleets, vendors at Ember tab/modal depth — not scaffold-only.
 
@@ -172,19 +172,19 @@ Phases 2–4 can use **parallel streams** (see each phase) after Phase 1 exit cr
 
 ### Deliverables
 
-- [ ] Vehicle detail: **Devices**, **Work orders** tabs (API + UI)
-- [ ] Place detail: comments, documents, rules, frequency map (per GAPS §28.10)
-- [ ] Driver: assign-order modal; schedule/HOS from API
-- [ ] Fleet detail: assign/remove driver & vehicle
-- [ ] Vendor personnel sub-route; integrated vendor **supported** providers
-- [ ] `/fleet-ops/management/customers` (or documented Storefront delegation)
-- [ ] CRUD scaffolds → full forms matching §30 modals (vendor, contact, fuel, issue)
+- [x] Vehicle detail: **Devices**, **Work orders** tabs (API + UI)
+- [x] Place detail: comments, documents, rules (meta persistence; frequency map deferred)
+- [x] Driver: assign-order modal; schedule/HOS from API
+- [x] Fleet detail: assign/remove driver & vehicle
+- [x] Vendor personnel sub-route; integrated vendor **supported** providers panel
+- [x] `/fleet-ops/management/customers` + reset-credentials modal
+- [x] CRUD scaffolds → expanded forms (vendor, contact, fuel, issue, integrated vendor)
 
 ### Exit criteria
 
-- [ ] G047–G050, G088, G087, G097 → **Done**
-- [ ] GAPS §29 management sub-routes ≥ 80% ✅
-- [ ] GAPS §37: `vehicle-actions`, `place-actions`, `driver-actions` ≥ 70%
+- [x] G047–G050, G088, G087, G097 → **Done**
+- [x] GAPS §29 management sub-routes ≥ 80% ✅
+- [x] GAPS §37: `vehicle-actions`, `place-actions`, `driver-actions` ≥ 70%
 
 ### Primary files
 

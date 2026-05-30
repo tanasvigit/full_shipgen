@@ -36,13 +36,21 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
         if (queryState.without_driver) {
           rows = rows.filter((o) => !o.driverId);
         }
-        setOrders(rows);
-        setMeta({
-          total: rows.length,
-          page: queryState.page,
-          perPage: queryState.limit,
-          lastPage: Math.max(1, Math.ceil(rows.length / queryState.limit)),
-        });
+        if (queryState.search?.trim()) {
+          const term = queryState.search.trim().toLowerCase();
+          rows = rows.filter(
+            (o) =>
+              String(o.publicId || "").toLowerCase().includes(term) ||
+              String(o.customer?.name || "").toLowerCase().includes(term),
+          );
+        }
+        const total = rows.length;
+        const perPage = queryState.limit;
+        const lastPage = Math.max(1, Math.ceil(total / perPage));
+        const page = Math.min(queryState.page, lastPage);
+        const start = (page - 1) * perPage;
+        setOrders(rows.slice(start, start + perPage));
+        setMeta({ total, page, perPage, lastPage });
         setLoading(false);
         return;
       }
@@ -50,10 +58,6 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
       try {
         invalidateCachedQuery("fleetops:orders");
         const apiParams = buildOrdersListApiParams(queryState);
-        delete apiParams.query;
-        delete apiParams.search;
-        apiParams.page = 1;
-        apiParams.limit = Math.max(Number(apiParams.limit) || 25, 500);
         const { rows, meta: pageMeta } = await fleetopsService.listOrdersPage(apiParams);
         setOrders(rows.map(mapOrder));
         setMeta(pageMeta);
