@@ -1,0 +1,30 @@
+{
+  "generated": "2026-05-19T10:35:51.840Z",
+  "analytics": {
+    "metrics": {
+      "Architecture Complexity": 85,
+      "Operational Risk": 34,
+      "Async Density": 100,
+      "Security Posture": 88,
+      "Test Reliability": 95,
+      "Governance Health": 60,
+      "Refactor Safety": -12,
+      "AI Navigability": 61
+    },
+    "engineeringQualityIndex": 64,
+    "enterpriseMaturity": 68,
+    "maintainabilityIndex": 28,
+    "platformSustainabilityScore": 54,
+    "stats": {
+      "metricCount": 8
+    }
+  },
+  "deploymentRisk": {
+    "releaseRiskScore": 65,
+    "productionSafetyScore": 66
+  },
+  "snapshotDiff": {
+    "deltas": {},
+    "trend": "baseline"
+  }
+}

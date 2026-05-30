@@ -1,0 +1,389 @@
+## 1) Routing Structure (Complete)
+
+Source: `console/router.map.js` (plus extension mounts via generator)
+
+### Auth Routes
+- `auth` → `/auth`
+- `auth.login` → `/auth/`
+- `auth.forgot-password` → `/auth/forgot-password`
+- `auth.reset-password` → `/auth/reset-password/:id`
+- `auth.two-fa` → `/auth/two-fa`
+- `auth.verification` → `/auth/verification`
+- `auth.portal-login` → `/auth/portal` *(declared route; local implementation not present)*
+
+### Public / Install / Onboard / Invite / Fallback
+- `install` → `/install`
+- `onboard` → `/onboard`
+- `onboard.index` → `/onboard/`
+- `invite` → `/join`
+- `invite.for-driver` → `/join/fleet/:public_id`
+- `invite.for-user` → `/join/org/:public_id`
+- `catch` → `/*`
+
+### Console (Protected) Routes
+- `console` → `/`
+- `console.home` → `/`
+- `console.notifications` → `/notifications`
+- `console.account` → `/account`
+- `console.account.auth` → `/account/auth`
+- `console.account.organizations` → `/account/organizations`
+- `console.account.virtual` → `/account/:slug`
+- `console.settings` → `/settings`
+- `console.settings.two-fa` → `/settings/two-fa`
+- `console.settings.notifications` → `/settings/notifications`
+- `console.settings.virtual` → `/settings/:slug`
+- `console.virtual` → `/:slug`
+
+### Admin Routes
+- `console.admin` → `/admin`
+- `console.admin.index` → `/admin/`
+- `console.admin.branding` → `/admin/branding`
+- `console.admin.two-fa-settings` → `/admin/two-fa-settings`
+- `console.admin.config` → `/admin/config`
+- `console.admin.config.database` → `/admin/config/database`
+- `console.admin.config.cache` → `/admin/config/cache`
+- `console.admin.config.filesystem` → `/admin/config/filesystem`
+- `console.admin.config.mail` → `/admin/config/mail`
+- `console.admin.config.notification-channels` → `/admin/config/push-notifications`
+- `console.admin.config.queue` → `/admin/config/queue`
+- `console.admin.config.services` → `/admin/config/services`
+- `console.admin.config.socket` → `/admin/config/socket`
+- `console.admin.organizations` → `/admin/organizations`
+- `console.admin.organizations.index` → `/admin/organizations/`
+- `console.admin.organizations.index.users` → `/admin/organizations/:public_id/users`
+- `console.admin.schedule-monitor` → `/admin/schedule-monitor`
+- `console.admin.schedule-monitor.logs` → `/admin/schedule-monitor/:id/logs`
+- `console.admin.virtual` → `/admin/:slug`
+
+### Dynamic / Virtual Routes
+- `virtual` → `/~/:slug`
+- `console.virtual` → `/:slug`
+- `console.account.virtual` → `/account/:slug`
+- `console.settings.virtual` → `/settings/:slug`
+- `console.admin.virtual` → `/admin/:slug`
+
+---
+
+## 2) Page Inventory (Per Route Surface)
+
+### Auth
+- **Login (`/auth`)**
+  - Purpose: user sign-in entry point.
+  - UI: identity/password form, remember option, links, extension auth buttons.
+  - Actions: login, redirect to 2FA/verification/reset flows.
+- **Forgot Password (`/auth/forgot-password`)**
+  - Purpose: request reset link/session.
+  - UI: email/identity form.
+  - Actions: submit reset request.
+- **Reset Password (`/auth/reset-password/:id`)**
+  - Purpose: complete password reset with token/session.
+  - UI: reset form, validation messaging.
+  - Actions: set new password.
+- **2FA Challenge (`/auth/two-fa`)**
+  - Purpose: OTP verification step after login.
+  - UI: OTP input, resend timer, cancel.
+  - Actions: verify OTP, resend OTP, invalidate temp session.
+- **Verification (`/auth/verification`)**
+  - Purpose: email/account verification before full access.
+  - UI: code input, resend via channels.
+  - Actions: verify, resend.
+- **Portal Login (`/auth/portal`)**
+  - Purpose: declared route for portal auth handoff.
+  - UI/Actions: local page not implemented (treat as extension/integration-owned).
+
+### Public / Onboard / Invite / Install
+- **Install (`/install`)**
+  - Purpose: bootstrap app installation process.
+  - UI: install progress/status.
+  - Actions: create DB, migrate, seed.
+- **Onboard (`/onboard`)**
+  - Purpose: onboarding journey container.
+  - UI: step renderer (`Onboarding::Yield`).
+  - Actions: next/complete steps via orchestrator.
+- **Invite User (`/join/org/:public_id`)**
+  - Purpose: accept organization invite and join.
+  - UI: invite code form, optional set-password modal.
+  - Actions: accept invite, set password, authenticate.
+- **Invite Driver (`/join/fleet/:public_id`)**
+  - Purpose: driver invite endpoint.
+  - UI: minimal/placeholder in local app.
+  - Actions: extension/domain-specific.
+- **Catch (`/*`)**
+  - Purpose: fallback routing.
+  - UI: redirect/outlet handling.
+  - Actions: navigation fallback.
+
+### Console Core
+- **Home (`/`)**
+  - Purpose: dashboard landing for authenticated users.
+  - UI: dashboard widgets/cards, alerts.
+  - Actions: view metrics/widgets, navigate features.
+- **Notifications (`/notifications`)**
+  - Purpose: notification inbox management.
+  - UI: list/table, pagination, bulk select.
+  - Actions: mark read, bulk delete, refresh/filter.
+- **Console Virtual (`/:slug`)**
+  - Purpose: dynamic extension page under console scope.
+  - UI: lazy-loaded extension component.
+  - Actions: extension-defined.
+
+### Account
+- **Account Index (`/account`)**
+  - Purpose: profile and personal account settings.
+  - UI: profile form, avatar upload, timezone selector.
+  - Actions: update profile data.
+- **Account Auth (`/account/auth`)**
+  - Purpose: account security settings.
+  - UI: change password form, 2FA controls.
+  - Actions: update password, toggle/verify 2FA preferences.
+- **Account Organizations (`/account/organizations`)**
+  - Purpose: organization membership management.
+  - UI: org list/table + modals.
+  - Actions: create/join/switch/leave/transfer ownership.
+- **Account Virtual (`/account/:slug`)**
+  - Purpose: extension-defined account subsection.
+  - UI/Actions: extension-defined.
+
+### Settings
+- **Settings Index (`/settings`)**
+  - Purpose: organization/company settings.
+  - UI: org form, logo/backdrop upload, fields.
+  - Actions: update org settings.
+- **Settings 2FA (`/settings/two-fa`)**
+  - Purpose: org-level 2FA policy.
+  - UI: toggles/options.
+  - Actions: save org 2FA configuration.
+- **Settings Notifications (`/settings/notifications`)**
+  - Purpose: outbound notification preferences.
+  - UI: channel/registry settings forms.
+  - Actions: save notification configuration.
+- **Settings Virtual (`/settings/:slug`)**
+  - Purpose: extension-defined settings subsection.
+  - UI/Actions: extension-defined.
+
+### Admin
+- **Admin Index (`/admin`)**
+  - Purpose: system/admin overview.
+  - UI: KPIs/overview panels.
+  - Actions: navigate admin modules.
+- **Branding (`/admin/branding`)**
+  - Purpose: platform branding/theme controls.
+  - UI: icon/logo uploads, theme options.
+  - Actions: save branding config.
+- **Global 2FA Settings (`/admin/two-fa-settings`)**
+  - Purpose: system-wide 2FA policy.
+  - UI: policy config form.
+  - Actions: read/update 2FA global config.
+- **Organizations (`/admin/organizations`)**
+  - Purpose: org directory/admin operations.
+  - UI: searchable table/list, export/drill-down.
+  - Actions: inspect/manage orgs.
+- **Organization Users (`/admin/organizations/:public_id/users`)**
+  - Purpose: per-organization user management.
+  - UI: users table/overlay.
+  - Actions: impersonate, update password/admin actions.
+- **Schedule Monitor (`/admin/schedule-monitor`)**
+  - Purpose: view scheduled tasks/jobs.
+  - UI: tasks list/table.
+  - Actions: inspect jobs.
+- **Schedule Logs (`/admin/schedule-monitor/:id/logs`)**
+  - Purpose: inspect logs for a scheduled task.
+  - UI: log viewer.
+  - Actions: reload logs.
+- **Admin Config Pages**
+  - `/admin/config/database`, `/cache`, `/filesystem`, `/mail`, `/push-notifications`, `/queue`, `/services`, `/socket`
+  - Purpose: system integration/config controls.
+  - UI: config forms/panels (some component-owned).
+  - Actions: read/update infra/system settings.
+- **Admin Virtual (`/admin/:slug`)**
+  - Purpose: extension-defined admin subsection.
+  - UI/Actions: extension-defined.
+
+---
+
+## 3) User Flows
+
+### Login Flow
+- User submits credentials on `/auth`.
+- App checks 2FA requirement.
+- If 2FA required → redirect `/auth/two-fa?token=...`.
+- If verification required → create verification session → `/auth/verification`.
+- Else authenticate and land on `/`.
+
+### Logout Flow
+- Triggered from console shell/header action.
+- Session invalidated with loader.
+- Redirect to auth route.
+
+### 2FA Flow
+- Validate temporary 2FA session.
+- Submit OTP to verify.
+- Success → authenticated session and redirect to console.
+- Alternate actions: resend OTP, cancel/invalidate temp session.
+- Additional policy surfaces in account/settings/admin pages.
+
+### Invite / Join Flow
+- User opens `/join/org/:public_id`.
+- Submit invite code.
+- Backend returns auth token/session.
+- Optional forced set-password step.
+- User lands in console.
+
+### Console Navigation Flow
+- Auth guard on `console` route.
+- Sidebar/menu drives section navigation (`home`, `notifications`, `account`, `settings`, `admin`).
+- Dynamic extension entries can inject extra menu items and virtual pages.
+
+---
+
+## 4) Master Feature Checklist
+
+### Auth
+- [ ] Login
+- [ ] Forgot Password
+- [ ] Reset Password
+- [ ] Email/Account Verification
+- [ ] 2FA Challenge (OTP)
+- [ ] Portal Login integration (extension/integration-owned)
+
+### Public / Install / Onboard / Invite
+- [ ] Installer flow (DB/migrate/seed)
+- [ ] Onboarding step engine
+- [ ] Join organization via invite
+- [ ] Driver invite flow
+- [ ] Fallback route handling
+
+### Console
+- [ ] Dashboard home
+- [ ] Notifications inbox
+- [ ] Account profile
+- [ ] Account auth/security
+- [ ] Account organizations management
+- [ ] Organization settings
+- [ ] Organization 2FA settings
+- [ ] Notification settings
+
+### Admin
+- [ ] Admin overview
+- [ ] Branding
+- [ ] Global 2FA policy
+- [ ] Organizations directory
+- [ ] Organization users management
+- [ ] Impersonation
+- [ ] Schedule monitor
+- [ ] Schedule logs
+- [ ] Config: database
+- [ ] Config: cache
+- [ ] Config: filesystem
+- [ ] Config: mail
+- [ ] Config: push notifications
+- [ ] Config: queue
+- [ ] Config: services
+- [ ] Config: socket
+
+### Advanced / Later Phase (Dynamic)
+- [ ] Virtual route rendering (`/:slug`, `/account/:slug`, `/settings/:slug`, `/admin/:slug`, `/~/:slug`)
+- [ ] Extension engine route mounts
+- [ ] Registry-driven login/menu blocks
+- [ ] Hook lifecycle integrations
+- [ ] Dynamic sidebar/menu/panel injection
+
+---
+
+## 5) API Interaction Summary (High-Level)
+
+### Bootstrap / App Init
+- `GET installer/initialize` — installation/onboarding gate.
+
+### Auth
+- `POST auth/get-magic-reset-link` — forgot password.
+- `GET auth/validate-verification` — validate verification session/token.
+- `POST auth/reset-password` — set new password.
+- `POST auth/create-verification-session` — prepare verification flow.
+- `POST auth/validate-verification-session` — verify active verification session.
+- `POST auth/verify-email` — complete verification.
+- `POST two-fa/validate` — validate 2FA temp session.
+- `POST two-fa/verify` — verify OTP.
+- `POST two-fa/resend` — resend OTP.
+- `POST two-fa/invalidate` — cancel 2FA temp session.
+
+### Onboard / Invite / Install
+- `POST onboard/verify-email`
+- `POST onboard/send-verification-email`
+- `POST onboard/send-verification-sms`
+- `POST users/accept-company-invite`
+- `POST users/set-password`
+- `POST installer/createdb`
+- `POST installer/migrate`
+- `POST installer/seed`
+
+### Console / Account / Settings
+- Notifications (Ember Data + custom):
+  - `GET notifications` (query/list)
+  - `PUT notifications/mark-as-read`
+  - `DELETE notifications/bulk-delete`
+- Profile/org model saves (`user`, `company`) via adapter-backed updates (PATCH/PUT patterns).
+- `GET lookup/timezones`
+- `POST users/change-password`
+- `GET/POST users/two-fa`
+- `GET/POST companies/two-fa`
+- `GET notifications/registry`
+- `GET notifications/notifiables`
+- `GET notifications/get-settings`
+- `POST notifications/save-settings`
+- Org actions:
+  - `POST auth/create-organization`
+  - `POST auth/join-organization`
+  - `POST auth/switch-organization`
+
+### Admin
+- `GET settings/overview`
+- `GET two-fa/config`
+- `POST two-fa/config`
+- `GET companies?view=admin...` (admin org listing query)
+- `GET companies/:id/users`
+- `POST auth/impersonate`
+- `GET schedule-monitor/tasks`
+- `GET schedule-monitor/:id`
+- `GET schedule-monitor/:id/logs`
+- Config modules use page/component-specific endpoints (some extension/internal-module owned).
+
+---
+
+## 6) State & Services Used (Rewrite-Critical)
+
+- `session` — auth lifecycle, guards, logout, redirect memory.
+- `currentUser` — user/company identity, role/admin context.
+- `fetch` — HTTP client + upload handling.
+- `store` — model query/save lifecycle.
+- `router` — route transitions/refresh.
+- `notifications` — toast/success/error UX messaging.
+- `modalsManager` — confirmation/action modal workflows.
+- `universe` — global event bus and dynamic behavior.
+- `menu-service` — dynamic menu items and virtual-page resolution.
+- `hook-service` — route lifecycle hook execution for extensions.
+- `extension-manager` — extension bootstrap readiness.
+- Onboarding services:
+  - `onboarding-orchestrator`
+  - `onboarding-registry`
+  - `onboarding-context`
+
+---
+
+## 7) Extension / Dynamic Features (Mark as Later Phase)
+
+- Router generation + extension mounts are build-driven:
+  - `console/lib/fleetbase-extensions-generator/index.js`
+- Virtual pages are slug-resolved and lazy-rendered.
+- Account/settings/admin sidebars can be extension-injected.
+- Registry slots inject UI blocks (e.g., auth page actions).
+- Hook lifecycle allows extensions to alter route behavior.
+- Treat as **Phase 2/3** in React rewrite after core static pages are stable.
+
+---
+
+## Frontend Blueprint Coverage Notes
+
+- Route coverage is complete from `router.map.js`.
+- Any route/page not locally implemented is explicitly marked extension/integration-owned.
+- This is ready to use as the master mapping for React + TypeScript + Tailwind rebuild planning.

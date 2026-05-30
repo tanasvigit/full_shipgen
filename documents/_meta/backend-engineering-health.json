@@ -1,0 +1,83 @@
+{
+  "generated": "2026-05-19T10:35:51.281Z",
+  "health": {
+    "areas": {
+      "API Contracts": {
+        "pct": 34,
+        "count": 1354
+      },
+      "Runtime Coverage": {
+        "pct": 67,
+        "count": 0
+      },
+      "Architecture Intelligence": {
+        "pct": 82,
+        "count": 0
+      },
+      "Security": {
+        "pct": 85,
+        "count": 4
+      },
+      "Test Coverage": {
+        "pct": 95,
+        "count": 9
+      },
+      "Performance": {
+        "pct": 30,
+        "count": 56
+      },
+      "Governance": {
+        "pct": 100,
+        "count": 16
+      },
+      "AST / Call graph": {
+        "pct": 100,
+        "count": 12741
+      },
+      "AI semantic index": {
+        "pct": 0,
+        "count": 0
+      }
+    },
+    "engineeringReadinessIndex": 66,
+    "aiReadinessScore": 61,
+    "maintainabilityScore": 67
+  },
+  "impact": [
+    {
+      "entity": "Order",
+      "risk": "high",
+      "summary": "107 API paths, 1 jobs, 11 events, 22 listeners, 1 channels, 0 UI specs"
+    },
+    {
+      "entity": "Driver",
+      "risk": "high",
+      "summary": "48 API paths, 0 jobs, 2 events, 4 listeners, 1 channels, 0 UI specs"
+    },
+    {
+      "entity": "Payment",
+      "risk": "high",
+      "summary": "43 API paths, 0 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs"
+    },
+    {
+      "entity": "Customer",
+      "risk": "high",
+      "summary": "59 API paths, 0 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs"
+    },
+    {
+      "entity": "Product",
+      "risk": "high",
+      "summary": "55 API paths, 1 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs"
+    },
+    {
+      "entity": "User",
+      "risk": "high",
+      "summary": "37 API paths, 0 jobs, 1 events, 1 listeners, 0 channels, 0 UI specs"
+    }
+  ],
+  "stats": {
+    "semanticFiles": 1093,
+    "callGraphEdges": 12741,
+    "semanticChunks": 253
+  }
+}

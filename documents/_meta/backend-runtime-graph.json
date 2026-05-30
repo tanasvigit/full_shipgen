@@ -1,0 +1,413 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:46.744Z",
+  "jobs": [
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\CheckGeofenceDwell",
+      "queue": "geofence",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\ProcessAllocationJob",
+      "queue": "default",
+      "trigger": "Order auto-allocation / listeners"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\ReplayPositions",
+      "queue": "default",
+      "trigger": "FleetOps tracking / replay API"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\SendPositionReplay",
+      "queue": "default",
+      "trigger": "FleetOps tracking / replay API"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\SimulateDrivingRoute",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\SimulateWaypointReached",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\SyncTelematicDevicesJob",
+      "queue": "default",
+      "trigger": "Telematics sync / webhooks"
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\TestTelematicConnectionJob",
+      "queue": "default",
+      "trigger": "Telematics sync / webhooks"
+    },
+    {
+      "id": "Fleetbase\\Jobs\\LogApiRequest",
+      "queue": "default",
+      "trigger": "Middleware LogApiRequests (fleetbase.api)"
+    },
+    {
+      "id": "Fleetbase\\Jobs\\MaterializeSchedulesJob",
+      "queue": "default",
+      "trigger": "Scheduler dailyAt 01:00 (CoreServiceProvider)"
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Jobs\\DownloadProductImageUrl",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    }
+  ],
+  "events": [
+    {
+      "event": "ResourceLifecycleEvent",
+      "listeners": [
+        "SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "event": "AccountCreated",
+      "listeners": [
+        "HandleAccountCreated"
+      ]
+    },
+    {
+      "event": "BroadcastNotificationCreated",
+      "listeners": [
+        "TriggerPublicNotificationBroadcast"
+      ]
+    },
+    {
+      "event": "WebhookCallSucceededEvent",
+      "listeners": [
+        "LogSuccessfulWebhook"
+      ]
+    },
+    {
+      "event": "WebhookCallFailedEvent",
+      "listeners": [
+        "LogFailedWebhook"
+      ]
+    },
+    {
+      "event": "FinalWebhookCallFailedEvent",
+      "listeners": [
+        "LogFinalWebhookAttempt"
+      ]
+    },
+    {
+      "event": "OrderCanceled",
+      "listeners": [
+        "HandleOrderCanceled",
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent"
+      ]
+    },
+    {
+      "event": "OrderDispatched",
+      "listeners": [
+        "HandleOrderDispatched",
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent"
+      ]
+    },
+    {
+      "event": "OrderDispatchFailed",
+      "listeners": [
+        "HandleOrderDispatchFailed",
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent"
+      ]
+    },
+    {
+      "event": "OrderDriverAssigned",
+      "listeners": [
+        "HandleOrderDriverAssigned",
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent"
+      ]
+    },
+    {
+      "event": "OrderCompleted",
+      "listeners": [
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent",
+        "HandleDeliveryCompletion"
+      ]
+    },
+    {
+      "event": "OrderFailed",
+      "listeners": [
+        "SendResourceLifecycleWebhook",
+        "NotifyOrderEvent"
+      ]
+    },
+    {
+      "event": "OrderReady",
+      "listeners": [
+        "HandleOrderReady"
+      ]
+    },
+    {
+      "event": "GeofenceEntered",
+      "listeners": [
+        "HandleGeofenceEntered",
+        "SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "event": "GeofenceExited",
+      "listeners": [
+        "HandleGeofenceExited",
+        "SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "event": "GeofenceDwelled",
+      "listeners": [
+        "HandleGeofenceDwelled",
+        "SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "event": "UserRemovedFromCompany",
+      "listeners": [
+        "HandleUserRemovedFromCompany"
+      ]
+    },
+    {
+      "event": "ScheduleItemCreated",
+      "listeners": [
+        "NotifyDriverOnShiftChange"
+      ]
+    },
+    {
+      "event": "ScheduleItemUpdated",
+      "listeners": [
+        "NotifyDriverOnShiftChange"
+      ]
+    },
+    {
+      "event": "OrderStarted",
+      "listeners": [
+        "HandleOrderStarted"
+      ]
+    },
+    {
+      "event": "OrderDispatched",
+      "listeners": [
+        "HandleOrderDispatched"
+      ]
+    },
+    {
+      "event": "OrderCompleted",
+      "listeners": [
+        "HandleOrderCompleted"
+      ]
+    },
+    {
+      "event": "OrderDriverAssigned",
+      "listeners": [
+        "HandleOrderDriverAssigned"
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "type": "command",
+      "target": "cache:prune-stale-tags",
+      "frequency": "hourly",
+      "queue": "sync (artisan)",
+      "purpose": "cache:prune-stale-tags",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "job",
+      "target": "Fleetbase\\Jobs\\MaterializeSchedulesJob",
+      "frequency": "01:00",
+      "queue": "default",
+      "purpose": "materialize-schedules",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "withoutOverlapping": true,
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:dispatch-adhoc",
+      "frequency": "everyMinute",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:dispatch-adhoc",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:dispatch-orders",
+      "frequency": "everyMinute",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:dispatch-orders",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:process-maintenance-triggers",
+      "frequency": "daily",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:process-maintenance-triggers",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:purge-service-quotes",
+      "frequency": "daily",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:purge-service-quotes",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:send-maintenance-reminders",
+      "frequency": "daily",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:send-maintenance-reminders",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "fleetops:update-estimations",
+      "frequency": "everyTenMinutes",
+      "queue": "sync (artisan)",
+      "purpose": "fleetops:update-estimations",
+      "file": "packages/fleetops/server/src/Providers/FleetOpsServiceProvider.php",
+      "package": "FleetOps"
+    },
+    {
+      "type": "command",
+      "target": "model:prune",
+      "frequency": "twiceDaily",
+      "queue": "sync (artisan)",
+      "purpose": "model:prune",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "purge:activity-logs --force --no-interaction --days 2",
+      "frequency": "twiceDaily",
+      "queue": "sync (artisan)",
+      "purpose": "purge:activity-logs --force --no-interaction --days 2",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "purge:api-logs --force --no-interaction --days 2",
+      "frequency": "twiceDaily",
+      "queue": "sync (artisan)",
+      "purpose": "purge:api-logs --force --no-interaction --days 2",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "purge:scheduled-task-logs --force --no-interaction --days 1",
+      "frequency": "twiceDaily",
+      "queue": "sync (artisan)",
+      "purpose": "purge:scheduled-task-logs --force --no-interaction --days 1",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "purge:webhook-logs --force --no-interaction --days 2",
+      "frequency": "twiceDaily",
+      "queue": "sync (artisan)",
+      "purpose": "purge:webhook-logs --force --no-interaction --days 2",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "sandbox:sync",
+      "frequency": "hourly",
+      "queue": "sync (artisan)",
+      "purpose": "sandbox:sync",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    },
+    {
+      "type": "command",
+      "target": "storefront:notify-order-nearby",
+      "frequency": "everyMinute",
+      "queue": "sync (artisan)",
+      "purpose": "storefront:notify-order-nearby",
+      "file": "packages/storefront/server/src/Providers/StorefrontServiceProvider.php",
+      "package": "Storefront"
+    },
+    {
+      "type": "command",
+      "target": "storefront:purge-carts",
+      "frequency": "daily",
+      "queue": "sync (artisan)",
+      "purpose": "storefront:purge-carts",
+      "file": "packages/storefront/server/src/Providers/StorefrontServiceProvider.php",
+      "package": "Storefront"
+    },
+    {
+      "type": "command",
+      "target": "telemetry:ping",
+      "frequency": "daily",
+      "queue": "sync (artisan)",
+      "purpose": "telemetry:ping",
+      "file": "packages/core-api/src/Providers/CoreServiceProvider.php",
+      "package": "Core API (platform)"
+    }
+  ],
+  "channels": [
+    {
+      "channel": "company.{company_uuid}",
+      "producer": "Order/notification broadcasts",
+      "consumer": "Console Ember app (socket service)",
+      "auth": "Sanctum session + company scope",
+      "payload": "order updates, chat, notifications",
+      "package": "core-api / fleetops"
+    },
+    {
+      "channel": "driver.{driver_uuid}",
+      "producer": "FleetOps dispatch / tracking",
+      "consumer": "Navigator driver app",
+      "auth": "Driver session",
+      "payload": "assignments, pings, route updates",
+      "package": "fleetops"
+    },
+    {
+      "channel": "test",
+      "producer": "POST settings/test-socket",
+      "consumer": "Admin socket config UI",
+      "auth": "Admin session",
+      "payload": "diagnostic events",
+      "package": "core-api"
+    },
+    {
+      "channel": "order.{order_uuid}",
+      "producer": "Order lifecycle events / tracking",
+      "consumer": "Console order detail / live map",
+      "auth": "fleetbase.protected",
+      "payload": "status, ETA, position",
+      "package": "fleetops"
+    },
+    {
+      "channel": "live/coordinates",
+      "producer": "GET /int/v1/fleet-ops/live/coordinates",
+      "consumer": "Console live map",
+      "auth": "fleetbase.protected",
+      "payload": "driver/vehicle positions (HTTP poll + socket)",
+      "package": "fleetops"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "theme": "Light",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "emotional_tone": "Authoritative, Clear, Functional, Data-dense, Professional Logistics",
+  "typography": {
+    "heading_font": "Cabinet Grotesk, system-ui, sans-serif",
+    "body_font": "IBM Plex Sans, system-ui, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "hierarchy": {
+      "h1": "text-3xl sm:text-4xl tracking-tight font-black",
+      "h2": "text-2xl sm:text-3xl tracking-tight font-bold",
+      "h3": "text-xl font-semibold",
+      "h4": "text-lg font-medium",
+      "body": "text-base leading-relaxed",
+      "labels_overlines": "text-xs tracking-[0.2em] uppercase font-bold text-gray-500",
+      "data_numbers": "font-mono font-medium tracking-tight"
+    }
+  },
+  "colors": {
+    "background": {
+      "primary": "#F8F9FA",
+      "surface": "#FFFFFF",
+      "surface_alt": "#F1F3F5"
+    },
+    "text": {
+      "primary": "#0A0A0A",
+      "secondary": "#4B5563",
+      "muted": "#9CA3AF",
+      "inverse": "#FFFFFF"
+    },
+    "brand": {
+      "primary": "#0A0A0A",
+      "primary_hover": "#262626",
+      "accent": "#0033A0"
+    },
+    "status": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6",
+      "offline": "#6B7280"
+    },
+    "border": "#E5E7EB"
+  },
+  "spacing_and_layout": {
+    "container_padding": "p-4 md:p-6",
+    "grid_gap": "gap-4",
+    "corner_radius": {
+      "card": "rounded-none sm:rounded-xl",
+      "button": "rounded-lg",
+      "badge": "rounded-sm"
+    },
+    "shadows": {
+      "card": "shadow-sm",
+      "floating": "shadow-lg",
+      "header": "shadow-sm"
+    },
+    "mobile_first": true
+  },
+  "components": {
+    "cards": "Flat background (bg-white), 1px solid border (border-gray-200), zero radius on mobile for full bleed or max 4px. Use tight internal spacing for data density (p-4).",
+    "buttons": "Solid black for primary actions (Swiss style). Hover: bg-gray-900 text-white. Outline for secondary. Sharp corners or subtle rounding (rounded-md).",
+    "badges": "Traffic-light coding. Green (Active), Yellow (Idle), Red (Offline). Use 1px border matching the text color with a very pale background (e.g., border-red-500 bg-red-50 text-red-700).",
+    "bottom_tabs": "Fixed bottom navigation bar for mobile feel. 4-5 core icons (Dashboard, Orders, Fleet, Profile). bg-white border-t border-gray-200.",
+    "inputs": "Shadcn standard. Square or slightly rounded corners. focus:ring-1 focus:ring-black focus:border-black.",
+    "lists": "Use right chevron to indicate tap-to-view-details. Clear avatar or icon on the left. High contrast dividers (border-b border-gray-100).",
+    "icons": "Use Phosphor Icons (phosphor-icons/react) for professional, technical, logistics look."
+  },
+  "views_and_navigation": {
+    "dashboard": "Tiered KPIs bento grid. Top row: large numbers for revenue, active orders. Next: vehicle status, driver status. Mobile-first stacking.",
+    "orders": "Filterable list with robust status badges. Details drill-down showing timeline/history.",
+    "live_tracking": "Full-screen map view under a floating header and floating bottom sheet for active route details.",
+    "details_screens": "Back button on top left. Content presented in data-heavy sections (e.g. Order Timeline, Customer Info, Vehicle Details) with clear 1px dividing borders."
+  },
+  "image_urls": {
+    "logistics_hero": {
+      "url": "https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?crop=entropy&cs=srgb&fm=jpg",
+      "description": "Black delivery truck on road, used for Auth/Login screen background."
+    },
+    "map_placeholder": {
+      "url": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?crop=entropy&cs=srgb&fm=jpg",
+      "description": "Road map placeholder for offline map views or static route previews."
+    },
+    "driver_avatar_1": {
+      "url": "https://images.unsplash.com/photo-1654077408108-dfd60fb520c9?crop=entropy&cs=srgb&fm=jpg",
+      "description": "Professional driver portrait 1."
+    },
+    "driver_avatar_2": {
+      "url": "https://images.unsplash.com/photo-1626565244872-206f4c1f9e57?crop=entropy&cs=srgb&fm=jpg",
+      "description": "Professional driver portrait 2 in vehicle."
+    },
+    "vehicle_placeholder_1": {
+      "url": "https://images.unsplash.com/photo-1616432043562-3671ea2e5242?crop=entropy&cs=srgb&fm=jpg",
+      "description": "White freight truck."
+    },
+    "vehicle_placeholder_2": {
+      "url": "https://images.pexels.com/photos/15379824/pexels-photo-15379824.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Yellow delivery truck."
+    }
+  },
+  "build_instructions": [
+    "Build a mobile-first Web App replicating the Fleetbase experience using React JS, Tailwind, and Shadcn/UI.",
+    "Set the root layout wrapper to simulate a mobile app container if viewed on desktop (e.g., max-w-md mx-auto h-screen relative bg-gray-50 overflow-hidden).",
+    "Implement bottom tab navigation consisting of: Dashboard, Orders, Fleet, Profile. Map can be inside Fleet or Dashboard.",
+    "Use standard data-testid attributes for all interactive elements (e.g. data-testid=\"login-button\", data-testid=\"order-item-1\").",
+    "Render the Map view using a static map image placeholder if no real map component is available, layered with floating UI panels for active tracking.",
+    "Ensure high information density and use of traffic-light status colors (Success=Green, Warning=Yellow, Error=Red).",
+    "Typography: Use Cabinet Grotesk for Headings and IBM Plex Sans for body. Do not use generic Inter font for headings.",
+    "Load static dummy data to populate lists (Orders, Drivers, Vehicles, Routes, Places) to simulate a fully populated application.",
+    "Incorporate Phosphor Icons (@phosphor-icons/react) for a professional, crisp technical aesthetic."
+  ]
+}

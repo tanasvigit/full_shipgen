@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Fleetbase Console" />
+    <link rel="icon" type="image/png" href="/logo_logistic.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;600;700;800;900&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Fleetbase Console</title>
+    <script>
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (e.error instanceof DOMException && e.error.name === "DataCloneError" && e.message && e.message.includes("PerformanceServerTiming")) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        },
+        true,
+      );
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- Critical CSS only — Tailwind is not loaded yet; do not use utility classes here -->
+    <div id="boot-loader" aria-busy="true" aria-label="Starting up">
+      <div class="boot-loader-inner">
+        <span class="fleetbase-arc-spinner-host" style="width:40px;height:40px" aria-hidden="true">
+          <svg class="fleetbase-arc-spinner" width="40" height="40" viewBox="0 0 50 50" aria-hidden="true">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="4"></circle>
+            <circle cx="25" cy="25" r="20" fill="none" stroke="#0066FF" stroke-width="4" stroke-linecap="round" stroke-dasharray="94 125.66" transform="rotate(-90 25 25)"></circle>
+          </svg>
+        </span>
+        <p class="boot-loader-message">Starting up…</p>
+      </div>
+    </div>
+    <style>
+      /* Boot splash — must work before Vite/Tailwind bundle loads */
+      #boot-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background: #f5f6f8;
+        box-sizing: border-box;
+      }
+      #boot-loader .boot-loader-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+      }
+      #boot-loader .boot-loader-message {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: #374151;
+        font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      @keyframes fleetbase-arc-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      #boot-loader .fleetbase-arc-spinner-host {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+      }
+      #boot-loader .fleetbase-arc-spinner {
+        display: block;
+        animation: fleetbase-arc-spin 0.9s linear infinite;
+        transform-origin: 50% 50%;
+        will-change: transform;
+      }
+    </style>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>

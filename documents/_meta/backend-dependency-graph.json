@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:46.744Z",
+  "packages": [
+    {
+      "from": "fleetops",
+      "to": "core-api",
+      "weight": 1586,
+      "couplingType": "tight"
+    },
+    {
+      "from": "storefront",
+      "to": "core-api",
+      "weight": 532,
+      "couplingType": "tight"
+    },
+    {
+      "from": "ledger",
+      "to": "core-api",
+      "weight": 240,
+      "couplingType": "tight"
+    },
+    {
+      "from": "registry-bridge",
+      "to": "core-api",
+      "weight": 123,
+      "couplingType": "tight"
+    },
+    {
+      "from": "pallet",
+      "to": "core-api",
+      "weight": 104,
+      "couplingType": "tight"
+    }
+  ],
+  "cycles": [],
+  "container": [
+    {
+      "interface": "\\Fleetbase\\FleetOps\\Orchestration\\OrchestrationEngineRegistry",
+      "implementation": "fn (",
+      "scope": "singleton",
+      "provider": "FleetOpsServiceProvider",
+      "package": "FleetOps"
+    },
+    {
+      "interface": "\\Fleetbase\\FleetOps\\Support\\GeofenceIntersectionService",
+      "implementation": "fn (",
+      "scope": "singleton",
+      "provider": "FleetOpsServiceProvider",
+      "package": "FleetOps"
+    },
+    {
+      "interface": "\\Fleetbase\\Services\\FileResolverService",
+      "implementation": "function ($app",
+      "scope": "singleton",
+      "provider": "CoreServiceProvider",
+      "package": "Core API (platform)"
+    },
+    {
+      "interface": "\\Fleetbase\\Services\\TemplateRenderService",
+      "implementation": "function ($app",
+      "scope": "singleton",
+      "provider": "CoreServiceProvider",
+      "package": "Core API (platform)"
+    },
+    {
+      "interface": "LedgerService);\r\n        $this->app->singleton(WalletService);\r\n        $this->app->singleton(InvoiceService);\r\n\r\n        // Payment gateway system\r\n        // The PaymentGatewayManager is bound as a singleton and also aliased\r\n        // as ledger.gateway for convenient facade-style access.\r\n        $this->app->singleton(PaymentGatewayManager",
+      "implementation": "function ($app",
+      "scope": "singleton",
+      "provider": "LedgerServiceProvider",
+      "package": "Ledger"
+    },
+    {
+      "interface": "PaymentService",
+      "implementation": "function ($app",
+      "scope": "singleton",
+      "provider": "LedgerServiceProvider",
+      "package": "Ledger"
+    },
+    {
+      "interface": "ReportSchemaRegistry",
+      "implementation": "function (",
+      "scope": "singleton",
+      "provider": "CoreServiceProvider",
+      "package": "Core API (platform)"
+    }
+  ],
+  "models": [
+    {
+      "model": "CompanyUser",
+      "relationships": 2,
+      "risks": []
+    },
+    {
+      "model": "GroupUser",
+      "relationships": 3,
+      "risks": []
+    },
+    {
+      "model": "User",
+      "relationships": 6,
+      "risks": []
+    },
+    {
+      "model": "UserDevice",
+      "relationships": 0,
+      "risks": []
+    },
+    {
+      "model": "Driver",
+      "relationships": 15,
+      "risks": [
+        "many relationships",
+        "N+1 risk (many relations, few with())"
+      ]
+    },
+    {
+      "model": "FleetDriver",
+      "relationships": 2,
+      "risks": [
+        "verify tenant scope"
+      ]
+    },
+    {
+      "model": "FleetVehicle",
+      "relationships": 2,
+      "risks": [
+        "verify tenant scope"
+      ]
+    },
+    {
+      "model": "Order",
+      "relationships": 20,
+      "risks": [
+        "many relationships"
+      ]
+    },
+    {
+      "model": "OrderConfig",
+      "relationships": 5,
+      "risks": []
+    },
+    {
+      "model": "Vehicle",
+      "relationships": 12,
+      "risks": [
+        "N+1 risk (many relations, few with())"
+      ]
+    },
+    {
+      "model": "VehicleDevice",
+      "relationships": 2,
+      "risks": [
+        "verify tenant scope"
+      ]
+    },
+    {
+      "model": "VehicleDeviceEvent",
+      "relationships": 1,
+      "risks": [
+        "verify tenant scope"
+      ]
+    },
+    {
+      "model": "WorkOrder",
+      "relationships": 6,
+      "risks": []
+    },
+    {
+      "model": "CatalogProduct",
+      "relationships": 0,
+      "risks": []
+    },
+    {
+      "model": "Customer",
+      "relationships": 4,
+      "risks": []
+    },
+    {
+      "model": "PaymentMethod",
+      "relationships": 2,
+      "risks": []
+    },
+    {
+      "model": "ProductStatus",
+      "relationships": 7,
+      "risks": []
+    },
+    {
+      "model": "ProductAddon",
+      "relationships": 1,
+      "risks": []
+    },
+    {
+      "model": "ProductAddonCategory",
+      "relationships": 1,
+      "risks": []
+    },
+    {
+      "model": "ProductHour",
+      "relationships": 1,
+      "risks": []
+    },
+    {
+      "model": "ProductStoreLocation",
+      "relationships": 2,
+      "risks": []
+    },
+    {
+      "model": "ProductVariant",
+      "relationships": 2,
+      "risks": []
+    },
+    {
+      "model": "ProductVariantOption",
+      "relationships": 1,
+      "risks": []
+    },
+    {
+      "model": "Product",
+      "relationships": 0,
+      "risks": []
+    },
+    {
+      "model": "PurchaseOrder",
+      "relationships": 6,
+      "risks": []
+    },
+    {
+      "model": "SalesOrder",
+      "relationships": 6,
+      "risks": []
+    },
+    {
+      "model": "RegistryUser",
+      "relationships": 5,
+      "risks": []
+    }
+  ]
+}

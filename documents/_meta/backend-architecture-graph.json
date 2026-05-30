@@ -1,0 +1,5102 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:46.744Z",
+  "nodes": [
+    {
+      "id": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Console/Commands/SimulateGeofenceEvents.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "GeofenceEntered",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "GeofenceDwelled",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "GeofenceExited",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateOrderRouteNavigation",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Console/Commands/SimulateOrderRouteNavigation.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "DriverSimulatedLocationChanged",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/DriverController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "VehicleLocationChanged",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "DriverLocationChanged",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "CheckGeofenceDwell",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/OrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "function",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderReady",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderStarted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderDispatchFailed",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\VehicleController",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/VehicleController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Http/Controllers/Internal/v1/OrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PositionController",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Http/Controllers/Internal/v1/PositionController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ReplayPositions",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\CheckGeofenceDwell",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Jobs/CheckGeofenceDwell.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\ProcessAllocationJob",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Jobs/ProcessAllocationJob.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ProcessAllocationJob",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\ReplayPositions",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Jobs/ReplayPositions.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "SendPositionReplay",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Jobs\\SimulateWaypointReached",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Jobs/SimulateWaypointReached.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Listeners\\HandleDeliveryCompletion",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Listeners/HandleDeliveryCompletion.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Listeners\\HandleOrderDispatched",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Listeners/HandleOrderDispatched.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Models\\Order",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Models/Order.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "bool",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "fn",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderDispatched",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderCanceled",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderDriverAssigned",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderCompleted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Models\\Payload",
+      "type": "source",
+      "file": "packages/fleetops/server/src/Models/Payload.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "EntityCompleted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "EntityActivityChanged",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "WaypointCompleted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "WaypointActivityChanged",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "type": "source",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/AuthController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "UserCreatedNewCompany",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController",
+      "type": "source",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/OnboardController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "AccountCreated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "type": "source",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/UserController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "UserRemovedFromCompany",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Middleware\\LogApiRequests",
+      "type": "source",
+      "file": "packages/core-api/src/Http/Middleware/LogApiRequests.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Bus",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "LogApiRequest",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Ledger\\Http\\Controllers\\WebhookController",
+      "type": "source",
+      "file": "packages/ledger/server/src/Http/Controllers/WebhookController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "PaymentSucceeded",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "PaymentFailed",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "RefundProcessed",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Ledger\\Observers\\InvoiceObserver",
+      "type": "source",
+      "file": "packages/ledger/server/src/Observers/InvoiceObserver.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "InvoiceCreated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "InvoicePaid",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Ledger\\Services\\PaymentService",
+      "type": "source",
+      "file": "packages/ledger/server/src/Services/PaymentService.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Listeners\\TriggerPublicNotificationBroadcast",
+      "type": "source",
+      "file": "packages/core-api/src/Listeners/TriggerPublicNotificationBroadcast.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "InternalBroadcastNotificationCreated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Observers\\ChatParticipantObserver",
+      "type": "source",
+      "file": "packages/core-api/src/Observers/ChatParticipantObserver.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ChatParticipantAdded",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ChatParticipantRemoved",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Observers\\WebhookEventsObserver",
+      "type": "source",
+      "file": "packages/core-api/src/Observers/WebhookEventsObserver.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ResourceLifecycleEvent",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Services\\Scheduling\\ConstraintService",
+      "type": "source",
+      "file": "packages/core-api/src/Services/Scheduling/ConstraintService.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleConstraintViolated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "type": "source",
+      "file": "packages/core-api/src/Services/Scheduling/ScheduleService.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleCreated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleUpdated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleDeleted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleItemCreated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleItemUpdated",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleItemDeleted",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "ScheduleItemAssigned",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\ProductController",
+      "type": "source",
+      "file": "packages/storefront/server/src/Http/Controllers/ProductController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "DownloadProductImageUrl",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Support\\Storefront",
+      "type": "source",
+      "file": "packages/storefront/server/src/Support/Storefront.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Notification",
+      "type": "notification",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Support\\SocketCluster\\SocketClusterBroadcaster",
+      "type": "source",
+      "file": "packages/core-api/src/Support/SocketCluster/SocketClusterBroadcaster.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "array",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::login",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Return HTTP response",
+      "type": "response",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::session",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Cache read/write",
+      "type": "cache",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::logout",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::bootstrap",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationSms",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::authenticateSmsCode",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createVerificationSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationEmail",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifyEmail",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifySmsCode",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::signUp",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createPasswordReset",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Create / persist model",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::resetPassword",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationCode",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::getUserOrganizations",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::switchOrganization",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::joinOrganization",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createOrganization",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Update model",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fire domain event",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::services",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::changeUserPassword",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::impersonate",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::endImpersonation",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::create",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Return API resource",
+      "type": "response",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::update",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::query",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::find",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::delete",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::track",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Broadcast realtime update",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::toggleOnline",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::registerDevice",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::login",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::loginWithPhone",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::currentOrganization",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Execute controller logic",
+      "type": "generic",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::listOrganizations",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::switchOrganization",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulate",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForRoute",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Dispatch job",
+      "type": "dispatch",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Integrated vendor / quote resolution",
+      "type": "service",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::query",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::find",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::delete",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getDistanceMatrix",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::dispatchOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::scheduleOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::startOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::updateActivity",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getNextActivity",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::completeOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::cancelOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::setDestination",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::optimize",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::trackerData",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::etaData",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureQrScan",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureSignature",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Validate request",
+      "type": "validation",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::proofs",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getEditableEntityFields",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::orderComments",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Internal/v1/DriverController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::updateRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::statuses",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::avatars",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::assignOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::track",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::registerDevice",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::login",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::loginWithPhone",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::verifyCode",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::import",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Export data",
+      "type": "export",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::editOrderRoute",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::importFromFiles",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkCancel",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkDispatch",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkAssignDriver",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::cancel",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::dispatchOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::start",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::updateActivity",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::nextActivity",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::trackerInfo",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::waypointEtas",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::statuses",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::types",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::label",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::proofs",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::export",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::getDefaultOrderConfig",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::lookup",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::scheduleOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Internal/v1/PaymentController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::hasStripeConnectAccount",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccount",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccountSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getCompanyReceivedPayments",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Internal/v1/WorkOrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::import",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::sendEmail",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "type": "controller",
+      "file": "packages/storefront/server/src/Http/Controllers/OrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::acceptOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsReady",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsPreparing",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsCompleted",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::rejectOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "type": "controller",
+      "file": "packages/storefront/server/src/Http/Controllers/v1/CheckoutController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::beforeCheckout",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::createStripeSetupIntentForCustomer",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::updateStripePaymentIntent",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureQPayCallback",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::afterCheckout",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::getCheckoutStatus",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController",
+      "type": "controller",
+      "file": "packages/storefront/server/src/Http/Controllers/v1/OrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::completeOrderPickup",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::getReceipt",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\PaymentMethodController",
+      "type": "controller",
+      "file": "packages/storefront/server/src/Http/Controllers/v1/PaymentMethodController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Pallet\\Http\\Controllers\\PurchaseOrderController",
+      "type": "controller",
+      "file": "packages/pallet/server/src/Http/Controllers/PurchaseOrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Pallet\\Http\\Controllers\\PurchaseOrderController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Pallet\\Http\\Controllers\\SalesOrderController",
+      "type": "controller",
+      "file": "packages/pallet/server/src/Http/Controllers/SalesOrderController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Pallet\\Http\\Controllers\\SalesOrderController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "type": "controller",
+      "file": "packages/registry-bridge/server/src/Http/Controllers/Internal/v1/RegistryPaymentsController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::hasStripeConnectAccount",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccount",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccountSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createStripeCheckoutSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeCheckoutSessionStatus",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getAuthorReceivedPayments",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createAccountManagementSession",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Api/v1/ChatChannelController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController::sendMessage",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\CommentController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Api/v1/CommentController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\CommentController::create",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Api/v1/FileController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::create",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::createFromBase64",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\OrganizationController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Api/v1/OrganizationController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Api\\v1\\OrganizationController::getCurrent",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ApiCredentialController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/ApiCredentialController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ApiCredentialController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatMessageController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/ChatMessageController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatMessageController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatReceiptController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/ChatReceiptController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatReceiptController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/CompanyController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::users",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::transferOwnership",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/FileController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::upload",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::uploadBase64",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/GroupController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::updateRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\LookupController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/LookupController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\LookupController::fontAwesomeIcons",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::createAccount",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::verifyEmail",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/PolicyController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::updateRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/ReportController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateQuery",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Begin DB transaction",
+      "type": "transaction",
+      "confidence": 0.85
+    },
+    {
+      "id": "Commit transaction",
+      "type": "transaction",
+      "confidence": 0.85
+    },
+    {
+      "id": "Rollback transaction",
+      "type": "transaction",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::export",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::exportQuery",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::download",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateComputedColumn",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/RoleController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::updateRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/SettingController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::getMailConfig",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testMailConfig",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testNotificationChannelsConfig",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testSentryConfig",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\TemplateController",
+      "type": "controller",
+      "file": "packages/core-api/src/Http/Controllers/Internal/v1/TemplateController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\TemplateController::previewUnsaved",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::createRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::updateRecord",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::current",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::inviteUser",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::acceptCompanyInvite",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::deactivate",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::removeFromCompany",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/ContactController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController::update",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/EntityController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::create",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::update",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController",
+      "type": "controller",
+      "file": "packages/fleetops/server/src/Http/Controllers/Api/v1/GeofenceController.php",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::events",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::inventory",
+      "type": "controller_method",
+      "confidence": 0.85
+    },
+    {
+      "id": "\\Fleetbase\\FleetOps\\Orchestration\\OrchestrationEngineRegistry",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "fn (",
+      "type": "implementation",
+      "confidence": 0.85
+    },
+    {
+      "id": "\\Fleetbase\\FleetOps\\Support\\GeofenceIntersectionService",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "\\Fleetbase\\Services\\FileResolverService",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "function ($app",
+      "type": "implementation",
+      "confidence": 0.85
+    },
+    {
+      "id": "\\Fleetbase\\Services\\TemplateRenderService",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "LedgerService);\r\n        $this->app->singleton(WalletService);\r\n        $this->app->singleton(InvoiceService);\r\n\r\n        // Payment gateway system\r\n        // The PaymentGatewayManager is bound as a singleton and also aliased\r\n        // as ledger.gateway for convenient facade-style access.\r\n        $this->app->singleton(PaymentGatewayManager",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "PaymentService",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "ReportSchemaRegistry",
+      "type": "interface",
+      "confidence": 0.85
+    },
+    {
+      "id": "function (",
+      "type": "implementation",
+      "confidence": 0.85
+    },
+    {
+      "id": "fleetops",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "core-api",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "storefront",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "ledger",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "registry-bridge",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "pallet",
+      "type": "package",
+      "confidence": 0.85
+    },
+    {
+      "id": "Order",
+      "type": "entity",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderController@createRecord",
+      "type": "controller",
+      "confidence": 0.85
+    },
+    {
+      "id": "Order::createRecordFromRequest",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "OrderCreated / OrderReady",
+      "type": "event",
+      "confidence": 0.85
+    },
+    {
+      "id": "NotifyOrderEvent",
+      "type": "listener",
+      "confidence": 0.85
+    },
+    {
+      "id": "SendResourceLifecycleWebhook",
+      "type": "webhook",
+      "confidence": 0.85
+    },
+    {
+      "id": "socketcluster channels",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "invoice / payment (Ledger)",
+      "type": "service",
+      "confidence": 0.85
+    },
+    {
+      "id": "Driver",
+      "type": "entity",
+      "confidence": 0.85
+    },
+    {
+      "id": "DriverController",
+      "type": "controller",
+      "confidence": 0.85
+    },
+    {
+      "id": "Order driver_uuid",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "ReplayPositions / telematics",
+      "type": "job",
+      "confidence": 0.85
+    },
+    {
+      "id": "driver.{uuid} channel",
+      "type": "broadcast",
+      "confidence": 0.85
+    },
+    {
+      "id": "Payment",
+      "type": "entity",
+      "confidence": 0.85
+    },
+    {
+      "id": "Storefront checkout",
+      "type": "controller",
+      "confidence": 0.85
+    },
+    {
+      "id": "HandleSuccessfulPayment",
+      "type": "webhook",
+      "confidence": 0.85
+    },
+    {
+      "id": "Ledger accounts/transactions",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "Customer",
+      "type": "entity",
+      "confidence": 0.85
+    },
+    {
+      "id": "CustomerController",
+      "type": "controller",
+      "confidence": 0.85
+    },
+    {
+      "id": "customer_uuid on orders",
+      "type": "model",
+      "confidence": 0.85
+    },
+    {
+      "id": "permission directives",
+      "type": "auth",
+      "confidence": 0.85
+    },
+    {
+      "id": "Product",
+      "type": "entity",
+      "confidence": 0.85
+    },
+    {
+      "id": "ProductController",
+      "type": "controller",
+      "confidence": 0.85
+    },
+    {
+      "id": "Storefront cart jobs",
+      "type": "service",
+      "confidence": 0.85
+    },
+    {
+      "id": "Pallet inventory (if enabled)",
+      "type": "model",
+      "confidence": 0.85
+    }
+  ],
+  "edges": [
+    {
+      "from": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents",
+      "to": "GeofenceEntered",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents",
+      "to": "GeofenceDwelled",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents",
+      "to": "GeofenceExited",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateOrderRouteNavigation",
+      "to": "DriverSimulatedLocationChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "VehicleLocationChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "DriverLocationChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "GeofenceEntered",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "CheckGeofenceDwell",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "GeofenceExited",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "function",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "OrderReady",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "OrderStarted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "OrderDispatchFailed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\VehicleController",
+      "to": "VehicleLocationChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\VehicleController",
+      "to": "GeofenceEntered",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\VehicleController",
+      "to": "CheckGeofenceDwell",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\VehicleController",
+      "to": "GeofenceExited",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "function",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "OrderReady",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "OrderStarted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "OrderDispatchFailed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PositionController",
+      "to": "ReplayPositions",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Jobs\\CheckGeofenceDwell",
+      "to": "GeofenceDwelled",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Jobs\\ProcessAllocationJob",
+      "to": "ProcessAllocationJob",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Jobs\\ReplayPositions",
+      "to": "SendPositionReplay",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Jobs\\SimulateWaypointReached",
+      "to": "DriverSimulatedLocationChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Listeners\\HandleDeliveryCompletion",
+      "to": "ProcessAllocationJob",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Listeners\\HandleOrderDispatched",
+      "to": "OrderDispatchFailed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "bool",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "fn",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "OrderDispatched",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "OrderCanceled",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "OrderDriverAssigned",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Order",
+      "to": "OrderCompleted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Payload",
+      "to": "EntityCompleted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Payload",
+      "to": "EntityActivityChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Payload",
+      "to": "WaypointCompleted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Models\\Payload",
+      "to": "WaypointActivityChanged",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "UserCreatedNewCompany",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController",
+      "to": "AccountCreated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "UserRemovedFromCompany",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Http\\Middleware\\LogApiRequests",
+      "to": "Bus",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Http\\Middleware\\LogApiRequests",
+      "to": "LogApiRequest",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Http\\Controllers\\WebhookController",
+      "to": "PaymentSucceeded",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Http\\Controllers\\WebhookController",
+      "to": "PaymentFailed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Http\\Controllers\\WebhookController",
+      "to": "RefundProcessed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Observers\\InvoiceObserver",
+      "to": "InvoiceCreated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Observers\\InvoiceObserver",
+      "to": "InvoicePaid",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Services\\PaymentService",
+      "to": "PaymentSucceeded",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Services\\PaymentService",
+      "to": "PaymentFailed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Ledger\\Services\\PaymentService",
+      "to": "RefundProcessed",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Listeners\\TriggerPublicNotificationBroadcast",
+      "to": "InternalBroadcastNotificationCreated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Observers\\ChatParticipantObserver",
+      "to": "ChatParticipantAdded",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Observers\\ChatParticipantObserver",
+      "to": "ChatParticipantRemoved",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Observers\\WebhookEventsObserver",
+      "to": "ResourceLifecycleEvent",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ConstraintService",
+      "to": "ScheduleConstraintViolated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleCreated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleUpdated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleDeleted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleItemCreated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleItemUpdated",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleItemDeleted",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Services\\Scheduling\\ScheduleService",
+      "to": "ScheduleItemAssigned",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "sync"
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\ProductController",
+      "to": "DownloadProductImageUrl",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Support\\Storefront",
+      "to": "Notification",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Support\\SocketCluster\\SocketClusterBroadcaster",
+      "to": "array",
+      "relationship": "triggers",
+      "confidence": 0.8,
+      "syncAsync": "async"
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::login",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::login",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::session",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::session",
+      "to": "Cache read/write",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::session",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::logout",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::logout",
+      "to": "Cache read/write",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::logout",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::bootstrap",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::bootstrap",
+      "to": "Cache read/write",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::bootstrap",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationSms",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationSms",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::authenticateSmsCode",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::authenticateSmsCode",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createVerificationSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createVerificationSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationEmail",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::sendVerificationEmail",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifyEmail",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifyEmail",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifySmsCode",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::verifySmsCode",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::signUp",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::signUp",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createPasswordReset",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createPasswordReset",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createPasswordReset",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::resetPassword",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::resetPassword",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationCode",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::validateVerificationCode",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::getUserOrganizations",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::getUserOrganizations",
+      "to": "Cache read/write",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::getUserOrganizations",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::switchOrganization",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::switchOrganization",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::joinOrganization",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::joinOrganization",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createOrganization",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createOrganization",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createOrganization",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::createOrganization",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::services",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::services",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::changeUserPassword",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::changeUserPassword",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::impersonate",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::impersonate",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::endImpersonation",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\AuthController::endImpersonation",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::create",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::create",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::create",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::create",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::update",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::update",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::update",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::update",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::query",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::query",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::find",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::find",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::find",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::delete",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::delete",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::delete",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::track",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::track",
+      "to": "Broadcast realtime update",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::track",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::toggleOnline",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::toggleOnline",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::toggleOnline",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::registerDevice",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::registerDevice",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::login",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::login",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::loginWithPhone",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::loginWithPhone",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::verifyCode",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::currentOrganization",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::currentOrganization",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::listOrganizations",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::listOrganizations",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::switchOrganization",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::switchOrganization",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::switchOrganization",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::switchOrganization",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulate",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulate",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForRoute",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForRoute",
+      "to": "Dispatch job",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForRoute",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForOrder",
+      "to": "Dispatch job",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\DriverController::simulateDrivingForOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::update",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::query",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::query",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::find",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::find",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::find",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::delete",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::delete",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::delete",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getDistanceMatrix",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getDistanceMatrix",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getDistanceMatrix",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::dispatchOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::dispatchOrder",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::dispatchOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::scheduleOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::scheduleOrder",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::scheduleOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::startOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::startOrder",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::startOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::updateActivity",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::updateActivity",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::updateActivity",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::updateActivity",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getNextActivity",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getNextActivity",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::completeOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::completeOrder",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::completeOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::cancelOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::cancelOrder",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::cancelOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::setDestination",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::setDestination",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::optimize",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::optimize",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::trackerData",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::trackerData",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::etaData",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::etaData",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureQrScan",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureQrScan",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureQrScan",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureSignature",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureSignature",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::captureSignature",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::capturePhoto",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::proofs",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::proofs",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getEditableEntityFields",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::getEditableEntityFields",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::orderComments",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::orderComments",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::createRecord",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::updateRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::updateRecord",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::updateRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::updateRecord",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::statuses",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::statuses",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::avatars",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::avatars",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::assignOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::assignOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::track",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::track",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::registerDevice",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::registerDevice",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::login",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::login",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::loginWithPhone",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::loginWithPhone",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::verifyCode",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::verifyCode",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::import",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::import",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\DriverController::import",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::createRecord",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::editOrderRoute",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::editOrderRoute",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::importFromFiles",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::importFromFiles",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::importFromFiles",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkCancel",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkCancel",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkDispatch",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkDispatch",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkAssignDriver",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkAssignDriver",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkAssignDriver",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::bulkAssignDriver",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::cancel",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::cancel",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::dispatchOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::dispatchOrder",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::dispatchOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::start",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::start",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::start",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::updateActivity",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::updateActivity",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::updateActivity",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::nextActivity",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::nextActivity",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::trackerInfo",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::trackerInfo",
+      "to": "Cache read/write",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::trackerInfo",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::waypointEtas",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::waypointEtas",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::statuses",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::statuses",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::types",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::types",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::label",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::label",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::proofs",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::proofs",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::export",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::export",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::getDefaultOrderConfig",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::getDefaultOrderConfig",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::lookup",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::lookup",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::scheduleOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrderController::scheduleOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::hasStripeConnectAccount",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::hasStripeConnectAccount",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccount",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccount",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccount",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccount",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccountSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccountSession",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getStripeAccountSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getCompanyReceivedPayments",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\PaymentController::getCompanyReceivedPayments",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::import",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::import",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::import",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::sendEmail",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\WorkOrderController::sendEmail",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::acceptOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::acceptOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsReady",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsReady",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsReady",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsPreparing",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsPreparing",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsCompleted",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::markOrderAsCompleted",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::rejectOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\OrderController::rejectOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::beforeCheckout",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::beforeCheckout",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::createStripeSetupIntentForCustomer",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::createStripeSetupIntentForCustomer",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::createStripeSetupIntentForCustomer",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::updateStripePaymentIntent",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::updateStripePaymentIntent",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::updateStripePaymentIntent",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::updateStripePaymentIntent",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureQPayCallback",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureQPayCallback",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "to": "Integrated vendor / quote resolution",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::afterCheckout",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::afterCheckout",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::getCheckoutStatus",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::getCheckoutStatus",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::getCheckoutStatus",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::completeOrderPickup",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::completeOrderPickup",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController",
+      "to": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::getReceipt",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\OrderController::getReceipt",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Pallet\\Http\\Controllers\\PurchaseOrderController",
+      "to": "Fleetbase\\Pallet\\Http\\Controllers\\PurchaseOrderController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Pallet\\Http\\Controllers\\PurchaseOrderController::createRecord",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Pallet\\Http\\Controllers\\SalesOrderController",
+      "to": "Fleetbase\\Pallet\\Http\\Controllers\\SalesOrderController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Pallet\\Http\\Controllers\\SalesOrderController::createRecord",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::hasStripeConnectAccount",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::hasStripeConnectAccount",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccount",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccount",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccount",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccount",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccountSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccountSession",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeAccountSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createStripeCheckoutSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createStripeCheckoutSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeCheckoutSessionStatus",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getStripeCheckoutSessionStatus",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getAuthorReceivedPayments",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::getAuthorReceivedPayments",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController",
+      "to": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createAccountManagementSession",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createAccountManagementSession",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\RegistryBridge\\Http\\Controllers\\Internal\\v1\\RegistryPaymentsController::createAccountManagementSession",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController",
+      "to": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController::sendMessage",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController::sendMessage",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController::sendMessage",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\ChatChannelController::sendMessage",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\CommentController",
+      "to": "Fleetbase\\Http\\Controllers\\Api\\v1\\CommentController::create",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\CommentController::create",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController",
+      "to": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::create",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::create",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController",
+      "to": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::createFromBase64",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::createFromBase64",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\FileController::createFromBase64",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\OrganizationController",
+      "to": "Fleetbase\\Http\\Controllers\\Api\\v1\\OrganizationController::getCurrent",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Api\\v1\\OrganizationController::getCurrent",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ApiCredentialController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ApiCredentialController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ApiCredentialController::createRecord",
+      "to": "Execute controller logic",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatMessageController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatMessageController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatMessageController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatReceiptController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatReceiptController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ChatReceiptController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::users",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::users",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::users",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::transferOwnership",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\CompanyController::transferOwnership",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::upload",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::upload",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::uploadBase64",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::uploadBase64",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\FileController::uploadBase64",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::updateRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\GroupController::updateRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\LookupController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\LookupController::fontAwesomeIcons",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\LookupController::fontAwesomeIcons",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::createAccount",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::createAccount",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::createAccount",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::createAccount",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::verifyEmail",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::verifyEmail",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\OnboardController::verifyEmail",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::updateRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\PolicyController::updateRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateQuery",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateQuery",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateQuery",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "to": "Begin DB transaction",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "to": "Commit transaction",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "to": "Rollback transaction",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::executeQuery",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::export",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::export",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::export",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::exportQuery",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::exportQuery",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::exportQuery",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::exportQuery",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::download",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::download",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::download",
+      "to": "Export data",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateComputedColumn",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateComputedColumn",
+      "to": "Validate request",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\ReportController::validateComputedColumn",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::updateRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\RoleController::updateRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::getMailConfig",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::getMailConfig",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testMailConfig",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testMailConfig",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testNotificationChannelsConfig",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testNotificationChannelsConfig",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testSentryConfig",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testSentryConfig",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\SettingController::testSentryConfig",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\TemplateController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\TemplateController::previewUnsaved",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\TemplateController::previewUnsaved",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::createRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::createRecord",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::createRecord",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::updateRecord",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::updateRecord",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::current",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::current",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::inviteUser",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::inviteUser",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::inviteUser",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::acceptCompanyInvite",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::acceptCompanyInvite",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::acceptCompanyInvite",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::deactivate",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::deactivate",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController",
+      "to": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::removeFromCompany",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::removeFromCompany",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::removeFromCompany",
+      "to": "Fire domain event",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\Http\\Controllers\\Internal\\v1\\UserController::removeFromCompany",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController::update",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController::update",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController::update",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\ContactController::update",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::create",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::create",
+      "to": "Create / persist model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::create",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::update",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::update",
+      "to": "Update model",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::update",
+      "to": "Return API resource",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\EntityController::update",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::events",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::events",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController",
+      "to": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::inventory",
+      "relationship": "has_method",
+      "confidence": 0.8
+    },
+    {
+      "from": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\GeofenceController::inventory",
+      "to": "Return HTTP response",
+      "relationship": "executes",
+      "confidence": 0.8
+    },
+    {
+      "from": "\\Fleetbase\\FleetOps\\Orchestration\\OrchestrationEngineRegistry",
+      "to": "fn (",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "\\Fleetbase\\FleetOps\\Support\\GeofenceIntersectionService",
+      "to": "fn (",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "\\Fleetbase\\Services\\FileResolverService",
+      "to": "function ($app",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "\\Fleetbase\\Services\\TemplateRenderService",
+      "to": "function ($app",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "LedgerService);\r\n        $this->app->singleton(WalletService);\r\n        $this->app->singleton(InvoiceService);\r\n\r\n        // Payment gateway system\r\n        // The PaymentGatewayManager is bound as a singleton and also aliased\r\n        // as ledger.gateway for convenient facade-style access.\r\n        $this->app->singleton(PaymentGatewayManager",
+      "to": "function ($app",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "PaymentService",
+      "to": "function ($app",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "ReportSchemaRegistry",
+      "to": "function (",
+      "relationship": "bound_as",
+      "confidence": 0.8,
+      "scope": "singleton"
+    },
+    {
+      "from": "fleetops",
+      "to": "core-api",
+      "relationship": "depends_on",
+      "confidence": 0.8,
+      "weight": 1586
+    },
+    {
+      "from": "storefront",
+      "to": "core-api",
+      "relationship": "depends_on",
+      "confidence": 0.8,
+      "weight": 532
+    },
+    {
+      "from": "ledger",
+      "to": "core-api",
+      "relationship": "depends_on",
+      "confidence": 0.8,
+      "weight": 240
+    },
+    {
+      "from": "registry-bridge",
+      "to": "core-api",
+      "relationship": "depends_on",
+      "confidence": 0.8,
+      "weight": 123
+    },
+    {
+      "from": "pallet",
+      "to": "core-api",
+      "relationship": "depends_on",
+      "confidence": 0.8,
+      "weight": 104
+    },
+    {
+      "from": "Order",
+      "to": "OrderController@createRecord",
+      "relationship": "HTTP create",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "Order::createRecordFromRequest",
+      "relationship": "Persist",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "OrderCreated / OrderReady",
+      "relationship": "Domain event",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "ProcessAllocationJob",
+      "relationship": "Allocation",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "OrderDispatched",
+      "relationship": "Dispatch",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "NotifyOrderEvent",
+      "relationship": "Notify",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "SendResourceLifecycleWebhook",
+      "relationship": "Webhook",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "socketcluster channels",
+      "relationship": "Realtime",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "OrderCompleted",
+      "relationship": "Complete",
+      "confidence": 0.8
+    },
+    {
+      "from": "Order",
+      "to": "invoice / payment (Ledger)",
+      "relationship": "Ledger",
+      "confidence": 0.8
+    },
+    {
+      "from": "Driver",
+      "to": "DriverController",
+      "relationship": "CRUD",
+      "confidence": 0.8
+    },
+    {
+      "from": "Driver",
+      "to": "Order driver_uuid",
+      "relationship": "Assignment",
+      "confidence": 0.8
+    },
+    {
+      "from": "Driver",
+      "to": "ReplayPositions / telematics",
+      "relationship": "Tracking",
+      "confidence": 0.8
+    },
+    {
+      "from": "Driver",
+      "to": "driver.{uuid} channel",
+      "relationship": "Realtime",
+      "confidence": 0.8
+    },
+    {
+      "from": "Payment",
+      "to": "Storefront checkout",
+      "relationship": "Checkout",
+      "confidence": 0.8
+    },
+    {
+      "from": "Payment",
+      "to": "HandleSuccessfulPayment",
+      "relationship": "Stripe",
+      "confidence": 0.8
+    },
+    {
+      "from": "Payment",
+      "to": "Ledger accounts/transactions",
+      "relationship": "Ledger entry",
+      "confidence": 0.8
+    },
+    {
+      "from": "Customer",
+      "to": "CustomerController",
+      "relationship": "CRUD",
+      "confidence": 0.8
+    },
+    {
+      "from": "Customer",
+      "to": "customer_uuid on orders",
+      "relationship": "Orders",
+      "confidence": 0.8
+    },
+    {
+      "from": "Customer",
+      "to": "permission directives",
+      "relationship": "Directives",
+      "confidence": 0.8
+    },
+    {
+      "from": "Product",
+      "to": "ProductController",
+      "relationship": "Catalog",
+      "confidence": 0.8
+    },
+    {
+      "from": "Product",
+      "to": "Storefront cart jobs",
+      "relationship": "Cart",
+      "confidence": 0.8
+    },
+    {
+      "from": "Product",
+      "to": "Pallet inventory (if enabled)",
+      "relationship": "Inventory",
+      "confidence": 0.8
+    }
+  ],
+  "stats": {
+    "nodes": 333,
+    "edges": 548
+  }
+}

@@ -1,0 +1,51 @@
+name: Frontend Playwright
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-playwright.yml'
+  workflow_dispatch:
+
+jobs:
+  playwright:
+    name: Playwright (chromium)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          E2E_API_URL: ${{ secrets.E2E_API_URL || 'http://localhost:8000' }}
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          CI: true
+        run: npm run test:e2e -- --project=chromium
+        continue-on-error: true
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-playwright
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore

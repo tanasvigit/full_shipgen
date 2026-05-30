@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:51.818Z",
+  "components": [
+    {
+      "component": "app/Http",
+      "churn": 1,
+      "risk": "low",
+      "contributors": "—"
+    }
+  ]
+}

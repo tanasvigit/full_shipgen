@@ -1,0 +1,142 @@
+import { fleetopsService } from "@/services/fleetops";
+
+const METHOD_MAP = {
+  vendor: {
+    list: "listVendor",
+    get: "getVendor",
+    create: "createVendor",
+    update: "updateVendor",
+    delete: "deleteVendor",
+  },
+  integratedVendor: {
+    list: "listIntegratedVendor",
+    get: "getIntegratedVendor",
+    create: "createIntegratedVendor",
+    update: "updateIntegratedVendor",
+    delete: "deleteIntegratedVendor",
+  },
+  contact: {
+    list: "listContact",
+    get: "getContact",
+    create: "createContact",
+    update: "updateContact",
+    delete: "deleteContact",
+  },
+  customer: {
+    list: "listCustomer",
+    get: "getCustomer",
+    create: "createCustomer",
+    update: "updateCustomer",
+    delete: "deleteCustomer",
+  },
+  fuelReport: {
+    list: "listFuelReport",
+    get: "getFuelReport",
+    create: "createFuelReport",
+    update: "updateFuelReport",
+    delete: "deleteFuelReport",
+  },
+  issue: {
+    list: "listIssue",
+    get: "getIssue",
+    create: "createIssue",
+    update: "updateIssue",
+    delete: "deleteIssue",
+  },
+  telematic: {
+    list: "listTelematic",
+    get: "getTelematic",
+    create: "createTelematic",
+    update: "updateTelematic",
+    delete: "deleteTelematic",
+  },
+  device: {
+    list: "listDevice",
+    get: "getDevice",
+    create: "createDevice",
+    update: "updateDevice",
+    delete: "deleteDevice",
+  },
+  sensor: {
+    list: "listSensor",
+    get: "getSensor",
+    create: "createSensor",
+    update: "updateSensor",
+    delete: "deleteSensor",
+  },
+  deviceEvent: {
+    list: "listDeviceEvent",
+    get: "getDeviceEvent",
+    create: "createDeviceEvent",
+    update: "updateDeviceEvent",
+    delete: "deleteDeviceEvent",
+  },
+  maintenanceSchedule: {
+    list: "listMaintenanceSchedule",
+    get: "getMaintenanceSchedule",
+    create: "createMaintenanceSchedule",
+    update: "updateMaintenanceSchedule",
+    delete: "deleteMaintenanceSchedule",
+  },
+  maintenance: {
+    list: "listMaintenance",
+    get: "getMaintenance",
+    create: "createMaintenance",
+    update: "updateMaintenance",
+    delete: "deleteMaintenance",
+  },
+  workOrder: {
+    list: "listWorkOrder",
+    get: "getWorkOrder",
+    create: "createWorkOrder",
+    update: "updateWorkOrder",
+    delete: "deleteWorkOrder",
+  },
+  equipment: {
+    list: "listEquipment",
+    get: "getEquipment",
+    create: "createEquipment",
+    update: "updateEquipment",
+    delete: "deleteEquipment",
+  },
+  part: {
+    list: "listPart",
+    get: "getPart",
+    create: "createPart",
+    update: "updatePart",
+    delete: "deletePart",
+  },
+  serviceArea: {
+    list: "listServiceArea",
+    get: "getServiceArea",
+    create: "createServiceArea",
+    update: "updateServiceArea",
+    delete: "deleteServiceArea",
+  },
+  serviceAreaZone: {
+    list: "listServiceAreaZone",
+    get: "getServiceAreaZone",
+    create: "createServiceAreaZone",
+    update: "updateServiceAreaZone",
+    delete: "deleteServiceAreaZone",
+  },
+  customField: {
+    list: "listCustomField",
+    get: "getCustomField",
+    create: "createCustomField",
+    update: "updateCustomField",
+    delete: "deleteCustomField",
+  },
+};
+
+export function getCrudApi(entityKey) {
+  const methods = METHOD_MAP[entityKey];
+  if (!methods) throw new Error(`Unknown CRUD entity: ${entityKey}`);
+  return {
+    list: () => fleetopsService[methods.list](),
+    get: (id) => fleetopsService[methods.get](id),
+    create: (values) => fleetopsService[methods.create](values),
+    update: (id, values) => fleetopsService[methods.update](id, values),
+    remove: (id) => fleetopsService[methods.delete](id),
+  };
+}

@@ -1,0 +1,3995 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:51.248Z",
+  "embeddingModel": "metadata-only (vectors external)",
+  "chunks": [
+    {
+      "id": "chunk-1",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — api-credentials",
+      "text": "REST resource api-credentials in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "api-credentials"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:api-credentials"
+      ]
+    },
+    {
+      "id": "chunk-2",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — metrics",
+      "text": "REST resource metrics in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "metrics"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:metrics"
+      ]
+    },
+    {
+      "id": "chunk-3",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — settings",
+      "text": "REST resource settings in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "settings"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:settings"
+      ]
+    },
+    {
+      "id": "chunk-4",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-monitor",
+      "text": "REST resource schedule-monitor in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-monitor"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-monitor"
+      ]
+    },
+    {
+      "id": "chunk-5",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — two-fa",
+      "text": "REST resource two-fa in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "two-fa"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:two-fa"
+      ]
+    },
+    {
+      "id": "chunk-6",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — activities",
+      "text": "REST resource activities in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "activities"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:activities"
+      ]
+    },
+    {
+      "id": "chunk-7",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — api-events",
+      "text": "REST resource api-events in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "api-events"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:api-events"
+      ]
+    },
+    {
+      "id": "chunk-8",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — api-request-logs",
+      "text": "REST resource api-request-logs in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "api-request-logs"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:api-request-logs"
+      ]
+    },
+    {
+      "id": "chunk-9",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — webhook-endpoints",
+      "text": "REST resource webhook-endpoints in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "webhook-endpoints"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:webhook-endpoints"
+      ]
+    },
+    {
+      "id": "chunk-10",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — webhook-request-logs",
+      "text": "REST resource webhook-request-logs in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "webhook-request-logs"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:webhook-request-logs"
+      ]
+    },
+    {
+      "id": "chunk-11",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — companies",
+      "text": "REST resource companies in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "companies"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:companies"
+      ]
+    },
+    {
+      "id": "chunk-12",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — users",
+      "text": "REST resource users in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "users"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:users"
+      ]
+    },
+    {
+      "id": "chunk-13",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — user-devices",
+      "text": "REST resource user-devices in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "user-devices"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:user-devices"
+      ]
+    },
+    {
+      "id": "chunk-14",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — groups",
+      "text": "REST resource groups in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "groups"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:groups"
+      ]
+    },
+    {
+      "id": "chunk-15",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — roles",
+      "text": "REST resource roles in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "roles"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:roles"
+      ]
+    },
+    {
+      "id": "chunk-16",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — policies",
+      "text": "REST resource policies in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "policies"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:policies"
+      ]
+    },
+    {
+      "id": "chunk-17",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — permissions",
+      "text": "REST resource permissions in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "permissions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:permissions"
+      ]
+    },
+    {
+      "id": "chunk-18",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — extensions",
+      "text": "REST resource extensions in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "extensions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:extensions"
+      ]
+    },
+    {
+      "id": "chunk-19",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — categories",
+      "text": "REST resource categories in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "categories"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:categories"
+      ]
+    },
+    {
+      "id": "chunk-20",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — comments",
+      "text": "REST resource comments in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "comments"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:comments"
+      ]
+    },
+    {
+      "id": "chunk-21",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — custom-fields",
+      "text": "REST resource custom-fields in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "custom-fields"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:custom-fields"
+      ]
+    },
+    {
+      "id": "chunk-22",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — custom-field-values",
+      "text": "REST resource custom-field-values in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "custom-field-values"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:custom-field-values"
+      ]
+    },
+    {
+      "id": "chunk-23",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — chat-channels",
+      "text": "REST resource chat-channels in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "chat-channels"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:chat-channels"
+      ]
+    },
+    {
+      "id": "chunk-24",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — chat-participants",
+      "text": "REST resource chat-participants in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "chat-participants"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:chat-participants"
+      ]
+    },
+    {
+      "id": "chunk-25",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — chat-messages",
+      "text": "REST resource chat-messages in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "chat-messages"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:chat-messages"
+      ]
+    },
+    {
+      "id": "chunk-26",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — chat-attachments",
+      "text": "REST resource chat-attachments in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "chat-attachments"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:chat-attachments"
+      ]
+    },
+    {
+      "id": "chunk-27",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — chat-receipts",
+      "text": "REST resource chat-receipts in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "chat-receipts"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:chat-receipts"
+      ]
+    },
+    {
+      "id": "chunk-28",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — files",
+      "text": "REST resource files in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "files"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:files"
+      ]
+    },
+    {
+      "id": "chunk-29",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — transactions",
+      "text": "REST resource transactions in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "transactions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:transactions"
+      ]
+    },
+    {
+      "id": "chunk-30",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — notifications",
+      "text": "REST resource notifications in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "notifications"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:notifications"
+      ]
+    },
+    {
+      "id": "chunk-31",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — dashboards",
+      "text": "REST resource dashboards in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "dashboards"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:dashboards"
+      ]
+    },
+    {
+      "id": "chunk-32",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — dashboard-widgets",
+      "text": "REST resource dashboard-widgets in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "dashboard-widgets"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:dashboard-widgets"
+      ]
+    },
+    {
+      "id": "chunk-33",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — reports",
+      "text": "REST resource reports in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "reports"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:reports"
+      ]
+    },
+    {
+      "id": "chunk-34",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedules",
+      "text": "REST resource schedules in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedules"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedules"
+      ]
+    },
+    {
+      "id": "chunk-35",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-items",
+      "text": "REST resource schedule-items in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-items"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-items"
+      ]
+    },
+    {
+      "id": "chunk-36",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-templates",
+      "text": "REST resource schedule-templates in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-templates"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-templates"
+      ]
+    },
+    {
+      "id": "chunk-37",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-exceptions",
+      "text": "REST resource schedule-exceptions in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-exceptions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-exceptions"
+      ]
+    },
+    {
+      "id": "chunk-38",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-availabilities",
+      "text": "REST resource schedule-availabilities in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-availabilities"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-availabilities"
+      ]
+    },
+    {
+      "id": "chunk-39",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — schedule-constraints",
+      "text": "REST resource schedule-constraints in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "schedule-constraints"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:schedule-constraints"
+      ]
+    },
+    {
+      "id": "chunk-40",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — templates",
+      "text": "REST resource templates in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "templates"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:templates"
+      ]
+    },
+    {
+      "id": "chunk-41",
+      "type": "endpoint-resource",
+      "domain": "core-api",
+      "title": "Core API (platform) — template-queries",
+      "text": "REST resource template-queries in package core-api. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "core-api",
+        "template-queries"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:core-api",
+        "resource:template-queries"
+      ]
+    },
+    {
+      "id": "chunk-42",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — contacts",
+      "text": "REST resource contacts in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "contacts"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:contacts"
+      ]
+    },
+    {
+      "id": "chunk-43",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — drivers",
+      "text": "REST resource drivers in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "drivers"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:drivers"
+      ]
+    },
+    {
+      "id": "chunk-44",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — entities",
+      "text": "REST resource entities in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "entities"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:entities"
+      ]
+    },
+    {
+      "id": "chunk-45",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — fleets",
+      "text": "REST resource fleets in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "fleets"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:fleets"
+      ]
+    },
+    {
+      "id": "chunk-46",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — fuel-reports",
+      "text": "REST resource fuel-reports in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "fuel-reports"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:fuel-reports"
+      ]
+    },
+    {
+      "id": "chunk-47",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — issues",
+      "text": "REST resource issues in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "issues"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:issues"
+      ]
+    },
+    {
+      "id": "chunk-48",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — integrated-vendors",
+      "text": "REST resource integrated-vendors in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "integrated-vendors"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:integrated-vendors"
+      ]
+    },
+    {
+      "id": "chunk-49",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — orders",
+      "text": "REST resource orders in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "orders"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:orders"
+      ]
+    },
+    {
+      "id": "chunk-50",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — order-configs",
+      "text": "REST resource order-configs in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "order-configs"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:order-configs"
+      ]
+    },
+    {
+      "id": "chunk-51",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — payloads",
+      "text": "REST resource payloads in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "payloads"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:payloads"
+      ]
+    },
+    {
+      "id": "chunk-52",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — places",
+      "text": "REST resource places in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "places"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:places"
+      ]
+    },
+    {
+      "id": "chunk-53",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — proofs",
+      "text": "REST resource proofs in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "proofs"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:proofs"
+      ]
+    },
+    {
+      "id": "chunk-54",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — purchase-rates",
+      "text": "REST resource purchase-rates in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "purchase-rates"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:purchase-rates"
+      ]
+    },
+    {
+      "id": "chunk-55",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — routes",
+      "text": "REST resource routes in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "routes"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:routes"
+      ]
+    },
+    {
+      "id": "chunk-56",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — positions",
+      "text": "REST resource positions in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "positions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:positions"
+      ]
+    },
+    {
+      "id": "chunk-57",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — service-areas",
+      "text": "REST resource service-areas in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "service-areas"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:service-areas"
+      ]
+    },
+    {
+      "id": "chunk-58",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — zones",
+      "text": "REST resource zones in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "zones"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:zones"
+      ]
+    },
+    {
+      "id": "chunk-59",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — service-quotes",
+      "text": "REST resource service-quotes in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "service-quotes"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:service-quotes"
+      ]
+    },
+    {
+      "id": "chunk-60",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — service-rates",
+      "text": "REST resource service-rates in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "service-rates"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:service-rates"
+      ]
+    },
+    {
+      "id": "chunk-61",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — tracking-numbers",
+      "text": "REST resource tracking-numbers in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "tracking-numbers"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:tracking-numbers"
+      ]
+    },
+    {
+      "id": "chunk-62",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — tracking-statuses",
+      "text": "REST resource tracking-statuses in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "tracking-statuses"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:tracking-statuses"
+      ]
+    },
+    {
+      "id": "chunk-63",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — vehicles",
+      "text": "REST resource vehicles in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "vehicles"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:vehicles"
+      ]
+    },
+    {
+      "id": "chunk-64",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — vehicle-devices",
+      "text": "REST resource vehicle-devices in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "vehicle-devices"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:vehicle-devices"
+      ]
+    },
+    {
+      "id": "chunk-65",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — vendors",
+      "text": "REST resource vendors in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "vendors"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:vendors"
+      ]
+    },
+    {
+      "id": "chunk-66",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — devices",
+      "text": "REST resource devices in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "devices"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:devices"
+      ]
+    },
+    {
+      "id": "chunk-67",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — device-events",
+      "text": "REST resource device-events in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "device-events"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:device-events"
+      ]
+    },
+    {
+      "id": "chunk-68",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — sensors",
+      "text": "REST resource sensors in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "sensors"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:sensors"
+      ]
+    },
+    {
+      "id": "chunk-69",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — telematics",
+      "text": "REST resource telematics in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "telematics"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:telematics"
+      ]
+    },
+    {
+      "id": "chunk-70",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — maintenance-schedules",
+      "text": "REST resource maintenance-schedules in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "maintenance-schedules"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:maintenance-schedules"
+      ]
+    },
+    {
+      "id": "chunk-71",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — work-orders",
+      "text": "REST resource work-orders in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "work-orders"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:work-orders"
+      ]
+    },
+    {
+      "id": "chunk-72",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — maintenances",
+      "text": "REST resource maintenances in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "maintenances"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:maintenances"
+      ]
+    },
+    {
+      "id": "chunk-73",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — equipment",
+      "text": "REST resource equipment in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "equipment"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:equipment"
+      ]
+    },
+    {
+      "id": "chunk-74",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — parts",
+      "text": "REST resource parts in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "parts"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:parts"
+      ]
+    },
+    {
+      "id": "chunk-75",
+      "type": "endpoint-resource",
+      "domain": "fleetops",
+      "title": "FleetOps — warranties",
+      "text": "REST resource warranties in package fleetops. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "fleetops",
+        "warranties"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:fleetops",
+        "resource:warranties"
+      ]
+    },
+    {
+      "id": "chunk-76",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — orders",
+      "text": "REST resource orders in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "orders"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:orders"
+      ]
+    },
+    {
+      "id": "chunk-77",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — networks",
+      "text": "REST resource networks in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "networks"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:networks"
+      ]
+    },
+    {
+      "id": "chunk-78",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — customers",
+      "text": "REST resource customers in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "customers"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:customers"
+      ]
+    },
+    {
+      "id": "chunk-79",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — stores",
+      "text": "REST resource stores in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "stores"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:stores"
+      ]
+    },
+    {
+      "id": "chunk-80",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — store-hours",
+      "text": "REST resource store-hours in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "store-hours"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:store-hours"
+      ]
+    },
+    {
+      "id": "chunk-81",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — store-locations",
+      "text": "REST resource store-locations in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "store-locations"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:store-locations"
+      ]
+    },
+    {
+      "id": "chunk-82",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — products",
+      "text": "REST resource products in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "products"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:products"
+      ]
+    },
+    {
+      "id": "chunk-83",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — product-hours",
+      "text": "REST resource product-hours in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "product-hours"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:product-hours"
+      ]
+    },
+    {
+      "id": "chunk-84",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — product-variants",
+      "text": "REST resource product-variants in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "product-variants"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:product-variants"
+      ]
+    },
+    {
+      "id": "chunk-85",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — product-variant-options",
+      "text": "REST resource product-variant-options in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "product-variant-options"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:product-variant-options"
+      ]
+    },
+    {
+      "id": "chunk-86",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — product-addons",
+      "text": "REST resource product-addons in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "product-addons"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:product-addons"
+      ]
+    },
+    {
+      "id": "chunk-87",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — product-addon-categories",
+      "text": "REST resource product-addon-categories in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "product-addon-categories"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:product-addon-categories"
+      ]
+    },
+    {
+      "id": "chunk-88",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — addon-categories",
+      "text": "REST resource addon-categories in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "addon-categories"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:addon-categories"
+      ]
+    },
+    {
+      "id": "chunk-89",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — gateways",
+      "text": "REST resource gateways in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "gateways"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:gateways"
+      ]
+    },
+    {
+      "id": "chunk-90",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — notification-channels",
+      "text": "REST resource notification-channels in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "notification-channels"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:notification-channels"
+      ]
+    },
+    {
+      "id": "chunk-91",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — reviews",
+      "text": "REST resource reviews in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "reviews"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:reviews"
+      ]
+    },
+    {
+      "id": "chunk-92",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — votes",
+      "text": "REST resource votes in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "votes"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:votes"
+      ]
+    },
+    {
+      "id": "chunk-93",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — food-trucks",
+      "text": "REST resource food-trucks in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "food-trucks"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:food-trucks"
+      ]
+    },
+    {
+      "id": "chunk-94",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — catalogs",
+      "text": "REST resource catalogs in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "catalogs"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:catalogs"
+      ]
+    },
+    {
+      "id": "chunk-95",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — catalog-categories",
+      "text": "REST resource catalog-categories in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "catalog-categories"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:catalog-categories"
+      ]
+    },
+    {
+      "id": "chunk-96",
+      "type": "endpoint-resource",
+      "domain": "storefront",
+      "title": "Storefront — catalog-hours",
+      "text": "REST resource catalog-hours in package storefront. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "storefront",
+        "catalog-hours"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:storefront",
+        "resource:catalog-hours"
+      ]
+    },
+    {
+      "id": "chunk-97",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — accounts",
+      "text": "REST resource accounts in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "accounts"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:accounts"
+      ]
+    },
+    {
+      "id": "chunk-98",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — invoices",
+      "text": "REST resource invoices in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "invoices"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:invoices"
+      ]
+    },
+    {
+      "id": "chunk-99",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — journals",
+      "text": "REST resource journals in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "journals"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:journals"
+      ]
+    },
+    {
+      "id": "chunk-100",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — wallets",
+      "text": "REST resource wallets in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "wallets"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:wallets"
+      ]
+    },
+    {
+      "id": "chunk-101",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — transactions",
+      "text": "REST resource transactions in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "transactions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:transactions"
+      ]
+    },
+    {
+      "id": "chunk-102",
+      "type": "endpoint-resource",
+      "domain": "ledger",
+      "title": "Ledger — gateways",
+      "text": "REST resource gateways in package ledger. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "ledger",
+        "gateways"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:ledger",
+        "resource:gateways"
+      ]
+    },
+    {
+      "id": "chunk-103",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — audits",
+      "text": "REST resource audits in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "audits"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:audits"
+      ]
+    },
+    {
+      "id": "chunk-104",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — batches",
+      "text": "REST resource batches in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "batches"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:batches"
+      ]
+    },
+    {
+      "id": "chunk-105",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — inventories",
+      "text": "REST resource inventories in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "inventories"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:inventories"
+      ]
+    },
+    {
+      "id": "chunk-106",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — products",
+      "text": "REST resource products in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "products"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:products"
+      ]
+    },
+    {
+      "id": "chunk-107",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — sales-orders",
+      "text": "REST resource sales-orders in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "sales-orders"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:sales-orders"
+      ]
+    },
+    {
+      "id": "chunk-108",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — purchase-orders",
+      "text": "REST resource purchase-orders in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "purchase-orders"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:purchase-orders"
+      ]
+    },
+    {
+      "id": "chunk-109",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — stock-adjustments",
+      "text": "REST resource stock-adjustments in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "stock-adjustments"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:stock-adjustments"
+      ]
+    },
+    {
+      "id": "chunk-110",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — suppliers",
+      "text": "REST resource suppliers in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "suppliers"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:suppliers"
+      ]
+    },
+    {
+      "id": "chunk-111",
+      "type": "endpoint-resource",
+      "domain": "pallet",
+      "title": "Pallet (WMS) — warehouses",
+      "text": "REST resource warehouses in package pallet. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "pallet",
+        "warehouses"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:pallet",
+        "resource:warehouses"
+      ]
+    },
+    {
+      "id": "chunk-112",
+      "type": "endpoint-resource",
+      "domain": "registry-bridge",
+      "title": "Registry Bridge — registry-extensions",
+      "text": "REST resource registry-extensions in package registry-bridge. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "registry-bridge",
+        "registry-extensions"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:registry-bridge",
+        "resource:registry-extensions"
+      ]
+    },
+    {
+      "id": "chunk-113",
+      "type": "endpoint-resource",
+      "domain": "registry-bridge",
+      "title": "Registry Bridge — registry-extension-bundles",
+      "text": "REST resource registry-extension-bundles in package registry-bridge. Internal API via fleetbaseRoutes.",
+      "tags": [
+        "api",
+        "rest",
+        "registry-bridge",
+        "registry-extension-bundles"
+      ],
+      "confidence": 0.92,
+      "relations": [
+        "package:registry-bridge",
+        "resource:registry-extension-bundles"
+      ]
+    },
+    {
+      "id": "chunk-114",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event ResourceLifecycleEvent",
+      "text": "Event ResourceLifecycleEvent triggers: SendResourceLifecycleWebhook (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "ResourceLifecycleEvent"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "id": "chunk-115",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event AccountCreated",
+      "text": "Event AccountCreated triggers: HandleAccountCreated (sync)",
+      "tags": [
+        "event",
+        "async",
+        "AccountCreated"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleAccountCreated"
+      ]
+    },
+    {
+      "id": "chunk-116",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event BroadcastNotificationCreated",
+      "text": "Event BroadcastNotificationCreated triggers: TriggerPublicNotificationBroadcast (sync)",
+      "tags": [
+        "event",
+        "async",
+        "BroadcastNotificationCreated"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:TriggerPublicNotificationBroadcast"
+      ]
+    },
+    {
+      "id": "chunk-117",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event WebhookCallSucceededEvent",
+      "text": "Event WebhookCallSucceededEvent triggers: LogSuccessfulWebhook (sync)",
+      "tags": [
+        "event",
+        "async",
+        "WebhookCallSucceededEvent"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:LogSuccessfulWebhook"
+      ]
+    },
+    {
+      "id": "chunk-118",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event WebhookCallFailedEvent",
+      "text": "Event WebhookCallFailedEvent triggers: LogFailedWebhook (sync)",
+      "tags": [
+        "event",
+        "async",
+        "WebhookCallFailedEvent"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:LogFailedWebhook"
+      ]
+    },
+    {
+      "id": "chunk-119",
+      "type": "event-flow",
+      "domain": "Core API (platform)",
+      "title": "Event FinalWebhookCallFailedEvent",
+      "text": "Event FinalWebhookCallFailedEvent triggers: LogFinalWebhookAttempt (sync)",
+      "tags": [
+        "event",
+        "async",
+        "FinalWebhookCallFailedEvent"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:LogFinalWebhookAttempt"
+      ]
+    },
+    {
+      "id": "chunk-120",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderCanceled",
+      "text": "Event OrderCanceled triggers: HandleOrderCanceled (async (queue)); SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderCanceled"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderCanceled",
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent"
+      ]
+    },
+    {
+      "id": "chunk-121",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderDispatched",
+      "text": "Event OrderDispatched triggers: HandleOrderDispatched (async (queue)); SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderDispatched"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderDispatched",
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent"
+      ]
+    },
+    {
+      "id": "chunk-122",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderDispatchFailed",
+      "text": "Event OrderDispatchFailed triggers: HandleOrderDispatchFailed (async (queue)); SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderDispatchFailed"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderDispatchFailed",
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent"
+      ]
+    },
+    {
+      "id": "chunk-123",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderDriverAssigned",
+      "text": "Event OrderDriverAssigned triggers: HandleOrderDriverAssigned (async (queue)); SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderDriverAssigned"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderDriverAssigned",
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent"
+      ]
+    },
+    {
+      "id": "chunk-124",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderCompleted",
+      "text": "Event OrderCompleted triggers: SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue)); HandleDeliveryCompletion (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderCompleted"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent",
+        "listener:HandleDeliveryCompletion"
+      ]
+    },
+    {
+      "id": "chunk-125",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderFailed",
+      "text": "Event OrderFailed triggers: SendResourceLifecycleWebhook (async (queue)); NotifyOrderEvent (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderFailed"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:SendResourceLifecycleWebhook",
+        "listener:NotifyOrderEvent"
+      ]
+    },
+    {
+      "id": "chunk-126",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event OrderReady",
+      "text": "Event OrderReady triggers: HandleOrderReady (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderReady"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderReady"
+      ]
+    },
+    {
+      "id": "chunk-127",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event GeofenceEntered",
+      "text": "Event GeofenceEntered triggers: HandleGeofenceEntered (async (queue)); SendResourceLifecycleWebhook (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "GeofenceEntered"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleGeofenceEntered",
+        "listener:SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "id": "chunk-128",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event GeofenceExited",
+      "text": "Event GeofenceExited triggers: HandleGeofenceExited (async (queue)); SendResourceLifecycleWebhook (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "GeofenceExited"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleGeofenceExited",
+        "listener:SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "id": "chunk-129",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event GeofenceDwelled",
+      "text": "Event GeofenceDwelled triggers: HandleGeofenceDwelled (async (queue)); SendResourceLifecycleWebhook (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "GeofenceDwelled"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleGeofenceDwelled",
+        "listener:SendResourceLifecycleWebhook"
+      ]
+    },
+    {
+      "id": "chunk-130",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event UserRemovedFromCompany",
+      "text": "Event UserRemovedFromCompany triggers: HandleUserRemovedFromCompany (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "UserRemovedFromCompany"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleUserRemovedFromCompany"
+      ]
+    },
+    {
+      "id": "chunk-131",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event ScheduleItemCreated",
+      "text": "Event ScheduleItemCreated triggers: NotifyDriverOnShiftChange (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "ScheduleItemCreated"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:NotifyDriverOnShiftChange"
+      ]
+    },
+    {
+      "id": "chunk-132",
+      "type": "event-flow",
+      "domain": "FleetOps",
+      "title": "Event ScheduleItemUpdated",
+      "text": "Event ScheduleItemUpdated triggers: NotifyDriverOnShiftChange (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "ScheduleItemUpdated"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:NotifyDriverOnShiftChange"
+      ]
+    },
+    {
+      "id": "chunk-133",
+      "type": "event-flow",
+      "domain": "Storefront",
+      "title": "Event OrderStarted",
+      "text": "Event OrderStarted triggers: HandleOrderStarted (sync)",
+      "tags": [
+        "event",
+        "async",
+        "OrderStarted"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderStarted"
+      ]
+    },
+    {
+      "id": "chunk-134",
+      "type": "event-flow",
+      "domain": "Storefront",
+      "title": "Event OrderDispatched",
+      "text": "Event OrderDispatched triggers: HandleOrderDispatched (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderDispatched"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderDispatched"
+      ]
+    },
+    {
+      "id": "chunk-135",
+      "type": "event-flow",
+      "domain": "Storefront",
+      "title": "Event OrderCompleted",
+      "text": "Event OrderCompleted triggers: HandleOrderCompleted (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderCompleted"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderCompleted"
+      ]
+    },
+    {
+      "id": "chunk-136",
+      "type": "event-flow",
+      "domain": "Storefront",
+      "title": "Event OrderDriverAssigned",
+      "text": "Event OrderDriverAssigned triggers: HandleOrderDriverAssigned (async (queue))",
+      "tags": [
+        "event",
+        "async",
+        "OrderDriverAssigned"
+      ],
+      "confidence": 0.88,
+      "relations": [
+        "listener:HandleOrderDriverAssigned"
+      ]
+    },
+    {
+      "id": "chunk-137",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "CheckGeofenceDwell",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\CheckGeofenceDwell on queue geofence. Trigger: Application dispatch (search codebase). Retries: 1.",
+      "tags": [
+        "job",
+        "queue",
+        "geofence"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:geofence"
+      ]
+    },
+    {
+      "id": "chunk-138",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "ProcessAllocationJob",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\ProcessAllocationJob on queue default. Trigger: Order auto-allocation / listeners. Retries: 3.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-139",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "ReplayPositions",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\ReplayPositions on queue default. Trigger: FleetOps tracking / replay API. Retries: 3 (Laravel default).",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-140",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "SendPositionReplay",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\SendPositionReplay on queue default. Trigger: FleetOps tracking / replay API. Retries: 3.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-141",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "SimulateDrivingRoute",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\SimulateDrivingRoute on queue default. Trigger: Application dispatch (search codebase). Retries: 20.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-142",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "SimulateWaypointReached",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\SimulateWaypointReached on queue default. Trigger: Application dispatch (search codebase). Retries: 20.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-143",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "SyncTelematicDevicesJob",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\SyncTelematicDevicesJob on queue default. Trigger: Telematics sync / webhooks. Retries: 3.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-144",
+      "type": "job",
+      "domain": "fleetops",
+      "title": "TestTelematicConnectionJob",
+      "text": "Job Fleetbase\\FleetOps\\Jobs\\TestTelematicConnectionJob on queue default. Trigger: Telematics sync / webhooks. Retries: 1.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-145",
+      "type": "job",
+      "domain": "core-api",
+      "title": "LogApiRequest",
+      "text": "Job Fleetbase\\Jobs\\LogApiRequest on queue default. Trigger: Middleware LogApiRequests (fleetbase.api). Retries: 3 (Laravel default).",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-146",
+      "type": "job",
+      "domain": "core-api",
+      "title": "MaterializeSchedulesJob",
+      "text": "Job Fleetbase\\Jobs\\MaterializeSchedulesJob on queue default. Trigger: Scheduler dailyAt 01:00 (CoreServiceProvider). Retries: 3.",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-147",
+      "type": "job",
+      "domain": "storefront",
+      "title": "DownloadProductImageUrl",
+      "text": "Job Fleetbase\\Storefront\\Jobs\\DownloadProductImageUrl on queue default. Trigger: Application dispatch (search codebase). Retries: 3 (Laravel default).",
+      "tags": [
+        "job",
+        "queue",
+        "default"
+      ],
+      "confidence": 0.9,
+      "relations": [
+        "queue:default"
+      ]
+    },
+    {
+      "id": "chunk-148",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: Order",
+      "text": "Changing Order affects: 107 API paths, 1 jobs, 11 events, 22 listeners, 1 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "Order",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:Order"
+      ]
+    },
+    {
+      "id": "chunk-149",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: Driver",
+      "text": "Changing Driver affects: 48 API paths, 0 jobs, 2 events, 4 listeners, 1 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "Driver",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:Driver"
+      ]
+    },
+    {
+      "id": "chunk-150",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: Payment",
+      "text": "Changing Payment affects: 43 API paths, 0 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "Payment",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:Payment"
+      ]
+    },
+    {
+      "id": "chunk-151",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: Customer",
+      "text": "Changing Customer affects: 59 API paths, 0 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "Customer",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:Customer"
+      ]
+    },
+    {
+      "id": "chunk-152",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: Product",
+      "text": "Changing Product affects: 55 API paths, 1 jobs, 0 events, 0 listeners, 0 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "Product",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:Product"
+      ]
+    },
+    {
+      "id": "chunk-153",
+      "type": "impact-entity",
+      "domain": "platform",
+      "title": "Impact: User",
+      "text": "Changing User affects: 37 API paths, 0 jobs, 1 events, 1 listeners, 0 channels, 0 UI specs. Risk: high.",
+      "tags": [
+        "impact",
+        "User",
+        "high"
+      ],
+      "confidence": 0.85,
+      "relations": [
+        "entity:User"
+      ]
+    },
+    {
+      "id": "chunk-154",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getUuid",
+      "text": "Method Fleetbase\\Support\\name::getUuid has 126 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-155",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getCountryData",
+      "text": "Method Fleetbase\\Support\\name::getCountryData has 126 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-156",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::urlToStorefrontFile",
+      "text": "Method Fleetbase\\Support\\name::urlToStorefrontFile has 126 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-157",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getModelClassName",
+      "text": "Method Fleetbase\\Support\\name::getModelClassName has 72 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-158",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getMutationType",
+      "text": "Method Fleetbase\\Support\\name::getMutationType has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-159",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::humanizeClassName",
+      "text": "Method Fleetbase\\Support\\name::humanizeClassName has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-160",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getCountryCodeByName",
+      "text": "Method Fleetbase\\Support\\name::getCountryCodeByName has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-161",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getCountryCodeByCurrency",
+      "text": "Method Fleetbase\\Support\\name::getCountryCodeByCurrency has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-162",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::convertDb",
+      "text": "Method Fleetbase\\Support\\name::convertDb has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-163",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::dateRange",
+      "text": "Method Fleetbase\\Support\\name::dateRange has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-164",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getAuthSchemaNamespaces",
+      "text": "Method Fleetbase\\Support\\name::getAuthSchemaNamespaces has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-165",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getModelCountry",
+      "text": "Method Fleetbase\\Support\\name::getModelCountry has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-166",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::clearCacheByPattern",
+      "text": "Method Fleetbase\\Support\\name::clearCacheByPattern has 54 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-167",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Http\\Resources\\v1\\basename::toArray",
+      "text": "Method Fleetbase\\FleetOps\\Http\\Resources\\v1\\basename::toArray has 48 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-168",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Support\\name::getPointFromMixed",
+      "text": "Method Fleetbase\\FleetOps\\Support\\name::getPointFromMixed has 39 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-169",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::httpRequestForModel",
+      "text": "Method Fleetbase\\Support\\name::httpRequestForModel has 38 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-170",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::sqlDump",
+      "text": "Method Fleetbase\\Support\\name::sqlDump has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-171",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::smartHumanize",
+      "text": "Method Fleetbase\\Support\\name::smartHumanize has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-172",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getTypeFromClassName",
+      "text": "Method Fleetbase\\Support\\name::getTypeFromClassName has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-173",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::or",
+      "text": "Method Fleetbase\\Support\\name::or has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-174",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::exists",
+      "text": "Method Fleetbase\\Support\\name::exists has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-175",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::notSet",
+      "text": "Method Fleetbase\\Support\\name::notSet has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-176",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getCurrenyFromCountryCode",
+      "text": "Method Fleetbase\\Support\\name::getCurrenyFromCountryCode has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-177",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getDialCodeFromCountryCode",
+      "text": "Method Fleetbase\\Support\\name::getDialCodeFromCountryCode has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-178",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getCapitalCityFromCountryCode",
+      "text": "Method Fleetbase\\Support\\name::getCapitalCityFromCountryCode has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-179",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::findDelimiterFromString",
+      "text": "Method Fleetbase\\Support\\name::findDelimiterFromString has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-180",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::toEmberResourceType",
+      "text": "Method Fleetbase\\Support\\name::toEmberResourceType has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-181",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getSeederClassesFromExtensions",
+      "text": "Method Fleetbase\\Support\\name::getSeederClassesFromExtensions has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-182",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getSeedersFromExtensions",
+      "text": "Method Fleetbase\\Support\\name::getSeedersFromExtensions has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-183",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getDefaultMailFromAddress",
+      "text": "Method Fleetbase\\Support\\name::getDefaultMailFromAddress has 36 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-184",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::httpResourceForModel",
+      "text": "Method Fleetbase\\Support\\name::httpResourceForModel has 34 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-185",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder",
+      "text": "Method Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureOrder has 28 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-186",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Support\\name::getPointFromCoordinatesStrict",
+      "text": "Method Fleetbase\\FleetOps\\Support\\name::getPointFromCoordinatesStrict has 24 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-187",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Support\\name::getCoordinateFromCoordinates",
+      "text": "Method Fleetbase\\FleetOps\\Support\\name::getCoordinateFromCoordinates has 24 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-188",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders",
+      "text": "Method Fleetbase\\Storefront\\Http\\Controllers\\v1\\CheckoutController::captureMultipleOrders has 24 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-189",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::httpFilterForModel",
+      "text": "Method Fleetbase\\Support\\name::httpFilterForModel has 22 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-190",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\exists::getUuid",
+      "text": "Method Fleetbase\\Support\\exists::getUuid has 21 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-191",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\exists::getCountryData",
+      "text": "Method Fleetbase\\Support\\exists::getCountryData has 21 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-192",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\exists::urlToStorefrontFile",
+      "text": "Method Fleetbase\\Support\\exists::urlToStorefrontFile has 21 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-193",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getNotifiablesForCompany",
+      "text": "Method Fleetbase\\Support\\name::getNotifiablesForCompany has 20 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-194",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::notify",
+      "text": "Method Fleetbase\\Support\\name::notify has 20 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-195",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Models\\ServiceRate::quote",
+      "text": "Method Fleetbase\\FleetOps\\Models\\ServiceRate::quote has 19 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-196",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Models\\containing::quote",
+      "text": "Method Fleetbase\\FleetOps\\Models\\containing::quote has 19 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-197",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\ServiceQuoteController::fromCartForNetwork",
+      "text": "Method Fleetbase\\Storefront\\Http\\Controllers\\v1\\ServiceQuoteController::fromCartForNetwork has 19 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-198",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::resourceForMorph",
+      "text": "Method Fleetbase\\Support\\name::resourceForMorph has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-199",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::consoleUrl",
+      "text": "Method Fleetbase\\Support\\name::consoleUrl has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-200",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::assetFromS3",
+      "text": "Method Fleetbase\\Support\\name::assetFromS3 has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-201",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::assetFromFleetbase",
+      "text": "Method Fleetbase\\Support\\name::assetFromFleetbase has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-202",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::stringExtract",
+      "text": "Method Fleetbase\\Support\\name::stringExtract has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-203",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::toDatetime",
+      "text": "Method Fleetbase\\Support\\name::toDatetime has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-204",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::isset",
+      "text": "Method Fleetbase\\Support\\name::isset has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-205",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::isTrue",
+      "text": "Method Fleetbase\\Support\\name::isTrue has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-206",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::isFalse",
+      "text": "Method Fleetbase\\Support\\name::isFalse has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-207",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::sqlExceptionString",
+      "text": "Method Fleetbase\\Support\\name::sqlExceptionString has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-208",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::pluralize",
+      "text": "Method Fleetbase\\Support\\name::pluralize has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-209",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::singularize",
+      "text": "Method Fleetbase\\Support\\name::singularize has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-210",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::tableize",
+      "text": "Method Fleetbase\\Support\\name::tableize has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-211",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::lowercase",
+      "text": "Method Fleetbase\\Support\\name::lowercase has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-212",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::findModel",
+      "text": "Method Fleetbase\\Support\\name::findModel has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-213",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::moneyFormat",
+      "text": "Method Fleetbase\\Support\\name::moneyFormat has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-214",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::firstValue",
+      "text": "Method Fleetbase\\Support\\name::firstValue has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-215",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::setProperties",
+      "text": "Method Fleetbase\\Support\\name::setProperties has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-216",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::isPublicId",
+      "text": "Method Fleetbase\\Support\\name::isPublicId has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-217",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::count",
+      "text": "Method Fleetbase\\Support\\name::count has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-218",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::findCountryFromTimezone",
+      "text": "Method Fleetbase\\Support\\name::findCountryFromTimezone has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-219",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::resolveCurrencyCode",
+      "text": "Method Fleetbase\\Support\\name::resolveCurrencyCode has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-220",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::lookupIp",
+      "text": "Method Fleetbase\\Support\\name::lookupIp has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-221",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::deleteModels",
+      "text": "Method Fleetbase\\Support\\name::deleteModels has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-222",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::serializeJsonResource",
+      "text": "Method Fleetbase\\Support\\name::serializeJsonResource has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-223",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getImageSizeFromString",
+      "text": "Method Fleetbase\\Support\\name::getImageSizeFromString has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-224",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::formatSeconds",
+      "text": "Method Fleetbase\\Support\\name::formatSeconds has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-225",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::dbExec",
+      "text": "Method Fleetbase\\Support\\name::dbExec has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-226",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::bindVariablesToString",
+      "text": "Method Fleetbase\\Support\\name::bindVariablesToString has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-227",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::resolveSubject",
+      "text": "Method Fleetbase\\Support\\name::resolveSubject has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-228",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::isSubscriptionValidForAction",
+      "text": "Method Fleetbase\\Support\\name::isSubscriptionValidForAction has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-229",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getInstalledFleetbaseExtensions",
+      "text": "Method Fleetbase\\Support\\name::getInstalledFleetbaseExtensions has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-230",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getMigrationDirectories",
+      "text": "Method Fleetbase\\Support\\name::getMigrationDirectories has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-231",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getMigrationDirectoryForExtension",
+      "text": "Method Fleetbase\\Support\\name::getMigrationDirectoryForExtension has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-232",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::getAuthSchemas",
+      "text": "Method Fleetbase\\Support\\name::getAuthSchemas has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-233",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::hasDatabaseConnection",
+      "text": "Method Fleetbase\\Support\\name::hasDatabaseConnection has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-234",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents::handle",
+      "text": "Method Fleetbase\\FleetOps\\Console\\Commands\\SimulateGeofenceEvents::handle has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-235",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Models\\ServiceRate::quoteFromPreliminaryData",
+      "text": "Method Fleetbase\\FleetOps\\Models\\ServiceRate::quoteFromPreliminaryData has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-236",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Models\\containing::quoteFromPreliminaryData",
+      "text": "Method Fleetbase\\FleetOps\\Models\\containing::quoteFromPreliminaryData has 18 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-237",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Console\\Commands\\CreatePermissions::handle",
+      "text": "Method Fleetbase\\Console\\Commands\\CreatePermissions::handle has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-238",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Events\\name::broadcastOn",
+      "text": "Method Fleetbase\\Events\\name::broadcastOn has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-239",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\name::notifyUsingDefinitionName",
+      "text": "Method Fleetbase\\Support\\name::notifyUsingDefinitionName has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-240",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\to::validateRequest",
+      "text": "Method Fleetbase\\Traits\\to::validateRequest has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-241",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\to::queryRecord",
+      "text": "Method Fleetbase\\Traits\\to::queryRecord has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-242",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\for::validateRequest",
+      "text": "Method Fleetbase\\Traits\\for::validateRequest has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-243",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\for::queryRecord",
+      "text": "Method Fleetbase\\Traits\\for::queryRecord has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-244",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\defined::validateRequest",
+      "text": "Method Fleetbase\\Traits\\defined::validateRequest has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-245",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Traits\\defined::queryRecord",
+      "text": "Method Fleetbase\\Traits\\defined::queryRecord has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-246",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Storefront\\Http\\Controllers\\v1\\ServiceQuoteController::fromCart",
+      "text": "Method Fleetbase\\Storefront\\Http\\Controllers\\v1\\ServiceQuoteController::fromCart has 16 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-247",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\is::httpRequestForModel",
+      "text": "Method Fleetbase\\Support\\is::httpRequestForModel has 15 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-248",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\Telemetry::send",
+      "text": "Method Fleetbase\\Support\\Telemetry::send has 15 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-249",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrchestrationController::importOrders",
+      "text": "Method Fleetbase\\FleetOps\\Http\\Controllers\\Internal\\v1\\OrchestrationController::importOrders has 15 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-250",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\names::getUuid",
+      "text": "Method Fleetbase\\Support\\names::getUuid has 14 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-251",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\names::getCountryData",
+      "text": "Method Fleetbase\\Support\\names::getCountryData has 14 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-252",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\Support\\names::urlToStorefrontFile",
+      "text": "Method Fleetbase\\Support\\names::urlToStorefrontFile has 14 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    },
+    {
+      "id": "chunk-253",
+      "type": "symbol",
+      "domain": "code",
+      "title": "Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create",
+      "text": "Method Fleetbase\\FleetOps\\Http\\Controllers\\Api\\v1\\OrderController::create has 14 graph references. Called by: unknown.",
+      "tags": [
+        "symbol",
+        "callgraph"
+      ],
+      "confidence": 0.8,
+      "relations": []
+    }
+  ]
+}

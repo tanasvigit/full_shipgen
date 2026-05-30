@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "generated": "2026-05-19T10:35:51.822Z",
+  "timeline": [
+    {
+      "period": "2026-05-19",
+      "majorChanges": "1354 API endpoints; 12741 call-graph edges; 11 jobs · 23 event flows; 16 governance violations"
+    }
+  ],
+  "deltas": null,
+  "debtSignals": [
+    "High package coupling sustained"
+  ]
+}

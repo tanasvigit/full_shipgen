@@ -1,0 +1,111 @@
+{
+  "generated": "2026-05-19T10:35:45.323Z",
+  "coverage": {
+    "areas": {
+      "Jobs": {
+        "count": 11,
+        "pct": 100,
+        "secondary": 11
+      },
+      "Events": {
+        "count": 23,
+        "pct": 94,
+        "secondary": 20
+      },
+      "Webhooks": {
+        "count": 25,
+        "pct": 58,
+        "secondary": 4
+      },
+      "Realtime": {
+        "count": 5,
+        "pct": 60,
+        "secondary": 1
+      },
+      "RBAC": {
+        "count": 456,
+        "pct": 51,
+        "secondary": 6
+      },
+      "Workflows": {
+        "count": 5,
+        "pct": 50,
+        "secondary": 0
+      },
+      "Scheduler": {
+        "count": 17,
+        "pct": 53,
+        "secondary": 1
+      }
+    },
+    "avgCoveragePct": 67,
+    "warnings": [],
+    "targetNote": "Expand parsers for custom dispatch paths"
+  },
+  "jobs": [
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\CheckGeofenceDwell",
+      "queue": "geofence",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\ProcessAllocationJob",
+      "queue": "default",
+      "trigger": "Order auto-allocation / listeners"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\ReplayPositions",
+      "queue": "default",
+      "trigger": "FleetOps tracking / replay API"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\SendPositionReplay",
+      "queue": "default",
+      "trigger": "FleetOps tracking / replay API"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\SimulateDrivingRoute",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\SimulateWaypointReached",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\SyncTelematicDevicesJob",
+      "queue": "default",
+      "trigger": "Telematics sync / webhooks"
+    },
+    {
+      "class": "Fleetbase\\FleetOps\\Jobs\\TestTelematicConnectionJob",
+      "queue": "default",
+      "trigger": "Telematics sync / webhooks"
+    },
+    {
+      "class": "Fleetbase\\Jobs\\LogApiRequest",
+      "queue": "default",
+      "trigger": "Middleware LogApiRequests (fleetbase.api)"
+    },
+    {
+      "class": "Fleetbase\\Jobs\\MaterializeSchedulesJob",
+      "queue": "default",
+      "trigger": "Scheduler dailyAt 01:00 (CoreServiceProvider)"
+    },
+    {
+      "class": "Fleetbase\\Storefront\\Jobs\\DownloadProductImageUrl",
+      "queue": "default",
+      "trigger": "Application dispatch (search codebase)"
+    }
+  ],
+  "eventFlows": 23,
+  "webhooks": {
+    "inboundEndpoints": 25,
+    "outboundPatterns": 4
+  },
+  "realtime": {
+    "catalogChannels": 5,
+    "broadcastDriver": "socketcluster"
+  }
+}

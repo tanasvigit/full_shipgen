@@ -1,0 +1,24 @@
+{
+  "generated": "2026-05-19T10:35:51.836Z",
+  "metrics": {
+    "endpoints": 1354,
+    "callGraphEdges": 12741,
+    "jobs": 11,
+    "events": 23,
+    "governanceViolations": 16,
+    "driftCount": 12,
+    "couplingScore": 1586,
+    "governanceScore": 60,
+    "releaseRisk": 65,
+    "docIntegrity": 78,
+    "engineeringReadiness": 66,
+    "governance": {
+      "couplingImports": 0,
+      "largeControllers": 6,
+      "eventFanout": 0,
+      "jobsNoFailed": 10,
+      "policyGap": 0
+    },
+    "enterpriseMaturity": 68
+  }
+}
