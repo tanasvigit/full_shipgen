@@ -98,6 +98,28 @@ export default defineConfig({
       },
     },
     {
+      name: "chromium-fleetops-smoke",
+      testDir: path.join(rootDir, "e2e/fleetops"),
+      grep: /@smoke/,
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: authFile,
+        headless: false,
+      },
+    },
+    {
+      name: "chromium-fleetops-regression",
+      testDir: path.join(rootDir, "e2e/fleetops"),
+      grep: /@regression/,
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: authFile,
+        headless: false,
+      },
+    },
+    {
       name: "chromium-guest",
       testMatch: [/auth\/login\.spec\.ts/, /auth\/guest\.spec\.ts/],
       use: {

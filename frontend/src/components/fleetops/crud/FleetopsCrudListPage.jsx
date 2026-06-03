@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { getCrudApi } from "@/lib/fleetops/crudApi";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
+import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
 
 export default function FleetopsCrudListPage({ config }) {
   const navigate = useNavigate();
@@ -150,6 +152,9 @@ export default function FleetopsCrudListPage({ config }) {
         }
       />
       <div className="p-6">
+        {entitySupportsImportExport(config.key) && (
+          <CrudImportExportBar entityKey={config.key} onComplete={load} testPrefix={testPrefix} />
+        )}
         {!loading && rows.length === 0 && (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid={`${testPrefix}-empty`}>
             No {config.pluralLabel.toLowerCase()} yet.

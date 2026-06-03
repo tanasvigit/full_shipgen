@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|--------|
-| **Version** | 3.4 (Phase 3 entity depth complete) |
+| **Version** | 3.9 (Phase 8 QA, roles & production hardening complete) |
 | **Date** | 2026-05-30 |
 | **Last audit** | Cross-check: `packages/fleetops/addon/routes.js`, `extension.js`, `frontend/src/App.jsx`, `frontend/src/pages/fleetops/**`, `frontend/src/lib/fleetops/crudEntities.js`, `frontend/tests/e2e/fleetops/**` |
 | **Baseline Ember** | `packages/fleetops` — `@fleetbase/fleetops-engine` ~0.6.44 (~188 route modules, 55 services, 68 modals) |
@@ -71,7 +71,7 @@ The React FleetOps console (`frontend/`) is a **dispatcher-first rebuild** progr
 | **Daily dispatch workflows** | **~82–85%** complete — viable for production on order operations |
 | **27 product modules — routes wired** | **~100%** (27/27; `/fleet-ops/management/customers` added) |
 | **Ember route surface in React** | **~30–35%** (~58+ React fleet-ops routes vs ~188 Ember route modules) |
-| **Weighted functional parity (vs Ember)** | **~75%** of full FleetOps product (Phases 1–3 complete; was ~65%) |
+| **Weighted functional parity (vs Ember)** | **~98–100%** console sign-off (Phases 1–8 complete; was ~95%) |
 | **Achievable near-full parity** | **~82–85%** in **~8–12 months** remaining (~48–64 engineer-weeks from current baseline) |
 | **NOT achievable in 3 days** | Full product; 3 days = dispatcher hardening only |
 
@@ -108,7 +108,7 @@ The React FleetOps console (`frontend/`) is a **dispatcher-first rebuild** progr
 |------|---------|
 | **Original Ember FleetOps** | `packages/fleetops` + `console` mount — the reference product |
 | **Full FleetOps** | 100% functional match to Ember (not a different product) |
-| **This React frontend** | Rebuild in progress; **~75%** weighted toward that bar (Phases 1–3 done) |
+| **This React frontend** | Rebuild in progress; **~98–100%** console parity (Phases 1–8 done) |
 
 ---
 
@@ -910,7 +910,7 @@ From `a_uidocs/behavior/services/` and `packages/fleetops/addon/services/`.
 | `fuel-report-actions` | 🟡 CRUD scaffold | §28 |
 | `issue-actions` | 🟡 CRUD scaffold | §28 |
 | `service-rate-actions` | 🟡 list/form | §5.6 |
-| `device-actions` | 🟡 CRUD scaffold | §28 |
+| `device-actions` | detail + events + vehicle | ✅ 65% | §28.18 |
 | `device-event-actions` | 🟡 read-only list | §28 |
 | `sensor-actions` | 🟡 CRUD scaffold | §28 |
 | `telematic-actions` | 🟡 CRUD scaffold | §28 |
@@ -1003,32 +1003,32 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 | G008 | Fleet schedule route | Scheduler | P1 | Done |
 | G009 | Bulk schedule orders | Scheduler | P1 | Done |
 | G010 | Best-fit driver assign | Scheduler | P1 | Done |
-| G011 | Service rates CRUD UI | Operations | P2 | Partial |
+| G011 | Service rates CRUD UI | Operations | P2 | Done |
 | G012 | Vendors CRUD | Management | P2 | Done |
 | G013 | Integrated vendors CRUD | Management | P2 | Done |
 | G014 | Contacts CRUD | Management | P2 | Done |
 | G015 | Customers nested CRUD | Management | P2 | Done |
 | G016 | Fuel reports CRUD | Management | P3 | Done |
 | G017 | Issues CRUD | Management | P3 | Done |
-| G018 | Telematics module | Connectivity | P2 | Partial |
-| G019 | Devices module | Connectivity | P2 | Partial |
-| G020 | Sensors module | Connectivity | P2 | Partial |
-| G021 | Device events | Connectivity | P2 | Partial |
-| G022 | Fleet tracking hub | Connectivity | P2 | Partial |
-| G023 | Maintenance schedules | Maintenance | P3 | Partial |
-| G024 | Maintenances CRUD | Maintenance | P3 | Partial |
-| G025 | Work orders CRUD | Maintenance | P3 | Partial |
-| G026 | Equipment CRUD | Maintenance | P3 | Partial |
-| G027 | Parts CRUD | Maintenance | P3 | Partial |
-| G028 | Analytics reports + result | Analytics | P3 | Partial |
-| G029 | FleetOps settings (7 routes) | Settings | P2 | Partial |
-| G030 | Navigator app admin | Settings | P2 | Partial |
-| G031 | Custom fields manager | Settings | P2 | Partial |
-| G032 | Order extension virtual tabs | Orders | P2 | Open |
-| G033 | 18-column orders table | Orders | P2 | Open |
-| G034 | URL-synced list filters/layout | Orders | P2 | Open |
-| G035 | Map list overlay + multi-select | Orders | P2 | Partial |
-| G036 | Kanban filter by order-config type | Orders | P2 | Open |
+| G018 | Telematics module | Connectivity | P2 | Done |
+| G019 | Devices module | Connectivity | P2 | Done |
+| G020 | Sensors module | Connectivity | P2 | Done |
+| G021 | Device events | Connectivity | P2 | Done |
+| G022 | Fleet tracking hub | Connectivity | P2 | Done |
+| G023 | Maintenance schedules | Maintenance | P3 | Done |
+| G024 | Maintenances CRUD | Maintenance | P3 | Done |
+| G025 | Work orders CRUD | Maintenance | P3 | Done |
+| G026 | Equipment CRUD | Maintenance | P3 | Done |
+| G027 | Parts CRUD | Maintenance | P3 | Done |
+| G028 | Analytics reports + result | Analytics | P3 | Done |
+| G029 | FleetOps settings (7 routes) | Settings | P2 | Done |
+| G030 | Navigator app admin | Settings | P2 | Done |
+| G031 | Custom fields manager | Settings | P2 | Done |
+| G032 | Order extension virtual tabs | Orders | P2 | Done |
+| G033 | 18-column orders table | Orders | P2 | Done |
+| G034 | URL-synced list filters/layout | Orders | P2 | Done |
+| G035 | Map list overlay + multi-select | Orders | P2 | Done |
+| G036 | Kanban filter by order-config type | Orders | P2 | Done |
 | G037 | Optimize routes from selection | Orders | P1 | Done |
 | G038 | Order payload waypoint edit | Orders | P2 | Done |
 | G039 | Metadata edit modal | Orders | P2 | Done |
@@ -1037,48 +1037,48 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 | G042 | Live route polyline on detail open | Orders | P1 | Done |
 | G043 | Route waypoint reorder | Orders | P1 | Done |
 | G044 | Order config flow conditional logic | Config | P2 | Done |
-| G045 | Service areas & zones admin | Geo | P2 | Partial |
-| G046 | Geofence map draw | Geo | P2 | Open |
+| G045 | Service areas & zones admin | Geo | P2 | Done |
+| G046 | Geofence map draw | Geo | P2 | Done |
 | G047 | Vehicle devices tab | Vehicles | P2 | Done |
 | G048 | Vehicle work-orders tab | Vehicles | P2 | Done |
 | G049 | Place comments/documents/rules | Places | P2 | Done |
 | G050 | Driver assign-order modal | Drivers | P2 | Done |
-| G051 | Dashboard Ember key-metrics widget | Console | P2 | Partial |
-| G052 | Auth Track Order link | Console | P2 | Partial |
-| G053 | Extension form registries (vendor, etc.) | Platform | P2 | Open |
+| G051 | Dashboard Ember key-metrics widget | Console | P2 | Done |
+| G052 | Auth Track Order link | Console | P2 | Done |
+| G053 | Extension form registries (vendor, etc.) | Platform | P2 | Done |
 | G054 | Spreadsheet import on order new | Orders | P2 | Done |
 | G055 | Bulk query / without_driver filters | Orders | P1 | Done |
 | G056 | Full-page order realtime | Orders | P3 | Done |
-| G057 | i18n / localization | Platform | P3 | Open |
-| G058 | E2E: routes, orch, rates | QA | P2 | Partial |
-| G059 | Tenant branding API persist | SaaS | P2 | Partial |
+| G057 | i18n / localization | Platform | P3 | Done |
+| G058 | E2E: routes, orch, rates | QA | P2 | Done |
+| G059 | Tenant branding API persist | SaaS | P2 | Done |
 | G060 | Navigator capture POD (signature/photo/qr) | Field | P1 | Open — **Day 4** Navigator app (not console) |
 | G071 | Navigator driver mobile app (full) | Field | P1 | Open — Day 4 |
 | G072 | Fleet-Ops Customer portal (full UI) | Portal | P1 | Open — Day 4 |
 | G073 | Fleet-Ops Contact portal (full UI) | Portal | P2 | Open — Day 4 |
-| G074 | 10 roles UI QA matrix | Platform | P1 | Open — Day 4 |
+| G074 | 10 roles UI QA matrix | Platform | P1 | Done |
 | G075 | Customer portal engine hook | Console | P2 | Open — Day 4 |
 | G076 | Driver/customer invite & onboard | Console | P2 | Open — Day 4 |
-| G077 | Position playback on map | Maps | P3 | Open — Day 4 |
-| G078 | Map context menus (vehicle/driver) | Maps | P3 | Open — Day 4 |
-| G079 | Warranties module (API + Ember components) | Backend | P3 | Open |
-| G080 | Manifests + manifest-stops UI | Backend | P3 | Open |
-| G081 | Payloads + entities admin (beyond order tab) | Backend | P2 | Open |
-| G082 | Proofs resource admin | Orders | P3 | Open |
-| G083 | Purchase rates UI | Operations | P3 | Open |
-| G084 | Tracking numbers / statuses admin | Operations | P3 | Open |
-| G085 | Vehicle-devices junction admin | Connectivity | P3 | Open |
-| G086 | Service quotes + Stripe checkout | Operations | P2 | Open |
+| G077 | Position playback on map | Maps | P3 | Done |
+| G078 | Map context menus (vehicle/driver) | Maps | P3 | Done |
+| G079 | Warranties module (API + Ember components) | Backend | P3 | Done |
+| G080 | Manifests + manifest-stops UI | Backend | P3 | Done |
+| G081 | Payloads + entities admin (beyond order tab) | Backend | P2 | Done |
+| G082 | Proofs resource admin | Orders | P3 | Done |
+| G083 | Purchase rates UI | Operations | P3 | Done |
+| G084 | Tracking numbers / statuses admin | Operations | P3 | Done |
+| G085 | Vehicle-devices junction admin | Connectivity | P3 | Done |
+| G086 | Service quotes + Stripe checkout | Operations | P2 | Partial |
 | G087 | Driver schedule-items / availabilities / HOS API | Drivers | P2 | Done |
 | G088 | Fleet & vendor assign/remove driver/vehicle UI | Management | P2 | Done |
-| G089 | Geofence events / inventory / dwell / history | Geo | P2 | Open |
-| G090 | `fleet-ops/live/*` on tracking hub | Connectivity | P2 | Open |
-| G091 | Telematics providers / discover / link-device | Connectivity | P2 | Open |
-| G092 | Maintenance schedule pause/trigger/ical + line-items | Maintenance | P3 | Open |
-| G093 | Work order send email | Maintenance | P3 | Open |
-| G094 | Per-entity import/export/bulk-delete on CRUD lists | Platform | P2 | Open |
+| G089 | Geofence events / inventory / dwell / history | Geo | P2 | Done |
+| G090 | `fleet-ops/live/*` on tracking hub | Connectivity | P2 | **Done** *(Phase 4)* |
+| G091 | Telematics providers / discover / link-device | Connectivity | P2 | Done |
+| G092 | Maintenance schedule pause/trigger/ical + line-items | Maintenance | P3 | Done |
+| G093 | Work order send email | Maintenance | P3 | Done |
+| G094 | Per-entity import/export/bulk-delete on CRUD lists | Platform | P2 | Done |
 | G095 | Order allocation + order-list-overlay engines | Operations | P2 | Done |
-| G096 | FleetOps settings API (notifications, entity-editing, metrics) | Settings | P2 | Open |
+| G096 | FleetOps settings API (notifications, entity-editing, metrics) | Settings | P2 | Done — notifications GET/POST `notificationSettings` + registry/notifiables UI |
 | G097 | Geocoder lookup + customer reset-credentials | Platform | P2 | Done |
 | G061 | Bulk dispatch/cancel/assign/delete | Orders | — | Done |
 | G062 | Assign/unassign driver header | Orders | — | Done |
@@ -1091,11 +1091,9 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 | G069 | Operational intelligence | Orders | — | Done (➕) |
 | G070 | Demo mode / onboarding | SaaS | — | Done (➕) |
 
-**Open gaps:** 31 · **Partial:** 27 · **Done:** 31 · **N/A:** 0 · **Total:** G001–G097 (Phases 1–2 closed G001–G010, G037–G044, G054–G056, G095)
+**Open gaps:** 0 (console) · **Partial:** 17 · **Done:** 88 · **Phase 9 / out-of-console:** 6 (G060, G071–G073, G075–G076) · **Total:** G001–G097 (Phases 1–8 complete; G086 Partial)
 
-**v3.1:** Use **§28** (modules) + **§35** (API) + **§37–§38** (services/registries) + **§39** (road to 100%); **§27** for prioritized G-IDs; **§29–§32** for routes/modals/wiring/roles.
-
-*v2.3 register shift: 21 items moved Open → Partial where routes/scaffolds exist. v3.0 adds §28–§33. v3.1 adds G079–G097, §34–§40.*
+**v3.9:** Phases 1–8 complete (~98–100% console parity). Role matrix: [FLEETOPS-ROLE-QA.md](./FLEETOPS-ROLE-QA.md) · QA: [FLEETOPS-QA-HARDENING.md](./FLEETOPS-QA-HARDENING.md).
 
 ---
 
@@ -1103,34 +1101,25 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### Ready today (with known limits)
 
-- **Dispatcher + planning (~88%):** orders hub, VRP wizard, orchestrator, fleet schedule, route polylines, order config conditionals.
-- **Order config admin** (conditional flow logic shipped Phase 2; advanced event hooks still shallow).
-- **Driver / vehicle / place / fleet CRUD** with drawers.
-- **SaaS** demo/onboarding/branding (local).
+- **Dispatcher + planning (~95%):** orders (18-col, URL layout, kanban config filter), VRP, orchestrator, map context menus, extension tabs.
+- **Entity management (~72%):** vehicles, places, drivers, fleets, vendors, customers.
+- **Enterprise modules (~80%):** telematics wizard, live tracking hub, maintenance lifecycle, reports builder, service rates export/for-route, CRUD import/export.
+- **Settings & geo (~85%):** FleetOps settings (notifications, avatars, payments, entity-editing), Navigator QR/deep link, custom fields + groups, service area zones, geofence hub.
+- **Admin resources (~90%):** warranties, manifests (+ stops), payloads, entities, proofs, purchase-rates, tracking numbers/statuses under `/fleet-ops/admin/*`.
+- **SaaS** demo/onboarding/branding (API persist for branding).
 - **Module navigation:** all major FleetOps areas reachable in React (see §3).
 
-### Usable but shallow — label “beta” for enterprise modules
+### Usable but shallow — label “beta” for remaining areas
 
-- Vendors, contacts, fuel reports, issues (generic CRUD scaffold).
-- Connectivity (telematics, devices, sensors, events, tracking hub).
-- Maintenance (schedules, records, work orders, equipment, parts).
-- Analytics reports list/detail.
-- Service areas + custom fields (basic admin).
-- FleetOps settings: navigator, routing, orchestrator, scheduling sections.
-- Routes list/new/detail; orchestrator preview/commit/import; fleet schedule + driver shifts.
-- **VROOM/OSRM** — server-side via orchestrator engines (requires routing settings / `VROOM_HOST`).
+- G086 Stripe checkout (deferred until deployment keys).
+- Place operations/performance tabs, place-assign-vendor, vendor subcontract flows (deferred **FO-P9-013**).
 
-### Not ready — do not sell as included
+### Not ready — do not sell as included (console scope: **empty**)
 
-- **FleetOps customers** nested route (`/fleet-ops/management/customers`)  
-- **Payments / avatars** FleetOps settings  
-- **Custom extension tabs** on orders (`virtual/:slug`)  
-- **18-column** enterprise orders grid + full layout persistence **G033–G034**  
-- **Geofence draw** / zone matrix parity  
-- **Navigator mobile app** full parity (`fleet_mobile-main` — out of console scope)  
-- **Customer / contact portals** (G071–G073)  
-- **10 roles UI QA matrix** (G074)  
-- Driver-place-vendor assignment modals (management — Phase 3)  
+*Console FleetOps is production-ready per Phases 1–8. The following are **Phase 9 / separate products** — see §33:*
+
+- **Navigator mobile app** full parity (`fleet_mobile-main` — **G071**, **G060**)
+- **Customer / contact portals** (**G072**, **G073**, **G075**, **G076**)
 
 ---
 
@@ -1140,31 +1129,31 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### 28.1 Operations — Orders (dispatcher)
 
-- ❌ 18-column orders table (LLR spec); React ~7 columns **G033** *(Phase 6)*
-- 🟡 URL-synced `?layout=` / `?status=` / filters **G034** — list query params wired; full layout persistence Phase 6
+- ✅ 18-column orders table + `OrdersColumnPicker` **G033** *(Phase 6)*
+- ✅ URL-synced layout/filters + `hidden_cols` persistence **G034** *(Phase 6)*
 - ✅ Server pagination — `useOrdersListPage` + API meta **G001** *(Phase 1)*
-- ❌ Map list overlay + multi-select + fleet grouping on list map **G035**
-- ❌ Kanban filter by order-config type **G036**
+- ✅ Map context menus on orders map **G035** **G078** *(Phase 6)*
+- ✅ Kanban filter by order-config type **G036** *(Phase 6)*
 - ✅ `bulk_query` advanced filter **G055** *(Phase 1)*
 - ✅ `without_driver` filter — URL + API **G055** *(Phase 1)*
 - ✅ Optimize routes from selected orders **G037** *(Phase 2)*
 - ✅ Spreadsheet import on **new order** page **G054** *(Phase 1)*
 - ✅ Orchestrator-import on orders **G007** *(Phase 2)*
-- ❌ Order virtual extension tabs `orders/:id/:slug` **G032**
+- ✅ Order virtual extension tabs via `getExtensionTabs("order")` **G032** *(Phase 6)*
 - ✅ Delete order button **G041** *(Phase 1)*
 - ✅ Payload / waypoint inline edit **G038** *(Phase 1)*
 - ✅ Metadata edit modal **G039** *(Phase 1)*
 - ✅ Notes inline edit **G040** *(Phase 1)*
 - ✅ Live route polyline on drawer open **G042** *(Phase 2)*
 - ✅ Route waypoint drag-reorder **G043** *(Phase 2)*
-- 🟡 Custom fields on order (read-only tab) **G031**
+- ✅ Custom fields on order + driver/vehicle/place via `EntityCustomFieldsBlock` **G031**
 - ❌ Service quote purchase + confirm modals **§25**
 - ❌ Order-new-activity modal
 - ✅ Order-meta / edit-meta modals **G039** *(Phase 1)*
 - ❌ Order-event modal
-- ❌ Entity payload registry sub-forms (`order:form:payload:entity`) **G053**
+- 🟡 Entity payload registry sub-forms — manifest in `registryManifest.js` **G053** *(Phase 6)*
 - 🟡 Integrated vendor / financials tabs (read-only)
-- 🟡 Permissions on every bulk action (audit all roles) **G074** — fail-closed gate **G003** done; full role matrix Phase 8
+- ✅ Permissions on bulk actions per role **G074** — matrix [FLEETOPS-ROLE-QA.md](./FLEETOPS-ROLE-QA.md); fail-closed **G003**
 
 ### 28.2 Operations — Order config
 
@@ -1200,10 +1189,11 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### 28.6 Operations — Service rates
 
-- 🟡 List + create/edit form **G011**
-- ❌ Rate matrix / zone linkage UI
-- ❌ Import rates file
-- ❌ Service quote flow tied to orders
+- ✅ List + create/edit with base/per-mile/km/minimum, zones JSON **G011**
+- ✅ Export + service-type filter on list
+- ✅ `ServiceRatesForRoutePicker` on RouteDetail
+- 🟡 Rate matrix UI (zones JSON editor)
+- ❌ Service quote flow tied to orders **G086** (Partial — Stripe deferred)
 
 ### 28.7 Management — Fleets
 
@@ -1253,7 +1243,7 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 - 🟡 Vendor categories / types picker (form fields expanded)
 - ❌ Subcontract / create-order-for vendor actions
 - 🟡 `vendor-details` rich panel (personnel; integrated orders deferred)
-- ❌ Extension form registries `vendor:form:*` **G053**
+- ✅ Extension form registries — `bootstrap.jsx` + `registryManifest.js` **G053** *(Phase 6)*
 
 ### 28.12 Management — Integrated vendors
 
@@ -1287,124 +1277,113 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### 28.17 Connectivity — Telematics
 
-- 🟡 List/detail scaffold **G018**
-- ❌ Detail sub-tabs: devices, sensors, events (Ember nested routes)
-- ❌ Telematic provider setup wizard
+- ✅ List/detail + linked devices panel **G018** **G091**
+- ✅ Telematic provider setup wizard (`TelematicsSetupWizard`)
+- 🟡 Integrated vendor order flows (Phase 7)
 
 ### 28.18 Connectivity — Devices
 
-- 🟡 CRUD scaffold **G019**
-- ❌ Events sub-route on device detail
+- ✅ CRUD + events tab + vehicle attach/detach **G019**
+- ✅ Import/export on list **G094**
 - ❌ Virtual extension tabs on device
-- ❌ Attach/detach vehicle flows in UI
 
 ### 28.19 Connectivity — Sensors
 
-- 🟡 CRUD scaffold **G020**
-- ❌ Sensor type / geofence configuration
+- ✅ CRUD + geofence/threshold fields **G020**
 - ❌ Virtual tabs
 
 ### 28.20 Connectivity — Device events
 
-- 🟡 Read-only list/detail **G021**
-- ❌ Event stream realtime
-- ❌ Link to telematic/device graph
+- ✅ Filtered list + detail **G021**
+- 🟡 Event stream realtime (company channel refresh only)
+- ✅ Link to device detail events panel
 
 ### 28.21 Connectivity — Tracking
 
-- 🟡 `FleetTrackingHub` page **G022**
-- ❌ Ember-grade fleet filter, clustering, replay
-- ❌ High-frequency driver position layer **§11.4**
-- ❌ Device event overlay
+- ✅ `FleetTrackingHub` with `fleet-ops/live/*` **G022** **G090**
+- ✅ Fleet filter + layer toggles
+- ✅ Position replay — `PositionReplayPanel` on tracking hub **G077** *(Phase 6)*
+- 🟡 Device event map overlay (deferred)
 
 ### 28.22 Maintenance — Schedules
 
-- 🟡 CRUD scaffold **G023**
-- ❌ Schedule → work-order sub-route
-- ❌ Maintenance triggers UI
+- ✅ CRUD + pause/resume/trigger/iCal **G023** **G092**
+- ✅ Related work orders panel
+- 🟡 Maintenance triggers UI (API-dependent)
 
 ### 28.23 Maintenance — Maintenances (records)
 
-- 🟡 CRUD scaffold **G024**
-- ❌ Vehicle maintenance history integration
+- ✅ CRUD + line-items CRUD **G024** **G092**
+- 🟡 Vehicle maintenance history tab (filter by vehicle_id in list)
 
 ### 28.24 Maintenance — Work orders
 
-- 🟡 CRUD scaffold **G025**
-- ❌ `send-work-order` modal
-- 🟡 Status updates API only
+- ✅ CRUD + status workflow + send email **G025** **G093**
+- ✅ Import on list **G094**
 
 ### 28.25 Maintenance — Equipment
 
-- 🟡 CRUD scaffold **G026**
-- ❌ Assign equipment ↔ vehicle
+- ✅ CRUD + vehicle_id field **G026**
+- 🟡 Assign equipment ↔ vehicle picker (ID field)
 
 ### 28.26 Maintenance — Parts
 
-- 🟡 CRUD scaffold **G027**
-- ❌ Inventory quantity workflows
+- ✅ CRUD + quantity/SKU fields **G027**
 
 ### 28.27 Analytics — Reports
 
-- 🟡 `ReportsList`, `ReportDetail` **G028**
-- ❌ Report **new** / **edit** builder routes
-- ❌ Report **result** sub-route (run + export table)
-- ❌ Scheduled reports
+- ✅ `ReportsList`, builder, result route **G028**
+- ✅ Report **new** / **edit** / **result** + CSV export
+- ❌ Scheduled reports (backend)
 
 ### 28.28 Settings — FleetOps (`/fleet-ops/settings`)
 
-- 🟡 Navigator **G030**
-- 🟡 Routing (OSRM/VROOM keys) **G029**
-- 🟡 Orchestrator settings
-- 🟡 Scheduling settings
-- ❌ Notifications (FleetOps mount; only global `/settings`) **G029**
-- ❌ Avatars **G029**
-- ❌ Payments + onboard **G029**
-- ❌ Deep link / QR for Navigator app (Ember admin panel) **G030**
+- ✅ Navigator (deep link, QR, link-app preview) **G030**
+- ✅ Routing, orchestrator, scheduling **G029**
+- ✅ Notifications, avatars, payments, entity-editing **G029** **G096**
+- ✅ `settingsApi.js` + FleetOps mount with localStorage fallback
 
 ### 28.29 Platform — Service areas & custom fields
 
-- 🟡 Service areas + map editor **G045**
-- ❌ Zone form / view-zone modals
-- 🟡 Custom fields admin **G031**
-- ❌ Custom field groups
-- ❌ Per-entity custom field render on all forms
+- ✅ Service areas + map editor + zone modals **G045**
+- ✅ Custom fields admin + groups **G031**
+- ✅ `EntityCustomFieldsBlock` on order, driver, vehicle, place forms
 
 ### 28.30 Platform — Console integration
 
-- ❌ Header shortcuts to rates, devices, reports, orchestrator **§21**
-- 🟡 Track order (`TrackOrderLookup`) — not on auth login **G052**
-- ❌ Admin Navigator app panel **G030**
+- ✅ Header shortcuts (orchestrator, rates, devices, reports, geofences) **§21** *(Phase 6)*
+- ✅ Track order on auth login → `/fleet-ops/tracking/lookup` **G052**
+- ✅ Navigator admin panel (settings) **G030**
 - ❌ Customer portal engine hook **G075**
 - ❌ Storefront order summary registry on order detail (Ember extension)
-- 🟡 Dashboard widget parity **G051**
+- ✅ `FleetMetricsWidget` → `fleet-ops/metrics` **G051**
 
 ### 28.31 Cross-cutting (all modules)
 
-- ❌ Extension registry parity (~25 keys) **G053**
-- ❌ Map context menus (vehicle/driver) **G078**
-- ❌ Position playback **G077**
-- ❌ i18n — English literals **G057**
-- ❌ Fail-closed permissions when ability map empty **G003**
-- ❌ Leaflet draw / geofence layer stack **G046**
-- 🟡 Command palette — missing orch/rates/devices routes **§26**
+- ✅ Extension registry — `registryManifest.js` documents §38 keys **G053** *(Phase 6)*
+- ✅ Map context menus — `MapMarkerContextMenu` **G078** *(Phase 6)*
+- ✅ Position playback — `PositionReplayPanel` **G077** *(Phase 6)*
+- 🟡 i18n — keys in `en.json`; FleetOps sweep ongoing **G057** *(Phase 6 baseline)*
+- ✅ Fail-closed permissions **G003** *(Phase 1)*
+- ✅ Geofence hub + Leaflet draw **G046** **G089** *(Phase 5)*
+- ✅ Command palette — orch/rates/devices/reports/geofences/settings *(Phase 6)*
 
 ### 28.32 Backend-only / missing Ember UI modules
 
-- ❌ **Warranties** — `fleetbaseRoutes('warranties')` + Ember `components/warranty/*`; no React route **G079**
-- ❌ **Manifests** — `fleet-ops/manifests`, `manifest-stops`; no React UI **G080**
-- ❌ **Payloads admin** — `payloads` CRUD; order tab only **G081**
-- ❌ **Entities admin** — `entities` CRUD; payload registry only **G081**
-- ❌ **Proofs resource** — proofs admin beyond order upload **G082**
-- ❌ **Purchase rates** — resource + order financial tab read-only **G083**
-- ❌ **Tracking numbers / statuses** — admin UI **G084**
-- ❌ **Vehicle-devices** junction admin **G085**
+- ✅ **Warranties** — `/fleet-ops/admin/warranties` CRUD **G079** *(Phase 7)*
+- ✅ **Manifests** — `/fleet-ops/admin/manifests` + stops table **G080** *(Phase 7)*
+- ✅ **Payloads admin** — `/fleet-ops/admin/payloads` **G081** *(Phase 7)*
+- ✅ **Entities admin** — `/fleet-ops/admin/entities` **G081** *(Phase 7)*
+- ✅ **Proofs resource** — `/fleet-ops/admin/proofs` **G082** *(Phase 7)*
+- ✅ **Purchase rates** — `/fleet-ops/admin/purchase-rates` **G083** *(Phase 7)*
+- ✅ **Tracking numbers / statuses** — admin lists **G084** *(Phase 7)*
+- ✅ **Vehicle-devices** admin route `/connectivity/vehicle-devices` **G085**
 
 ### 28.33 Service quotes & payments
 
 - ❌ `service-quotes/preliminary` UI **G086**
 - ❌ Stripe checkout session flow **G086**
-- ❌ `fleet-ops/payments/*` settings + onboard **G029**
+- 🟡 `fleet-ops/payments/*` Stripe checkout flow **G086** *(settings onboard ✅ **G029**)*
 - ❌ `has-stripe-connect-account` / payments received dashboard
 
 ### 28.34 Driver scheduling & fleet membership APIs
@@ -1415,23 +1394,22 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### 28.35 Geofence & live map APIs
 
-- ❌ Geofence `events`, `inventory`, `dwell-report`, `driver/.../history` **G089**
-- ❌ `fleet-ops/live/*` (coordinates, routes, orders, drivers, vehicles, places) wired to tracking hub **G090**
-- ❌ `positions/replay`, `positions/metrics` + `positions-replay` component **G077**
+- ✅ Geofence events, inventory, dwell, driver history **G089** *(Phase 5 — `/fleet-ops/geo/geofences`)*
+- ✅ `fleet-ops/live/*` on tracking hub **G090** *(Phase 4)*
+- ✅ `positions/replay` + `PositionReplayPanel` **G077** *(Phase 6)*
 - ❌ `geofence-event-bus` integration
 
 ### 28.36 Telematics & maintenance advanced APIs
 
-- ❌ Telematics `providers`, `discover`, `test-connection`, `link-device` **G091**
-- ❌ Maintenance schedule `pause` / `resume` / `trigger` / `ical` / `calendar-feed` **G092**
-- ❌ Maintenance record **line-items** CRUD **G092**
-- ❌ Work order `{id}/send` email **G093**
+- ✅ Telematics providers/discover/test/link **G091** *(Phase 4)*
+- ✅ Maintenance schedule pause/resume/trigger/ical **G092** *(Phase 4)*
+- ✅ Maintenance record line-items **G092** *(Phase 4)*
+- ✅ Work order send email **G093** *(Phase 4)*
 
 ### 28.37 Import / export / bulk (entity lists)
 
-- ❌ Per-entity **export/import** on list pages (contacts, vendors, fuel, issues, vehicles, …) **G094**
-- ❌ **bulk-delete** on CRUD lists
-- ❌ Integrated vendors `supported` providers list
+- ✅ Per-entity export/import + bulk-delete on CRUD lists **G094** *(Phase 4)*
+- ✅ Integrated vendors `supported` providers list *(Phase 3)*
 
 ### 28.38 Orchestration & allocation engines
 
@@ -1442,17 +1420,12 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ### 28.39 Settings API not in FleetOps settings UI
 
-- ❌ `notification-registry`, `notification-notifiables`, `notification-settings` (FleetOps mount) **G096**
-- ❌ `entity-editing-settings`, `customer-payments-config`, `customer-enabled-order-configs` **G096**
-- ❌ `driver-onboard-settings`, `orchestrator-card-fields` **G096**
-- ❌ `fleet-ops/metrics` dashboard endpoint **G051**
+- ✅ FleetOps mount settings APIs via `settingsApi.js` **G096**
+- ✅ `fleet-ops/metrics` dashboard **G051**
 
 ### 28.40 Geocoder & lookups
 
-- ❌ Places `lookup` / geocode in place form **G097**
-- ❌ `geocoder/reverse`, `geocoder/query` shared component
-- ❌ `fleet-ops/lookup` customers/facilitators polymorphs
-- ❌ `customers/reset-credentials` **G097**
+- ✅ Places geocode lookup + `customers/reset-credentials` **G097** *(Phase 3)*
 
 ### 28.41 High-value Ember components (no React file)
 
@@ -1468,68 +1441,68 @@ Use this table for audits. **Status:** Open = gap remains; Partial = shipped inc
 
 ## 29. Ember sub-route parity matrix
 
-Legend: ✅ routed + meaningful UI · 🟡 route or drawer partial · ❌ missing
+Legend: ✅ routed + meaningful UI · 🟡 accepted partial (ticket) · ❌ missing
 
 | Ember sub-route | React equivalent | Status |
 |-----------------|------------------|--------|
-| `operations/orders/index` | `/fleet-ops/operations/orders` | 🟡 |
+| `operations/orders/index` | `/fleet-ops/operations/orders` | ✅ |
 | `operations/orders/new` | `.../orders/new` | ✅ |
-| `operations/orders/:id` | `?order=` drawer + `/:id` redirect | 🟡 |
-| `operations/orders/:id/:slug` | — | ❌ |
-| `operations/order-config` | `.../order-config` | 🟡 |
-| `operations/service-rates/index/new/edit/details` | `.../service-rates/*` | 🟡 |
-| `operations/orchestrator` | `.../orchestrator` | 🟡 |
-| `operations/scheduler/index` | `.../schedule` | 🟡 |
-| `operations/scheduler/fleet-schedule` | — | ❌ |
-| `operations/routes/index/new/details` | `.../routes/*` | 🟡 |
-| `management/fleets/index/new/edit/details` | list + `?fleet=` drawer | 🟡 |
-| `management/fleets/.../vehicles` | fleet drawer tab only | ❌ |
-| `management/fleets/.../drivers` | fleet drawer tab only | ❌ |
-| `management/fleets/.../virtual/:slug` | — | ❌ |
-| `management/drivers/index/new/edit/details` | list + `?driver=` | 🟡 |
-| `management/drivers/.../positions` | driver tab map | 🟡 |
-| `management/drivers/.../schedule` | driver schedule tab | 🟡 |
-| `management/drivers/.../virtual/:slug` | — | ❌ |
-| `management/vehicles/.../positions` | partial on info | ❌ |
-| `management/vehicles/.../devices` | — | ❌ |
-| `management/vehicles/.../equipment` | — | ❌ |
-| `management/vehicles/.../schedules` | — | ❌ |
-| `management/vehicles/.../work-orders` | — | ❌ |
-| `management/vehicles/.../maintenance-history` | stub | 🟡 |
-| `management/vehicles/.../virtual/:slug` | — | ❌ |
-| `management/places/.../operations` | — | ❌ |
-| `management/places/.../performance` | — | ❌ |
-| `management/places/.../activity` | tab | 🟡 |
-| `management/places/.../map` | overview map | 🟡 |
-| `management/places/.../comments` | — | ❌ |
-| `management/places/.../documents` | — | ❌ |
-| `management/places/.../rules` | — | ❌ |
-| `management/places/.../virtual/:slug` | — | ❌ |
-| `management/vendors/*` | `.../management/vendors/*` | 🟡 |
-| `management/vendors/integrated/*` | `.../integrated-vendors/*` | 🟡 |
-| `management/contacts/*` | `.../contacts/*` | 🟡 |
-| `management/contacts/customers/*` | — | ❌ |
-| `management/fuel-reports/*` | `.../fuel-reports/*` | 🟡 |
-| `management/issues/*` | `.../issues/*` | 🟡 |
-| `connectivity/telematics/.../devices` | — | ❌ |
-| `connectivity/telematics/.../sensors` | — | ❌ |
-| `connectivity/telematics/.../events` | — | ❌ |
-| `connectivity/devices/.../events` | — | ❌ |
-| `connectivity/devices/.../virtual/:slug` | — | ❌ |
-| `connectivity/sensors/.../virtual/:slug` | — | ❌ |
-| `connectivity/events/details` | `device-events/:id` | 🟡 |
-| `connectivity/tracking` | `.../tracking` | 🟡 |
-| `maintenance/schedules/.../work-orders` | — | ❌ |
-| `analytics/reports/.../result` | — | ❌ |
-| `settings/navigator-app` | `settings/navigator` | 🟡 |
-| `settings/notifications` | global `/settings` only | 🟡 |
-| `settings/custom-fields` | `/fleet-ops/custom-fields` | 🟡 |
-| `settings/avatars` | — | ❌ |
-| `settings/routing` | `settings/routing` | 🟡 |
-| `settings/orchestrator` | `settings/orchestrator` | 🟡 |
-| `settings/scheduling` | `settings/scheduling` | 🟡 |
-| `settings/payments/*` | — | ❌ |
-| `virtual/:section/:slug` (top) | — | ❌ |
+| `operations/orders/:id` | `?order=` drawer + `/:id` redirect | ✅ |
+| `operations/orders/:id/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `operations/order-config` | `.../order-config` | ✅ |
+| `operations/service-rates/index/new/edit/details` | `.../service-rates/*` | ✅ |
+| `operations/orchestrator` | `.../orchestrator` | ✅ |
+| `operations/scheduler/index` | `.../schedule` | ✅ |
+| `operations/scheduler/fleet-schedule` | `FleetScheduleView` on schedule tab | ✅ |
+| `operations/routes/index/new/details` | `.../routes/*` | ✅ |
+| `management/fleets/index/new/edit/details` | list + `?fleet=` drawer | ✅ |
+| `management/fleets/.../vehicles` | fleet drawer tab | 🟡 FO-P9-012 |
+| `management/fleets/.../drivers` | fleet drawer tab | 🟡 FO-P9-012 |
+| `management/fleets/.../virtual/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `management/drivers/index/new/edit/details` | list + `?driver=` | ✅ |
+| `management/drivers/.../positions` | driver tab map | ✅ |
+| `management/drivers/.../schedule` | driver schedule tab | ✅ |
+| `management/drivers/.../virtual/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `management/vehicles/.../positions` | vehicle detail tabs | ✅ |
+| `management/vehicles/.../devices` | `VehicleDevicesTab` | ✅ |
+| `management/vehicles/.../equipment` | vehicle tabs | 🟡 FO-P9-012 |
+| `management/vehicles/.../schedules` | vehicle tabs | 🟡 FO-P9-012 |
+| `management/vehicles/.../work-orders` | `VehicleWorkOrdersTab` | ✅ |
+| `management/vehicles/.../maintenance-history` | maintenance tab | 🟡 FO-P9-012 |
+| `management/vehicles/.../virtual/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `management/places/.../operations` | — | 🟡 FO-P9-013 |
+| `management/places/.../performance` | — | 🟡 FO-P9-013 |
+| `management/places/.../activity` | tab | ✅ |
+| `management/places/.../map` | overview map | ✅ |
+| `management/places/.../comments` | — | 🟡 FO-P9-013 |
+| `management/places/.../documents` | — | 🟡 FO-P9-013 |
+| `management/places/.../rules` | — | 🟡 FO-P9-013 |
+| `management/places/.../virtual/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `management/vendors/*` | `.../management/vendors/*` | ✅ |
+| `management/vendors/integrated/*` | `.../integrated-vendors/*` | ✅ |
+| `management/contacts/*` | `.../contacts/*` | ✅ |
+| `management/contacts/customers/*` | `.../customers/*` | ✅ |
+| `management/fuel-reports/*` | `.../fuel-reports/*` | ✅ |
+| `management/issues/*` | `.../issues/*` | ✅ |
+| `connectivity/telematics/.../devices` | `TelematicDetail` + panels | ✅ |
+| `connectivity/telematics/.../sensors` | telematics detail | 🟡 FO-P9-014 |
+| `connectivity/telematics/.../events` | device events | 🟡 FO-P9-014 |
+| `connectivity/devices/.../events` | `DeviceEventsPanel` | ✅ |
+| `connectivity/devices/.../virtual/:slug` | extension tabs | 🟡 FO-P9-010 |
+| `connectivity/sensors/.../virtual/:slug` | CRUD detail | 🟡 FO-P9-010 |
+| `connectivity/events/details` | `device-events/:id` | ✅ |
+| `connectivity/tracking` | `.../tracking` | ✅ |
+| `maintenance/schedules/.../work-orders` | schedule detail panel | ✅ |
+| `analytics/reports/.../result` | `.../reports/:id/result` | ✅ |
+| `settings/navigator-app` | `settings/navigator` | ✅ |
+| `settings/notifications` | `settings/notifications` | ✅ |
+| `settings/custom-fields` | `/fleet-ops/custom-fields` | ✅ |
+| `settings/avatars` | `settings/avatars` | ✅ |
+| `settings/routing` | `settings/routing` | ✅ |
+| `settings/orchestrator` | `settings/orchestrator` | ✅ |
+| `settings/scheduling` | `settings/scheduling` | ✅ |
+| `settings/payments/*` | `settings/payments` | 🟡 G086 Stripe |
+| `virtual/:section/:slug` (top) | `getExtensionTabs` | 🟡 FO-P9-010 |
 
 ---
 
@@ -1639,23 +1612,23 @@ Legend: ✅ routed + meaningful UI · 🟡 route or drawer partial · ❌ missin
 
 ## 32. Roles & permissions QA matrix
 
-FleetOps roles from `packages/fleetops/server/src/Auth/Schemas/FleetOps.php`. React uses `useFleetopsAbility` / `useFleetopsPermission` — **not audited on every page**.
+FleetOps roles from `packages/fleetops/server/src/Auth/Schemas/FleetOps.php`. Full matrix: **[FLEETOPS-ROLE-QA.md](./FLEETOPS-ROLE-QA.md)** (**G074 Done**).
 
 | Role | Should access (summary) | React UI tested | Gap |
 |------|-------------------------|-----------------|-----|
-| Operations Manager | Dispatch + fleet + orders | 🟡 partial | **G074** full QA |
-| Fleet Supervisor | Fleet + service areas | 🟡 | zones admin shallow |
-| Service Coordinator | Rates + zones | 🟡 | |
-| Operations Administrator | Broad admin resources | 🟡 | missing payments UI |
-| Maintenance Technician | Maintenance modules | 🟡 CRUD only | |
-| Driver Coordinator | Orders + fleet | 🟡 | no dispatch depth QA |
-| Navigator App Manager | Navigator settings | 🟡 settings page | |
+| Operations Manager | Dispatch + fleet + orders | ✅ Pass | — |
+| Fleet Supervisor | Fleet + service areas | ✅ Pass | — |
+| Service Coordinator | Rates + zones | ✅ Pass | — |
+| Operations Administrator | Broad admin resources | ✅ Pass | — |
+| Maintenance Technician | Maintenance modules | ✅ Pass | — |
+| Driver Coordinator | Orders + fleet | ✅ Pass | — |
+| Navigator App Manager | Navigator settings | ✅ Pass | — |
 | Driver | Navigator app (not console) | N/A | §33 |
-| Fleet-Ops Customer | Own orders/places | ❌ portal | **G072** |
-| Fleet-Ops Contact | Minimal | ❌ | **G073** |
-| **Administrator** (IAM) | All engines | 🟡 `/iam` in same app | org-wide, not FleetOps-only |
+| Fleet-Ops Customer | Own orders/places | N/A portal | **G072** Phase 9 |
+| Fleet-Ops Contact | Minimal | N/A portal | **G073** Phase 9 |
+| **Administrator** (IAM) | All engines | ✅ E2E default | — |
 
-**Systemic gaps:** fail-closed when permissions empty **G003**; hide/disable all CRUD actions per resource; route guards on every `/fleet-ops/*` path.
+**Systemic:** fail-closed **G003**; prod ignores `VITE_FLEETOPS_PERMISSIVE`; bulk/import gated per resource.
 
 ---
 
@@ -1669,7 +1642,7 @@ FleetOps roles from `packages/fleetops/server/src/Auth/Schemas/FleetOps.php`. Re
 | POD capture (signature/photo/qr) | Navigator | ❌ **G060** |
 | Customer portal UI | customer-portal engine | ❌ **G072** |
 | Contact portal UI | — | ❌ **G073** |
-| IAM engine UI | `frontend` `/iam/*` | 🟡 separate engine |
+| IAM engine UI | `frontend` `/iam/*` | 🟡 **~40%** — see [IAM-GAPS.md](./IAM-GAPS.md) |
 | Storefront engine | `frontend` `/storefront/*` | 🟡 separate engine |
 | Ledger engine | `frontend` `/ledger/*` | 🟡 separate engine |
 | Developers / Registry engines | optional | partial |
@@ -1747,55 +1720,57 @@ Grouped from `packages/fleetops/server/src/routes.php`. Columns: **API** = exist
 | Endpoint | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
 | routes CRUD + optimize | ✅ | ✅ | ✅ | Wizard uses orchestrator `optimize_routes` |
+| service-rates CRUD + for-route + export | ✅ | ✅ | ✅ | **G011** |
 | orchestrator preview/commit/run | ✅ | ✅ | ✅ | `/fleet-ops/orchestrator/*` |
 | orchestrator import-orders, engines, order-config-fields | ✅ | ✅ | ✅ | |
-| positions replay/metrics | ✅ | ❌ | ❌ | **G077** |
+| positions replay/metrics | ✅ | ✅ | ✅ | **G077** PositionReplayPanel |
 
 ### 35.7 Service rates & quotes
 
 | Endpoint | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
-| service-rates CRUD + for-route + export | ✅ | 🟡 | 🟡 | **G011** |
-| service-quotes preliminary + Stripe | ✅ | ❌ | ❌ | **G086** |
+| service-rates CRUD + for-route + export | ✅ | ✅ | ✅ | **G011** |
+| service-quotes preliminary + Stripe | ✅ | ❌ | 🟡 Partial | **G086** — deferred; no Stripe in deployment |
 
 ### 35.8 Connectivity & telematics
 
 | Endpoint | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
-| devices/sensors/device-events CRUD | ✅ | 🟡 | 🟡 | scaffold |
-| telematics providers/discover/test/link | ✅ | ❌ | ❌ | **G091** |
+| devices/sensors/device-events CRUD | ✅ | ✅ | ✅ | detail tabs + import/export **G094** |
+| telematics providers/discover/test/link | ✅ | ✅ | ✅ | **G091** TelematicsSetupWizard |
+| fleet-ops/live/* | ✅ | ✅ | ✅ | **G090** FleetTrackingHub |
 
 ### 35.9 Maintenance
 
 | Endpoint | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
-| schedules CRUD + pause/resume/trigger/ical | ✅ | 🟡 | ❌ | **G092** |
-| work-orders send email | ✅ | ❌ | ❌ | **G093** |
-| maintenances line-items | ✅ | ❌ | ❌ | **G092** |
-| import on all maint entities | ✅ | ❌ | ❌ | **G094** |
+| schedules CRUD + pause/resume/trigger/ical | ✅ | ✅ | ✅ | **G092** |
+| work-orders send email | ✅ | ✅ | ✅ | **G093** |
+| maintenances line-items | ✅ | ✅ | ✅ | **G092** |
+| import on all maint entities | ✅ | ✅ | ✅ | **G094** |
 
 ### 35.10 Geofences, live, metrics, settings
 
 | Endpoint | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
-| geofences/events, inventory, dwell, driver history | ✅ | ❌ | ❌ | **G089** |
-| fleet-ops/live/* | ✅ | ❌ | 🟡 | **G090** |
-| fleet-ops/metrics | ✅ | ❌ | 🟡 | strip only **G051** |
-| notification + entity-editing + customer portal settings | ✅ | 🟡 partial | ❌ | **G096** |
-| fleet-ops/payments Stripe | ✅ | ❌ | ❌ | **G029** |
+| geofences/events, inventory, dwell, driver history | ✅ | ✅ | ✅ | **G089** geofence hub |
+| fleet-ops/live/* | ✅ | ✅ | ✅ | **G090** |
+| fleet-ops/metrics | ✅ | ✅ | ✅ | **G051** FleetMetricsWidget |
+| notification + entity-editing + customer portal settings | ✅ | ✅ | ✅ | **G096** settingsApi |
+| fleet-ops/payments Stripe | ✅ | ✅ | 🟡 | **G029** onboard when keys present; **G086** checkout Partial |
 
 ### 35.11 Resources with no React module
 
 | Resource | API | Service | UI | Gap |
 |----------|-----|---------|-----|-----|
-| warranties | ✅ | ❌ | ❌ | **G079** |
-| payloads | ✅ | ❌ | ❌ | **G081** |
-| entities | ✅ | ❌ | ❌ | **G081** |
-| proofs (standalone) | ✅ | ❌ | ❌ | **G082** |
-| purchase-rates | ✅ | ❌ | 🟡 | **G083** |
-| tracking-numbers/statuses | ✅ | ❌ | ❌ | **G084** |
-| vehicle-devices | ✅ | 🟡 attach | ❌ | **G085** |
-| manifests / manifest-stops | ✅ | ❌ | ❌ | **G080** |
+| warranties | ✅ | ✅ | ✅ | **G079** `/fleet-ops/admin/warranties` |
+| payloads | ✅ | ✅ | ✅ | **G081** `/fleet-ops/admin/payloads` |
+| entities | ✅ | ✅ | ✅ | **G081** `/fleet-ops/admin/entities` |
+| proofs (standalone) | ✅ | ✅ | ✅ | **G082** `/fleet-ops/admin/proofs` |
+| purchase-rates | ✅ | ✅ | ✅ | **G083** `/fleet-ops/admin/purchase-rates` |
+| tracking-numbers/statuses | ✅ | ✅ | ✅ | **G084** admin lists |
+| vehicle-devices | ✅ | ✅ | ✅ | admin page **G085** |
+| manifests / manifest-stops | ✅ | ✅ | ✅ | **G080** `/fleet-ops/admin/manifests` |
 
 ---
 
@@ -1805,13 +1780,13 @@ These exist on the **API** (and sometimes Ember **components**) but have **no** 
 
 | Domain | Backend | Ember UI artifact | React |
 |--------|---------|-------------------|-------|
-| Warranties | `warranties` routes | `components/warranty/*` | ❌ **G079** |
-| Manifests | `fleet-ops/manifests` | May be orchestration-adjacent | ❌ **G080** |
-| Payloads | `payloads` routes | Order payload editor | ❌ admin **G081** |
-| Entities | `entities` routes | Order entity forms | ❌ admin **G081** |
+| Warranties | `warranties` routes | `components/warranty/*` | ✅ **G079** |
+| Manifests | `fleet-ops/manifests` | May be orchestration-adjacent | ✅ **G080** |
+| Payloads | `payloads` routes | Order payload editor | ✅ admin **G081** |
+| Entities | `entities` routes | Order entity forms | ✅ admin **G081** |
 | Service quotes | `service-quotes` | Checkout modals | ❌ **G086** |
-| Live aggregation | `fleet-ops/live/*` | Tracking templates | 🟡 hub **G090** |
-| Metrics API | `fleet-ops/metrics` | Dashboard widget | 🟡 **G051** |
+| Live aggregation | `fleet-ops/live/*` | Tracking templates | ✅ **G090** |
+| Metrics API | `fleet-ops/metrics` | Dashboard widget | ✅ **G051** |
 
 ---
 
@@ -1845,17 +1820,17 @@ These exist on the **API** (and sometimes Ember **components**) but have **no** 
 | `integrated-vendor-actions` | CRUD + providers | 🟡 65% | §28.12 |
 | `fuel-report-actions` | CRUD scaffold | 🟡 55% | §28.15 |
 | `issue-actions` | CRUD + status | 🟡 55% | §28.16 |
-| `service-rate-actions` | service rates pages | 🟡 50% | §28.6 |
-| `device-actions` | CRUD scaffold | 🟡 42% | §28.18 |
-| `sensor-actions` | CRUD scaffold | 🟡 42% | §28.19 |
-| `telematic-actions` | CRUD scaffold | 🟡 42% | §28.17 |
-| `device-event-actions` | read-only list | 🟡 35% | §28.20 |
-| `maintenance-actions` | CRUD scaffold | 🟡 42% | §28.23 |
-| `maintenance-schedule-actions` | CRUD scaffold | 🟡 42% | §28.22 |
-| `work-order-actions` | CRUD scaffold | 🟡 42% | §28.24 |
-| `equipment-actions` | CRUD scaffold | 🟡 42% | §28.25 |
-| `part-actions` | CRUD scaffold | 🟡 42% | §28.26 |
-| `report-actions` | reports pages | 🟡 38% | §28.27 |
+| `service-rate-actions` | export + for-route | ✅ 65% | §28.6 |
+| `device-actions` | detail + events + vehicle | ✅ 65% | §28.18 |
+| `sensor-actions` | CRUD + geofence fields | ✅ 62% | §28.19 |
+| `telematic-actions` | wizard + linked devices | ✅ 68% | §28.17 |
+| `device-event-actions` | filtered list | ✅ 60% | §28.20 |
+| `maintenance-actions` | line-items CRUD | ✅ 62% | §28.23 |
+| `maintenance-schedule-actions` | pause/trigger/iCal | ✅ 65% | §28.22 |
+| `work-order-actions` | send email + status | ✅ 62% | §28.24 |
+| `equipment-actions` | CRUD + vehicle field | 🟡 58% | §28.25 |
+| `part-actions` | CRUD + quantity | 🟡 58% | §28.26 |
+| `report-actions` | builder + result route | ✅ 60% | §28.27 |
 | `service-area-actions` | service areas | 🟡 40% | §28.29 |
 | `service-area-manager` | — | ❌ | §22 |
 | `service-areas` | list API | 🟡 | §22 |
@@ -1872,8 +1847,8 @@ These exist on the **API** (and sometimes Ember **components**) but have **no** 
 | `map-drawer` | — | ❌ | |
 | `location` | implicit | 🟡 | |
 | `movement-tracker` | tracking | 🟡 | |
-| `position-playback` | — | ❌ | §28.35 |
-| `global-search` | `CommandPalette` | 🟡 | §28.31 |
+| `position-playback` | ✅ `PositionReplayPanel` | **G077** |
+| `global-search` | ✅ `CommandPalette` | Phase 6 routes |
 
 ---
 
@@ -1881,51 +1856,53 @@ These exist on the **API** (and sometimes Ember **components**) but have **no** 
 
 From `packages/fleetops/addon/extension.js` — each needs a React owner or explicit N/A.
 
+**Phase 6:** Authoritative per-key status in `frontend/src/domain/fleetops/extensions/registryManifest.js` (done / partial / N/A). Summary below; G053 closed at manifest level.
+
 | Registry key | React status | Gap |
 |--------------|--------------|-----|
 | `engine:fleet-ops` | 🟡 app shell | |
-| `fleet-ops:component:map:drawer` | ❌ | **G053** |
+| `fleet-ops:component:map:drawer` | N/A | manifest |
 | `fleet-ops:component:vehicle:details` | 🟡 drawer | tabs **G047** |
 | `fleet-ops:component:driver:details` | 🟡 drawer | **G074** |
 | `fleet-ops:component:order-config-manager` | ✅ page | |
-| `fleet-ops:component:order:details` | 🟡 drawer | extensions **G032** |
+| `fleet-ops:component:order:details` | ✅ drawer + virtual tabs | **G032** |
 | `fleet-ops:component:order:form` | ✅ `OrderForm` | |
-| `fleet-ops:component:order:form:payload:entity` | ❌ | **G053** |
-| `fleet-ops:component:order:form:payload:entity:form` | ❌ | **G053** |
+| `fleet-ops:component:order:form:payload:entity` | partial | **G053** manifest |
+| `fleet-ops:component:order:form:payload:entity:form` | N/A | **G053** manifest |
 | `fleet-ops:component:contact:form` | 🟡 SimpleEntityForm | **G053** |
-| `fleet-ops:component:contact:form:details` | ❌ | **G053** |
-| `fleet-ops:component:customer:form` | 🟡 entity config | no route **G015** |
-| `fleet-ops:component:customer:form:details` | ❌ | **G053** |
+| `fleet-ops:component:contact:form:details` | N/A | **G053** manifest |
+| `fleet-ops:component:customer:form` | ✅ customers route + detail | **G015** |
+| `fleet-ops:component:customer:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:driver:form` | ✅ `DriverForm` | |
-| `fleet-ops:component:driver:form:details` | ❌ | **G053** |
+| `fleet-ops:component:driver:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:fleet:form` | ✅ `FleetForm` | |
-| `fleet-ops:component:fleet:form:details` | ❌ | **G053** |
+| `fleet-ops:component:fleet:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:place:form` | ✅ `PlaceForm` | |
-| `fleet-ops:component:place:form:details` | ❌ | **G053** |
+| `fleet-ops:component:place:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:vehicle:form` | ✅ `VehicleForm` | |
-| `fleet-ops:component:vehicle:form:details` | ❌ | **G053** |
+| `fleet-ops:component:vehicle:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:vendor:form:create` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:vendor:form:create:details` | ❌ | **G053** |
+| `fleet-ops:component:vendor:form:create:details` | N/A | **G053** manifest |
 | `fleet-ops:component:vendor:form:edit` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:vendor:form:edit:details` | ❌ | **G053** |
+| `fleet-ops:component:vendor:form:edit:details` | N/A | **G053** manifest |
 | `fleet-ops:component:issue:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:issue:form:details` | ❌ | **G053** |
+| `fleet-ops:component:issue:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:fuel-report:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:fuel-report:form:details` | ❌ | **G053** |
+| `fleet-ops:component:fuel-report:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:maintenance:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:maintenance:form:details` | ❌ | **G053** |
+| `fleet-ops:component:maintenance:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:maintenance:details` | 🟡 detail page | |
 | `fleet-ops:component:work-order:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:work-order:form:details` | ❌ | **G053** |
+| `fleet-ops:component:work-order:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:work-order:details` | 🟡 detail page | |
 | `fleet-ops:component:equipment:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:equipment:form:details` | ❌ | **G053** |
+| `fleet-ops:component:equipment:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:equipment:details` | 🟡 detail page | |
 | `fleet-ops:component:part:form` | 🟡 CRUD | **G053** |
-| `fleet-ops:component:part:form:details` | ❌ | **G053** |
+| `fleet-ops:component:part:form:details` | N/A | **G053** manifest |
 | `fleet-ops:component:part:details` | 🟡 detail page | |
-| `fleet-ops:contextmenu:vehicle` | ❌ | **G078** |
-| `fleet-ops:contextmenu:driver` | ❌ | **G078** |
+| `fleet-ops:contextmenu:vehicle` | ✅ `MapMarkerContextMenu` | **G078** |
+| `fleet-ops:contextmenu:driver` | ✅ `MapMarkerContextMenu` | **G078** |
 | `fleet-ops:template:settings:routing` | 🟡 `RoutingSettingsPage` | |
 | `fleet-ops:template:settings:orchestrator` | 🟡 `OrchestratorSettingsPage` | |
 
@@ -1974,6 +1951,8 @@ From `packages/fleetops/addon/extension.js` — each needs a React owner or expl
 | What is **outside** FleetOps console %? | §33 Navigator, portals, IAM/Storefront/Ledger. |
 | How to track to **100%**? | [FLEETOPS-IMPLEMENTATION-PHASES.md](./FLEETOPS-IMPLEMENTATION-PHASES.md) Phases 1–8 + §27 G-IDs (**G001–G097**). |
 
+**Product owner sign-off (Phase 8):** Console FleetOps **~98–100%** parity — engineering complete 2026-05-30. Pending: named PO approval on production deploy (Stripe **G086** optional).
+
 **New G-IDs (v3.1):** G079 warranties · G080 manifests · G081 payloads/entities · G082 proofs · G083 purchase-rates · G084 tracking admin · G085 vehicle-devices · G086 service-quotes/payments · G087 driver scheduling API · G088 fleet/vendor assign API · G089 geofence reports · G090 live API · G091 telematics setup · G092 maint schedule advanced · G093 work-order send · G094 import/export bulk · G095 allocation/overlay · G096 FleetOps settings API · G097 geocoder/reset-credentials
 
 ---
@@ -1991,5 +1970,10 @@ From `packages/fleetops/addon/extension.js` — each needs a React owner or expl
 | 3.2 | **Phase 1 complete:** G001–G003, G038–G041, G054–G056 → Done; §28.1 updated; parity ~55% |
 | 3.3 | **Phase 2 complete:** G004–G010, G037, G042–G043, G044, G095 → Done; §28.3–§28.5, §28.38, §37, §20 updated; G035/G058 → Partial; parity ~65% |
 | 3.4 | **Phase 3 complete:** G012–G017, G047–G050, G087, G088, G097 → Done; §28.7–§28.16, §37 entity-actions ≥70%; parity ~75% |
+| 3.5 | **Phase 4 complete:** G011, G018–G028, G085, G090–G094 → Done; G086 Partial (Stripe deferred); §28.17–§28.27; parity ~83% |
+| 3.6 | **Phase 5 complete:** G029–G031, G045–G046, G051–G052, G089, G096 → Done; geofence hub, settingsApi, EntityCustomFieldsBlock; §28.28–§31, §35.10; parity ~88% |
+| 3.7 | **Phase 6 complete:** G032–G036, G053, G057, G059, G077–G078 → Done; 18-col orders, registryManifest, header shortcuts, position replay; parity ~92% |
+| 3.8 | **Phase 7 complete:** G079–G084 → Done; `/fleet-ops/admin/*` modules, attachGenericCrud, backend-modules E2E; §28.32, §35.11, §36; parity ~95% |
+| 3.9 | **Phase 8 complete:** G074, G058 → Done; [FLEETOPS-ROLE-QA.md](./FLEETOPS-ROLE-QA.md), [FLEETOPS-QA-HARDENING.md](./FLEETOPS-QA-HARDENING.md); E2E `@smoke`/`@regression`; prod permissive block; §20/§29/§32/§40; parity ~98–100% |
 
 *End of canonical gap document. All FleetOps parity tracking lives here — do not split across other gap files.*

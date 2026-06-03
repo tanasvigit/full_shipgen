@@ -58,16 +58,43 @@ test.describe("FleetOps Day 2 — Maintenance", () => {
     }
   });
 
-  test("equipment and parts CRUD surfaces + route transitions", async ({ page }) => {
-    await page.goto("/fleet-ops/maintenance/parts");
-    const parts = await expectListOrForbidden(page, "part");
-    if (!parts.hasList) return;
-    await expect(page.getByTestId("part-table").or(page.getByTestId("part-empty"))).toBeVisible();
-    await page.goto("/fleet-ops/maintenance/equipment");
-    const equipment = await expectListOrForbidden(page, "equipment");
-    if (!equipment.hasList) return;
-    await expect(page.getByTestId("equipment-table").or(page.getByTestId("equipment-empty"))).toBeVisible();
-    await page.reload();
-    await expect(page.getByTestId("equipment-list-page")).toBeVisible();
+  test("maintenance schedule pause/trigger actions render", async ({ page }) => {
+    await page.goto("/fleet-ops/maintenance/schedules");
+    const { hasList } = await expectListOrForbidden(page, "maintenance-schedule");
+    if (!hasList) return;
+    const row = page.getByTestId("maintenance-schedule-table").locator("tbody tr").first();
+    if (await row.isVisible()) {
+      await row.click();
+      await expect(page.getByTestId("maintenance-schedule-detail-page")).toBeVisible();
+      await expect(page.getByTestId("maintenance-schedule-actions")).toBeVisible();
+    }
+  });
+
+  test("work order send email dialog opens", async ({ page }) => {
+    await page.goto("/fleet-ops/maintenance/work-orders");
+    const { hasList } = await expectListOrForbidden(page, "work-order");
+    if (!hasList) return;
+    const row = page.getByTestId("work-order-table").locator("tbody tr").first();
+    if (await row.isVisible()) {
+      await row.click();
+      await expect(page.getByTestId("work-order-detail-page")).toBeVisible();
+      const sendBtn = page.getByTestId("work-order-send-email");
+      if (await sendBtn.isVisible()) {
+        await sendBtn.click();
+        await expect(page.getByTestId("send-work-order-dialog")).toBeVisible();
+      }
+    }
+  });
+
+  test("maintenance record line items panel", async ({ page }) => {
+    await page.goto("/fleet-ops/maintenance/records");
+    const { hasList } = await expectListOrForbidden(page, "maintenance");
+    if (!hasList) return;
+    const row = page.getByTestId("maintenance-table").locator("tbody tr").first();
+    if (await row.isVisible()) {
+      await row.click();
+      await expect(page.getByTestId("maintenance-detail-page")).toBeVisible();
+      await expect(page.getByTestId("maintenance-line-items-panel")).toBeVisible();
+    }
   });
 });

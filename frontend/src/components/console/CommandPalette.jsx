@@ -9,7 +9,17 @@ import {
 } from "@/components/ui/command";
 import { DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { Package, Users, Car, MapPin, Building, LayoutDashboard, Bell, Settings as SettingsIcon, UserCog, KeyRound } from "lucide-react";
+import {
+  Package,
+  Users,
+  Car,
+  MapPin,
+  Building,
+  LayoutDashboard,
+  Bell,
+  Settings as SettingsIcon,
+} from "lucide-react";
+import { IAM_HEADER_SHORTCUTS } from "@/lib/iam/headerShortcuts";
 import { useEffect, useState } from "react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapOrder, mapDriverRow, mapVehicleRow } from "@/lib/mappers";
@@ -78,12 +88,29 @@ export default function CommandPalette({ open, onOpenChange }) {
           <CommandItem onSelect={() => go("/fleet-ops/management/fleets")}>
             <Building className="mr-2 h-4 w-4" /> Fleets
           </CommandItem>
-          <CommandItem onSelect={() => go("/iam/users")}>
-            <UserCog className="mr-2 h-4 w-4" /> Users
+          <CommandItem onSelect={() => go("/fleet-ops/admin/warranties")} data-testid="command-warranties">
+            <Package className="mr-2 h-4 w-4" /> Warranties
           </CommandItem>
-          <CommandItem onSelect={() => go("/iam/roles")}>
-            <KeyRound className="mr-2 h-4 w-4" /> Roles
+          <CommandItem onSelect={() => go("/fleet-ops/admin/manifests")} data-testid="command-manifests">
+            <Package className="mr-2 h-4 w-4" /> Manifests
           </CommandItem>
+          <CommandItem onSelect={() => go("/fleet-ops/admin/payloads")} data-testid="command-payloads">
+            <Package className="mr-2 h-4 w-4" /> Payloads admin
+          </CommandItem>
+          <CommandItem onSelect={() => go("/fleet-ops/admin/tracking-numbers")} data-testid="command-tracking-numbers">
+            <Package className="mr-2 h-4 w-4" /> Tracking numbers
+          </CommandItem>
+          <CommandItem onSelect={() => go("/fleet-ops/settings")} data-testid="command-fleetops-settings">
+            <SettingsIcon className="mr-2 h-4 w-4" /> FleetOps settings
+          </CommandItem>
+          {IAM_HEADER_SHORTCUTS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <CommandItem key={item.to} onSelect={() => go(item.to)} data-testid={item.testId.replace("iam-shortcut", "command-iam")}>
+                <Icon className="mr-2 h-4 w-4" /> {item.label}
+              </CommandItem>
+            );
+          })}
           <CommandItem onSelect={() => go("/notifications")}>
             <Bell className="mr-2 h-4 w-4" /> Notifications
           </CommandItem>

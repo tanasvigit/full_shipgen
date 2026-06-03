@@ -15,15 +15,27 @@ import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import MapView from "@/components/common/MapView";
 import OrderScheduleDialog from "@/components/fleetops/orders/modals/OrderScheduleDialog";
+import OrderCreateDialog from "@/components/fleetops/orders/OrderCreateDialog";
 import OrderImportDialog from "@/components/fleetops/orders/OrderImportDialog";
 import OrderListMapOverlay from "@/components/fleetops/orders/OrderListMapOverlay";
+import OrdersColumnPicker from "@/components/fleetops/orders/OrdersColumnPicker";
+import MapMarkerContextMenu from "@/components/fleetops/map/MapMarkerContextMenu";
+import {
+  ORDERS_TABLE_COLUMNS,
+  loadOrdersColumnLayout,
+  parseHiddenColsParam,
+  saveOrdersColumnLayout,
+  hiddenColsToParam,
+} from "@/lib/fleetops/ordersListColumns";
+import { t } from "@/i18n";
 import OrchestratorImportModal from "@/components/fleetops/orchestrator/OrchestratorImportModal";
 import OrdersBulkToolbar from "@/components/fleetops/orders/bulk/OrdersBulkToolbar";
 import OperationalMetricsStrip from "@/components/fleetops/intelligence/OperationalMetricsStrip";
 import RiskAlertsBar from "@/components/fleetops/intelligence/RiskAlertsBar";
 import DispatcherSuggestionsPanel from "@/components/fleetops/intelligence/DispatcherSuggestionsPanel";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutList, Map as MapIcon, Columns3, Filter, RefreshCw, Upload, Download, AlertTriangle, Route, Columns2 } from "lucide-react";
+import { Plus, LayoutList, Map as MapIcon, Columns3, Filter, RefreshCw, Upload, Download, AlertTriangle, Route } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { fleetopsService } from "@/services/fleetops";
@@ -36,9 +48,12 @@ const OrderKanban = lazy(() => import("@/components/fleetops/orders/OrderKanban"
 
 const SORT_COLUMN_MAP = {
   publicId: "public_id",
+  internalId: "internal_id",
   status: "status",
   priority: "priority",
   total: "total",
+  scheduled_at: "scheduled_at",
+  createdAt: "created_at",
   "customer.name": "customer_name",
 };
 
@@ -46,19 +61,6 @@ const VIEWS = [
   { id: "table", label: "Table", icon: LayoutList },
   { id: "kanban", label: "Kanban", icon: Columns3 },
   { id: "map", label: "Map", icon: MapIcon },
-];
-
-const ALL_COLUMNS = [
-  { key: "risk", label: "" },
-  { key: "publicId", label: "Order ID" },
-  { key: "customer.name", label: "Customer" },
-  { key: "route", label: "Route" },
-  { key: "status", label: "Status" },
-  { key: "priority", label: "Priority" },
-  { key: "scheduled_at", label: "Scheduled" },
-  { key: "driverId", label: "Driver" },
-  { key: "eta", label: "ETA" },
-  { key: "total", label: "Total" },
 ];
 
 export default function OrdersList() {
@@ -73,7 +75,9 @@ export default function OrdersList() {
   const [orchestratorImportOpen, setOrchestratorImportOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
-  const [hiddenColumns, setHiddenColumns] = useState(() => new Set());
+  const [hiddenColumns, setHiddenColumns] = useState(() => loadOrdersColumnLayout());
+  const [mapContextMenu, setMapContextMenu] = useState(null);
+  const [orderConfigs, setOrderConfigs] = useState([]);
   const [bulkQueryDraft, setBulkQueryDraft] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const searchDebounceRef = useRef(null);
@@ -90,8 +94,30 @@ export default function OrdersList() {
   });
 
   useEffect(() => {
+    const fromUrl = parseHiddenColsParam(queryState.hidden_cols);
+    if (fromUrl) setHiddenColumns(fromUrl);
+  }, [queryState.hidden_cols]);
+
+  const setHiddenColumnsPersist = useCallback(
+    (next) => {
+      setHiddenColumns(next);
+      saveOrdersColumnLayout(next);
+      patchQuery({ hidden_cols: hiddenColsToParam(next) });
+    },
+    [patchQuery],
+  );
+
+  useEffect(() => {
     setBulkQueryDraft(queryState.bulk_query || "");
   }, [queryState.bulk_query]);
+
+  useEffect(() => {
+    if (isDemoMode) return;
+    fleetopsService
+      .listOrderConfigs()
+      .then((rows) => setOrderConfigs(rows || []))
+      .catch(() => setOrderConfigs([]));
+  }, [isDemoMode]);
 
   useEffect(() => {
     setSearchDraft(queryState.search || "");
@@ -120,7 +146,10 @@ export default function OrdersList() {
   const setView = (layout) => patchQuery({ layout, page: 1 });
   const setStatusFilter = (status) => patchQuery({ status, page: 1 });
 
-  const filtered = orders;
+  const filtered = useMemo(() => {
+    if (!queryState.order_config) return orders;
+    return orders.filter((o) => String(o.orderConfigId || "") === String(queryState.order_config));
+  }, [orders, queryState.order_config]);
 
   const handleSearchChange = useCallback(
     (value) => {
@@ -216,17 +245,25 @@ export default function OrdersList() {
       },
     },
     publicId: { key: "publicId", header: "Order ID", sortable: true, render: (row) => <span className="font-mono text-xs text-[#0066FF]">{row.publicId}</span> },
+    internalId: { key: "internalId", header: "Internal ID", sortable: true, render: (row) => <span className="font-mono text-xs">{row.internalId || "—"}</span> },
+    trackingNumber: { key: "trackingNumber", header: "Tracking", render: (row) => <span className="font-mono text-xs">{row.trackingNumber || "—"}</span> },
     "customer.name": { key: "customer.name", header: "Customer", sortable: true, render: (row) => <span className="font-medium text-[#0A0E1A]">{row.customer.name}</span> },
     route: { key: "route", header: "Route", render: (row) => <span className="text-xs text-[#374151] font-mono">{row.pickup.name} → {row.dropoff.name}</span> },
     status: { key: "status", header: "Status", sortable: true, render: (row) => <StatusBadge status={row.status} label={statusLabel(row.status)} /> },
     priority: { key: "priority", header: "Priority", sortable: true, render: (row) => <StatusBadge status={row.priority} label={row.priority} dot={false} /> },
-    scheduled_at: { key: "scheduled_at", header: "Scheduled", render: (row) => <span className="text-xs font-mono">{row.scheduledAt || "—"}</span> },
+    type: { key: "type", header: "Type", render: (row) => <span className="text-xs">{row.type || "—"}</span> },
+    serviceType: { key: "serviceType", header: "Service", render: (row) => <span className="text-xs">{row.serviceType || "—"}</span> },
+    scheduled_at: { key: "scheduled_at", header: "Scheduled", sortable: true, render: (row) => <span className="text-xs font-mono">{row.scheduledAt || "—"}</span> },
+    createdAt: { key: "createdAt", header: "Created", sortable: true, render: (row) => <span className="text-xs font-mono">{row.createdAt ? String(row.createdAt).slice(0, 16) : "—"}</span> },
     driverId: { key: "driverId", header: "Driver", render: (row) => <span className="text-xs">{row.driverId ? String(row.driverId).slice(0, 8) : "—"}</span> },
+    vehicleId: { key: "vehicleId", header: "Vehicle", render: (row) => <span className="text-xs">{row.vehicleId ? String(row.vehicleId).slice(0, 8) : "—"}</span> },
     eta: { key: "eta", header: "ETA", render: (row) => <span className="font-mono text-xs text-[#1F2937]">{row.eta}</span> },
     total: { key: "total", header: "Total", sortable: true, render: (row) => <span className="font-mono tabular text-right">${Number(row.total || 0).toFixed(2)}</span>, className: "text-right" },
+    paymentStatus: { key: "paymentStatus", header: "Payment", render: (row) => <span className="text-xs capitalize">{row.paymentStatus || "—"}</span> },
+    notes: { key: "notes", header: "Notes", render: (row) => <span className="text-xs text-[#374151] truncate max-w-[200px] inline-block">{row.notes || "—"}</span> },
   };
 
-  const columns = ALL_COLUMNS.filter((c) => !hiddenColumns.has(c.key)).map((c) => columnDefs[c.key]);
+  const columns = ORDERS_TABLE_COLUMNS.filter((c) => !hiddenColumns.has(c.key)).map((c) => columnDefs[c.key]);
 
   const mapMarkers = useMemo(
     () => [
@@ -262,7 +299,7 @@ export default function OrdersList() {
       <PageHeader
         breadcrumbs={[{ label: "FleetOps", to: "/fleet-ops" }, { label: "Operations" }, { label: "Orders" }]}
         overline="Operations"
-        title="Orders"
+        title={t("fleetops.orders.title", "Orders")}
         description={
           loading
             ? "Loading orders..."
@@ -386,20 +423,23 @@ export default function OrdersList() {
               </Button>
             ) : null}
           </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs"
-            onClick={() => {
-              const next = new Set(hiddenColumns);
-              if (next.size) next.clear();
-              else next.add("scheduled_at");
-              setHiddenColumns(next);
-            }}
+          <Select
+            value={queryState.order_config || "all"}
+            onValueChange={(v) => patchQuery({ order_config: v === "all" ? "" : v, page: 1 })}
           >
-            <Columns2 className="h-3.5 w-3.5 mr-1" /> Columns
-          </Button>
+            <SelectTrigger className="h-7 w-[160px] text-xs" data-testid="orders-filter-order-config">
+              <SelectValue placeholder="Order config" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All configs</SelectItem>
+              {orderConfigs.map((cfg) => (
+                <SelectItem key={cfg.uuid || cfg.id} value={String(cfg.uuid || cfg.id)}>
+                  {cfg.name || cfg.type || cfg.uuid}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <OrdersColumnPicker hiddenColumns={hiddenColumns} onHiddenColumnsChange={setHiddenColumnsPersist} />
         </div>
 
         <OrdersBulkToolbar
@@ -460,6 +500,8 @@ export default function OrdersList() {
             <OrderKanban
               orders={filtered}
               statuses={statuses}
+              orderConfigs={orderConfigs}
+              orderConfigFilter={queryState.order_config}
               onOpenDetail={openOrderDetail}
               onOrdersChange={() => reload()}
             />
@@ -493,7 +535,23 @@ export default function OrdersList() {
                     openDriverDetail(String(m.id).replace(/^driver-/, ""));
                   }
                 }}
+                onMarkerContextMenu={(m, e) => {
+                  setMapContextMenu({
+                    marker: m,
+                    position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+                  });
+                }}
                 testid="orders-map"
+              />
+              <MapMarkerContextMenu
+                marker={mapContextMenu?.marker}
+                position={mapContextMenu?.position}
+                onClose={() => setMapContextMenu(null)}
+                onOpenDetail={(entityKey, entityId) => {
+                  if (entityKey === "order") openOrderDetail(entityId);
+                  if (entityKey === "driver") openDriverDetail(entityId);
+                  if (entityKey === "vehicle") navigate(`/fleet-ops/management/vehicles?vehicle=${entityId}`);
+                }}
               />
             </div>
           </div>

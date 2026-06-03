@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { placeFormSchema } from "@/lib/fleetops/schemas";
 import { PLACE_TYPES } from "@/lib/fleetops/constants";
 import { useFormHandle } from "./formUtils";
+import EntityCustomFieldsBlock from "@/components/fleetops/custom-fields/EntityCustomFieldsBlock";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { MapPin } from "lucide-react";
@@ -58,7 +59,8 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
     defaultValues: { ...defaultValues, ...initialValues },
   });
   const { register, watch, setValue, formState: { errors } } = methods;
-  useFormHandle(ref, methods);
+  const [customFieldValues, setCustomFieldValues] = useState(initialValues?.customFieldValues || {});
+  useFormHandle(ref, methods, () => ({ customFieldValues }));
 
   const geocodeAddress = async () => {
     const parts = [watch("street1"), watch("city"), watch("province"), watch("postalCode"), watch("country")].filter(Boolean);
@@ -167,6 +169,7 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
           </div>
         </div>
       </FormSection>
+      <EntityCustomFieldsBlock entityType="place" values={customFieldValues} onChange={setCustomFieldValues} />
     </div>
   );
 });

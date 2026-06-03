@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { fleetopsService } from "@/services/fleetops";
 import { normalizeOptimizationResult } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
-import { toast } from "sonner";
+import ServiceRatesForRoutePicker from "@/components/fleetops/service-rates/ServiceRatesForRoutePicker";
 import { Sparkles, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -52,6 +52,7 @@ export default function RouteDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [serviceRateId, setServiceRateId] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -158,6 +159,9 @@ export default function RouteDetail() {
             </Link>
           </p>
         )}
+        <div className="max-w-md">
+          <ServiceRatesForRoutePicker routeId={id} value={serviceRateId} onChange={setServiceRateId} />
+        </div>
         {stopRows.length > 0 && (
           <DataTable
             testid="route-stops-table"

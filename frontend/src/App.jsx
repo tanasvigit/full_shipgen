@@ -10,6 +10,9 @@ import ConsoleLayout from "@/layouts/ConsoleLayout";
 import Login from "@/pages/auth/Login";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import TwoFA from "@/pages/auth/TwoFA";
+import Onboard from "@/pages/auth/Onboard";
+import OnboardVerifyEmail from "@/pages/auth/OnboardVerifyEmail";
+import Installer from "@/pages/auth/Installer";
 
 import Dashboard from "@/pages/Dashboard";
 import Notifications from "@/pages/Notifications";
@@ -25,10 +28,13 @@ import FleetsList from "@/pages/fleetops/FleetsList";
 import FleetOpsModuleLayout from "@/layouts/FleetOpsModuleLayout";
 import DetailRouteRedirect from "@/components/fleetops/detail/DetailRouteRedirect";
 
+import IamHome from "@/pages/iam/IamHome";
 import UsersList from "@/pages/iam/UsersList";
 import UserDetail from "@/pages/iam/UserDetail";
 import RolesList from "@/pages/iam/RolesList";
 import GroupsList from "@/pages/iam/GroupsList";
+import GroupDetail from "@/pages/iam/GroupDetail";
+import PoliciesList from "@/pages/iam/PoliciesList";
 
 import StorefrontHome from "@/pages/storefront/StorefrontHome";
 import ProductsList from "@/pages/storefront/ProductsList";
@@ -93,6 +99,7 @@ import SensorDetail from "@/pages/fleetops/connectivity/SensorDetail";
 import DeviceEventsList from "@/pages/fleetops/connectivity/DeviceEventsList";
 import DeviceEventDetail from "@/pages/fleetops/connectivity/DeviceEventDetail";
 import FleetTrackingHub from "@/pages/fleetops/connectivity/FleetTrackingHub";
+import VehicleDevicesAdmin from "@/pages/fleetops/connectivity/VehicleDevicesAdmin";
 import MaintenanceSchedulesList from "@/pages/fleetops/maintenance/MaintenanceSchedulesList";
 import MaintenanceScheduleDetail from "@/pages/fleetops/maintenance/MaintenanceScheduleDetail";
 import MaintenancesList from "@/pages/fleetops/maintenance/MaintenancesList";
@@ -117,18 +124,44 @@ import NavigatorSettingsPage from "@/pages/fleetops/settings/NavigatorSettingsPa
 import RoutingSettingsPage from "@/pages/fleetops/settings/RoutingSettingsPage";
 import OrchestratorSettingsPage from "@/pages/fleetops/settings/OrchestratorSettingsPage";
 import SchedulingSettingsPage from "@/pages/fleetops/settings/SchedulingSettingsPage";
+import NotificationsSettingsPage from "@/pages/fleetops/settings/NotificationsSettingsPage";
+import AvatarsSettingsPage from "@/pages/fleetops/settings/AvatarsSettingsPage";
+import PaymentsSettingsPage from "@/pages/fleetops/settings/PaymentsSettingsPage";
+import EntityEditingSettingsPage from "@/pages/fleetops/settings/EntityEditingSettingsPage";
+import GeofenceHub from "@/pages/fleetops/geo/GeofenceHub";
 import CustomFieldsList from "@/pages/fleetops/custom-fields/CustomFieldsList";
 import CustomFieldDetail from "@/pages/fleetops/custom-fields/CustomFieldDetail";
 import ReportsList from "@/pages/fleetops/analytics/ReportsList";
 import ReportDetail from "@/pages/fleetops/analytics/ReportDetail";
+import ReportBuilder from "@/pages/fleetops/analytics/ReportBuilder";
+import ReportResult from "@/pages/fleetops/analytics/ReportResult";
 import TrackOrderLookup from "@/pages/fleetops/tracking/TrackOrderLookup";
+import WarrantiesList from "@/pages/fleetops/admin/WarrantiesList";
+import WarrantyDetail from "@/pages/fleetops/admin/WarrantyDetail";
+import ManifestsList from "@/pages/fleetops/admin/ManifestsList";
+import ManifestDetail from "@/pages/fleetops/admin/ManifestDetail";
+import PayloadsList from "@/pages/fleetops/admin/PayloadsList";
+import PayloadDetail from "@/pages/fleetops/admin/PayloadDetail";
+import EntitiesList from "@/pages/fleetops/admin/EntitiesList";
+import EntityDetail from "@/pages/fleetops/admin/EntityDetail";
+import ProofsList from "@/pages/fleetops/admin/ProofsList";
+import ProofDetail from "@/pages/fleetops/admin/ProofDetail";
+import PurchaseRatesList from "@/pages/fleetops/admin/PurchaseRatesList";
+import PurchaseRateDetail from "@/pages/fleetops/admin/PurchaseRateDetail";
+import TrackingNumbersList from "@/pages/fleetops/admin/TrackingNumbersList";
+import TrackingNumberDetail from "@/pages/fleetops/admin/TrackingNumberDetail";
+import TrackingStatusesList from "@/pages/fleetops/admin/TrackingStatusesList";
+import TrackingStatusDetail from "@/pages/fleetops/admin/TrackingStatusDetail";
 
 function App() {
     return (
         <div className="App">
                 <Routes>
                     <Route element={<AuthLayout />}>
+                        <Route path="/install" element={<Installer />} />
                         <Route path="/auth" element={<Login />} />
+                        <Route path="/auth/onboard" element={<Onboard />} />
+                        <Route path="/auth/onboard/verify-email" element={<OnboardVerifyEmail />} />
                         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                         <Route path="/auth/two-fa" element={<TwoFA />} />
                     </Route>
@@ -200,6 +233,7 @@ function App() {
                           <Route path="/fleet-ops/connectivity/device-events" element={<DeviceEventsList />} />
                           <Route path="/fleet-ops/connectivity/device-events/:id" element={<DeviceEventDetail />} />
                           <Route path="/fleet-ops/connectivity/tracking" element={<FleetTrackingHub />} />
+                          <Route path="/fleet-ops/connectivity/vehicle-devices" element={<VehicleDevicesAdmin />} />
                           <Route path="/fleet-ops/maintenance/schedules" element={<MaintenanceSchedulesList />} />
                           <Route path="/fleet-ops/maintenance/schedules/:id" element={<MaintenanceScheduleDetail />} />
                           <Route path="/fleet-ops/maintenance/records" element={<MaintenancesList />} />
@@ -212,25 +246,53 @@ function App() {
                           <Route path="/fleet-ops/maintenance/parts/:id" element={<PartDetail />} />
                           <Route path="/fleet-ops/service-areas" element={<ServiceAreasList />} />
                           <Route path="/fleet-ops/service-areas/:id" element={<ServiceAreaDetail />} />
+                          <Route path="/fleet-ops/geo/geofences" element={<GeofenceHub />} />
                           <Route path="/fleet-ops/custom-fields" element={<CustomFieldsList />} />
                           <Route path="/fleet-ops/custom-fields/:id" element={<CustomFieldDetail />} />
                           <Route path="/fleet-ops/analytics/reports" element={<ReportsList />} />
+                          <Route path="/fleet-ops/analytics/reports/new" element={<ReportBuilder />} />
+                          <Route path="/fleet-ops/analytics/reports/:id/edit" element={<ReportBuilder />} />
+                          <Route path="/fleet-ops/analytics/reports/:id/result" element={<ReportResult />} />
                           <Route path="/fleet-ops/analytics/reports/:id" element={<ReportDetail />} />
                           <Route path="/fleet-ops/tracking/lookup" element={<TrackOrderLookup />} />
+                          <Route path="/fleet-ops/admin/warranties" element={<WarrantiesList />} />
+                          <Route path="/fleet-ops/admin/warranties/:id" element={<WarrantyDetail />} />
+                          <Route path="/fleet-ops/admin/manifests" element={<ManifestsList />} />
+                          <Route path="/fleet-ops/admin/manifests/:id" element={<ManifestDetail />} />
+                          <Route path="/fleet-ops/admin/payloads" element={<PayloadsList />} />
+                          <Route path="/fleet-ops/admin/payloads/:id" element={<PayloadDetail />} />
+                          <Route path="/fleet-ops/admin/entities" element={<EntitiesList />} />
+                          <Route path="/fleet-ops/admin/entities/:id" element={<EntityDetail />} />
+                          <Route path="/fleet-ops/admin/proofs" element={<ProofsList />} />
+                          <Route path="/fleet-ops/admin/proofs/:id" element={<ProofDetail />} />
+                          <Route path="/fleet-ops/admin/purchase-rates" element={<PurchaseRatesList />} />
+                          <Route path="/fleet-ops/admin/purchase-rates/:id" element={<PurchaseRateDetail />} />
+                          <Route path="/fleet-ops/admin/tracking-numbers" element={<TrackingNumbersList />} />
+                          <Route path="/fleet-ops/admin/tracking-numbers/:id" element={<TrackingNumberDetail />} />
+                          <Route path="/fleet-ops/admin/tracking-statuses" element={<TrackingStatusesList />} />
+                          <Route path="/fleet-ops/admin/tracking-statuses/:id" element={<TrackingStatusDetail />} />
                           <Route path="/fleet-ops/settings" element={<FleetopsSettingsLayout />}>
                             <Route index element={<FleetopsSettingsHome />} />
                             <Route path="navigator" element={<NavigatorSettingsPage />} />
                             <Route path="routing" element={<RoutingSettingsPage />} />
                             <Route path="orchestrator" element={<OrchestratorSettingsPage />} />
                             <Route path="scheduling" element={<SchedulingSettingsPage />} />
+                            <Route path="notifications" element={<NotificationsSettingsPage />} />
+                            <Route path="avatars" element={<AvatarsSettingsPage />} />
+                            <Route path="payments" element={<PaymentsSettingsPage />} />
+                            <Route path="entity-editing" element={<EntityEditingSettingsPage />} />
                           </Route>
                         </Route>
 
-                        <Route path="/iam" element={<Navigate to="/iam/users" replace />} />
-                        <Route path="/iam/users" element={<RequirePermission permission="users.view"><UsersList /></RequirePermission>} />
+                        <Route path="/iam" element={<IamHome />} />
+                        <Route path="/iam/users/drivers" element={<RequirePermission permission="users.view"><UsersList /></RequirePermission>} />
+                        <Route path="/iam/users/customers" element={<RequirePermission permission="users.view"><UsersList /></RequirePermission>} />
                         <Route path="/iam/users/:id" element={<RequirePermission permission="users.view"><UserDetail /></RequirePermission>} />
+                        <Route path="/iam/users" element={<RequirePermission permission="users.view"><UsersList /></RequirePermission>} />
                         <Route path="/iam/roles" element={<RequirePermission permission="roles.view"><RolesList /></RequirePermission>} />
+                        <Route path="/iam/groups/:id" element={<RequirePermission permission="groups.view"><GroupDetail /></RequirePermission>} />
                         <Route path="/iam/groups" element={<RequirePermission permission="groups.view"><GroupsList /></RequirePermission>} />
+                        <Route path="/iam/policies" element={<RequirePermission permission="policies.view"><PoliciesList /></RequirePermission>} />
 
                         <Route path="/storefront" element={<StorefrontHome />} />
                         <Route path="/storefront/products" element={<ProductsList />} />

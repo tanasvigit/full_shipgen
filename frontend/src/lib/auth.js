@@ -33,6 +33,36 @@ const mapUser = (user) => {
 };
 
 export const authService = {
+  async installerInitialize() {
+    const response = await apiClient.get("/installer/initialize", { loading: false });
+    const data = response?.data || {};
+    return {
+      shouldInstall: Boolean(data?.shouldInstall),
+      shouldOnboard: Boolean(data?.shouldOnboard),
+      defaultTheme: data?.defaultTheme || "dark",
+    };
+  },
+
+  async installerCreateDb() {
+    const response = await apiClient.post("/installer/createdb", {}, { loading: false });
+    return response?.data || {};
+  },
+
+  async installerMigrate() {
+    const response = await apiClient.post("/installer/migrate", {}, { loading: false });
+    return response?.data || {};
+  },
+
+  async installerSeed() {
+    const response = await apiClient.post("/installer/seed", {}, { loading: false });
+    return response?.data || {};
+  },
+
+  async shouldOnboard() {
+    const response = await apiClient.get("/onboard/should-onboard", { loading: false });
+    return Boolean(response?.data?.should_onboard);
+  },
+
   getAuth() {
     return authStorage.get();
   },
@@ -40,6 +70,10 @@ export const authService = {
   clearSession() {
     authStorage.clear();
     orgStorage.clear();
+  },
+
+  setAuth(auth) {
+    authStorage.set(auth);
   },
 
   async login({ email, password, remember = true }) {
@@ -63,6 +97,49 @@ export const authService = {
     const auth = { token: token || null, requiresTwoFactor };
     authStorage.set(auth);
     return auth;
+  },
+
+  async createOnboardingAccount(payload) {
+    const response = await apiClient.post("/onboard/create-account", payload, { loading: false });
+    const data = response?.data || {};
+    return {
+      status: data?.status,
+      session: data?.session || null,
+      token: data?.token || null,
+      skipVerification: Boolean(data?.skipVerification),
+    };
+  },
+
+  async verifyOnboardingEmail({ session, code }) {
+    const response = await apiClient.post(
+      "/onboard/verify-email",
+      { session, code },
+      { loading: false },
+    );
+    const data = response?.data || {};
+    return {
+      status: data?.status,
+      token: data?.token || null,
+      verified_at: data?.verified_at || null,
+    };
+  },
+
+  async resendOnboardingEmail({ session, email }) {
+    const response = await apiClient.post(
+      "/onboard/send-verification-email",
+      { session, email },
+      { loading: false },
+    );
+    return response?.data || {};
+  },
+
+  async resendOnboardingSms({ session, phone }) {
+    const response = await apiClient.post(
+      "/onboard/send-verification-sms",
+      { session, phone },
+      { loading: false },
+    );
+    return response?.data || {};
   },
 
   async validateTwoFactor(code) {

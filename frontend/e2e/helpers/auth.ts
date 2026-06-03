@@ -38,14 +38,27 @@ export async function loginViaApi(request: APIRequestContext, browserPage: Page)
 
 export async function loginViaUI(page: Page) {
   const { email, password } = requireCredentials();
+  await loginViaUIWithCredentials(page, email, password);
+}
+
+export async function loginViaUIWithCredentials(page: Page, email: string, password: string) {
   await page.goto("/auth");
+  await clearClientSession(page);
+  await page.reload();
+  await expect(page.locator(sel.loginPage)).toBeVisible({ timeout: 20_000 });
   await page.locator(sel.loginEmail).fill(email);
   await page.locator(sel.loginPassword).fill(password);
   await page.locator(sel.loginSubmit).click();
-  await page.waitForURL((url) => !url.pathname.startsWith("/auth"), { timeout: 30_000 });
+  await page.waitForURL((url) => !url.pathname.startsWith("/auth"), { timeout: 45_000 });
+  await expect(page.locator(sel.consoleLayout)).toBeVisible({ timeout: 30_000 });
 }
 
 export async function logoutViaUI(page: Page) {
+  await page
+    .locator('[data-testid$="-loader"], [data-testid$="-loader-overlay"], [data-testid$="-loader-spinner"]')
+    .first()
+    .waitFor({ state: "hidden", timeout: 20_000 })
+    .catch(() => null);
   await page.locator('[data-testid="user-menu-trigger"]').click();
   await page.locator(sel.menuLogout).click();
   await page.waitForURL(/\/auth/);

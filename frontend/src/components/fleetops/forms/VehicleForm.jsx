@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { vehicleFormSchema } from "@/lib/fleetops/schemas";
 import { FUEL_TYPES, VEHICLE_STATUSES, VEHICLE_TYPES } from "@/lib/fleetops/constants";
 import { useFormHandle } from "./formUtils";
+import EntityCustomFieldsBlock from "@/components/fleetops/custom-fields/EntityCustomFieldsBlock";
 
 const defaultValues = {
   name: "",
@@ -66,7 +67,8 @@ const VehicleForm = forwardRef(function VehicleForm({ formId, initialValues, dri
     defaultValues: { ...defaultValues, ...initialValues },
   });
   const { register, watch, setValue, formState: { errors } } = methods;
-  useFormHandle(ref, methods);
+  const [customFieldValues, setCustomFieldValues] = useState(initialValues?.customFieldValues || {});
+  useFormHandle(ref, methods, () => ({ customFieldValues }));
 
   return (
     <div id={formId} className="space-y-4" data-testid="vehicle-form">
@@ -183,6 +185,7 @@ const VehicleForm = forwardRef(function VehicleForm({ formId, initialValues, dri
           <Textarea {...register("description")} rows={2} className="bg-[#F5F6F8] border-black/[0.08]" data-testid="vehicle-field-description" />
         </div>
       </FormSection>
+      <EntityCustomFieldsBlock entityType="vehicle" values={customFieldValues} onChange={setCustomFieldValues} />
     </div>
   );
 });

@@ -16,7 +16,10 @@ const required = [
   "src/contexts/DemoModeContext.jsx",
   "src/lib/runtimeConfig.js",
   "src/lib/subscription/plans.js",
+  "src/lib/fleetops/permissiveMode.js",
   "docs/SAAS-RELEASE.md",
+  "docs/FLEETOPS-ROLE-QA.md",
+  "docs/FLEETOPS-QA-HARDENING.md",
 ];
 
 let failed = false;

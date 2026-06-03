@@ -39,6 +39,7 @@ export const PROTECTED_ROUTES: RouteSpec[] = [
   { path: "/iam/users", testId: "users-list-page", module: "iam", sidebarSlug: "users", requiresPermission: "users.view" },
   { path: "/iam/roles", testId: "roles-list-page", module: "iam", sidebarSlug: "roles", requiresPermission: "roles.view" },
   { path: "/iam/groups", testId: "groups-list-page", module: "iam", sidebarSlug: "groups", requiresPermission: "groups.view" },
+  { path: "/iam/policies", testId: "policies-list-page", module: "iam", sidebarSlug: "policies", requiresPermission: "policies.view" },
 
   { path: "/storefront", testId: "storefront-home", module: "storefront" },
   { path: "/storefront/products", testId: "products-list-page", module: "storefront", sidebarSlug: "products" },

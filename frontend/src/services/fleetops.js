@@ -8,6 +8,8 @@ import {
   buildVehiclePayload,
 } from "@/lib/fleetops/payloads";
 import { buildOrderConfigPayload } from "@/lib/fleetops/orderConfig";
+import { CRUD_IMPORT_EXPORT_RESOURCES } from "@/lib/fleetops/crudImportExport";
+import { FLEETOPS_SETTINGS_LOADERS, FLEETOPS_SETTINGS_SAVERS } from "@/lib/fleetops/settingsApi";
 
 const RESOURCES = {
   orders: ["orders"],
@@ -33,6 +35,7 @@ const RESOURCES = {
   parts: ["parts"],
   serviceAreas: ["service-areas", "service_areas"],
   serviceAreaZones: ["service-area-zones", "service_area_zones", "zones"],
+  vehicleDevices: ["vehicle-devices", "vehicle_devices"],
   serviceRates: ["service-rates", "service_rates"],
   routes: ["routes"],
   settingsNavigator: ["fleet-ops/settings/navigator", "settings/navigator"],
@@ -42,8 +45,17 @@ const RESOURCES = {
   settingsScheduling: ["fleet-ops/settings/scheduling", "settings/scheduling"],
   settingsBranding: ["fleet-ops/settings/branding", "settings/branding"],
   settingsAvatars: ["fleet-ops/settings/avatars", "settings/avatars"],
+  zones: ["zones"],
   customFields: ["custom-fields", "custom_fields"],
   reports: ["reports"],
+  positions: ["positions"],
+  warranties: ["warranties"],
+  payloads: ["payloads"],
+  entities: ["entities"],
+  proofs: ["proofs"],
+  purchaseRates: ["purchase-rates", "purchase_rates"],
+  trackingNumbers: ["tracking-numbers", "tracking_numbers"],
+  trackingStatuses: ["tracking-statuses", "tracking_statuses"],
 };
 
 const toPayloadKey = (entityKey) => entityKey.replace(/([A-Z])/g, "_$1").toLowerCase();
@@ -111,6 +123,29 @@ const tryCandidates = async (candidates, method, path = "", payload) => {
     }
   }
   throw lastError;
+};
+
+const tryCandidatesQuery = async (candidates, method, path = "", payload, params = {}) => {
+  let lastError;
+  for (const candidate of candidates) {
+    try {
+      const endpoint = `/${candidate}${path}`;
+      const response = await apiClient.request({ method, url: endpoint, data: payload, params });
+      return response.data;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+};
+
+const downloadBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 const tryCandidatesMutate = async (candidates, path = "", payload) => {
@@ -1050,36 +1085,69 @@ export const fleetopsService = {
   },
 
   async listServiceAreas() {
+    try {
+      const payload = await tryCandidates(RESOURCES.serviceAreas, "get", "", undefined);
+      const rows = unwrapList(payload, ["service_areas", "serviceAreas"]);
+      if (rows.length) return rows;
+    } catch {
+      /* fallback */
+    }
     const store = readDay3Store();
     return store.serviceAreas || [];
   },
 
+  async listServiceArea() {
+    return this.listServiceAreas();
+  },
+
   async getServiceArea(id) {
+    try {
+      const payload = await tryCandidates(RESOURCES.serviceAreas, "get", `/${id}`);
+      const row = unwrapEntity(payload, ["service_area", "serviceArea"]);
+      if (row) return row;
+    } catch {
+      /* fallback */
+    }
     const store = readDay3Store();
     return (store.serviceAreas || []).find((row) => String(row.uuid || row.id) === String(id)) || null;
   },
 
   async createServiceArea(values = {}) {
-    const store = readDay3Store();
-    const row = { uuid: `sa-${Date.now()}`, status: "active", ...values };
-    const serviceAreas = [...(store.serviceAreas || []), row];
-    writeDay3Store({ ...store, serviceAreas });
-    return row;
+    try {
+      const payload = await tryCandidates(RESOURCES.serviceAreas, "post", "", { service_area: values, ...values });
+      return unwrapEntity(payload, ["service_area", "serviceArea"]);
+    } catch {
+      const store = readDay3Store();
+      const row = { uuid: `sa-${Date.now()}`, status: "active", ...values };
+      const serviceAreas = [...(store.serviceAreas || []), row];
+      writeDay3Store({ ...store, serviceAreas });
+      return row;
+    }
   },
 
   async updateServiceArea(id, values = {}) {
-    const store = readDay3Store();
-    const serviceAreas = (store.serviceAreas || []).map((row) =>
-      String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
-    );
-    writeDay3Store({ ...store, serviceAreas });
-    return serviceAreas.find((row) => String(row.uuid || row.id) === String(id)) || null;
+    try {
+      const payload = await tryCandidatesMutate(RESOURCES.serviceAreas, `/${id}`, { service_area: values, ...values });
+      return unwrapEntity(payload, ["service_area", "serviceArea"]);
+    } catch {
+      const store = readDay3Store();
+      const serviceAreas = (store.serviceAreas || []).map((row) =>
+        String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
+      );
+      writeDay3Store({ ...store, serviceAreas });
+      return serviceAreas.find((row) => String(row.uuid || row.id) === String(id)) || null;
+    }
   },
 
   async deleteServiceArea(id) {
-    const store = readDay3Store();
-    const serviceAreas = (store.serviceAreas || []).filter((row) => String(row.uuid || row.id) !== String(id));
-    writeDay3Store({ ...store, serviceAreas });
+    try {
+      await tryCandidates(RESOURCES.serviceAreas, "delete", `/${id}`);
+      return;
+    } catch {
+      const store = readDay3Store();
+      const serviceAreas = (store.serviceAreas || []).filter((row) => String(row.uuid || row.id) !== String(id));
+      writeDay3Store({ ...store, serviceAreas });
+    }
   },
 
   async createScheduleItem(formValues) {
@@ -1245,38 +1313,76 @@ export const fleetopsService = {
   },
 
   async listServiceAreaZones(serviceAreaId) {
+    try {
+      const payload = await tryCandidatesQuery(RESOURCES.zones, "get", "", undefined, {
+        service_area: serviceAreaId,
+        service_area_id: serviceAreaId,
+      });
+      const rows = unwrapList(payload, ["zones", "service_area_zones"]);
+      if (rows.length || serviceAreaId) return rows;
+    } catch {
+      /* fallback */
+    }
     const store = readDay3Store();
     const zones = store.serviceAreaZones || [];
     if (!serviceAreaId) return zones;
     return zones.filter((zone) => String(zone.service_area_uuid || zone.serviceAreaId) === String(serviceAreaId));
   },
 
-  async getServiceAreaZone(id) {
-    const store = readDay3Store();
-    return (store.serviceAreaZones || []).find((row) => String(row.uuid || row.id) === String(id)) || null;
+  async listZone() {
+    try {
+      const payload = await tryCandidates(RESOURCES.zones, "get", "", undefined);
+      return unwrapList(payload, ["zones"]);
+    } catch {
+      return [];
+    }
   },
 
   async createServiceAreaZone(values = {}) {
-    const store = readDay3Store();
-    const row = { uuid: `saz-${Date.now()}`, status: "active", ...values };
-    const serviceAreaZones = [...(store.serviceAreaZones || []), row];
-    writeDay3Store({ ...store, serviceAreaZones });
-    return row;
+    try {
+      const payload = await tryCandidates(RESOURCES.zones, "post", "", { zone: values, ...values });
+      return unwrapEntity(payload, ["zone"]);
+    } catch {
+      const store = readDay3Store();
+      const row = { uuid: `saz-${Date.now()}`, status: "active", ...values };
+      const serviceAreaZones = [...(store.serviceAreaZones || []), row];
+      writeDay3Store({ ...store, serviceAreaZones });
+      return row;
+    }
   },
 
   async updateServiceAreaZone(id, values = {}) {
-    const store = readDay3Store();
-    const serviceAreaZones = (store.serviceAreaZones || []).map((row) =>
-      String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
-    );
-    writeDay3Store({ ...store, serviceAreaZones });
-    return serviceAreaZones.find((row) => String(row.uuid || row.id) === String(id)) || null;
+    try {
+      const payload = await tryCandidatesMutate(RESOURCES.zones, `/${id}`, { zone: values, ...values });
+      return unwrapEntity(payload, ["zone"]);
+    } catch {
+      const store = readDay3Store();
+      const serviceAreaZones = (store.serviceAreaZones || []).map((row) =>
+        String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
+      );
+      writeDay3Store({ ...store, serviceAreaZones });
+      return serviceAreaZones.find((row) => String(row.uuid || row.id) === String(id)) || null;
+    }
   },
 
   async deleteServiceAreaZone(id) {
-    const store = readDay3Store();
-    const serviceAreaZones = (store.serviceAreaZones || []).filter((row) => String(row.uuid || row.id) !== String(id));
-    writeDay3Store({ ...store, serviceAreaZones });
+    try {
+      await tryCandidates(RESOURCES.zones, "delete", `/${id}`);
+    } catch {
+      const store = readDay3Store();
+      const serviceAreaZones = (store.serviceAreaZones || []).filter((row) => String(row.uuid || row.id) !== String(id));
+      writeDay3Store({ ...store, serviceAreaZones });
+    }
+  },
+
+  async getServiceAreaZone(id) {
+    try {
+      const payload = await tryCandidates(RESOURCES.zones, "get", `/${id}`);
+      return unwrapEntity(payload, ["zone"]);
+    } catch {
+      const store = readDay3Store();
+      return (store.serviceAreaZones || []).find((row) => String(row.uuid || row.id) === String(id)) || null;
+    }
   },
 
   async getServiceAreaGeometry(id) {
@@ -1292,17 +1398,208 @@ export const fleetopsService = {
     await this.saveServiceAreaGeometry(id, null);
   },
 
-  async listSettingsSection(sectionKey, params = {}) {
+  async listSettingsSection(sectionKey) {
+    const loader = FLEETOPS_SETTINGS_LOADERS[sectionKey];
+    const strict = sectionKey === "notifications";
+    if (loader) {
+      try {
+        return await loader();
+      } catch (err) {
+        if (strict || import.meta.env.PROD) throw err;
+      }
+    }
     const store = readDay3Store();
-    const settings = store.settings || {};
-    return settings[sectionKey] || {};
+    return store.settings?.[sectionKey] || {};
   },
 
   async saveSettingsSection(sectionKey, values = {}) {
+    const saver = FLEETOPS_SETTINGS_SAVERS[sectionKey];
+    const strict = sectionKey === "notifications";
+    if (saver) {
+      try {
+        const saved = await saver(values);
+        const store = readDay3Store();
+        writeDay3Store({ ...store, settings: { ...(store.settings || {}), [sectionKey]: saved || values } });
+        return saved || values;
+      } catch (err) {
+        if (strict || import.meta.env.PROD) throw err;
+      }
+    }
     const store = readDay3Store();
     const settings = { ...(store.settings || {}), [sectionKey]: values };
     writeDay3Store({ ...store, settings });
     return values;
+  },
+
+  async getNotificationSettings() {
+    const response = await apiClient.get("/fleet-ops/settings/notification-settings", { loading: false });
+    const data = response.data ?? {};
+    return data.notificationSettings && typeof data.notificationSettings === "object"
+      ? data.notificationSettings
+      : {};
+  },
+
+  async saveNotificationSettings(notificationSettings) {
+    const response = await apiClient.post("/fleet-ops/settings/notification-settings", {
+      notificationSettings,
+    });
+    const data = response.data ?? {};
+    if (data.status && data.status !== "ok") {
+      const err = new Error(data.message || "Failed to save notification settings");
+      err.friendlyMessage = err.message;
+      throw err;
+    }
+    return notificationSettings;
+  },
+
+  async getFleetOpsMetrics() {
+    const response = await apiClient.get("/fleet-ops/metrics/", { loading: false });
+    return response.data?.metrics || response.data || {};
+  },
+
+  async getTenantBranding() {
+    try {
+      const response = await apiClient.get("/settings/branding", { loading: false, silent: true });
+      const brand = response.data?.brand || response.data?.branding;
+      if (!brand || typeof brand !== "object") return null;
+      const mapped = {
+        logoUrl: brand.logo_url || brand.logoUrl || "",
+        iconUrl: brand.icon_url || brand.iconUrl || "",
+        defaultTheme: brand.default_theme || brand.defaultTheme,
+        primaryColor: brand.primary_color || brand.primaryColor,
+        accentColor: brand.accent_color || brand.accentColor,
+        productName: brand.product_name || brand.productName,
+      };
+      return Object.fromEntries(Object.entries(mapped).filter(([, v]) => v != null && v !== ""));
+    } catch {
+      return null;
+    }
+  },
+
+  async saveTenantBranding(values = {}) {
+    try {
+      const response = await apiClient.post(
+        "/settings/branding",
+        {
+          brand: {
+            logo_uuid: values.logoUuid || values.logo_uuid,
+            icon_uuid: values.iconUuid || values.icon_uuid,
+            default_theme: values.defaultTheme || values.default_theme,
+          },
+        },
+        { loading: false, silent: true },
+      );
+      const brand = response.data?.brand;
+      if (brand && typeof brand === "object") {
+        return {
+          ...values,
+          logoUrl: brand.logo_url || values.logoUrl,
+          iconUrl: brand.icon_url || values.iconUrl,
+          defaultTheme: brand.default_theme || values.defaultTheme,
+        };
+      }
+      return values;
+    } catch {
+      return values;
+    }
+  },
+
+  async listPositions(params = {}) {
+    try {
+      const payload = await tryCandidatesQuery(RESOURCES.positions, "get", "", undefined, params);
+      return unwrapList(payload, ["positions"]);
+    } catch {
+      try {
+        const response = await apiClient.get("/fleet-ops/positions", { params, loading: false });
+        return unwrapList(response.data, ["positions"]);
+      } catch {
+        return [];
+      }
+    }
+  },
+
+  async replayPositions(body = {}) {
+    const response = await apiClient.post("/fleet-ops/positions/replay", body);
+    return response.data || {};
+  },
+
+  async getNotificationRegistry() {
+    const response = await apiClient.get("/fleet-ops/settings/notification-registry", { loading: false });
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.registry)) return data.registry;
+    return [];
+  },
+
+  async getNotificationNotifiables() {
+    const response = await apiClient.get("/fleet-ops/settings/notification-notifiables", { loading: false });
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.notifiables)) return data.notifiables;
+    return [];
+  },
+
+  async getOrchestratorCardFields() {
+    const response = await apiClient.get("/fleet-ops/settings/orchestrator-card-fields", { loading: false });
+    return response.data || {};
+  },
+
+  async saveOrchestratorCardFields(values = {}) {
+    const response = await apiClient.post("/fleet-ops/settings/orchestrator-card-fields", values);
+    return response.data || values;
+  },
+
+  async getNavigatorLinkApp() {
+    const response = await apiClient.get("/fleet-ops/navigator/get-link-app", { loading: false });
+    return response.data || {};
+  },
+
+  async hasStripeConnectAccount() {
+    const response = await apiClient.get("/fleet-ops/payments/has-stripe-connect-account", { loading: false });
+    return Boolean(response.data?.has_account ?? response.data?.connected);
+  },
+
+  async getStripeAccountSession() {
+    const response = await apiClient.post("/fleet-ops/payments/stripe-account-session", {});
+    return response.data || {};
+  },
+
+  async listGeofenceEvents(params = {}) {
+    const response = await apiClient.get("/geofences/events", { params, loading: false });
+    return unwrapList(response.data, ["events", "geofence_events"]);
+  },
+
+  async listGeofenceInventory(params = {}) {
+    const response = await apiClient.get("/geofences/inventory", { params, loading: false });
+    return unwrapList(response.data, ["inventory", "items"]);
+  },
+
+  async getGeofenceDwellReport(params = {}) {
+    const response = await apiClient.get("/geofences/dwell-report", { params, loading: false });
+    return response.data || {};
+  },
+
+  async getGeofenceDriverHistory(driverUuid, params = {}) {
+    const response = await apiClient.get(`/geofences/driver/${driverUuid}/history`, { params, loading: false });
+    return unwrapList(response.data, ["history", "events"]);
+  },
+
+  async listCustomFieldGroups() {
+    const store = readDay3Store();
+    return store.customFieldGroups || [];
+  },
+
+  async createCustomFieldGroup(values = {}) {
+    const store = readDay3Store();
+    const row = { uuid: `cfg-${Date.now()}`, ...values };
+    const customFieldGroups = [...(store.customFieldGroups || []), row];
+    writeDay3Store({ ...store, customFieldGroups });
+    return row;
+  },
+
+  async listCustomFieldsForEntity(entityType) {
+    const all = await this.listCustomField();
+    return all.filter((f) => String(f.entity_type || f.entityType || "").toLowerCase() === String(entityType).toLowerCase());
   },
 
   async getReport(id) {
@@ -1373,6 +1670,309 @@ export const fleetopsService = {
     const customFields = (store.customFields || []).filter((row) => String(row.uuid || row.id) !== String(id));
     writeDay3Store({ ...store, customFields });
   },
+
+  // --- Phase 4: Service rates ---
+  async exportServiceRates(params = {}) {
+    let lastError;
+    for (const candidate of RESOURCES.serviceRates) {
+      for (const method of ["get", "post"]) {
+        try {
+          const response = await apiClient.request({
+            method,
+            url: `/${candidate}/export`,
+            params: method === "get" ? params : undefined,
+            data: method === "post" ? params : undefined,
+            responseType: "blob",
+            loading: false,
+          });
+          return response.data;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+    }
+    throw lastError;
+  },
+
+  async getServiceRatesForRoute(routeId, params = {}) {
+    const query = { route: routeId, route_id: routeId, ...params };
+    const payload = await tryCandidatesQuery(RESOURCES.serviceRates, "get", "/for-route", undefined, query);
+    return unwrapList(payload, ["service_rates", "serviceRates", "rates"]);
+  },
+
+  async bulkDeleteServiceRates(ids = []) {
+    await tryCandidates(RESOURCES.serviceRates, "delete", "/bulk-delete", { ids, uuids: ids });
+  },
+
+  // --- Phase 4: Telematics ---
+  async listTelematicProviders() {
+    try {
+      const payload = await tryCandidates(RESOURCES.telematics, "get", "/providers");
+      return unwrapList(payload, ["providers"]);
+    } catch {
+      return [];
+    }
+  },
+
+  async listTelematicLinkedDevices(params = {}) {
+    try {
+      const payload = await tryCandidatesQuery(RESOURCES.telematics, "get", "/devices", undefined, params);
+      return unwrapList(payload, ["devices"]);
+    } catch {
+      return [];
+    }
+  },
+
+  async discoverTelematic(body = {}) {
+    const response = await tryCandidates(RESOURCES.telematics, "post", "/discover", body);
+    return response;
+  },
+
+  async linkTelematicDevice(body = {}) {
+    const response = await tryCandidates(RESOURCES.telematics, "post", "/link-device", body);
+    return response;
+  },
+
+  async testTelematicConnection(id, body = {}) {
+    const response = await tryCandidates(RESOURCES.telematics, "post", `/${id}/test-connection`, body);
+    return response;
+  },
+
+  async testTelematicCredentials(key, body = {}) {
+    const response = await tryCandidates(RESOURCES.telematics, "post", `/${key}/test-credentials`, body);
+    return response;
+  },
+
+  // --- Phase 4: Live tracking ---
+  async getLiveCoordinates(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/coordinates", { params, loading: false });
+    return unwrapList(response.data, ["coordinates", "data"]);
+  },
+
+  async getLiveDrivers(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/drivers", { params, loading: false });
+    return unwrapList(response.data, ["drivers", "data"]);
+  },
+
+  async getLiveVehicles(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/vehicles", { params, loading: false });
+    return unwrapList(response.data, ["vehicles", "data"]);
+  },
+
+  async getLiveOrders(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/orders", { params, loading: false });
+    return unwrapList(response.data, ["orders", "data"]);
+  },
+
+  async getLiveRoutes(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/routes", { params, loading: false });
+    return unwrapList(response.data, ["routes", "data"]);
+  },
+
+  async getLivePlaces(params = {}) {
+    const response = await apiClient.get("/fleet-ops/live/places", { params, loading: false });
+    return unwrapList(response.data, ["places", "data"]);
+  },
+
+  // --- Phase 4: Maintenance schedules ---
+  async pauseMaintenanceSchedule(id) {
+    return tryCandidates(RESOURCES.maintenanceSchedules, "post", `/${id}/pause`, {});
+  },
+
+  async resumeMaintenanceSchedule(id) {
+    return tryCandidates(RESOURCES.maintenanceSchedules, "post", `/${id}/resume`, {});
+  },
+
+  async triggerMaintenanceSchedule(id) {
+    return tryCandidates(RESOURCES.maintenanceSchedules, "post", `/${id}/trigger`, {});
+  },
+
+  async getMaintenanceScheduleIcal(id) {
+    const response = await tryCandidatesQuery(
+      RESOURCES.maintenanceSchedules,
+      "get",
+      `/${id}/ical`,
+      undefined,
+      {},
+    );
+    return response;
+  },
+
+  async getMaintenanceCalendarFeed(params = {}) {
+    const response = await tryCandidatesQuery(
+      RESOURCES.maintenanceSchedules,
+      "get",
+      "/calendar-feed",
+      undefined,
+      params,
+    );
+    return response;
+  },
+
+  // --- Phase 4: Maintenance line-items ---
+  async addMaintenanceLineItem(maintenanceId, body = {}) {
+    return tryCandidates(RESOURCES.maintenances, "post", `/${maintenanceId}/line-items`, body);
+  },
+
+  async updateMaintenanceLineItem(maintenanceId, index, body = {}) {
+    return tryCandidatesMutate(RESOURCES.maintenances, `/${maintenanceId}/line-items/${index}`, body);
+  },
+
+  async removeMaintenanceLineItem(maintenanceId, index) {
+    return tryCandidates(RESOURCES.maintenances, "delete", `/${maintenanceId}/line-items/${index}`);
+  },
+
+  // --- Phase 4: Work orders ---
+  async sendWorkOrderEmail(workOrderId, body = {}) {
+    return tryCandidates(RESOURCES.workOrders, "post", `/${workOrderId}/send`, body);
+  },
+
+  // --- Phase 4: Vehicle-devices admin ---
+  async listVehicleDevicesAdmin(params = {}) {
+    try {
+      const payload = await tryCandidatesQuery(RESOURCES.vehicleDevices, "get", "", undefined, params);
+      return unwrapList(payload, ["vehicle_devices", "vehicleDevices"]);
+    } catch {
+      return [];
+    }
+  },
+
+  // --- Phase 4: Generic import/export ---
+  async exportResource(entityKey, params = {}) {
+    const candidates = CRUD_IMPORT_EXPORT_RESOURCES[entityKey];
+    if (!candidates) throw new Error(`Export not configured for ${entityKey}`);
+    let lastError;
+    for (const candidate of candidates) {
+      for (const method of ["get", "post"]) {
+        try {
+          const response = await apiClient.request({
+            method,
+            url: `/${candidate}/export`,
+            params: method === "get" ? params : undefined,
+            data: method === "post" ? params : undefined,
+            responseType: "blob",
+            loading: false,
+          });
+          return response.data;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+    }
+    throw lastError;
+  },
+
+  async importResource(entityKey, fileOrUuid, options = {}) {
+    const candidates = CRUD_IMPORT_EXPORT_RESOURCES[entityKey];
+    if (!candidates) throw new Error(`Import not configured for ${entityKey}`);
+    const body =
+      typeof fileOrUuid === "string"
+        ? { files: [fileOrUuid], ...options }
+        : { file: fileOrUuid, ...options };
+    let lastError;
+    for (const candidate of candidates) {
+      try {
+        const response = await apiClient.post(`/${candidate}/import`, body);
+        return response.data;
+      } catch (error) {
+        lastError = error;
+      }
+      try {
+        const response = await apiClient.post(`/${candidate}/process-imports`, body);
+        return response.data;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  },
+
+  async bulkDeleteResource(entityKey, ids = []) {
+    const candidates = CRUD_IMPORT_EXPORT_RESOURCES[entityKey];
+    if (!candidates) throw new Error(`Bulk delete not configured for ${entityKey}`);
+    const body = { ids, uuids: ids };
+    let lastError;
+    for (const candidate of candidates) {
+      try {
+        const response = await apiClient.delete(`/${candidate}/bulk-delete`, { data: body });
+        return response.data;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  },
+
+  downloadExportBlob: downloadBlob,
+
+  // --- Phase 4: Reports (local store + API fallback) ---
+  async createReport(values = {}) {
+    const store = readDay3Store();
+    const row = {
+      uuid: `report-${Date.now()}`,
+      status: "draft",
+      query: {},
+      columns: ["metric", "value"],
+      ...values,
+    };
+    const reports = [...(store.reports || []), row];
+    writeDay3Store({ ...store, reports });
+    return row;
+  },
+
+  async updateReport(id, values = {}) {
+    const store = readDay3Store();
+    const reports = (store.reports || []).map((row) =>
+      String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
+    );
+    writeDay3Store({ ...store, reports });
+    return reports.find((row) => String(row.uuid || row.id) === String(id)) || null;
+  },
+
+  async deleteReport(id) {
+    const store = readDay3Store();
+    const reports = (store.reports || []).filter((row) => String(row.uuid || row.id) !== String(id));
+    writeDay3Store({ ...store, reports });
+  },
+
+  async listManifests(params = {}) {
+    const response = await apiClient.get("/fleet-ops/manifests", { params, loading: false });
+    return unwrapList(response.data, ["manifests"]);
+  },
+
+  async getManifest(id) {
+    const response = await apiClient.get(`/fleet-ops/manifests/${id}`, { loading: false });
+    return unwrapEntity(response.data, ["manifest"]);
+  },
+
+  async cancelManifest(id) {
+    const response = await apiClient.post(`/fleet-ops/manifests/${id}/cancel`, {});
+    return response.data || {};
+  },
+
+  async deleteManifest(id) {
+    await apiClient.delete(`/fleet-ops/manifests/${id}`);
+  },
+
+  async getManifestStop(id) {
+    const response = await apiClient.get(`/fleet-ops/manifest-stops/${id}`, { loading: false });
+    return unwrapEntity(response.data, ["manifest_stop", "stop"]);
+  },
+
+  async updateManifestStop(id, values = {}) {
+    const response = await apiClient.patch(`/fleet-ops/manifest-stops/${id}`, { manifest_stop: values, ...values });
+    return unwrapEntity(response.data, ["manifest_stop", "stop"]);
+  },
+
+  async exportReport(id, params = {}) {
+    const result = await this.runReport(id, params);
+    const rows = result?.rows || [];
+    const csv = [
+      Object.keys(rows[0] || { metric: "", value: "" }).join(","),
+      ...rows.map((r) => Object.values(r).join(",")),
+    ].join("\n");
+    return new Blob([csv], { type: "text/csv" });
+  },
 };
 
 attachGenericCrud(fleetopsService, "vendor", RESOURCES.vendors, "vendor", ["vendors"]);
@@ -1399,3 +1999,19 @@ attachGenericCrud(fleetopsService, "maintenance", RESOURCES.maintenances, "maint
 attachGenericCrud(fleetopsService, "workOrder", RESOURCES.workOrders, "work_order", ["work_orders", "workOrders"]);
 attachGenericCrud(fleetopsService, "equipment", RESOURCES.equipment, "equipment", ["equipment"]);
 attachGenericCrud(fleetopsService, "part", RESOURCES.parts, "part", ["parts"]);
+attachGenericCrud(fleetopsService, "warranty", RESOURCES.warranties, "warranty", ["warranties"]);
+attachGenericCrud(fleetopsService, "payload", RESOURCES.payloads, "payload", ["payloads"]);
+attachGenericCrud(fleetopsService, "entity", RESOURCES.entities, "entity", ["entities"]);
+attachGenericCrud(fleetopsService, "proof", RESOURCES.proofs, "proof", ["proofs"]);
+attachGenericCrud(fleetopsService, "purchaseRate", RESOURCES.purchaseRates, "purchase_rate", [
+  "purchase_rates",
+  "purchaseRates",
+]);
+attachGenericCrud(fleetopsService, "trackingNumber", RESOURCES.trackingNumbers, "tracking_number", [
+  "tracking_numbers",
+  "trackingNumbers",
+]);
+attachGenericCrud(fleetopsService, "trackingStatus", RESOURCES.trackingStatuses, "tracking_status", [
+  "tracking_statuses",
+  "trackingStatuses",
+]);

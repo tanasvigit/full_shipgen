@@ -53,6 +53,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { canEditOrder } from "@/domain/fleetops/guards/orderGuards";
 import { statusLabel } from "@/lib/mappers";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
+import { getExtensionTabs } from "@/domain/fleetops/detail/registry";
 
 export default function OrderDetail({
   embedded = false,
@@ -392,6 +393,12 @@ export default function OrderDetail({
       label: "Audit & API",
       content: <OrderAuditTab orderId={id} enabled={tabActive("audit")} />,
     },
+    ...getExtensionTabs("order").map((tab) => ({
+      id: tab.id || tab.key,
+      label: tab.label,
+      testId: tab.testId || `order-tab-${tab.id || tab.key}`,
+      content: tab.render?.({ rawOrder, order, orderId: id, embedded }) ?? null,
+    })),
   ];
 
   const editDialogBlock = wrapDetailEditDialog(

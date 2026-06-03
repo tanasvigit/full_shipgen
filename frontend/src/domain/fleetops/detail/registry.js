@@ -75,7 +75,8 @@ export function getExtensionTabs(entityKey) {
   const registered = getDetailExtensions(entityKey);
   const merged = [...local];
   for (const tab of registered) {
-    if (!merged.some((item) => item.key === tab.key)) merged.push(tab);
+    const id = tab.id || tab.key;
+    if (!merged.some((item) => (item.id || item.key) === id)) merged.push({ ...tab, id });
   }
   return merged;
 }

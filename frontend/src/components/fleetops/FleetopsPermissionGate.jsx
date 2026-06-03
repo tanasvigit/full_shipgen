@@ -1,8 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
-
-const PERMISSIVE =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_FLEETOPS_PERMISSIVE === "true";
+import { isFleetopsPermissiveMode } from "@/lib/fleetops/permissiveMode";
 
 /**
  * Fail-closed guard for /fleet-ops/* — blocks UI when authenticated user has no FleetOps permissions.
@@ -23,7 +21,7 @@ export default function FleetopsPermissionGate({ children }) {
     return children;
   }
 
-  if (permissionsUnknown && !PERMISSIVE) {
+  if (permissionsUnknown && !isFleetopsPermissiveMode()) {
     return (
       <div className="p-8 text-sm text-[#4B5563]" data-testid="fleetops-forbidden">
         You do not have permission to access FleetOps. Contact your administrator to assign fleet-ops

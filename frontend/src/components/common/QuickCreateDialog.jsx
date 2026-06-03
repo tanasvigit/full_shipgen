@@ -92,7 +92,11 @@ export default function QuickCreateDialog({
                     })
                     .catch((err) => {
                         setBusy(false);
-                        const msg = err?.message || "Something went wrong";
+                        const msg =
+                            err?.friendlyMessage ||
+                            err?.response?.data?.errors?.[0] ||
+                            err?.message ||
+                            "Something went wrong";
                         setError(msg);
                         toast.error(msg);
                     });

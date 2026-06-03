@@ -1,52 +1,164 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
-import QuickCreateDialog from "@/components/common/QuickCreateDialog";
+import DataTable from "@/components/common/DataTable";
+import CreateGroupDialog from "@/components/iam/groups/CreateGroupDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, UsersRound } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, Plus, RefreshCw, Search, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { iamService } from "@/services/iam";
-import { mapGroup, mapRole } from "@/lib/mappers";
+import { mapRole } from "@/lib/mappers";
+import { useGroupsListPage } from "@/hooks/iam/useGroupsListPage";
+import { useIamAbility } from "@/hooks/iam/useIamAbility";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 export default function GroupsList() {
-  const [groups, setGroups] = useState([]);
+  const navigate = useNavigate();
+  const ability = useIamAbility();
+  const { queryState, patchQuery, groups, loading, meta, reload } = useGroupsListPage();
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-
-  const loadAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [g, r] = await Promise.all([iamService.listGroups(), iamService.listRoles()]);
-      setGroups((g || []).map(mapGroup));
-      setRoles((r || []).map(mapRole));
-    } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load groups.");
-      setGroups([]);
-      setRoles([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [searchDraft, setSearchDraft] = useState(queryState.query);
+  const searchDebounceRef = useRef(null);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    setSearchDraft(queryState.query);
+  }, [queryState.query]);
 
-  async function handleCreate(v) {
-    const role = roles.find((x) => String(x.id) === String(v.defaultRole));
+  useEffect(() => {
+    iamService
+      .listRoles({ limit: 100 })
+      .then((rows) => setRoles(rows.map(mapRole)))
+      .catch(() => setRoles([]));
+  }, []);
+
+  const handleSearchChange = useCallback(
+    (value) => {
+      setSearchDraft(value);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => patchQuery({ query: value, page: 1 }), 250);
+    },
+    [patchQuery],
+  );
+
+  async function handleExport() {
     try {
-      await iamService.createGroup({
-        name: v.name,
-        description: v.description || undefined,
-        role_uuid: role?.id,
-        role: role?.name,
-      });
-      await loadAll();
-      return { toast: `Group "${v.name}" created` };
+      await iamService.exportGroups({ selections: [...selectedKeys] });
+      toast.success("Export started");
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Could not create group.");
+      toast.error(err?.friendlyMessage || "Export failed.");
     }
   }
+
+  async function handleBulkDelete() {
+    if (!selectedKeys.size) return;
+    if (!window.confirm(`Delete ${selectedKeys.size} group(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      await iamService.bulkDeleteGroups([...selectedKeys]);
+      toast.success("Groups deleted");
+      setSelectedKeys(new Set());
+      reload();
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Bulk delete failed.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function handleDelete(group) {
+    if (!group.isDeletable) {
+      toast.warning("This group cannot be deleted.");
+      return;
+    }
+    if (!window.confirm(`Delete group "${group.name}"?`)) return;
+    try {
+      await iamService.deleteGroup(group.id);
+      toast.success("Group deleted");
+      reload();
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not delete group.");
+    }
+  }
+
+  const columns = [
+    {
+      key: "name",
+      header: "Group",
+      sortable: true,
+      render: (row) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 bg-[#0066FF]/10 border border-[#0066FF]/25 grid place-items-center rounded-sm">
+            <UsersRound className="h-4 w-4 text-[#0066FF]" />
+          </div>
+          <div>
+            <div className="font-medium text-[#0A0E1A]">{row.name}</div>
+            <div className="text-[11px] text-[#4B5563] line-clamp-1">{row.description || "—"}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "memberCount",
+      header: "Members",
+      render: (row) => <span className="font-mono text-xs">{row.memberCount}</span>,
+    },
+    {
+      key: "defaultRoleName",
+      header: "Default role",
+      render: (row) => (
+        <span className="text-xs font-mono uppercase tracking-wider px-2 py-0.5 bg-[#F1F2F5] border border-black/[0.08] rounded-sm">
+          {row.defaultRoleName || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      width: 48,
+      render: (row) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => e.stopPropagation()}
+              data-testid={`group-row-actions-${row.id}`}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            {ability.canViewGroup && (
+              <DropdownMenuItem onClick={() => navigate(`/iam/groups/${row.id}`)}>
+                <Pencil className="h-3.5 w-3.5 mr-2" />
+                {ability.canUpdateGroup ? "Open / edit" : "View group"}
+              </DropdownMenuItem>
+            )}
+            {ability.canDeleteGroup && row.isDeletable && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(row)}>
+                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   return (
     <div data-testid="groups-list-page">
@@ -54,69 +166,87 @@ export default function GroupsList() {
         breadcrumbs={[{ label: "IAM", to: "/iam" }, { label: "Groups" }]}
         overline="Identity & Access"
         title="Groups"
-        description={loading ? "Loading groups…" : `${groups.length} groups for batch role assignment`}
+        description={loading ? "Loading groups…" : `${meta.total} groups for batch membership`}
         actions={
-          <Button
-            onClick={() => setOpen(true)}
-            className="bg-[#0066FF] hover:bg-[#0040CC] text-white h-10 rounded-lg shadow-[0_10px_28px_-8px_rgba(0,102,255,0.45)]"
-            data-testid="groups-new-button"
-          >
-            <Plus className="h-4 w-4 mr-1.5" /> Create group
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => reload()} className="h-9" data-testid="groups-refresh">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+            {ability.canUpdateGroup && (
+              <Button variant="outline" size="sm" onClick={handleExport} className="h-9" data-testid="groups-export">
+                <Download className="h-3.5 w-3.5 mr-1" /> Export
+              </Button>
+            )}
+            {ability.canDeleteGroup && selectedKeys.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkBusy}
+                className="h-9 text-red-600 border-red-200"
+                data-testid="groups-bulk-delete"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete ({selectedKeys.size})
+              </Button>
+            )}
+            {ability.canCreateGroup && (
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="bg-[#0066FF] hover:bg-[#0040CC] text-white h-10 rounded-lg"
+                data-testid="groups-new-button"
+              >
+                <Plus className="h-4 w-4 mr-1.5" /> Create group
+              </Button>
+            )}
+          </div>
         }
       />
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+      <div className="p-6 pt-0">
+        <div className="relative w-full max-w-xs mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#4B5563]" />
+          <Input
+            value={searchDraft}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search groups…"
+            className="pl-9 h-9 text-sm"
+            data-testid="groups-search"
+          />
+        </div>
+
         {!loading && groups.length === 0 && (
-          <div className="col-span-full text-sm text-[#4B5563]" data-testid="groups-empty">
-            No groups returned from the API.
+          <div className="mb-4 text-sm text-[#4B5563]" data-testid="groups-empty">
+            No groups returned for this organization.
           </div>
         )}
-        {groups.map((g) => (
-          <div
-            key={g.id}
-            className="bg-white border border-black/[0.08] rounded-md p-5 hover:border-black/[0.14] transition-colors"
-            data-testid={`group-card-${g.id}`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-9 w-9 bg-[#0066FF]/10 border border-[#0066FF]/25 grid place-items-center rounded-md">
-                <UsersRound className="h-4 w-4 text-[#0066FF]" />
-              </div>
-              <div>
-                <div className="font-display font-bold tracking-tight text-[#0A0E1A]">{g.name}</div>
-                <div className="overline">{g.members} members</div>
-              </div>
-            </div>
-            <p className="text-sm text-[#374151]">{g.description || "—"}</p>
-            <div className="mt-4 pt-4 border-t border-black/[0.08] flex flex-wrap gap-1.5">
-              {(g.roles || []).map((r) => (
-                <span key={r} className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 bg-[#F1F2F5] border border-black/[0.08] rounded-sm">
-                  {r}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
+
+        <DataTable
+          testid="groups-table"
+          columns={columns}
+          data={groups}
+          loading={loading}
+          selectable={ability.canDeleteGroup}
+          selectedKeys={selectedKeys}
+          onSelectedKeysChange={setSelectedKeys}
+          searchKeys={[]}
+          serverPagination={{
+            page: meta.page,
+            lastPage: meta.lastPage,
+            total: meta.total,
+            onPageChange: (p) => patchQuery({ page: p }),
+          }}
+          onRowClick={(row) => navigate(`/iam/groups/${row.id}`)}
+        />
       </div>
-      <QuickCreateDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Create group"
-        description="Creates a group via the IAM API. Payload keys may need to match your Fleetbase installation."
-        icon={UsersRound}
-        submitLabel="Create group"
-        testid="create-group-dialog"
-        fields={[
-          { key: "name", label: "Group name", placeholder: "Dispatch team · NYC", required: true },
-          {
-            key: "defaultRole",
-            label: "Default role",
-            type: "select",
-            required: true,
-            options: roles.map((r) => ({ value: String(r.id), label: r.name })),
-          },
-          { key: "description", label: "Description", type: "textarea", placeholder: "What this group does." },
-        ]}
-        onSubmit={handleCreate}
+
+      <CreateGroupDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        roles={roles}
+        onCreated={(row) => {
+          reload();
+          if (row?.id) navigate(`/iam/groups/${row.id}`);
+        }}
       />
     </div>
   );

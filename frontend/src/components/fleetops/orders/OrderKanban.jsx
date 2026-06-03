@@ -19,6 +19,8 @@ import {
 export default function OrderKanban({
   orders,
   statuses,
+  orderConfigs = [],
+  orderConfigFilter = "",
   onOpenDetail,
   onOrdersChange,
   testId = "orders-kanban",
@@ -50,8 +52,18 @@ export default function OrderKanban({
     }
   };
 
+  const configLabel =
+    orderConfigFilter && orderConfigs.length
+      ? orderConfigs.find((c) => String(c.uuid || c.id) === String(orderConfigFilter))?.name
+      : null;
+
   return (
     <>
+      {orderConfigFilter ? (
+        <div className="text-xs text-[#6B7280] mb-3 font-mono" data-testid="orders-kanban-config-filter">
+          Kanban · order config: {configLabel || orderConfigFilter}
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4" data-testid={testId}>
         {columns.map((status) => (
           <div

@@ -62,9 +62,9 @@ export default function OperationalMetricsStrip({ metrics, loading, testId = "op
         ))}
       </div>
       {chartData.length > 0 && (
-        <div className="bg-white border border-black/[0.08] rounded-xl p-4 h-36" data-testid={`${testId}-status-chart`}>
+        <div className="bg-white border border-black/[0.08] rounded-xl p-4 h-36 min-h-[144px] min-w-0" data-testid={`${testId}-status-chart`}>
           <div className="overline mb-2">Orders by status</div>
-          <ResponsiveContainer width="100%" height="85%">
+          <ResponsiveContainer width="100%" height={120} minHeight={120}>
             <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <XAxis dataKey="status" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip

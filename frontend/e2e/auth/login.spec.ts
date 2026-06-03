@@ -15,6 +15,10 @@ test.describe("Authentication — guest", () => {
     await expect(page.locator(sel.loginEmail)).toBeVisible();
     await expect(page.locator(sel.loginPassword)).toBeVisible();
     await expect(page.locator('[data-testid="login-forgot-link"]')).toHaveAttribute("href", "/auth/forgot-password");
+    await expect(page.locator('[data-testid="auth-track-order-link"]')).toHaveAttribute(
+      "href",
+      "/fleet-ops/tracking/lookup",
+    );
   });
 
   test("shows error on invalid credentials", async ({ page }) => {

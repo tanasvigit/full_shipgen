@@ -1,7 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { fleetopsService } from "@/services/fleetops";
 
-const SECTIONS = ["navigator", "notifications", "routing", "orchestrator", "scheduling", "branding", "avatars"];
+const SECTIONS = [
+  "navigator",
+  "notifications",
+  "routing",
+  "orchestrator",
+  "scheduling",
+  "branding",
+  "avatars",
+  "payments",
+  "entityEditing",
+];
+
 const FleetopsSettingsContext = createContext(null);
 
 export function FleetopsSettingsProvider({ children }) {
@@ -12,7 +23,15 @@ export function FleetopsSettingsProvider({ children }) {
     setLoading(true);
     const next = {};
     for (const section of SECTIONS) {
-      next[section] = await fleetopsService.listSettingsSection(section).catch(() => ({}));
+      if (section === "notifications") {
+        try {
+          next[section] = await fleetopsService.listSettingsSection(section);
+        } catch {
+          next[section] = {};
+        }
+      } else {
+        next[section] = await fleetopsService.listSettingsSection(section).catch(() => ({}));
+      }
     }
     setSettings(next);
     setLoading(false);
@@ -34,6 +53,7 @@ export function FleetopsSettingsProvider({ children }) {
       loading,
       reload: load,
       saveSection,
+      sections: SECTIONS,
     }),
     [settings, loading, load, saveSection],
   );

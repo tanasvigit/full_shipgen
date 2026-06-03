@@ -2,7 +2,8 @@ import { apiClient } from "@/lib/api";
 import { env } from "@/lib/env";
 import { fleetopsRealtimeManager } from "@/domain/fleetops/realtime/registry";
 
-const HEALTH_PROBE_PATHS = ["/health", "/settings", "/"];
+/** Paths that exist on Fleetbase API — avoid bare `/` or `/settings` (404/500 noise). */
+const HEALTH_PROBE_PATHS = ["/settings/branding", "/users/me"];
 
 const silentRequest = {
   loading: false,
@@ -37,7 +38,7 @@ export async function checkApiHealth() {
           url: `${env.API_BASE_URL}${path}`,
           status,
           probe: path,
-          settings: path === "/settings" && status < 400 ? response.data : null,
+          settings: path === "/settings/branding" && status < 400 ? response.data : null,
         };
       }
 

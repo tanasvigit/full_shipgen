@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { formatScalarForDisplay } from "@/lib/mappers";
 import SectionLoaderOverlay from "@/components/loaders/overlays/SectionLoaderOverlay";
 import { SearchLoader } from "@/components/loaders/indicators/LoadingIndicators";
 
@@ -221,7 +222,12 @@ export default function DataTable({
                                     )}
                                     {columns.map((c) => (
                                         <td key={c.key} className={cn("px-4 py-3.5 text-[13px] text-[#0A0E1A] align-middle", c.className)}>
-                                            {c.render ? c.render(row) : c.key.split(".").reduce((o, k) => (o == null ? o : o[k]), row)}
+                                            {c.render
+                                                ? c.render(row)
+                                                : formatScalarForDisplay(
+                                                      c.key.split(".").reduce((o, k) => (o == null ? o : o[k]), row),
+                                                      "—",
+                                                  )}
                                         </td>
                                     ))}
                                 </tr>

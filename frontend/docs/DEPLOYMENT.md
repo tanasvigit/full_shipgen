@@ -356,6 +356,17 @@ CORS is configured in `api/config/cors.php` using `CONSOLE_HOST` + `FRONTEND_HOS
 - [ ] HTTPS on public URLs; `VITE_SOCKETCLUSTER_SECURE=true` when using WSS
 - [ ] `VITE_FLEETOPS_PERMISSIVE` **unset** in production build
 
+### First-account onboarding smoke
+
+- [ ] Fresh DB routes logged-out app to `/install`
+- [ ] Installer steps complete in order: `createdb` -> `migrate` -> `seed`
+- [ ] Post-install routes to onboarding/auth gate correctly
+- [ ] Mock/fresh install path: `should_onboard=true` routes logged-out `/` and `/auth` to `/auth/onboard`
+- [ ] Create-account submits once and branches correctly (`skipVerification=true` -> dashboard, otherwise -> verify page)
+- [ ] Verify code success authenticates and enters console
+- [ ] Resend email + resend SMS show success/error states and retry works
+- [ ] Onboarding context clears after successful verify (revisit `/auth/onboard` has no stale data)
+
 ### Smoke URLs
 
 | Page | Path |
@@ -364,6 +375,15 @@ CORS is configured in `api/config/cors.php` using `CONSOLE_HOST` + `FRONTEND_HOS
 | Dashboard | `/` |
 | FleetOps orders | `/fleet-ops/operations/orders` |
 | Platform health | `/admin/health` |
+
+### FleetOps performance (Phase 8)
+
+| Surface | Limit | Notes |
+|---------|-------|--------|
+| Orders list | Server pagination (`page`, `limit`) | Do not disable pagination for large tenants; test with 10k+ rows in staging |
+| Tracking hub map | **500 markers** max | `FleetTrackingHub` caps client render; see [FLEETOPS-QA-HARDENING.md](./FLEETOPS-QA-HARDENING.md) |
+
+E2E: `npm run test:e2e:fleetops:smoke` · Role matrix: [FLEETOPS-ROLE-QA.md](./FLEETOPS-ROLE-QA.md)
 
 ---
 

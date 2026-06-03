@@ -18,6 +18,7 @@ import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtime
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
 import FleetMetricsWidget from "@/components/fleetops/dashboard/FleetMetricsWidget";
 import { getDashboardWidgets, registerDashboardWidget } from "@/domain/fleetops/extensions/dashboardRegistry";
+import { registerIamDashboardWidgets } from "@/domain/iam/registerIamDashboard";
 
 const accentByLabel = {
   "Open orders": "cyan",
@@ -55,6 +56,7 @@ export default function Dashboard() {
         <FleetMetricsWidget orders={orders} drivers={drivers} vehicles={vehicles} routes={routes} />
       ),
     });
+    registerIamDashboardWidgets();
   }, []);
 
   useEffect(() => {

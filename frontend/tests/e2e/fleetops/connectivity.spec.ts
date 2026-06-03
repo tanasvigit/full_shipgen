@@ -63,13 +63,30 @@ test.describe("FleetOps Day 2 — Connectivity", () => {
     }
   });
 
-  test("tracking hub map and marker refresh surface", async ({ page }) => {
+  test("tracking hub uses live API markers and fleet filter", async ({ page }) => {
     await page.goto("/fleet-ops/connectivity/tracking");
     await expect(page.getByTestId("fleet-tracking-hub")).toBeVisible();
     await expect(page.getByTestId("fleet-tracking-map")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("tracking-fleet-filter")).toBeVisible();
+    await expect(page.getByTestId("tracking-live-api-note")).toBeVisible();
     await page.getByTestId("tracking-refresh").click();
     await waitForApiSettle(page);
-    await page.reload();
-    await expect(page.getByTestId("fleet-tracking-map")).toBeVisible({ timeout: 30_000 });
+  });
+
+  test("telematics setup wizard opens", async ({ page }) => {
+    await page.goto("/fleet-ops/connectivity/telematics");
+    if (await page.getByTestId("telematic-forbidden").isVisible().catch(() => false)) return;
+    const setup = page.getByTestId("telematics-setup-open");
+    if (await setup.isVisible()) {
+      await setup.click();
+      await expect(page.getByTestId("telematics-setup-wizard")).toBeVisible();
+    }
+  });
+
+  test("device events filters render", async ({ page }) => {
+    await page.goto("/fleet-ops/connectivity/device-events");
+    const forbidden = page.getByTestId("device-event-forbidden");
+    if (await forbidden.isVisible().catch(() => false)) return;
+    await expect(page.getByTestId("device-events-device-filter")).toBeVisible();
   });
 });

@@ -11,11 +11,25 @@ setup("authenticate admin and save storage state", async ({ page, request }) => 
 
   fs.mkdirSync(path.dirname(AUTH_STORAGE_PATH), { recursive: true });
 
-  await loginViaApi(request, page);
+  let ready = false;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await loginViaApi(request, page);
+    await page.goto("/", { waitUntil: "load" });
+    const hasConsole = await page.getByTestId("console-layout").isVisible().catch(() => false);
+    if (hasConsole) {
+      ready = true;
+      break;
+    }
+    await page.waitForTimeout(500);
+  }
 
-  await page.waitForURL((url) => !url.pathname.startsWith("/auth"), { timeout: 45_000 });
-  await expect(page.getByTestId("console-layout")).toBeVisible();
-  await expect(page.getByTestId("dashboard-page")).toBeVisible();
+  if (!ready) {
+    await page.goto("/", { waitUntil: "load" });
+  }
+
+  await expect(page).not.toHaveURL(/\/auth/);
+  await expect(page.getByTestId("console-layout")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByTestId("dashboard-page")).toBeVisible({ timeout: 45_000 });
 
   await page.context().storageState({ path: AUTH_STORAGE_PATH });
 });

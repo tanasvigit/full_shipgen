@@ -65,9 +65,10 @@ test.describe("FleetOps Day 1 — Orders list", () => {
     const table = page.getByTestId("orders-table");
     const scheduledHeader = table.locator("thead th", { hasText: /^Scheduled$/i });
     await expect(scheduledHeader).toBeVisible();
-    await page.getByRole("button", { name: /columns/i }).click();
+    await page.getByTestId("orders-columns-trigger").click();
+    await page.getByTestId("orders-column-toggle-scheduled_at").click();
     await expect(scheduledHeader).toBeHidden();
-    await page.getByRole("button", { name: /columns/i }).click();
+    await page.getByTestId("orders-column-toggle-scheduled_at").click();
     await expect(scheduledHeader).toBeVisible();
   });
 

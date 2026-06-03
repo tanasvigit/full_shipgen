@@ -141,7 +141,19 @@ export default function Login() {
 
             <div className="text-center text-xs text-[#4B5563]">
                 Don't have an account?{" "}
-                <span className="text-[#374151]">Contact your administrator</span>
+                <Link to="/auth/onboard" className="text-[#0066FF] hover:text-[#0040CC]" data-testid="login-create-account-link">
+                    Create account
+                </Link>
+            </div>
+
+            <div className="text-center pt-2 border-t border-black/[0.06]">
+                <Link
+                    to="/fleet-ops/tracking/lookup"
+                    className="text-sm font-medium text-[#0066FF] hover:text-[#0040CC] inline-flex items-center gap-1"
+                    data-testid="auth-track-order-link"
+                >
+                    Track an order →
+                </Link>
             </div>
         </div>
     );

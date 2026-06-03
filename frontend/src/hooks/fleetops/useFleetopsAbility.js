@@ -5,13 +5,7 @@ import {
   normalizePermissionNames,
   resolveEffectivePermissions,
 } from "@/lib/fleetops/permissions";
-
-/**
- * Dev-only escape hatch — never enable in production SaaS.
- * Set VITE_FLEETOPS_PERMISSIVE=true locally when /users/me returns empty permissions.
- */
-const PERMISSIVE =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_FLEETOPS_PERMISSIVE === "true";
+import { isFleetopsPermissiveMode } from "@/lib/fleetops/permissiveMode";
 
 /** Deny-all ability object for tests. Do not use in production UI paths. */
 export const FLEETOPS_ABILITY_DENY_ALL = {
@@ -79,7 +73,7 @@ export function useFleetopsAbility() {
     (action, resource = "order") => {
       if (isAdmin) return true;
       if (!permissionsResolved) return false;
-      if (permissionsEmpty) return PERMISSIVE;
+      if (permissionsEmpty) return isFleetopsPermissiveMode();
       return checker.can(action, resource);
     },
     [checker, permissionsResolved, permissionsEmpty, isAdmin],

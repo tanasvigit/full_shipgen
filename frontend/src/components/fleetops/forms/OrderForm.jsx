@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
@@ -13,6 +13,7 @@ import { orderFormSchema } from "@/lib/fleetops/schemas";
 import { DRIVER_SKILLS, ORDER_PRIORITIES, POD_METHODS } from "@/lib/fleetops/constants";
 import { Plus, Trash2 } from "lucide-react";
 import { useFormHandle } from "./formUtils";
+import EntityCustomFieldsBlock from "@/components/fleetops/custom-fields/EntityCustomFieldsBlock";
 
 const emptyWaypoint = () => ({ id: `wp-${Date.now()}-${Math.random()}`, placeId: "", customerId: "", type: "dropoff" });
 const emptyEntity = () => ({ id: `ent-${Date.now()}-${Math.random()}`, name: "", sku: "", destinationId: "", quantity: 1, weight: "" });
@@ -123,7 +124,8 @@ const OrderForm = forwardRef(function OrderForm(
     defaultValues: { ...defaultValues, ...initialValues },
   });
   const { register, watch, setValue, control, formState: { errors } } = methods;
-  useFormHandle(ref, methods);
+  const [customFieldValues, setCustomFieldValues] = useState(initialValues?.customFieldValues || {});
+  useFormHandle(ref, methods, () => ({ customFieldValues }));
 
   const { fields: waypointFields, append: appendWp, remove: removeWp } = useFieldArray({
     control,
@@ -371,6 +373,7 @@ const OrderForm = forwardRef(function OrderForm(
           <Input type="number" {...register("orchestratorPriority")} className="bg-[#F5F6F8]" data-testid="order-field-orchestrator-priority" />
         </div>
       </FormSection>
+      <EntityCustomFieldsBlock entityType="order" values={customFieldValues} onChange={setCustomFieldValues} />
     </div>
   );
 });

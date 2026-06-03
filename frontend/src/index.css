@@ -252,6 +252,19 @@ code,
             inset 0 0 0 1px rgba(0, 102, 255, 0.18),
             0 8px 24px -12px rgba(0, 102, 255, 0.35);
     }
+    .engine-pill--compact {
+        height: 30px;
+        padding: 0 8px;
+        gap: 6px;
+        font-size: 12px;
+    }
+    .engine-pill-nav {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .engine-pill-nav::-webkit-scrollbar {
+        display: none;
+    }
     .engine-pill[data-active="true"]::after {
         content: "";
         position: absolute;

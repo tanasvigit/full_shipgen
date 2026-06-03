@@ -3,14 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function RequireAuth({ children }) {
     const location = useLocation();
-    const { authReady, isAuthenticated } = useAuth();
+    const { authReady, onboardingGateReady, shouldInstall, shouldOnboard, isAuthenticated } = useAuth();
 
-    if (!authReady) {
+    if (!authReady || !onboardingGateReady) {
         return null;
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+        const nextPath = shouldInstall ? "/install" : shouldOnboard ? "/auth/onboard" : "/auth";
+        return <Navigate to={nextPath} state={{ from: location.pathname }} replace />;
     }
 
     return children;

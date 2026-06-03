@@ -11,6 +11,7 @@ import { LoadingProvider } from "@/providers/LoadingProvider";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
 import PlatformErrorBoundary from "@/components/platform/PlatformErrorBoundary";
 import { validateRuntimeConfig } from "@/lib/runtimeConfig";
+import "@/domain/fleetops/extensions/bootstrap.jsx";
 
 const configIssues = validateRuntimeConfig();
 if (configIssues.length > 0 && import.meta.env.DEV) {

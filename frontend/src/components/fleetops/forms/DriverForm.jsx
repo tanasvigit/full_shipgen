@@ -1,6 +1,7 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useFormHandle } from "./formUtils";
+import EntityCustomFieldsBlock from "@/components/fleetops/custom-fields/EntityCustomFieldsBlock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
 import EntityAsyncSelect from "@/components/fleetops/EntityAsyncSelect";
@@ -71,9 +72,11 @@ const DriverForm = forwardRef(function DriverForm(
     setValue,
     formState: { errors },
   } = methods;
-  useFormHandle(ref, methods);
 
   const skills = watch("skills") || [];
+  const [customFieldValues, setCustomFieldValues] = useState(initialValues?.customFieldValues || {});
+
+  useFormHandle(ref, methods, () => ({ customFieldValues }));
 
   return (
     <div id={formId} className="space-y-4" data-testid="driver-form">
@@ -211,6 +214,7 @@ const DriverForm = forwardRef(function DriverForm(
           </div>
         </div>
       </FormSection>
+      <EntityCustomFieldsBlock entityType="driver" values={customFieldValues} onChange={setCustomFieldValues} />
     </div>
   );
 });

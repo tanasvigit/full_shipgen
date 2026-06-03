@@ -23,7 +23,8 @@ export function parseOrdersListSearchParams(searchParams) {
   const without_driver = searchParams.get("without_driver") === "1";
   const order_config = searchParams.get("order_config") || "";
   const bulk_query = searchParams.get("bulk_query") || "";
-  return { page, limit, layout, status, search, sort, sort_dir, without_driver, order_config, bulk_query };
+  const hidden_cols = searchParams.get("hidden_cols") || "";
+  return { page, limit, layout, status, search, sort, sort_dir, without_driver, order_config, bulk_query, hidden_cols };
 }
 
 export function buildOrdersListApiParams(state) {
@@ -68,5 +69,6 @@ export function ordersListSearchParamsFromState(state, overrides = {}) {
   if (next.without_driver) sp.set("without_driver", "1");
   if (next.order_config) sp.set("order_config", next.order_config);
   if (next.bulk_query) sp.set("bulk_query", next.bulk_query);
+  if (next.hidden_cols) sp.set("hidden_cols", next.hidden_cols);
   return sp;
 }

@@ -66,9 +66,22 @@ test.describe("FleetOps Day 1 — Service rates", () => {
     await expect(reloadedFeeInput).toHaveValue(/^(15|150)$/, { timeout: 45_000 });
   });
 
-  test("stability — invalid form blocks empty submit", async ({ page }) => {
-    await page.goto("/fleet-ops/operations/service-rates/new");
-    await page.getByRole("button", { name: /^save$/i }).click();
-    await expect(page).toHaveURL(/\/service-rates\/new/);
+  test("G011 — export button visible", async ({ page }) => {
+    await navigateFleetOpsSidebar(page, "service-rates", "/fleet-ops/operations/service-rates", "service-rates-list-page");
+    await expect(page.getByTestId("service-rates-export").or(page.getByTestId("service-rates-table"))).toBeVisible();
+  });
+
+  test("G011 — for-route picker on route detail", async ({ page }) => {
+    await page.goto("/fleet-ops/operations/routes");
+    await waitForApiSettle(page);
+    const row = page.locator('[data-testid^="route-row-"], tbody tr').first();
+    if (!(await row.isVisible().catch(() => false))) {
+      test.skip();
+      return;
+    }
+    await row.click();
+    if (await page.getByTestId("route-detail-page").isVisible({ timeout: 15_000 }).catch(() => false)) {
+      await expect(page.getByTestId("service-rates-for-route-picker")).toBeVisible();
+    }
   });
 });

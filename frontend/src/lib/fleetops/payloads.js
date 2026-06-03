@@ -45,6 +45,7 @@ export function buildDriverPayload(values) {
     max_distance: values.maxDistance != null && values.maxDistance !== "" ? Number(values.maxDistance) : undefined,
     time_window_start: values.timeWindowStart || undefined,
     time_window_end: values.timeWindowEnd || undefined,
+    custom_field_values: values.customFieldValues,
   });
   return { driver: body };
 }
@@ -73,6 +74,7 @@ export function buildVehiclePayload(values) {
     description: values.description,
     latitude: values.latitude != null && values.latitude !== "" ? Number(values.latitude) : undefined,
     longitude: values.longitude != null && values.longitude !== "" ? Number(values.longitude) : undefined,
+    custom_field_values: values.customFieldValues,
   });
   return { vehicle: body };
 }
@@ -96,6 +98,7 @@ export function buildPlacePayload(values) {
         ? { type: "Point", coordinates: [0, 0] }
         : undefined),
     meta: values.notes ? { notes: values.notes } : undefined,
+    custom_field_values: values.customFieldValues,
   });
   return { place: body };
 }

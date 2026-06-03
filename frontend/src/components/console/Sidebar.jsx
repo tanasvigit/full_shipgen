@@ -8,6 +8,7 @@ import {
     Building,
     UserCog,
     KeyRound,
+    FileKey,
     UsersRound,
     Bell,
     Settings as SettingsIcon,
@@ -47,6 +48,12 @@ import {
     BookText,
     NotebookPen,
     ShoppingCart,
+    Shield,
+    FileStack,
+    PackageOpen,
+    BadgeCheck,
+    Hash,
+    ListChecks,
 } from "lucide-react";
 
 const sections = {
@@ -69,9 +76,7 @@ const sections = {
             items: [
                 { to: "/fleet-ops/operations/orders", label: "Orders", icon: Package, badge: "12" },
                 { to: "/fleet-ops/operations/routes", label: "Routes", icon: Route },
-                { to: "/fleet-ops/operations/orchestrator", label: "Orchestrator", icon: Route },
                 { to: "/fleet-ops/operations/schedule", label: "Schedule", icon: CalendarClock },
-                { to: "/fleet-ops/operations/service-rates", label: "Service rates", icon: SettingsIcon },
                 { to: "/fleet-ops/operations/order-config", label: "Order config", icon: SettingsIcon },
             ],
         },
@@ -92,7 +97,6 @@ const sections = {
             label: "Connectivity",
             items: [
                 { to: "/fleet-ops/connectivity/telematics", label: "Telematics", icon: Radio },
-                { to: "/fleet-ops/connectivity/devices", label: "Devices", icon: Cpu },
                 { to: "/fleet-ops/connectivity/sensors", label: "Sensors", icon: Activity },
                 { to: "/fleet-ops/connectivity/tracking", label: "Fleet tracking", icon: MapPin },
             ],
@@ -107,12 +111,24 @@ const sections = {
             ],
         },
         {
+            label: "Resources",
+            items: [
+                { to: "/fleet-ops/admin/warranties", label: "Warranties", icon: Shield },
+                { to: "/fleet-ops/admin/manifests", label: "Manifests", icon: FileStack },
+                { to: "/fleet-ops/admin/payloads", label: "Payloads", icon: PackageOpen },
+                { to: "/fleet-ops/admin/entities", label: "Entities", icon: Boxes },
+                { to: "/fleet-ops/admin/proofs", label: "Proofs", icon: BadgeCheck },
+                { to: "/fleet-ops/admin/purchase-rates", label: "Purchase rates", icon: Receipt },
+                { to: "/fleet-ops/admin/tracking-numbers", label: "Tracking numbers", icon: Hash },
+                { to: "/fleet-ops/admin/tracking-statuses", label: "Tracking statuses", icon: ListChecks },
+            ],
+        },
+        {
             label: "Platform",
             items: [
                 { to: "/fleet-ops/service-areas", label: "Service areas", icon: MapPin },
                 { to: "/fleet-ops/settings", label: "Platform settings", icon: SettingsIcon },
                 { to: "/fleet-ops/custom-fields", label: "Custom fields", icon: Blocks },
-                { to: "/fleet-ops/analytics/reports", label: "Analytics reports", icon: LineChart },
                 { to: "/fleet-ops/tracking/lookup", label: "Track order", icon: Package },
             ],
         },
@@ -235,7 +251,10 @@ const sections = {
             label: "Identity & Access",
             items: [
                 { to: "/iam/users", label: "Users", icon: UserCog },
+                { to: "/iam/users/drivers", label: "Drivers", icon: UserCog },
+                { to: "/iam/users/customers", label: "Customers", icon: UserCog },
                 { to: "/iam/roles", label: "Roles", icon: KeyRound },
+                { to: "/iam/policies", label: "Policies", icon: FileKey },
                 { to: "/iam/groups", label: "Groups", icon: UsersRound },
             ],
         },

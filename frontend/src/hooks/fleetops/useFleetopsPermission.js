@@ -5,9 +5,7 @@ import {
   normalizePermissionNames,
   resolveEffectivePermissions,
 } from "@/lib/fleetops/permissions";
-
-const PERMISSIVE =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_FLEETOPS_PERMISSIVE === "true";
+import { isFleetopsPermissiveMode } from "@/lib/fleetops/permissiveMode";
 
 /**
  * FleetOps permission checks — same resolver as useFleetopsAbility (Spatie format).
@@ -39,7 +37,7 @@ export function useFleetopsPermission() {
     (action, resource = "order") => {
       if (isAdmin) return true;
       if (!permissionsResolved) return false;
-      if (permissionsEmpty) return PERMISSIVE;
+      if (permissionsEmpty) return isFleetopsPermissiveMode();
       return checker.can(action, resource);
     },
     [checker, permissionsResolved, permissionsEmpty, isAdmin],

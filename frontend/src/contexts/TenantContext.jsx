@@ -12,6 +12,7 @@ import {
   savePreferences,
 } from "@/lib/tenant/storage";
 import { DEFAULT_PLAN_ID, resolvePlan } from "@/lib/subscription/plans";
+import { fleetopsService } from "@/services/fleetops";
 
 const TenantContext = createContext(null);
 
@@ -24,9 +25,25 @@ export function TenantProvider({ children }) {
   const [onboarding, setOnboardingState] = useState(() => loadOnboardingState(orgId));
 
   useEffect(() => {
-    setBrandingState(loadBranding(orgId));
+    let active = true;
+    const localBranding = loadBranding(orgId);
     setPreferencesState(loadPreferences(orgId));
     setOnboardingState(loadOnboardingState(orgId));
+    setBrandingState(localBranding);
+    (async () => {
+      try {
+        const remote = await fleetopsService.getTenantBranding();
+        if (!active || !remote || typeof remote !== "object") return;
+        const merged = { ...localBranding, ...remote };
+        setBrandingState(merged);
+        saveBranding(orgId, merged);
+      } catch {
+        /* localStorage fallback (G059) */
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [orgId]);
 
   useEffect(() => {
@@ -45,6 +62,7 @@ export function TenantProvider({ children }) {
       setBrandingState((prev) => {
         const next = { ...prev, ...patch };
         saveBranding(orgId, next);
+        void fleetopsService.saveTenantBranding(next).catch(() => {});
         return next;
       });
     },

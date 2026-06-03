@@ -1,12 +1,29 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { useRef } from "react";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AuthLayout() {
-    const { authReady, isAuthenticated } = useAuth();
-    if (!authReady) {
+    const location = useLocation();
+    const { authReady, onboardingGateReady, shouldInstall, shouldOnboard, isAuthenticated } = useAuth();
+    const installSessionRef = useRef(false);
+    if (location.pathname === "/install" && shouldInstall) {
+        installSessionRef.current = true;
+    }
+    if (!authReady || !onboardingGateReady) {
         return <div className="min-h-screen grid place-items-center text-sm text-[#4B5563]">Loading...</div>;
     }
     if (isAuthenticated) return <Navigate to="/" replace />;
+    if (shouldInstall && location.pathname !== "/install") {
+        return <Navigate to="/install" replace />;
+    }
+    // Cold visit to /install when already set up — bypass installer UI.
+    // Stay on /install after completing steps so user can choose Continue / Login.
+    if (!shouldInstall && location.pathname === "/install" && !installSessionRef.current) {
+        return <Navigate to={shouldOnboard ? "/auth/onboard" : "/auth"} replace />;
+    }
+    if (shouldOnboard && location.pathname === "/auth") {
+        return <Navigate to="/auth/onboard" replace />;
+    }
     return (
         <div className="min-h-screen w-full bg-[#F5F6F8] text-[#0A0E1A] grid lg:grid-cols-[1.15fr_1fr] grid-cols-1 relative overflow-hidden">
             {/* Left hero panel — light, gradient + grid */}

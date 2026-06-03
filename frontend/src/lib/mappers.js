@@ -1,3 +1,5 @@
+import { computeEffectivePermissions } from "@/lib/iam/effectivePermissions";
+
 export const statusLabel = (value) =>
   ({
     created: "Created",
@@ -51,6 +53,24 @@ export const mapDriver = (driver) => ({
   skills: driver?.skills || [],
 });
 
+/** API may return tracking as a string or embedded tracking-numbers record. */
+export function formatScalarForDisplay(value, fallback = "") {
+  if (value == null || value === "") return fallback;
+  if (typeof value === "object") {
+    if (value.tracking_number != null && typeof value.tracking_number !== "object") {
+      return String(value.tracking_number);
+    }
+    const inner =
+      value.public_id ||
+      value.tracking_number ||
+      value.uuid ||
+      value.id;
+    if (inner != null && typeof inner !== "object") return String(inner);
+    return fallback;
+  }
+  return String(value);
+}
+
 export const mapVehicle = (vehicle) => ({
   id: entityRouteId(vehicle),
   publicId: vehicle?.public_id || vehicle?.id,
@@ -59,11 +79,18 @@ export const mapVehicle = (vehicle) => ({
   status: vehicle?.status || "active",
 });
 
-export const mapOrder = (order) => ({
+export const mapOrder = (order) => {
+  const trackingNumber = formatScalarForDisplay(
+    order?.tracking_number,
+    formatScalarForDisplay(order?.public_id, String(order?.id ?? "")),
+  );
+  const publicId = formatScalarForDisplay(order?.public_id, trackingNumber || String(order?.id ?? ""));
+
+  return {
   id: entityRouteId(order),
-  publicId: order?.public_id || order?.tracking_number || order?.id,
+  publicId,
   internalId: order?.internal_id || order?.internalId || "",
-  trackingNumber: order?.tracking_number || order?.public_id || order?.id,
+  trackingNumber,
   customer: {
     name: order?.customer?.name || order?.customer_name || "Customer",
     email: order?.customer?.email || order?.customer_email || "",
@@ -87,26 +114,94 @@ export const mapOrder = (order) => ({
   weight: order?.weight || "N/A",
   paymentStatus: order?.payment_status || "pending",
   notes: order?.notes || "",
-});
+  type: order?.type || "",
+  serviceType: order?.service_type || "",
+  orderConfigId: order?.order_config_uuid || order?.order_config?.uuid || order?.order_config_id || "",
+};
+};
 
-export const mapUser = (user) => ({
-  id: user?.id || user?.uuid || user?.public_id,
-  name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "User",
-  email: user?.email || "",
-  role: user?.role?.name || user?.company_role || user?.role || "Member",
-  status: user?.status || "active",
-  lastLogin: user?.last_login_at || user?.last_login || "—",
-  twoFa: Boolean(user?.two_factor_enabled || user?.twoFa),
-  type: user?.type || "user",
-});
+export const mapUser = (user) => {
+  const sessionStatus = user?.session_status || user?.status || "active";
+  const roleObj = user?.role && typeof user.role === "object" ? user.role : null;
+  const policiesRaw = Array.isArray(user?.policies) ? user.policies : [];
+  const policies = policiesRaw.map((p) => mapPolicy(p));
+  const directPermissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const effectivePermissions = computeEffectivePermissions({
+    ...user,
+    policies: policiesRaw,
+    directPermissions,
+  });
+  return {
+    id: user?.uuid || user?.public_id || user?.id,
+    publicId: user?.public_id,
+    name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "User",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    country: user?.country || "",
+    role: roleObj?.name || user?.role_name || user?.company_role || (typeof user?.role === "string" ? user.role : "Member"),
+    roleId: roleObj?.uuid || roleObj?.id || user?.role_uuid || user?.company_role_uuid || null,
+    status: sessionStatus,
+    sessionStatus,
+    emailVerified: Boolean(user?.email_verified_at),
+    emailVerifiedAt: user?.email_verified_at || null,
+    lastLogin: user?.last_login_at || user?.last_login || user?.lastLogin || "—",
+    twoFa: Boolean(user?.two_factor_enabled || user?.twoFa),
+    type: user?.type || "user",
+    isAdmin: Boolean(user?.is_admin),
+    avatarUrl: user?.avatar_url || user?.avatarUrl || null,
+    policies,
+    directPermissions,
+    effectivePermissions,
+    permissions: effectivePermissions,
+    createdAt: user?.created_at || user?.createdAt || null,
+    updatedAt: user?.updated_at || user?.updatedAt || null,
+    raw: user,
+  };
+};
 
-export const mapRole = (role) => ({
-  id: role?.id || role?.uuid || role?.public_id,
-  name: role?.name || "Role",
-  description: role?.description || "",
-  users: Number(role?.users_count || role?.users || 0),
-  system: Boolean(role?.is_system || role?.system),
-});
+export const mapRole = (role) => {
+  const policies = Array.isArray(role?.policies) ? role.policies : [];
+  const permissions = Array.isArray(role?.permissions) ? role.permissions : [];
+  const typeLabel = role?.type || (role?.company_uuid ? "Organization Managed" : "FLB Managed");
+  const schemeType =
+    typeLabel === "FLB Managed" || !role?.company_uuid ? "flb-managed" : "org-managed";
+  return {
+    id: role?.id || role?.uuid || role?.public_id,
+    name: role?.name || "Role",
+    description: role?.description || "",
+    service: role?.service || "",
+    type: typeLabel,
+    schemeType,
+    users: Number(role?.users_count || role?.users || 0),
+    system: Boolean(role?.is_system || role?.system),
+    isMutable: role?.is_mutable !== undefined ? Boolean(role.is_mutable) : Boolean(role?.company_uuid),
+    isDeletable: role?.is_deletable !== undefined ? Boolean(role.is_deletable) : Boolean(role?.company_uuid),
+    policies,
+    permissions,
+    createdAt: role?.created_at || role?.createdAt || null,
+    raw: role,
+  };
+};
+
+export const mapPolicy = (policy) => {
+  const permissions = Array.isArray(policy?.permissions) ? policy.permissions : [];
+  const typeLabel = policy?.type || (policy?.company_uuid ? "Organization Managed" : "FLB Managed");
+  const schemeType =
+    typeLabel === "FLB Managed" || !policy?.company_uuid ? "flb-managed" : "org-managed";
+  return {
+    id: policy?.id || policy?.uuid,
+    name: policy?.name || "Policy",
+    description: policy?.description || "",
+    service: policy?.service || "",
+    type: typeLabel,
+    schemeType,
+    permissions,
+    isMutable: policy?.is_mutable !== undefined ? Boolean(policy.is_mutable) : Boolean(policy?.company_uuid),
+    isDeletable: policy?.is_deletable !== undefined ? Boolean(policy.is_deletable) : Boolean(policy?.company_uuid),
+    createdAt: policy?.created_at || policy?.createdAt || null,
+    raw: policy,
+  };
+};
 
 export const mapPermission = (p) => ({
   id: p?.id || p?.uuid,
@@ -114,13 +209,33 @@ export const mapPermission = (p) => ({
   name: p?.name || p?.title || p?.slug || "Permission",
 });
 
-export const mapGroup = (g) => ({
-  id: g?.id || g?.uuid || g?.public_id,
-  name: g?.name || "Group",
-  description: g?.description || "",
-  members: Number(g?.users_count || g?.members_count || (Array.isArray(g?.members) ? g.members.length : 0)),
-  roles: (g?.roles || []).map((r) => (typeof r === "string" ? r : r?.name)).filter(Boolean),
+export const mapGroupMember = (user) => ({
+  id: user?.uuid || user?.id || user?.public_id,
+  name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "User",
+  email: user?.email || "",
 });
+
+export const mapGroup = (g) => {
+  const users = Array.isArray(g?.users) ? g.users.map(mapGroupMember) : [];
+  const roleRecords = Array.isArray(g?.roles) ? g.roles : [];
+  const defaultRole = roleRecords[0];
+  return {
+    id: g?.uuid || g?.id || g?.public_id,
+    publicId: g?.public_id,
+    name: g?.name || "Group",
+    description: g?.description || "",
+    members: users,
+    memberCount: Number(g?.users_count ?? users.length),
+    users,
+    defaultRoleId: defaultRole?.uuid || defaultRole?.id || g?.role_uuid || null,
+    defaultRoleName: defaultRole?.name || (typeof g?.role === "string" ? g.role : g?.role?.name) || null,
+    roles: roleRecords.map((r) => (typeof r === "string" ? r : r?.name)).filter(Boolean),
+    isDeletable: Boolean(g?.company_uuid),
+    companyUuid: g?.company_uuid || null,
+    createdAt: g?.created_at || g?.createdAt || null,
+    raw: g,
+  };
+};
 
 export const mapNotification = (notification) => ({
   id: notification?.id || notification?.uuid,

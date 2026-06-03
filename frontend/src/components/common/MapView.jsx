@@ -20,6 +20,7 @@ export default function MapView({
     fitOnce = false,
     loading = false,
     onMarkerClick,
+    onMarkerContextMenu,
     selectedMarkerId = null,
 }) {
     const containerRef = useRef(null);
@@ -83,6 +84,12 @@ export default function MapView({
             if (onMarkerClick) {
                 marker.on("click", () => onMarkerClick(m));
             }
+            if (onMarkerContextMenu) {
+                marker.on("contextmenu", (e) => {
+                    L.DomEvent.preventDefault(e);
+                    onMarkerContextMenu(m, e);
+                });
+            }
             if (m.popup || m.label) {
                 marker.bindPopup(
                     `<div style="font-family:'IBM Plex Sans',sans-serif;color:#0A0E1A;font-size:12px;">
@@ -137,7 +144,7 @@ export default function MapView({
             }
         }
         setTimeout(() => map.invalidateSize(), 50);
-    }, [markers, routePoints, routeTrails, geofence, zoom, fitOnce, onMarkerClick, selectedMarkerId]);
+    }, [markers, routePoints, routeTrails, geofence, zoom, fitOnce, onMarkerClick, onMarkerContextMenu, selectedMarkerId]);
 
     return (
         <div

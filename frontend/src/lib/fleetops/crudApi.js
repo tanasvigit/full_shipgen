@@ -127,6 +127,55 @@ const METHOD_MAP = {
     update: "updateCustomField",
     delete: "deleteCustomField",
   },
+  warranty: {
+    list: "listWarranty",
+    get: "getWarranty",
+    create: "createWarranty",
+    update: "updateWarranty",
+    delete: "deleteWarranty",
+  },
+  payload: {
+    list: "listPayload",
+    get: "getPayload",
+    create: "createPayload",
+    update: "updatePayload",
+    delete: "deletePayload",
+  },
+  entity: {
+    list: "listEntity",
+    get: "getEntity",
+    create: "createEntity",
+    update: "updateEntity",
+    delete: "deleteEntity",
+  },
+  proof: {
+    list: "listProof",
+    get: "getProof",
+    create: "createProof",
+    update: "updateProof",
+    delete: "deleteProof",
+  },
+  purchaseRate: {
+    list: "listPurchaseRate",
+    get: "getPurchaseRate",
+    create: "createPurchaseRate",
+    update: "updatePurchaseRate",
+    delete: "deletePurchaseRate",
+  },
+  trackingNumber: {
+    list: "listTrackingNumber",
+    get: "getTrackingNumber",
+    create: "createTrackingNumber",
+    update: "updateTrackingNumber",
+    delete: "deleteTrackingNumber",
+  },
+  trackingStatus: {
+    list: "listTrackingStatus",
+    get: "getTrackingStatus",
+    create: "createTrackingStatus",
+    update: "updateTrackingStatus",
+    delete: "deleteTrackingStatus",
+  },
 };
 
 export function getCrudApi(entityKey) {

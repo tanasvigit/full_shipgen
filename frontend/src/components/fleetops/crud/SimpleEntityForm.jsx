@@ -41,7 +41,7 @@ const SimpleEntityForm = forwardRef(function SimpleEntityForm(
   }));
 
   return (
-    <form id={formId} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+    <div id={formId} className="space-y-4">
       {fields.map((field) => (
         <div key={field.name} className="space-y-1.5">
           <Label htmlFor={`${formId}-${field.name}`}>
@@ -68,7 +68,7 @@ const SimpleEntityForm = forwardRef(function SimpleEntityForm(
       {mode === "edit" && (
         <p className="text-xs text-[#4B5563]">Updates sync to the FleetOps API when available.</p>
       )}
-    </form>
+    </div>
   );
 });
 

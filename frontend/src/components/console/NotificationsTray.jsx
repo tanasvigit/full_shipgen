@@ -70,7 +70,7 @@ export default function NotificationsTray() {
       <DropdownMenuTrigger asChild>
         <button
           data-testid="notifications-trigger"
-          className="relative h-9 w-9 grid place-items-center hover:bg-[#F1F2F5] rounded-sm border border-transparent hover:border-black/[0.08] transition-colors"
+          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-md border border-transparent hover:border-black/[0.08] hover:bg-[#F1F2F5] transition-colors"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4 text-[#374151]" strokeWidth={1.75} />
