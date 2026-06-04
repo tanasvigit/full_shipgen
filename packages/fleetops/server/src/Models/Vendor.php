@@ -201,7 +201,7 @@ class Vendor extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return data_get($this, 'logo.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'logo.url', \Fleetbase\Support\DefaultAssets::url('vendor_image'));
     }
 
     /**

@@ -30,7 +30,7 @@ async function main() {
   const user = process.env.MAIL_USERNAME;
   const pass = process.env.MAIL_PASSWORD;
   const from = process.env.MAIL_FROM_ADDRESS || user;
-  const fromName = process.env.MAIL_FROM_NAME || "Fleetbase";
+  const fromName = process.env.MAIL_FROM_NAME || "shipgen-fleet";
 
   if (!host || !port || !from) {
     console.error("Missing SMTP config in .env (MAIL_HOST, MAIL_PORT, MAIL_FROM_ADDRESS).");
@@ -56,8 +56,8 @@ async function main() {
     await transporter.sendMail({
       from: `"${fromName}" <${from}>`,
       to: recipient,
-      subject: "Fleetbase SMTP Test",
-      text: "Hello,\n\nThis is a test email from Fleetbase SMTP script.\n\nIf you received this, SMTP is working.",
+      subject: "shipgen-fleet SMTP Test",
+      text: "Hello,\n\nThis is a test email from shipgen-fleet SMTP script.\n\nIf you received this, SMTP is working.",
     });
 
     console.log(`Test email sent successfully to ${recipient}`);

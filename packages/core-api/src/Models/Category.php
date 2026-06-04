@@ -133,6 +133,6 @@ class Category extends Model
      */
     public function getIconUrlAttribute()
     {
-        return data_get($this, 'iconFile.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/images/fallback-placeholder-1.png');
+        return data_get($this, 'iconFile.url', \Fleetbase\Support\DefaultAssets::url('category_image'));
     }
 }

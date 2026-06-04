@@ -9,6 +9,7 @@ import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { PORTAL_CONSOLE_LABEL, PORTAL_NAME } from "@/lib/branding";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -31,7 +32,7 @@ export default function Login() {
                 navigate("/auth/two-fa");
                 return;
             }
-            toast.success("Signed in to Fleetbase Console");
+            toast.success(`Signed in to ${PORTAL_CONSOLE_LABEL}`);
             navigate("/");
         } catch (err) {
             setError(err.message || "Unable to sign in.");
@@ -48,7 +49,7 @@ export default function Login() {
                     Welcome back to<br />your console.
                 </h2>
                 <p className="text-sm text-[#374151] mt-3 max-w-sm">
-                    Enter your credentials to enter the Fleetbase Operations Console.
+                    Enter your credentials to enter the {PORTAL_NAME} console.
                 </p>
             </div>
 
@@ -136,7 +137,7 @@ export default function Login() {
             <div className="relative border border-dashed border-black/[0.1] bg-[#F5F6F8] rounded-lg p-4 text-xs space-y-1.5 overflow-hidden">
                 <div className="absolute -top-px left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#0066FF]/40 to-transparent" />
                 <div className="overline">Secure authentication</div>
-                <div className="font-mono text-[12px] text-[#4B5563]">Credentials are validated against your Fleetbase backend.</div>
+                <div className="font-mono text-[12px] text-[#4B5563]">Credentials are validated against your {PORTAL_NAME} backend.</div>
             </div>
 
             <div className="text-center text-xs text-[#4B5563]">

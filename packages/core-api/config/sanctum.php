@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'console.fleetbase.io,console.fleetbase.dev,localhost,localhost:4200,127.0.0.1:4200,127.0.0.1,127.0.0.1:8000,127.0.0.1:8888,::1')),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:4200,localhost:5173,127.0.0.1:4200,127.0.0.1:5173,127.0.0.1,127.0.0.1:8000,127.0.0.1:8888,::1')),
 
     /*
     |--------------------------------------------------------------------------

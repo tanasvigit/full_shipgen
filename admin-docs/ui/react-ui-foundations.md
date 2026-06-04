@@ -1,6 +1,6 @@
 # React UI Foundations
 
-This document describes the visual foundations of the React console in `react-console`.
+This document describes the visual foundations of the React console in `frontend/`.
 
 It covers:
 

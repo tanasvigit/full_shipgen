@@ -25,9 +25,13 @@ class Bridge
      */
     private static function createUrl(string $uri = ''): string
     {
-        $url = config('registry-bridge.registry.host');
+        $url = Utils::registryHost();
 
-        return rtrim($url, '/') . '/' . $uri;
+        if (empty($url)) {
+            throw new \RuntimeException('Extension registry host is not configured. Set REGISTRY_HOST to use the marketplace.');
+        }
+
+        return $url . '/' . $uri;
     }
 
     /**

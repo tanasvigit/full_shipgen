@@ -242,7 +242,7 @@ class Contact extends Model
      */
     public function getPhotoUrlAttribute(): string
     {
-        return data_get($this, 'photo.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'photo.url', \Fleetbase\Support\DefaultAssets::url('contact_image'));
     }
 
     /**

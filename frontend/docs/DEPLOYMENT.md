@@ -11,7 +11,9 @@ Deploy the **React console** (`frontend/`) against a **Fleetbase API** (`api/`).
 | **SocketCluster** (realtime) | `socket` service | **38000** (host) → 8000 (container) |
 | **Queue worker** | `queue` service | — |
 | **Scheduler (cron)** | `scheduler` service | — |
-| **Ember console** (legacy) | `console/` | 4200 |
+---
+
+> **Note:** The Ember `console/` has been removed from this fork. Use only `frontend/`.
 
 ---
 
@@ -83,7 +85,7 @@ copy api\.env.example api\.env
 Edit `api/.env` (minimum):
 
 ```env
-APP_NAME=Fleetbase
+APP_NAME=shipgen-fleet
 APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:YOUR_KEY_HERE

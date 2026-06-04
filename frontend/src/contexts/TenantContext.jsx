@@ -13,6 +13,7 @@ import {
 } from "@/lib/tenant/storage";
 import { DEFAULT_PLAN_ID, resolvePlan } from "@/lib/subscription/plans";
 import { fleetopsService } from "@/services/fleetops";
+import { PORTAL_TITLE } from "@/lib/branding";
 
 const TenantContext = createContext(null);
 
@@ -49,6 +50,11 @@ export function TenantProvider({ children }) {
   useEffect(() => {
     applyTenantTheme(branding);
   }, [branding]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.title = branding?.productName?.trim() || PORTAL_TITLE;
+  }, [branding?.productName]);
 
   const planId =
     activeOrganization?.plan ||

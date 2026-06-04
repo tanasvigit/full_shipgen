@@ -324,7 +324,7 @@ class Store extends StorefrontModel
      */
     public function getLogoUrlAttribute()
     {
-        return data_get($this, 'logo.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png');
+        return data_get($this, 'logo.url', \Fleetbase\Support\DefaultAssets::url('store_logo'));
     }
 
     /**
@@ -332,7 +332,7 @@ class Store extends StorefrontModel
      */
     public function getBackdropUrlAttribute()
     {
-        return data_get($this, 'backdrop.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/default-storefront-backdrop.png');
+        return data_get($this, 'backdrop.url', \Fleetbase\Support\DefaultAssets::url('store_backdrop'));
     }
 
     /**

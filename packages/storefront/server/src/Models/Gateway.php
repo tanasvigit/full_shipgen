@@ -108,7 +108,7 @@ class Gateway extends StorefrontModel
     public function getLogoUrlAttribute()
     {
         $default = $this->logoFile->url ?? null;
-        $backup  = 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png';
+        $backup  = \Fleetbase\Support\DefaultAssets::url('placeholder_image');
 
         return $default ?? $backup;
     }

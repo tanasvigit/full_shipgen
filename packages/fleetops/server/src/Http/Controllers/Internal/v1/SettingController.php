@@ -208,6 +208,8 @@ class SettingController extends Controller
             $routingSettings['unit'] = 'km';
         }
 
+        $routingSettings['osrm_host'] = config('fleetops.osrm.host');
+
         return response()->json($routingSettings);
     }
 

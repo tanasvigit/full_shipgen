@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
 import "@/index.css";
 import App from "@/App";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -11,6 +12,11 @@ import { LoadingProvider } from "@/providers/LoadingProvider";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
 import PlatformErrorBoundary from "@/components/platform/PlatformErrorBoundary";
 import { validateRuntimeConfig } from "@/lib/runtimeConfig";
+import { PORTAL_TITLE } from "@/lib/branding";
+
+if (typeof document !== "undefined") {
+  document.title = PORTAL_TITLE;
+}
 import "@/domain/fleetops/extensions/bootstrap.jsx";
 
 const configIssues = validateRuntimeConfig();

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import NotificationsTray from "@/components/console/NotificationsTray";
 import { useAuth } from "@/contexts/AuthContext";
+import { PORTAL_NAME } from "@/lib/branding";
 
 const engines = [
     { id: "console", label: "Console", to: "/", icon: LayoutGrid },
@@ -87,7 +88,7 @@ export default function Header({ onOpenPalette }) {
                     className="flex h-full shrink-0 items-center gap-2 border-r border-black/[0.06] pr-2 sm:pr-3"
                     data-testid="header-logo"
                 >
-                    <img src="/logo_logistic.png" alt="Shipgen" className="h-7 w-auto object-contain" />
+                    <img src="/logo_logistic.png" alt={PORTAL_NAME} className="h-7 w-auto object-contain" />
                     <span className="hidden font-mono text-[9px] uppercase tracking-[0.2em] text-[#4B5563] xl:inline">
                         Command Center
                     </span>

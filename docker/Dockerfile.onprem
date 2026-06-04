@@ -1,0 +1,123 @@
+# On-prem API image: built from monorepo packages/ (no registry.fleetbase.io, no prebuilt fleetbase/fleetbase-api).
+# Build: docker compose build application
+# Targets: app-dev (API), events-dev (queue), scheduler-dev (cron)
+
+FROM dunglas/frankenphp:1.11-php8.2-bookworm AS base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    unzip \
+    uuid-runtime \
+    pkg-config \
+    libgeos-dev \
+    libgeos++-dev \
+    autoconf \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN install-php-extensions \
+    pdo_mysql \
+    gd \
+    bcmath \
+    redis \
+    intl \
+    zip \
+    gmp \
+    apcu \
+    opcache \
+    memcached \
+    imagick \
+    sockets \
+    pcntl \
+    @composer
+
+RUN curl -fsSL -o php-geos.zip \
+      https://github.com/libgeos/php-geos/archive/dfe1ab17b0f155cc315bc13c75689371676e02e1.zip \
+    && unzip php-geos.zip \
+    && rm php-geos.zip \
+    && cd php-geos-* \
+    && ./autogen.sh \
+    && ./configure \
+    && make -j"$(nproc)" install \
+    && docker-php-ext-enable geos \
+    && cd .. \
+    && rm -rf php-geos-*
+
+RUN sed -e 's/^expose_php.*/expose_php = Off/' "$PHP_INI_DIR/php.ini-production" > "$PHP_INI_DIR/php.ini" \
+    && sed -i \
+    -e 's/^upload_max_filesize.*/upload_max_filesize = 600M/' \
+    -e 's/^post_max_size.*/post_max_size = 0/' \
+    -e 's/^memory_limit.*/memory_limit = 600M/' \
+    "$PHP_INI_DIR/php.ini"
+
+ENV LOG_CHANNEL=stdout
+ENV CACHE_DRIVER=redis
+ENV BROADCAST_DRIVER=socketcluster
+ENV QUEUE_CONNECTION=redis
+ENV CADDYFILE_PATH=/fleetbase/Caddyfile
+ENV CONSOLE_PATH=/fleetbase/frontend
+ENV OCTANE_SERVER=frankenphp
+ENV TELEMETRY_DISABLED=true
+ENV REGISTRY_PREINSTALLED_EXTENSIONS=true
+
+ARG ENVIRONMENT=development
+ENV APP_ENV=$ENVIRONMENT
+
+COPY Caddyfile $CADDYFILE_PATH
+
+RUN mkdir -p /fleetbase/api /fleetbase/packages \
+    && chown -R www-data:www-data /fleetbase
+
+RUN uuidgen > /fleetbase/api/.fleetbase-id
+
+WORKDIR /fleetbase/api
+
+RUN mkdir -p /var/www/.cache/composer \
+    && chown -R www-data:www-data /var/www/.cache/composer
+
+# Monorepo packages must exist before Composer resolves path repositories.
+COPY packages /fleetbase/packages
+COPY api/composer.json api/composer.lock /fleetbase/api/
+
+# Run as root during image build so composer.lock is writable; vendor/ is baked into the image.
+RUN composer update \
+    fleetbase/core-api \
+    fleetbase/fleetops-api \
+    fleetbase/registry-bridge \
+    fleetbase/storefront-api \
+    fleetbase/ledger-api \
+    fleetbase/pallet-api \
+    --with-all-dependencies \
+    --no-dev \
+    --no-scripts \
+    --no-interaction \
+    -W
+
+COPY api /fleetbase/api
+
+RUN composer dump-autoload --optimize --no-dev --no-scripts
+
+RUN mkdir -p storage/logs bootstrap/cache \
+    && touch storage/logs/laravel.log \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+RUN curl -fsSL -o /usr/local/bin/go-crond \
+      https://github.com/webdevops/go-crond/releases/download/23.12.0/go-crond.linux.amd64 \
+    && chmod +x /usr/local/bin/go-crond
+
+COPY docker/crontab ./crontab
+RUN chmod 0600 ./crontab
+
+FROM base AS scheduler-dev
+ENTRYPOINT []
+CMD ["go-crond", "--verbose", "root:./crontab"]
+
+FROM base AS events-dev
+ENTRYPOINT []
+CMD ["php", "artisan", "queue:work"]
+
+FROM base AS app-dev
+ENTRYPOINT ["docker-php-entrypoint"]
+CMD ["sh", "-c", "php artisan octane:frankenphp --max-requests=1000 --port=8000 --host=0.0.0.0"]

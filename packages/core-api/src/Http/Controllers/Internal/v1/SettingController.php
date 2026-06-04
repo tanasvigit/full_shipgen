@@ -692,6 +692,26 @@ class SettingController extends Controller
     }
 
     /**
+     * Public platform config for consoles (maps, default assets). No fleetbase.io / CDN defaults.
+     */
+    public function getPlatformSettings()
+    {
+        $maps = config('fleetbase.maps', []);
+
+        return response()->json([
+            'maps'     => [
+                'tile_url'      => $maps['tile_url'] ?? null,
+                'tile_url_dark' => $maps['tile_url_dark'] ?? null,
+                'attribution'   => $maps['attribution'] ?? '',
+                'subdomains'    => $maps['subdomains'] ?? '',
+                'max_zoom'      => (int) ($maps['max_zoom'] ?? 19),
+            ],
+            'defaults' => \Fleetbase\Support\DefaultAssets::all(),
+            'osrm_host' => env('OSRM_HOST', config('fleetops.osrm.host', 'http://osrm-backend:5000')),
+        ]);
+    }
+
+    /**
      * Saves branding settings.
      *
      * @return \Illuminate\Http\JsonResponse

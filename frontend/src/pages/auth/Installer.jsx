@@ -5,6 +5,7 @@ import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/lib/auth";
 import { toast } from "sonner";
+import { PORTAL_NAME } from "@/lib/branding";
 
 const STEPS = [
   { key: "createdb", label: "Create Database", action: () => authService.installerCreateDb() },
@@ -79,7 +80,7 @@ export default function Installer() {
       <div>
         <div className="overline mb-3">Environment setup</div>
         <h2 className="font-display text-[36px] font-black tracking-[-0.045em] leading-[1] text-[#0A0E1A]">
-          Initialize Fleetbase
+          Initialize {PORTAL_NAME}
           <br />
           before onboarding.
         </h2>

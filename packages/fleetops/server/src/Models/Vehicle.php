@@ -217,15 +217,6 @@ class Vehicle extends Model
     ];
 
     /**
-     * Set attributes and defaults.
-     *
-     * @var array
-     */
-    protected $attributes = [
-        'avatar_url' => 'https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/vehicle-icons/mini_bus.svg',
-    ];
-
-    /**
      * Dynamic attributes that are appended to object.
      *
      * @var array
@@ -386,7 +377,7 @@ class Vehicle extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return data_get($this, 'photo.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
+        return data_get($this, 'photo.url', \Fleetbase\Support\DefaultAssets::url('vehicle_image'));
     }
 
     /**

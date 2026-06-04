@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { MapLoader } from "@/components/loaders/indicators/LoadingIndicators";
+import { leafletTileLayerOptions } from "@/lib/maps/tiles";
 
 /**
  * Generic dark-themed Leaflet map.
@@ -39,14 +41,8 @@ export default function MapView({
             zoomControl: true,
             attributionControl: true,
         });
-        L.tileLayer(
-            "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-            {
-                attribution: "© OpenStreetMap, © CARTO",
-                subdomains: "abcd",
-                maxZoom: 19,
-            },
-        ).addTo(map);
+        const { url, options } = leafletTileLayerOptions("light");
+        L.tileLayer(url, options).addTo(map);
         mapRef.current = map;
         layerRef.current = L.layerGroup().addTo(map);
         // Refresh sizing once visible

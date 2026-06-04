@@ -306,7 +306,7 @@ class RegistryExtension extends Model
             return $this->icon->url;
         }
 
-        return data_get($this, 'icon.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/default-extension-icon.svg');
+        return data_get($this, 'icon.url', \Fleetbase\Support\DefaultAssets::url('extension_icon'));
     }
 
     /**

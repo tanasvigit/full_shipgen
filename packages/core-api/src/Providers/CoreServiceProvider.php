@@ -54,11 +54,18 @@ class CoreServiceProvider extends ServiceProvider
         'fleetbase.protected' => [
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            \Fleetbase\Http\Middleware\TrustInternalServiceJwt::class,
             'auth:sanctum',
             \Fleetbase\Http\Middleware\SetupFleetbaseSession::class,
             \Fleetbase\Http\Middleware\AuthorizationGuard::class,
             \Fleetbase\Http\Middleware\TrackPresence::class,
             \Fleetbase\Http\Middleware\ValidateETag::class,
+        ],
+        'fleetbase.gateway-auth' => [
+            \Fleetbase\Http\Middleware\VerifyGatewaySecret::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Fleetbase\Http\Middleware\AuthenticateGatewaySession::class,
         ],
         'fleetbase.api' => [
             \Fleetbase\Http\Middleware\ThrottleRequests::class,

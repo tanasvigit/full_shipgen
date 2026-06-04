@@ -1,3 +1,5 @@
+import { PORTAL_NAME } from "@/lib/branding";
+
 const BRANDING_KEY = "fleetops.tenant.branding";
 const PREFS_KEY = "fleetops.tenant.preferences";
 const ONBOARDING_KEY = "fleetops.onboarding";
@@ -6,7 +8,7 @@ export const DEFAULT_BRANDING = {
   primaryColor: "#0066FF",
   accentColor: "#00E676",
   logoUrl: "",
-  productName: "FleetOps",
+  productName: PORTAL_NAME,
 };
 
 export const DEFAULT_PREFERENCES = {
@@ -26,10 +28,18 @@ export const DEFAULT_PREFERENCES = {
   },
 };
 
+const LEGACY_PORTAL_NAMES = new Set(["FleetOps", "Fleetbase", "Fleetbase Console"]);
+
 export function loadBranding(orgId) {
   try {
     const raw = localStorage.getItem(`${BRANDING_KEY}.${orgId || "default"}`);
-    return raw ? { ...DEFAULT_BRANDING, ...JSON.parse(raw) } : { ...DEFAULT_BRANDING };
+    if (!raw) return { ...DEFAULT_BRANDING };
+    const parsed = { ...DEFAULT_BRANDING, ...JSON.parse(raw) };
+    if (LEGACY_PORTAL_NAMES.has(parsed.productName)) {
+      parsed.productName = PORTAL_NAME;
+      saveBranding(orgId, parsed);
+    }
+    return parsed;
   } catch {
     return { ...DEFAULT_BRANDING };
   }

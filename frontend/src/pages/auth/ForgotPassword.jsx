@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, MailCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PORTAL_NAME } from "@/lib/branding";
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ export default function ForgotPassword() {
                         <div className="overline">Password recovery</div>
                         <h2 className="font-display text-3xl font-black tracking-tighter mt-1">Reset your password</h2>
                         <p className="text-sm text-[#374151] mt-2">
-                            Enter the email associated with your Fleetbase account and we'll send a recovery link.
+                            Enter the email associated with your {PORTAL_NAME} account and we'll send a recovery link.
                         </p>
                     </div>
                     <form onSubmit={submit} className="space-y-4">

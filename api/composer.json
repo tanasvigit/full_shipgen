@@ -25,6 +25,7 @@
         "fleetbase/registry-bridge": "^0.1.9",
         "fleetbase/storefront-api": "^0.4.14",
         "fleetbase/ledger-api": "^0.0.2",
+        "fleetbase/pallet-api": "^0.0.2",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^10.0",
         "laravel/octane": "^2.3",
@@ -51,8 +52,46 @@
     },
     "repositories": [
         {
-            "type": "composer",
-            "url": "https://registry.fleetbase.io"
+            "type": "path",
+            "url": "../packages/core-api",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/fleetops",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/registry-bridge",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/storefront",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/ledger",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "path",
+            "url": "../packages/pallet",
+            "options": {
+                "symlink": false
+            }
         }
     ],
     "autoload": {

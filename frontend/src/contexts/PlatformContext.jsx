@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { validateRuntimeConfig, getRuntimeConfigSummary } from "@/lib/runtimeConfig";
+import { setRemoteMapConfig } from "@/lib/maps/tiles";
+import { apiClient } from "@/lib/api";
 import { runPlatformHealthCheck } from "@/services/platformHealth";
 
 const PlatformContext = createContext(null);
@@ -19,6 +21,23 @@ export function PlatformProvider({ children }) {
 
   useEffect(() => {
     setConfigIssues(validateRuntimeConfig());
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const response = await apiClient.get("/settings/platform", { loading: false, silent: true });
+        if (active && response?.data) {
+          setRemoteMapConfig(response.data);
+        }
+      } catch {
+        /* env / VITE_MAP_TILE_URL fallback */
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

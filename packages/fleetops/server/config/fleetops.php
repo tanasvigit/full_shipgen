@@ -37,7 +37,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'osrm' => [
-        'host' => env('OSRM_HOST', 'https://router.project-osrm.org')
+        'host'    => env('OSRM_HOST', 'http://osrm-backend:5000'),
+        'timeout' => (int) env('OSRM_TIMEOUT', 30),
     ],
 
     /*

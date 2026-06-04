@@ -22,9 +22,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => array_filter([
-        'http://localhost:4200',
-        'http://localhost:4300',
         'http://localhost:5173',
+        'http://localhost:4300',
         'http://192.168.0.171:5173',
         env('CONSOLE_HOST'),
         env('CONSOLE_HOST') ? Utils::addWwwToUrl(env('CONSOLE_HOST')) : null,

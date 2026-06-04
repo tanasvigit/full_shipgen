@@ -4,6 +4,7 @@ namespace Fleetbase\RegistryBridge\Providers;
 
 use Fleetbase\Models\Setting;
 use Fleetbase\Providers\CoreServiceProvider;
+use Fleetbase\Support\ServiceMode;
 
 if (!class_exists(CoreServiceProvider::class)) {
     throw new \Exception('Registry Bridge cannot be loaded without `fleetbase/core-api` installed!');
@@ -58,6 +59,10 @@ class RegistryBridgeServiceProvider extends CoreServiceProvider
      */
     public function register()
     {
+        if (!ServiceMode::loadsRegistryRoutes()) {
+            return;
+        }
+
         $this->app->register(CoreServiceProvider::class);
     }
 
@@ -70,6 +75,10 @@ class RegistryBridgeServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        if (!ServiceMode::loadsRegistryRoutes()) {
+            return;
+        }
+
         $this->registerCommands();
         $this->registerMiddleware();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');

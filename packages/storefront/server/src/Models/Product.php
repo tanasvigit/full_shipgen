@@ -277,7 +277,7 @@ class Product extends StorefrontModel
     {
         $default   = $this->primaryImage->url ?? null;
         $secondary = $this->files->first()->url ?? null;
-        $backup    = 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png';
+        $backup    = \Fleetbase\Support\DefaultAssets::url('placeholder_image');
 
         return $default ?? $secondary ?? $backup;
     }

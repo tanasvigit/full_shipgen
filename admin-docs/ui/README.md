@@ -1,6 +1,6 @@
 # React Console UI/UX Documentation
 
-This folder documents the current UI and UX implementation of the React application in `react-console`.
+This folder documents the current UI and UX implementation of the React application in `frontend/`.
 
 It is intended to be the source-of-truth audit for:
 
@@ -27,24 +27,14 @@ These documents describe the UI **as it exists in code today**, not the future t
 
 ## Primary source files reviewed
 
-- `react-console/src/index.css`
-- `react-console/src/modules/admin/admin.css`
-- `react-console/src/modules/navigation/navigation.css`
-- `react-console/src/modules/dashboard/dashboard.css`
-- `react-console/src/modules/fleetops/fleetops.css`
-- `react-console/src/main.tsx`
-- `react-console/src/App.tsx`
-- `react-console/src/layouts/AppShell.tsx`
-- `react-console/src/layouts/TopHeader.tsx`
-- `react-console/src/layouts/SidebarHost.tsx`
-- `react-console/src/layouts/RightPanel.tsx`
-- `react-console/src/components/ui/Feedback.tsx`
-- `react-console/src/components/ui/Menus.tsx`
-- `react-console/src/components/ui/Overlays.tsx`
-- `react-console/src/store/themeStore.ts`
-- `react-console/src/hooks/useMediaQuery.ts`
-- `react-console/src/modules/home/shell/useHomeShellMode.ts`
-- representative pages and modules across admin, home, chat, notifications, extensions, and FleetOps
+- `frontend/src/index.css`
+- `frontend/src/App.jsx`
+- `frontend/src/components/console/Sidebar.jsx`
+- `frontend/src/components/layout/*`
+- `frontend/src/pages/fleetops/*`
+- `frontend/src/pages/pallet/*`
+- `frontend/src/components/ui/*`
+- representative pages across admin, home, notifications, extensions, FleetOps, pallet, storefront, and ledger
 
 ## High-level conclusion
 

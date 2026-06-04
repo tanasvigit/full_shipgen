@@ -1,5 +1,6 @@
 <?php
 
+use Fleetbase\Support\ServiceMode;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,7 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
         |
         | Routes for users and public applications to consume.
         */
+        if (ServiceMode::loadsCorePublicApi()) {
         $router->prefix('v1')
             ->namespace('Api\v1')
             ->middleware(['fleetbase.api'])
@@ -77,19 +79,27 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                     }
                 );
             });
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | Internal Routes
+        | Internal Routes (IAM — served by iam-service when FLEETBASE_SERVICE=monolith)
         |--------------------------------------------------------------------------
         |
         | Primary internal routes for console.
         */
+        if (ServiceMode::loadsIamRoutes()) {
         $router->prefix(config('fleetbase.api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
             function ($router) {
                 $router->prefix('v1')->namespace('v1')->group(
                     function ($router) {
                         $router->fleetbaseAuthRoutes();
+                        $router->group(
+                            ['prefix' => 'gateway', 'middleware' => ['fleetbase.gateway-auth']],
+                            function ($router) {
+                                $router->get('auth', 'GatewayAuthController@authenticate');
+                            }
+                        );
                         $router->group(
                             ['prefix' => 'installer', 'middleware' => [Fleetbase\Http\Middleware\ThrottleRequests::class]],
                             function ($router) {
@@ -137,6 +147,7 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                             ['prefix' => 'settings', 'middleware' => [Fleetbase\Http\Middleware\ThrottleRequests::class]],
                             function ($router) {
                                 $router->get('branding', 'SettingController@getBrandingSettings');
+                                $router->get('platform', 'SettingController@getPlatformSettings');
                             }
                         );
                         $router->group(
@@ -338,5 +349,6 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                 );
             }
         );
+        }
     }
 );

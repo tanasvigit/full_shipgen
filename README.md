@@ -123,6 +123,28 @@ git clone git@github.com:fleetbase/fleetbase.git
 cd fleetbase && ./scripts/docker-install.sh
 ```
 
+### On-prem install (your code, no fleetbase.io runtime)
+
+This repository can run entirely from local `packages/` without the prebuilt `fleetbase/fleetbase-api` image or `registry.fleetbase.io`. The API image is built from `docker/Dockerfile.onprem`.
+
+```powershell
+# Windows
+git clone git@github.com:fleetbase/fleetbase.git
+cd fleetbase
+copy api\.env.example api\.env   # then edit DB/mail as needed
+powershell -File scripts/onprem.ps1
+```
+
+```bash
+# Linux / macOS
+git clone git@github.com:fleetbase/fleetbase.git
+cd fleetbase
+cp api/.env.example api/.env
+sh scripts/onprem.sh
+```
+
+See [docs/ON-PREM-PACKAGES-NO-FLEETBASE-IO.md](docs/ON-PREM-PACKAGES-NO-FLEETBASE-IO.md) and [docs/EXTERNAL-DEPENDENCIES-AND-OWNERSHIP-AUDIT.md](docs/EXTERNAL-DEPENDENCIES-AND-OWNERSHIP-AUDIT.md).
+
 ### Accessing Fleetbase
 Once successfully installed and running you can then access the Fleetbase console on port 4200 and the API will be accessible from port 8000.  
   

@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { PORTAL_NAME } from "@/lib/branding";
 
 export default function AuthLayout() {
     const location = useLocation();
@@ -38,7 +39,7 @@ export default function AuthLayout() {
                 <div className="flex items-center gap-3.5 relative z-10" data-testid="auth-brand">
                     <img
                         src="/logo_logistic.png"
-                        alt="Shipgen"
+                        alt={PORTAL_NAME}
                         className="h-11 w-auto object-contain"
                     />
                     <div className="leading-tight">
@@ -89,7 +90,7 @@ export default function AuthLayout() {
                 <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2.5">
                     <img
                         src="/logo_logistic.png"
-                        alt="Shipgen"
+                        alt={PORTAL_NAME}
                         className="h-9 w-auto object-contain"
                     />
                 </div>

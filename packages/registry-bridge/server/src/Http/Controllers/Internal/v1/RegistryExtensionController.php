@@ -325,7 +325,7 @@ class RegistryExtensionController extends RegistryBridgeController
      */
     public function getConfig(AdminRequest $request)
     {
-        $registryHost     = config('registry-bridge.registry.host', env('REGISTRY_HOST', 'https://registry.fleetbase.io'));
+        $registryHost     = config('registry-bridge.registry.host') ?: env('REGISTRY_HOST');
         $registryToken    = config('registry-bridge.registry.token', env('REGISTRY_TOKEN'));
 
         return response()->json([
@@ -347,7 +347,7 @@ class RegistryExtensionController extends RegistryBridgeController
      */
     public function saveConfig(AdminRequest $request)
     {
-        $currentRegistryHost     = config('registry-bridge.registry.host', env('REGISTRY_HOST', 'https://registry.fleetbase.io'));
+        $currentRegistryHost     = config('registry-bridge.registry.host') ?: env('REGISTRY_HOST');
         $currentRegistryToken    = config('registry-bridge.registry.token', env('REGISTRY_TOKEN'));
         $registryHost            = $request->input('host', $currentRegistryHost);
         $registryToken           = $request->input('token', $currentRegistryToken);

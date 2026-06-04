@@ -211,7 +211,7 @@ class Network extends StorefrontModel
     public function getLogoUrlAttribute()
     {
         // return static::attributeFromCache($this, 'logo.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png');
-        return $this->logo->url ?? 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png';
+        return $this->logo->url ?? \Fleetbase\Support\DefaultAssets::url('store_logo');
     }
 
     /**
@@ -220,7 +220,7 @@ class Network extends StorefrontModel
     public function getBackdropUrlAttribute()
     {
         // return static::attributeFromCache($this, 'backdrop.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/default-storefront-backdrop.png');
-        return $this->backdrop->url ?? 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/default-storefront-backdrop.png';
+        return $this->backdrop->url ?? \Fleetbase\Support\DefaultAssets::url('store_backdrop');
     }
 
     /**

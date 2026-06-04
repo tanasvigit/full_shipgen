@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { isValidPolygon, toGeoJsonPolygon, toLeafletPolygon } from "@/lib/fleetops/geofence";
+import { leafletTileLayerOptions } from "@/lib/maps/tiles";
 
 export default function ServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false }) {
   const containerRef = useRef(null);
@@ -21,11 +22,8 @@ export default function ServiceAreaMapEditor({ geometry, onSave, onDelete, busy 
       zoomControl: true,
       attributionControl: true,
     });
-    L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap, © CARTO",
-      subdomains: "abcd",
-      maxZoom: 19,
-    }).addTo(map);
+    const { url, options } = leafletTileLayerOptions("light");
+    L.tileLayer(url, options).addTo(map);
     mapRef.current = map;
     layerRef.current = L.layerGroup().addTo(map);
     map.on("click", (e) => {

@@ -291,7 +291,7 @@ class Company extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return $this->logo->url ?? 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png';
+        return $this->logo->url ?? \Fleetbase\Support\DefaultAssets::url('company_logo');
     }
 
     /**
@@ -299,7 +299,7 @@ class Company extends Model
      */
     public function getBackdropUrlAttribute()
     {
-        return $this->backdrop->url ?? 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/default-storefront-backdrop.png';
+        return $this->backdrop->url ?? \Fleetbase\Support\DefaultAssets::url('company_backdrop');
     }
 
     /**

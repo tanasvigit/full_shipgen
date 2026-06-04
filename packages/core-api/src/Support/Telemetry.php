@@ -13,21 +13,34 @@ use Illuminate\Support\Str;
 class Telemetry
 {
     /**
-     * The endpoint to send telemetry to.
-     */
-    protected static string $endpoint = 'https://telemetry.fleetbase.io/';
-
-    /**
      * Cached IP info.
      */
     protected static ?array $ipInfo = null;
 
     /**
-     * Whether telemetry is globally disabled.
+     * Optional telemetry endpoint (on-prem: leave unset).
+     */
+    protected static function endpoint(): ?string
+    {
+        $endpoint = env('TELEMETRY_ENDPOINT');
+
+        if (empty($endpoint)) {
+            return null;
+        }
+
+        return rtrim($endpoint, '/') . '/';
+    }
+
+    /**
+     * Whether telemetry is globally disabled (default off for on-prem).
      */
     protected static function isDisabled(): bool
     {
-        return env('TELEMETRY_DISABLED', false) === true;
+        if (Utils::castBoolean(env('TELEMETRY_DISABLED', true))) {
+            return true;
+        }
+
+        return empty(static::endpoint());
     }
 
     /**
@@ -77,7 +90,7 @@ class Telemetry
                 'alert_type' => 'info',
             ];
 
-            $response = Http::timeout(5)->post(self::$endpoint, array_merge($defaultPayload, $payload));
+            $response = Http::timeout(5)->post(static::endpoint(), array_merge($defaultPayload, $payload));
             if ($response->successful()) {
                 return true;
             }

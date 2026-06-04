@@ -237,7 +237,7 @@ class Sensor extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return data_get($this, 'photo.url', 'https://flb-assets.s3.ap-southeast-1.amazonaws.com/static/image-file-icon.png');
+        return data_get($this, 'photo.url', \Fleetbase\Support\DefaultAssets::url('device_image'));
     }
 
     /**

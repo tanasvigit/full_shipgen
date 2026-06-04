@@ -180,12 +180,17 @@ class LookupController extends Controller
     }
 
     /**
-     * Pull the Fleetbase.io blog RSS feed with aggressive caching.
+     * Pull optional blog RSS feed (FLEETBASE_BLOG_RSS_URL) with aggressive caching.
      *
      * @return \Illuminate\Http\Response
      */
     public function fleetbaseBlog(Request $request)
     {
+        $rssUrl = env('FLEETBASE_BLOG_RSS_URL');
+        if (empty($rssUrl)) {
+            return response()->json([]);
+        }
+
         $limit    = $request->integer('limit', 6);
         $cacheKey = "fleetbase_blog_posts_{$limit}";
         $cacheTTL = now()->addDays(4); // 4 days as requested
@@ -212,7 +217,11 @@ class LookupController extends Controller
      */
     protected function fetchBlogPosts(int $limit): array
     {
-        $rssUrl = 'https://www.fleetbase.io/post/rss.xml';
+        $rssUrl = env('FLEETBASE_BLOG_RSS_URL');
+        if (empty($rssUrl)) {
+            return [];
+        }
+
         $posts  = [];
 
         try {

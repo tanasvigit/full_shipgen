@@ -8,6 +8,20 @@ use Stripe\StripeClient;
 class Utils extends SupportUtils
 {
     /**
+     * Resolved extension registry host (on-prem: null unless REGISTRY_HOST is set).
+     */
+    public static function registryHost(): ?string
+    {
+        $host = config('registry-bridge.registry.host') ?: env('REGISTRY_HOST');
+
+        if (!is_string($host) || $host === '') {
+            return null;
+        }
+
+        return rtrim($host, '/');
+    }
+
+    /**
      * Get the StripeClient instance.
      */
     public static function getStripeClient(array $options = []): ?StripeClient
@@ -32,11 +46,12 @@ class Utils extends SupportUtils
     public static function setConsoleNpmrcConfig(bool $reset = false): bool
     {
         $npmrcPath             = static::consolePath('.npmrc');
-        $registryHost          = config('registry-bridge.registry.host', env('REGISTRY_HOST', 'https://registry.fleetbase.io'));
-        $config                = implode(PHP_EOL, [
-            'registry=https://registry.npmjs.org/',
-            '@fleetbase:registry=' . rtrim($registryHost, '/') . '/',
-        ]) . PHP_EOL;
+        $registryHost          = static::registryHost();
+        $lines                 = ['registry=https://registry.npmjs.org/'];
+        if ($registryHost) {
+            $lines[] = '@fleetbase:registry=' . $registryHost . '/';
+        }
+        $config = implode(PHP_EOL, $lines) . PHP_EOL;
 
         if (!file_exists($npmrcPath) || $reset === true) {
             file_put_contents($npmrcPath, $config, LOCK_EX);
@@ -61,9 +76,12 @@ class Utils extends SupportUtils
     {
         $homePath               = rtrim(getenv('HOME'), DIRECTORY_SEPARATOR);
         $npmrcPath              = $homePath . DIRECTORY_SEPARATOR . '.npmrc';
-        $registryHost           = config('registry-bridge.registry.host', env('REGISTRY_HOST', 'https://registry.fleetbase.io'));
+        $registryHost           = static::registryHost();
         $registryToken          = config('registry-bridge.registry.token', env('REGISTRY_TOKEN'));
-        $authString             = '//' . str_replace(['http://', 'https://'], '', rtrim($registryHost, '/')) . '/:_authToken="' . $registryToken . '"' . PHP_EOL;
+        if (!$registryHost || empty($registryToken)) {
+            return false;
+        }
+        $authString             = '//' . str_replace(['http://', 'https://'], '', $registryHost) . '/:_authToken="' . $registryToken . '"' . PHP_EOL;
 
         if (!file_exists($npmrcPath) || $reset === true) {
             file_put_contents($npmrcPath, $authString, LOCK_EX);
@@ -87,7 +105,11 @@ class Utils extends SupportUtils
     public static function setComposerAuthConfig(): bool
     {
         $composerAuthPath = base_path('auth.json');
-        $registryHost     = static::getDomainFromUrl(config('registry-bridge.registry.host', env('REGISTRY_HOST', 'https://registry.fleetbase.io')), true);
+        $registryHostUrl  = static::registryHost();
+        if (!$registryHostUrl) {
+            return false;
+        }
+        $registryHost     = static::getDomainFromUrl($registryHostUrl, true);
         $registryToken    = config('registry-bridge.registry.token', env('REGISTRY_TOKEN'));
 
         // Ensure the registry token is not null or empty

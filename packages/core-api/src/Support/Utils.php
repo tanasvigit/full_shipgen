@@ -173,9 +173,15 @@ class Utils
      *
      * @return bool
      */
-    public static function assetFromS3(string $path, $region = null): string
+    public static function assetFromS3(string $path, $bucket = null, $region = null): string
     {
-        return static::fromS3($path, 'flb-assets', $region);
+        $bucket = $bucket ?? config('fleetbase.assets.s3_bucket');
+
+        if (empty($bucket)) {
+            return DefaultAssets::publicBaseUrl() . '/' . ltrim($path, '/');
+        }
+
+        return static::fromS3($path, $bucket, $region);
     }
 
     /**
@@ -185,7 +191,13 @@ class Utils
      */
     public static function assetFromFleetbase(string $path): string
     {
-        return static::assetFromS3($path, 'ap-southeast-1');
+        $bucket = config('fleetbase.assets.s3_bucket');
+
+        if (empty($bucket)) {
+            return DefaultAssets::publicBaseUrl() . '/' . ltrim($path, '/');
+        }
+
+        return static::assetFromS3($path, $bucket, 'ap-southeast-1');
     }
 
     /**
@@ -2391,7 +2403,7 @@ class Utils
      *
      * @return string the default "from" email address
      */
-    public static function getDefaultMailFromAddress(?string $default = 'hello@fleetbase.io'): string
+    public static function getDefaultMailFromAddress(?string $default = null): string
     {
         $from = env('MAIL_FROM_ADDRESS', $default);
 

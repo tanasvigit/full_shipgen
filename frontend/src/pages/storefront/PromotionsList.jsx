@@ -9,6 +9,7 @@ import { Megaphone, Send } from "lucide-react";
 import { storefrontService } from "@/services/storefront";
 import { mapStoreCustomer } from "@/lib/mappers";
 import { toast } from "sonner";
+import { PORTAL_NAME } from "@/lib/branding";
 
 export default function PromotionsList() {
   const [title, setTitle] = useState("");
@@ -182,10 +183,12 @@ export default function PromotionsList() {
             </div>
             <div className="bg-[#F1F2F5] border border-black/[0.08] rounded-md p-3">
               <div className="flex items-start gap-2">
-                <div className="h-9 w-9 bg-blue-600 rounded-sm grid place-items-center font-display font-black text-sm text-white">F</div>
+                <div className="h-9 w-9 bg-blue-600 rounded-sm grid place-items-center font-display font-black text-sm text-white">
+                  {PORTAL_NAME.charAt(0).toUpperCase()}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[#0A0E1A]">Fleetbase</span>
+                    <span className="text-xs font-semibold text-[#0A0E1A]">{PORTAL_NAME}</span>
                     <span className="text-[10px] text-[#4B5563] ml-auto">now</span>
                   </div>
                   <div className="text-sm font-medium text-[#0A0E1A] mt-0.5">{title || "Notification title appears here"}</div>

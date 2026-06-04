@@ -743,7 +743,7 @@ class User extends Authenticatable
             return $this->avatar->url;
         }
 
-        return data_get($this, 'avatar.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'avatar.url', \Fleetbase\Support\DefaultAssets::url('user_image'));
     }
 
     /**

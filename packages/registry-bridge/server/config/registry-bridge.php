@@ -17,7 +17,7 @@ return [
         ],
     ],
     'registry' => [
-        'host' => env('REGISTRY_HOST', 'https://registry.fleetbase.io'),
+        'host' => env('REGISTRY_HOST'),
         'token' => env('REGISTRY_TOKEN', env('REGISTRY_AUTH_TOKEN'))
     ],
     'stripe' => [

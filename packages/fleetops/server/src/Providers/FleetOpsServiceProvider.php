@@ -6,6 +6,7 @@ use Brick\Geo\Engine\GeometryEngineRegistry;
 use Brick\Geo\Engine\GEOSEngine;
 use Fleetbase\Providers\CoreServiceProvider;
 use Fleetbase\Support\NotificationRegistry;
+use Fleetbase\Support\ServiceMode;
 use Fleetbase\Support\Utils;
 
 if (!Utils::classExists(CoreServiceProvider::class)) {
@@ -110,6 +111,10 @@ class FleetOpsServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        if (!ServiceMode::bootsFleetopsPackage()) {
+            return;
+        }
+
         $this->registerObservers();
         $this->registerCommands();
         $this->scheduleCommands(function ($schedule) {
@@ -137,7 +142,10 @@ class FleetOpsServiceProvider extends CoreServiceProvider
                 }
             }
         );
-        $this->loadRoutesFrom(__DIR__ . '/../routes.php');
+        if (ServiceMode::loadsFleetopsRoutes()) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes.php');
+        }
+
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'fleetops');
         $this->mergeConfigFrom(__DIR__ . '/../../config/fleetops.php', 'fleetops');

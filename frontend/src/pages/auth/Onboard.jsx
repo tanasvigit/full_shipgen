@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { PORTAL_CONSOLE_LABEL, PORTAL_NAME } from "@/lib/branding";
 
 const PASSWORD_HINT =
   "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
@@ -122,10 +123,10 @@ export default function Onboard() {
         <h2 className="font-display text-[36px] font-black tracking-[-0.045em] leading-[1] text-[#0A0E1A]">
           Create your first
           <br />
-          Fleetbase account.
+          {PORTAL_NAME} account.
         </h2>
         <p className="text-sm text-[#374151] mt-3 max-w-sm">
-          Create your first account and organization to start using the Fleetbase console.
+          Create your first account and organization to start using the {PORTAL_CONSOLE_LABEL}.
         </p>
       </div>
 

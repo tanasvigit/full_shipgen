@@ -1,0 +1,3 @@
+# Legacy overlay — gateway is now defined in docker-compose.yml.
+# Kept for reference: previously used as:
+#   docker compose -f docker-compose.yml -f docker-compose.gateway.yml up -d

@@ -253,7 +253,7 @@ class MaintenanceScheduleController extends FleetOpsController
 
         // Build the event, adding an RRULE when the schedule has a time-based interval.
         $event = Event::create($eventTitle)
-            ->uniqueIdentifier($schedule->uuid . '@fleetbase.io')
+            ->uniqueIdentifier($schedule->uuid . '@' . (config('fleetbase.console.host') ?: 'localhost'))
             ->description($description)
             ->startsAt($dueDate->copy()->startOfDay())
             ->endsAt($dueDate->copy()->endOfDay())

@@ -15,11 +15,21 @@ use Illuminate\Support\Facades\Log;
 class OSRM
 {
     /**
-     * The ORSM server API URL.
-     *
-     * @var string
+     * OSRM API base URL (no trailing slash). From OSRM_HOST / fleetops.osrm.host.
      */
-    protected static $baseUrl = 'https://router.project-osrm.org';
+    protected static function baseUrl(): string
+    {
+        $host = config('fleetops.osrm.host', 'http://osrm-backend:5000');
+
+        return rtrim((string) $host, '/');
+    }
+
+    protected static function requestTimeout(): int
+    {
+        $timeout = (int) config('fleetops.osrm.timeout', 30);
+
+        return $timeout > 0 ? $timeout : 30;
+    }
 
     /**
      * Get the route between two points.
@@ -88,8 +98,8 @@ class OSRM
         $cacheKey    = 'getRouteFromCoordinatesString:' . md5($coordinates . serialize($queryParameters));
 
         try {
-            $url         = self::$baseUrl . "/route/v1/driving/{$coordinates}";
-            $response    = Http::timeout(1)->get($url, $queryParameters);
+            $url         = static::baseUrl() . "/route/v1/driving/{$coordinates}";
+            $response    = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
             $data        = $response->json();
 
             // Check for the presence of the encoded polyline in each route and decode it if found
@@ -130,8 +140,8 @@ class OSRM
         }
 
         $coordinates = "{$location->getLng()},{$location->getLat()}";
-        $url         = self::$baseUrl . "/nearest/v1/driving/{$coordinates}";
-        $response    = Http::timeout(1)->get($url, $queryParameters);
+        $url         = static::baseUrl() . "/nearest/v1/driving/{$coordinates}";
+        $response    = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
         $result      = $response->json();
 
         Cache::put($cacheKey, $result, 60 * 60);
@@ -163,8 +173,8 @@ class OSRM
             return "{$point->getLng()},{$point->getLat()}";
         }, $points));
 
-        $url      = self::$baseUrl . "/table/v1/driving/{$coordinates}";
-        $response = Http::timeout(1)->get($url, $queryParameters);
+        $url      = static::baseUrl() . "/table/v1/driving/{$coordinates}";
+        $response = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
         $result   = $response->json();
 
         Cache::put($cacheKey, $result, 60 * 60);
@@ -196,8 +206,8 @@ class OSRM
             return "{$point->getLng()},{$point->getLat()}";
         }, $points));
 
-        $url      = self::$baseUrl . "/trip/v1/driving/{$coordinates}";
-        $response = Http::timeout(1)->get($url, $queryParameters);
+        $url      = static::baseUrl() . "/trip/v1/driving/{$coordinates}";
+        $response = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
         $data     = $response->json();
 
         Cache::put($cacheKey, $data, 60 * 60);
@@ -222,9 +232,9 @@ class OSRM
 
             return "{$point->getLng()},{$point->getLat()}";
         }, $points));
-        $url = self::$baseUrl . "/match/v1/driving/{$coordinates}";
+        $url = static::baseUrl() . "/match/v1/driving/{$coordinates}";
 
-        $response = Http::timeout(1)->get($url, $queryParameters);
+        $response = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
 
         return $response->json();
     }
@@ -241,9 +251,9 @@ class OSRM
      */
     public static function getTile(int $z, int $x, int $y, array $queryParameters = [])
     {
-        $url = self::$baseUrl . "/tile/v1/car/{$z}/{$x}/{$y}.mvt";
+        $url = static::baseUrl() . "/tile/v1/car/{$z}/{$x}/{$y}.mvt";
 
-        $response = Http::timeout(1)->get($url, $queryParameters);
+        $response = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
 
         return $response->body();
     }

@@ -1,7 +1,9 @@
 # Fleetbase — External Dependencies & Ownership Audit
 
-**Document version:** 1.0  
+**Document version:** 1.1  
 **Audit date:** 2026-06-03  
+
+**On-prem `fleetbase.io` removal (packages + api):** see [ON-PREM-PACKAGES-NO-FLEETBASE-IO.md](./ON-PREM-PACKAGES-NO-FLEETBASE-IO.md).
 **Scope:** Full monorepo — `api/`, `packages/*`, `console/` (Ember), `frontend/` (React), `docker-compose.yml`, build/CI configs  
 **Goal:** Operate the platform with full control; identify every external runtime/build dependency, ownership gaps, and isolation impact.
 
