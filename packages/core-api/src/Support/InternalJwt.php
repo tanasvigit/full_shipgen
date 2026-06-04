@@ -8,10 +8,11 @@ use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Plain;
+use Lcobucci\JWT\Token\RegisteredClaims;
 use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\PermittedFor;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
-use Lcobucci\JWT\Validation\Constraint\StrictValidAt;
+use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
 
 class InternalJwt
 {
@@ -29,7 +30,7 @@ class InternalJwt
     public static function mint(string $userUuid, ?string $companyUuid, array $extraClaims = []): string
     {
         $config = static::configuration();
-        $now    = new DateTimeImmutable();
+        $now    = new DateTimeImmutable('@' . time());
         $ttl    = (int) config('fleetbase.gateway.jwt_ttl', 900);
 
         $builder = $config->builder()
@@ -37,11 +38,18 @@ class InternalJwt
             ->permittedFor((string) config('fleetbase.gateway.jwt_audience', 'shipgen-internal'))
             ->identifiedBy(bin2hex(random_bytes(8)))
             ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
             ->expiresAt($now->modify('+' . $ttl . ' seconds'))
-            ->withClaim('sub', $userUuid)
-            ->withClaim('company_uuid', $companyUuid);
+            ->relatedTo($userUuid);
+
+        if ($companyUuid !== null && $companyUuid !== '') {
+            $builder = $builder->withClaim('company_uuid', $companyUuid);
+        }
 
         foreach ($extraClaims as $key => $value) {
+            if ($key === 'sub') {
+                continue;
+            }
             $builder = $builder->withClaim($key, $value);
         }
 
@@ -68,11 +76,11 @@ class InternalJwt
             new SignedWith($config->signer(), $config->signingKey()),
             new IssuedBy((string) config('fleetbase.gateway.jwt_issuer', 'shipgen-iam')),
             new PermittedFor((string) config('fleetbase.gateway.jwt_audience', 'shipgen-internal')),
-            new StrictValidAt(SystemClock::fromSystemTimezone())
+            new LooseValidAt(SystemClock::fromSystemTimezone())
         );
 
         $claims   = $token->claims();
-        $userUuid = (string) $claims->get('sub', '');
+        $userUuid = (string) $claims->get(RegisteredClaims::SUBJECT, '');
 
         if ($userUuid === '') {
             throw new \InvalidArgumentException('Internal JWT missing subject.');

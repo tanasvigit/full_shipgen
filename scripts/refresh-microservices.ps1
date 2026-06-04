@@ -19,13 +19,8 @@ $services = @(
     "fleetbase-storefront-service-1"
 )
 
+# Reinstall path packages from packages/* (do not rm vendor alone — leaves IAM/FleetOps broken mid-update).
 $composerCmd = @"
-rm -rf vendor/fleetbase/core-api \
-  vendor/fleetbase/fleetops-api \
-  vendor/fleetbase/pallet-api \
-  vendor/fleetbase/storefront-api \
-  vendor/fleetbase/ledger-api \
-  vendor/fleetbase/registry-bridge && \
 composer update fleetbase/core-api fleetbase/fleetops-api fleetbase/pallet-api \
   fleetbase/storefront-api fleetbase/ledger-api fleetbase/registry-bridge \
   --no-scripts -q && \
@@ -33,7 +28,7 @@ php artisan route:clear && php artisan config:clear
 "@
 
 Write-Host "==> Ensuring stack is up..."
-docker compose up -d database cache gateway iam-service fleetops-service pallet-service ledger-service storefront-service application frontend httpd 2>&1 | Out-Host
+docker compose up -d database cache socket tiles gateway iam-service fleetops-service pallet-service ledger-service storefront-service application frontend httpd 2>&1 | Out-Host
 
 if ($Rebuild) {
     Write-Host "==> Rebuilding API image..."

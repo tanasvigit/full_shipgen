@@ -33,6 +33,13 @@ upstream storefront_upstream {
     server storefront-service:8000 resolve;
 }
 
+map $http_origin $cors_allow_origin {
+    default "";
+    "~^https?://localhost(:[0-9]+)?$" $http_origin;
+    "~^https?://127\.0\.0\.1(:[0-9]+)?$" $http_origin;
+    "~^https?://192\.168\.[0-9.]+(:[0-9]+)?$" $http_origin;
+}
+
 server {
     listen 80;
     server_name localhost;
@@ -56,6 +63,7 @@ server {
         proxy_set_header X-Request-Id $req_id;
         proxy_set_header Cookie $http_cookie;
         proxy_set_header Authorization $http_authorization;
+        proxy_set_header X-Company $http_x_company;
     }
 
     location /health {
@@ -72,7 +80,9 @@ server {
     }
 
     # --- fleetops-service ---
-    location ~ ^/(int/v1/fleet-ops|fleet-ops) {
+    # Console FleetOps uses /int/v1/orders, /int/v1/routes, … as well as /int/v1/fleet-ops/*
+    location ~ ^/(int/v1/(?!auth|users|companies|settings|files|roles|policies|groups|permissions|onboard|installer|lookup|two-fa|api-|webhook|notification|dashboard|metric|activit|extension|categor|comment|custom-field|chat|user-device|schedule|template|report|transaction|gateway)|fleet-ops) {
+        include /etc/nginx/cors_preflight.conf;
         auth_request /_gateway_auth;
         auth_request_set $service_auth $upstream_http_x_service_authorization;
         auth_request_set $gateway_user $upstream_http_x_user_uuid;
@@ -84,6 +94,7 @@ server {
 
     # --- pallet-service ---
     location ~ ^/pallet/ {
+        include /etc/nginx/cors_preflight.conf;
         auth_request /_gateway_auth;
         auth_request_set $service_auth $upstream_http_x_service_authorization;
         auth_request_set $gateway_user $upstream_http_x_user_uuid;
@@ -95,6 +106,7 @@ server {
 
     # --- ledger-service ---
     location ~ ^/ledger {
+        include /etc/nginx/cors_preflight.conf;
         auth_request /_gateway_auth;
         auth_request_set $service_auth $upstream_http_x_service_authorization;
         auth_request_set $gateway_user $upstream_http_x_user_uuid;
@@ -106,6 +118,7 @@ server {
 
     # --- storefront-service ---
     location ~ ^/storefront/ {
+        include /etc/nginx/cors_preflight.conf;
         auth_request /_gateway_auth;
         auth_request_set $service_auth $upstream_http_x_service_authorization;
         auth_request_set $gateway_user $upstream_http_x_user_uuid;
@@ -115,8 +128,21 @@ server {
         include /etc/nginx/proxy_service_auth.conf;
     }
 
-    # --- registry-service ---
-    location ~ ^/(~registry|registry)/ {
+    # --- registry (monolith; Laravel prefix is ~registry — rewrite /registry/v1 → /~registry/v1) ---
+    location ~ ^/registry/ {
+        include /etc/nginx/cors_preflight.conf;
+        auth_request /_gateway_auth;
+        auth_request_set $service_auth $upstream_http_x_service_authorization;
+        auth_request_set $gateway_user $upstream_http_x_user_uuid;
+        auth_request_set $gateway_company $upstream_http_x_company_uuid;
+        rewrite ^/registry/(.*)$ /~registry/$1 break;
+        proxy_pass http://monolith;
+        include /etc/nginx/proxy_params.conf;
+        include /etc/nginx/proxy_service_auth.conf;
+    }
+
+    location ~ ^/~registry/ {
+        include /etc/nginx/cors_preflight.conf;
         auth_request /_gateway_auth;
         auth_request_set $service_auth $upstream_http_x_service_authorization;
         auth_request_set $gateway_user $upstream_http_x_user_uuid;

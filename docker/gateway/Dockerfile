@@ -5,6 +5,7 @@ RUN apk add --no-cache gettext
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY proxy_params.conf /etc/nginx/proxy_params.conf
 COPY proxy_service_auth.conf /etc/nginx/proxy_service_auth.conf
+COPY cors_preflight.conf /etc/nginx/cors_preflight.conf
 
 EXPOSE 80
 

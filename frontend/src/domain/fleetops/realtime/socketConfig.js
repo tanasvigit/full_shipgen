@@ -3,20 +3,33 @@ import { orgStorage } from "@/lib/storage";
 
 /** Resolve SocketCluster connection options (Ember console parity). */
 export function resolveSocketConfig() {
-  const host =
-    import.meta.env.VITE_SOCKETCLUSTER_HOST ||
-    (typeof window !== "undefined" ? window.location.hostname : "localhost");
-
-  const port = Number(
-    import.meta.env.VITE_SOCKETCLUSTER_PORT ||
-      (typeof window !== "undefined" && window.location.port === "4200" ? 38000 : window.location?.port || 38000),
-  );
+  const path = import.meta.env.VITE_SOCKETCLUSTER_PATH || "/socketcluster/";
 
   const secure =
     import.meta.env.VITE_SOCKETCLUSTER_SECURE === "true" ||
     (typeof window !== "undefined" && window.location.protocol === "https:");
 
-  const path = import.meta.env.VITE_SOCKETCLUSTER_PATH || "/socketcluster/";
+  const useSameOriginProxy =
+    import.meta.env.VITE_SOCKETCLUSTER_PROXY === "true" ||
+    import.meta.env.VITE_SOCKETCLUSTER_PROXY === "1";
+
+  if (useSameOriginProxy && typeof window !== "undefined") {
+    const defaultPort = secure ? 443 : 80;
+    return {
+      hostname: window.location.hostname,
+      port: Number(window.location.port || defaultPort),
+      secure,
+      path,
+      autoConnect: true,
+      authTokenName: "token",
+    };
+  }
+
+  const host =
+    import.meta.env.VITE_SOCKETCLUSTER_HOST ||
+    (typeof window !== "undefined" ? window.location.hostname : "localhost");
+
+  const port = Number(import.meta.env.VITE_SOCKETCLUSTER_PORT || 38000);
 
   return {
     hostname: host,

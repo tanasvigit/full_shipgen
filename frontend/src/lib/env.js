@@ -18,7 +18,7 @@ const MODULE_ROOT_PALLET = trimTrailingSlash(
   import.meta.env.VITE_PALLET_MODULE_ROOT || "pallet/int/v1",
 );
 const MODULE_ROOT_REGISTRY = trimTrailingSlash(
-  import.meta.env.VITE_REGISTRY_MODULE_ROOT || "registry/v1",
+  import.meta.env.VITE_REGISTRY_MODULE_ROOT || "~registry/v1",
 );
 
 export const env = {

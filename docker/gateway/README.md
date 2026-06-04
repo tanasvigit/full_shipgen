@@ -10,11 +10,12 @@ Path-based gateway in front of the monolith. Public API URL: **http://localhost:
 | Upstream | Container |
 |----------|-----------|
 | IAM paths | `iam-service` |
-| `/int/v1/fleet-ops`, `/fleet-ops` | `fleetops-service` |
+| `/int/v1/fleet-ops`, `/int/v1/orders`, `/int/v1/routes`, … (non-IAM `/int/v1/*`) | `fleetops-service` |
+| `/fleet-ops` (public API) | `fleetops-service` |
 | `/pallet/` | `pallet-service` |
 | `/ledger` | `ledger-service` |
 | `/storefront/` | `storefront-service` |
-| `/registry/`, `~registry` | `application` |
+| `/registry/v1/*` (rewritten to `~registry/v1/*`), `~registry` | `application` (monolith) |
 
 ## Behaviour
 
