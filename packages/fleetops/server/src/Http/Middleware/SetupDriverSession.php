@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Http\Middleware;
 
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\Models\User;
+use Illuminate\Support\Facades\Schema;
 
 class SetupDriverSession
 {
@@ -31,6 +32,10 @@ class SetupDriverSession
     protected function isDriver($user): bool
     {
         if ($user instanceof User) {
+            if (!Schema::hasTable('drivers')) {
+                return false;
+            }
+
             $user->load('currentDriverSession');
 
             return $user->currentDriverSession instanceof Driver;

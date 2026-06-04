@@ -111,6 +111,10 @@ class FleetOpsServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        // Shared schema: register migrations on every container (including iam-service) so
+        // installer/migrate from IAM runs FleetOps tables, not only on fleetops-service.
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+
         if (!ServiceMode::bootsFleetopsPackage()) {
             return;
         }
@@ -146,7 +150,6 @@ class FleetOpsServiceProvider extends CoreServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         }
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'fleetops');
         $this->mergeConfigFrom(__DIR__ . '/../../config/fleetops.php', 'fleetops');
         $this->mergeConfigFrom(__DIR__ . '/../../config/telematics.php', 'telematics');

@@ -59,6 +59,10 @@ class StorefrontServiceProvider extends CoreServiceProvider
 
     public function boot()
     {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/database.connections.php', 'database.connections');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/storefront.php', 'storefront');
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+
         if (!ServiceMode::bootsStorefrontPackage()) {
             return;
         }
@@ -76,9 +80,6 @@ class StorefrontServiceProvider extends CoreServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         }
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/database.connections.php', 'database.connections');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/storefront.php', 'storefront');
         $this->mergeConfigFrom(__DIR__ . '/../../config/api.php', 'storefront.api');
     }
 }

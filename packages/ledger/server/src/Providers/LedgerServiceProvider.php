@@ -60,6 +60,8 @@ class LedgerServiceProvider extends CoreServiceProvider
 
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+
         if (!ServiceMode::bootsLedgerPackage()) {
             return;
         }
@@ -71,7 +73,6 @@ class LedgerServiceProvider extends CoreServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         }
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
         $this->registerPaymentEvents();
         $this->registerInvoiceTemplateContext();
 

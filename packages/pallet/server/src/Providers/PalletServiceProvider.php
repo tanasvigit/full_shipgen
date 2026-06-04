@@ -48,6 +48,8 @@ class PalletServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+
         if (!ServiceMode::bootsPalletPackage()) {
             return;
         }
@@ -58,7 +60,5 @@ class PalletServiceProvider extends CoreServiceProvider
         if (ServiceMode::loadsPalletRoutes()) {
             $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         }
-
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
     }
 }

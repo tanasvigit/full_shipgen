@@ -102,7 +102,8 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         if (!active) return;
-        setShouldInstall(false);
+        // Fail open to installer when status cannot be loaded (e.g. DB missing).
+        setShouldInstall(true);
         setShouldOnboard(false);
       })
       .finally(() => {

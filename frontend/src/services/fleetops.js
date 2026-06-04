@@ -111,6 +111,14 @@ const attachGenericCrud = (service, methodPrefix, candidates, entityKey, listKey
   };
 };
 
+const shouldTryNextCandidate = (error) => {
+  const status = error?.response?.status;
+  if (!status) return true;
+  if (status >= 500) return false;
+  if (status === 400) return false;
+  return status === 404 || status === 405;
+};
+
 const tryCandidates = async (candidates, method, path = "", payload) => {
   let lastError;
   for (const candidate of candidates) {
@@ -120,6 +128,9 @@ const tryCandidates = async (candidates, method, path = "", payload) => {
       return response.data;
     } catch (error) {
       lastError = error;
+      if (!shouldTryNextCandidate(error)) {
+        throw error;
+      }
     }
   }
   throw lastError;
@@ -134,6 +145,9 @@ const tryCandidatesQuery = async (candidates, method, path = "", payload, params
       return response.data;
     } catch (error) {
       lastError = error;
+      if (!shouldTryNextCandidate(error)) {
+        throw error;
+      }
     }
   }
   throw lastError;
@@ -161,6 +175,9 @@ const tryCandidatesMutate = async (candidates, path = "", payload) => {
         return response.data;
       } catch (error) {
         lastError = error;
+        if (!shouldTryNextCandidate(error)) {
+          throw error;
+        }
       }
     }
   }
@@ -626,8 +643,12 @@ export const fleetopsService = {
   },
 
   async getOrderStatuses(params = {}) {
+    const query = {
+      include_order_config_activities: false,
+      ...params,
+    };
     try {
-      const response = await apiClient.get("/orders/statuses", { params, loading: false });
+      const response = await apiClient.get("/orders/statuses", { params: query, loading: false });
       const raw = response.data;
       if (Array.isArray(raw)) return raw.filter(Boolean);
       return unwrapList(raw, ["statuses", "data"]);

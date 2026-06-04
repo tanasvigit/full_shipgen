@@ -22,8 +22,12 @@ test.describe("FleetOps Day 1 — Full dispatcher regression", () => {
       await waitForApiSettle(page);
       await search.clear();
     }
-    const chips = page.locator('[data-testid="orders-filters"] button').nth(1);
-    if (await chips.isVisible()) await chips.click();
+    const statusFilter = page.getByTestId("orders-filter-status");
+    if (await statusFilter.isVisible()) {
+      await statusFilter.click();
+      await page.getByRole("option", { name: "Created" }).click();
+      await waitForApiSettle(page);
+    }
 
     // 3–6 Plan route from selection
     if (await selectFirstOrderCheckbox(page)) {

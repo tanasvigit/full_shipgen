@@ -30,11 +30,8 @@ import {
 import { t } from "@/i18n";
 import OrchestratorImportModal from "@/components/fleetops/orchestrator/OrchestratorImportModal";
 import OrdersBulkToolbar from "@/components/fleetops/orders/bulk/OrdersBulkToolbar";
-import OperationalMetricsStrip from "@/components/fleetops/intelligence/OperationalMetricsStrip";
-import RiskAlertsBar from "@/components/fleetops/intelligence/RiskAlertsBar";
-import DispatcherSuggestionsPanel from "@/components/fleetops/intelligence/DispatcherSuggestionsPanel";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutList, Map as MapIcon, Columns3, Filter, RefreshCw, Upload, Download, AlertTriangle, Route } from "lucide-react";
+import { Plus, LayoutList, Map as MapIcon, Columns3, RefreshCw, Upload, Download, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -42,9 +39,19 @@ import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 
-import { Input } from "@/components/ui/input";
-
 const OrderKanban = lazy(() => import("@/components/fleetops/orders/OrderKanban"));
+
+/** Primary status filters — avoids dozens of workflow-specific chips from the API. */
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All statuses" },
+  { value: "created", label: "Created" },
+  { value: "dispatched", label: "Dispatched" },
+  { value: "en_route", label: "En route" },
+  { value: "arrived", label: "Arrived" },
+  { value: "delivered", label: "Delivered" },
+  { value: "completed", label: "Completed" },
+  { value: "canceled", label: "Canceled" },
+];
 
 const SORT_COLUMN_MAP = {
   publicId: "public_id",
@@ -78,7 +85,6 @@ export default function OrdersList() {
   const [hiddenColumns, setHiddenColumns] = useState(() => loadOrdersColumnLayout());
   const [mapContextMenu, setMapContextMenu] = useState(null);
   const [orderConfigs, setOrderConfigs] = useState([]);
-  const [bulkQueryDraft, setBulkQueryDraft] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const searchDebounceRef = useRef(null);
   const { openDetail: openOrderDetail } = useFleetopsDetailDrawer("order");
@@ -106,10 +112,6 @@ export default function OrdersList() {
     },
     [patchQuery],
   );
-
-  useEffect(() => {
-    setBulkQueryDraft(queryState.bulk_query || "");
-  }, [queryState.bulk_query]);
 
   useEffect(() => {
     if (isDemoMode) return;
@@ -143,6 +145,12 @@ export default function OrdersList() {
 
   const view = queryState.layout;
   const statusFilter = queryState.status;
+  const statusFilterOptions = useMemo(() => {
+    if (statusFilter === "all" || STATUS_FILTER_OPTIONS.some((o) => o.value === statusFilter)) {
+      return STATUS_FILTER_OPTIONS;
+    }
+    return [...STATUS_FILTER_OPTIONS, { value: statusFilter, label: statusLabel(statusFilter) }];
+  }, [statusFilter]);
   const setView = (layout) => patchQuery({ layout, page: 1 });
   const setStatusFilter = (status) => patchQuery({ status, page: 1 });
 
@@ -169,10 +177,6 @@ export default function OrdersList() {
     },
     [patchQuery],
   );
-
-  const applyBulkQuery = useCallback(() => {
-    patchQuery({ bulk_query: bulkQueryDraft.trim(), page: 1 });
-  }, [bulkQueryDraft, patchQuery]);
 
   const selectedIds = useMemo(() => [...selectedKeys], [selectedKeys]);
 
@@ -226,8 +230,6 @@ export default function OrdersList() {
     searchInputRef,
     enabled: true,
   });
-
-  const filterChips = ["all", ...statuses];
 
   const columnDefs = {
     risk: {
@@ -375,70 +377,46 @@ export default function OrdersList() {
         }
       />
       <div className="p-6 space-y-4">
-        <div className="flex items-center gap-2 flex-wrap" data-testid="orders-filters">
-          <Filter className="h-3.5 w-3.5 text-[#4B5563]" />
-          {filterChips.map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setStatusFilter(status)}
-              className={`px-2.5 h-7 text-[11px] font-mono uppercase tracking-wider rounded-sm border ${statusFilter === status ? "bg-blue-600/10 border-blue-500/40 text-[#0066FF]" : "bg-white border-black/[0.08] text-[#374151] hover:bg-[#F1F2F5]"}`}
-            >
-              {status === "all" ? "All" : statusLabel(status)}
-            </button>
-          ))}
-          <label className="flex items-center gap-2 ml-2 text-xs text-[#374151] cursor-pointer">
+        <div className="flex items-center gap-3 flex-wrap" data-testid="orders-filters">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-8 w-[148px] text-xs" data-testid="orders-filter-status">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusFilterOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <label className="flex items-center gap-2 text-xs text-[#374151] cursor-pointer">
             <Checkbox
               checked={queryState.without_driver}
               onCheckedChange={(v) => patchQuery({ without_driver: Boolean(v), page: 1 })}
               data-testid="orders-filter-without-driver"
             />
-            No driver
+            Unassigned driver
           </label>
-          <div className="flex items-center gap-1.5 ml-2 flex-1 min-w-[200px] max-w-md">
-            <Input
-              value={bulkQueryDraft}
-              onChange={(e) => setBulkQueryDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyBulkQuery()}
-              placeholder="Bulk query (e.g. status:created driver:null)"
-              className="h-7 text-xs"
-              data-testid="orders-filter-bulk-query"
-              title="Advanced bulk filter — comma-separated field:value pairs (status, driver, customer, public_id, …)"
-            />
-            <Button type="button" size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={applyBulkQuery}>
-              Apply
-            </Button>
-            {queryState.bulk_query ? (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs shrink-0"
-                onClick={() => {
-                  setBulkQueryDraft("");
-                  patchQuery({ bulk_query: "", page: 1 });
-                }}
-              >
-                Clear
-              </Button>
-            ) : null}
-          </div>
-          <Select
-            value={queryState.order_config || "all"}
-            onValueChange={(v) => patchQuery({ order_config: v === "all" ? "" : v, page: 1 })}
-          >
-            <SelectTrigger className="h-7 w-[160px] text-xs" data-testid="orders-filter-order-config">
-              <SelectValue placeholder="Order config" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All configs</SelectItem>
-              {orderConfigs.map((cfg) => (
-                <SelectItem key={cfg.uuid || cfg.id} value={String(cfg.uuid || cfg.id)}>
-                  {cfg.name || cfg.type || cfg.uuid}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {orderConfigs.length > 0 ? (
+            <Select
+              value={queryState.order_config || "all"}
+              onValueChange={(v) => patchQuery({ order_config: v === "all" ? "" : v, page: 1 })}
+            >
+              <SelectTrigger className="h-8 w-[160px] text-xs" data-testid="orders-filter-order-config">
+                <SelectValue placeholder="Order type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All order types</SelectItem>
+                {orderConfigs.map((cfg) => (
+                  <SelectItem key={cfg.uuid || cfg.id} value={String(cfg.uuid || cfg.id)}>
+                    {cfg.name || cfg.type || cfg.uuid}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+          <div className="flex-1" />
           <OrdersColumnPicker hiddenColumns={hiddenColumns} onHiddenColumnsChange={setHiddenColumnsPersist} />
         </div>
 

@@ -1,4 +1,4 @@
-import { normalizeStatus } from "@/domain/fleetops/status";
+import { normalizeStatus, WORKFLOW_SCHEMA_FIELD_CODES } from "@/domain/fleetops/status";
 
 const STATUS_COLORS = {
   created: "#64748B",
@@ -35,8 +35,14 @@ export function extractStatusesFromFlow(flow) {
   const walk = (nodes) => {
     if (!Array.isArray(nodes)) return;
     for (const node of nodes) {
-      if (node?.status) out.add(normalizeStatus(node.status));
-      if (node?.code) out.add(normalizeStatus(node.code));
+      if (node?.status) {
+        const status = normalizeStatus(node.status);
+        if (!WORKFLOW_SCHEMA_FIELD_CODES.has(status)) out.add(status);
+      }
+      if (node?.code) {
+        const code = normalizeStatus(node.code);
+        if (!WORKFLOW_SCHEMA_FIELD_CODES.has(code)) out.add(code);
+      }
       walk(node.activities?.filter?.((c) => typeof c === "object") ? node.activities : null);
     }
   };

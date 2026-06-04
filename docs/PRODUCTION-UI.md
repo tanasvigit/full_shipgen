@@ -1,5 +1,7 @@
 # Production UI — React only
 
+**Production deployment runbook:** [RELEASE.md](../RELEASE.md) at the repo root.
+
 The legacy **Ember console** (`console/`) and Ember engine packages have been removed from this repo.
 
 | Layer | Path | Deploy |

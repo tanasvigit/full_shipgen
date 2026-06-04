@@ -12,6 +12,8 @@ return new class extends Migration {
      */
     public function up()
     {
+        Schema::disableForeignKeyConstraints();
+
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('_key')->nullable();
@@ -42,6 +44,8 @@ return new class extends Migration {
 
             $table->unique(['uuid']);
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 
     /**

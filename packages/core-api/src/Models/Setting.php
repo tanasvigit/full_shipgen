@@ -298,6 +298,15 @@ class Setting extends EloquentModel
             'icon_url' => \Fleetbase\Support\DefaultAssets::resolve(config('fleetbase.branding.icon_url')),
             'logo_url' => \Fleetbase\Support\DefaultAssets::resolve(config('fleetbase.branding.logo_url')),
         ];
+
+        if (!static::hasConnection()) {
+            return array_merge($brandingSettings, [
+                'icon_uuid'     => null,
+                'logo_uuid'     => null,
+                'default_theme' => 'dark',
+            ]);
+        }
+
         $iconUuid         = static::where('key', 'branding.icon_uuid')->value('value');
         $logoUuid         = static::where('key', 'branding.logo_uuid')->value('value');
         $defaultTheme     = static::where('key', 'branding.default_theme')->value('value');
@@ -339,6 +348,10 @@ class Setting extends EloquentModel
      */
     public static function getBrandingLogoUrl()
     {
+        if (!static::hasConnection()) {
+            return config('fleetbase.branding.logo_url');
+        }
+
         $logoUuid         = static::where('key', 'branding.logo_uuid')->value('value');
 
         if (Str::isUuid($logoUuid)) {
@@ -363,6 +376,10 @@ class Setting extends EloquentModel
      */
     public static function getBrandingIconUrl()
     {
+        if (!static::hasConnection()) {
+            return config('fleetbase.branding.icon_url');
+        }
+
         $iconUuid         = static::where('key', 'branding.icon_uuid')->value('value');
 
         if (Str::isUuid($iconUuid)) {

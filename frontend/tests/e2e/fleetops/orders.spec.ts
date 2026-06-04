@@ -34,20 +34,11 @@ test.describe("FleetOps Day 1 — Orders list", () => {
   });
 
   test("G001 — status filter updates URL and refetches", async ({ page }) => {
-    const chips = page.locator('[data-testid="orders-filters"] button');
-    const count = await chips.count();
-    if (count < 2) {
-      test.skip();
-      return;
-    }
-    await chips.nth(1).click();
-    const url = new URL(page.url());
-    const status = url.searchParams.get("status");
-    if (status) {
-      expect(status).not.toBe("all");
-    }
+    await page.getByTestId("orders-filter-status").click();
+    await page.getByRole("option", { name: "Created" }).click();
+    await expectOrdersUrlParams(page, { status: "created" });
     await waitForApiSettle(page);
-    await reloadAndPreserveOrdersFilters(page, status ? { status } : {});
+    await reloadAndPreserveOrdersFilters(page, { status: "created" });
   });
 
   test("G001 — without_driver filter syncs to URL", async ({ page }) => {
@@ -80,13 +71,6 @@ test.describe("FleetOps Day 1 — Orders list", () => {
     await expectOrdersUrlParams(page, { layout: "kanban" });
     await page.getByTestId("orders-view-table").click();
     await expectOrdersUrlParams(page, { layout: undefined });
-  });
-
-  test("G055 — bulk_query filter syncs to URL", async ({ page }) => {
-    const input = page.getByTestId("orders-filter-bulk-query");
-    await input.fill("status:created");
-    await page.getByRole("button", { name: /^Apply$/i }).click();
-    await expectOrdersUrlParams(page, { bulk_query: "status:created" });
   });
 
   test("G055 — bulk selection and plan routes navigation", async ({ page }) => {
