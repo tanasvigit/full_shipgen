@@ -4,6 +4,8 @@ namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Models\Setting;
+use Fleetbase\Support\InstallerMigrationPaths;
+use Fleetbase\Support\InstallerSchemaReset;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -120,35 +122,6 @@ class InstallerController extends Controller
         Cache::forget('installer_status');
     }
 
-    /**
-     * Drop extension databases left from a partial install (e.g. storefront FKs before core users).
-     * Skipped when core schema already exists so production re-runs are unaffected.
-     */
-    protected function resetExtensionDatabasesIfCoreSchemaMissing(): void
-    {
-        if (Schema::hasTable('users')) {
-            return;
-        }
-
-        $storefrontDatabase = config('database.connections.storefront.database');
-
-        if (empty($storefrontDatabase) || !config('database.connections.storefront.driver')) {
-            return;
-        }
-
-        $charset   = config('database.connections.storefront.charset', 'utf8mb4');
-        $collation = config('database.connections.storefront.collation', 'utf8mb4_unicode_ci');
-
-        Schema::disableForeignKeyConstraints();
-
-        try {
-            DB::statement("DROP DATABASE IF EXISTS `{$storefrontDatabase}`");
-            DB::statement("CREATE DATABASE IF NOT EXISTS `{$storefrontDatabase}` CHARACTER SET {$charset} COLLATE {$collation}");
-        } finally {
-            Schema::enableForeignKeyConstraints();
-        }
-    }
-
     public function createDatabase()
     {
         ini_set('memory_limit', '-1');
@@ -156,7 +129,7 @@ class InstallerController extends Controller
 
         Artisan::call('mysql:createdb');
 
-        $this->resetExtensionDatabasesIfCoreSchemaMissing();
+        InstallerSchemaReset::prepareFreshMigrate();
 
         // Clear cache after database creation
         static::clearCache();
@@ -172,6 +145,22 @@ class InstallerController extends Controller
     {
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 0);
+
+        InstallerSchemaReset::prepareFreshMigrate();
+
+        // Core, FleetOps, and extension schemas (storefront, ledger, pallet, registry) register
+        // migrations on iam-service so a single migrate prepares all microservice databases.
+        $missingExtensionPaths = InstallerMigrationPaths::missingExtensionPathMarkers(
+            app('migrator')->paths()
+        );
+
+        if ($missingExtensionPaths !== []) {
+            return response()->json([
+                'status' => 'error',
+                'error'  => 'Installer migrate is missing extension schemas: ' . implode(', ', $missingExtensionPaths)
+                    . '. Rebuild api vendor packages (composer install) and retry.',
+            ], 500);
+        }
 
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('sandbox:migrate', ['--force' => true]);

@@ -60,6 +60,8 @@ class LedgerServiceProvider extends CoreServiceProvider
 
     public function boot()
     {
+        // Shared schema: register migrations on every container (including iam-service) so
+        // installer migrate creates ledger tables before ledger-service handles API requests.
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
 
         if (!ServiceMode::bootsLedgerPackage()) {

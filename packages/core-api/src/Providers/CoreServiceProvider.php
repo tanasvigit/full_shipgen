@@ -12,6 +12,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 use Spatie\ScheduleMonitor\Models\MonitoredScheduledTaskLogItem;
 
 /**
@@ -117,6 +118,8 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        Sanctum::ignoreMigrations();
+
         $this->mergeConfigFrom(__DIR__ . '/../../config/database.connections.php', 'database.connections');
         $this->mergeConfigFrom(__DIR__ . '/../../config/database.redis.php', 'database.redis');
         $this->mergeConfigFrom(__DIR__ . '/../../config/broadcasting.connections.php', 'broadcasting.connections');

@@ -8,6 +8,7 @@ use Fleetbase\Providers\CoreServiceProvider;
 use Fleetbase\Support\NotificationRegistry;
 use Fleetbase\Support\ServiceMode;
 use Fleetbase\Support\Utils;
+use Illuminate\Support\Facades\DB;
 
 if (!Utils::classExists(CoreServiceProvider::class)) {
     throw new \Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');
@@ -111,6 +112,8 @@ class FleetOpsServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        $this->registerDoctrineSpatialTypeMappings();
+
         // Shared schema: register migrations on every container (including iam-service) so
         // installer/migrate from IAM runs FleetOps tables, not only on fleetops-service.
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
@@ -161,6 +164,19 @@ class FleetOpsServiceProvider extends CoreServiceProvider
         // Register the GeometryEngine for GEOSEngine
         if (extension_loaded('geos')) {
             GeometryEngineRegistry::set(new GEOSEngine());
+        }
+    }
+
+    protected function registerDoctrineSpatialTypeMappings(): void
+    {
+        try {
+            $platform = DB::connection()->getDoctrineSchemaManager()->getDatabasePlatform();
+
+            foreach (['point', 'geometry', 'linestring', 'polygon', 'multipoint', 'multilinestring', 'multipolygon', 'geometrycollection'] as $type) {
+                $platform->registerDoctrineTypeMapping($type, 'string');
+            }
+        } catch (\Throwable $e) {
+            // Ignore on non-DBAL/non-MySQL contexts; migrations will continue.
         }
     }
 

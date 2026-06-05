@@ -1,4 +1,5 @@
 import { apiClient, unwrapEntity, unwrapList } from "@/lib/api";
+import { env } from "@/lib/env";
 import { resolveEffectivePermissions } from "@/lib/fleetops/permissions";
 import { authStorage, orgStorage } from "@/lib/storage";
 
@@ -44,17 +45,26 @@ export const authService = {
   },
 
   async installerCreateDb() {
-    const response = await apiClient.post("/installer/createdb", {}, { loading: false });
+    const response = await apiClient.post("/installer/createdb", {}, {
+      loading: false,
+      timeout: env.INSTALLER_API_TIMEOUT_MS,
+    });
     return response?.data || {};
   },
 
   async installerMigrate() {
-    const response = await apiClient.post("/installer/migrate", {}, { loading: false });
+    const response = await apiClient.post("/installer/migrate", {}, {
+      loading: false,
+      timeout: env.INSTALLER_API_TIMEOUT_MS,
+    });
     return response?.data || {};
   },
 
   async installerSeed() {
-    const response = await apiClient.post("/installer/seed", {}, { loading: false });
+    const response = await apiClient.post("/installer/seed", {}, {
+      loading: false,
+      timeout: env.INSTALLER_API_TIMEOUT_MS,
+    });
     return response?.data || {};
   },
 

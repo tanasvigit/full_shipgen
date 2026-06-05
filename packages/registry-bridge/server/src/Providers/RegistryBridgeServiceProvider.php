@@ -75,6 +75,11 @@ class RegistryBridgeServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/registry-bridge.php', 'registry-bridge');
+        // Shared schema: register migrations on every container (including iam-service) so
+        // installer migrate creates registry tables before the monolith serves /~registry routes.
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+
         if (!ServiceMode::loadsRegistryRoutes()) {
             return;
         }
@@ -83,8 +88,6 @@ class RegistryBridgeServiceProvider extends CoreServiceProvider
         $this->registerMiddleware();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
         $this->loadRoutesFrom(__DIR__ . '/../routes.php');
-        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/registry-bridge.php', 'registry-bridge');
         $this->mergeConfigFromSettings();
     }
 

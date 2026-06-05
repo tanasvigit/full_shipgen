@@ -8,6 +8,7 @@ const apiHostFromLocation =
 const API_HOST = trimTrailingSlash(import.meta.env.VITE_API_HOST || apiHostFromLocation);
 const API_NAMESPACE = (import.meta.env.VITE_API_NAMESPACE || "int/v1").replace(/^\/+/, "");
 const API_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS || 20000);
+const INSTALLER_API_TIMEOUT_MS = Number(import.meta.env.VITE_INSTALLER_API_TIMEOUT_MS || 600000);
 const MODULE_ROOT_LEDGER = trimTrailingSlash(
   import.meta.env.VITE_LEDGER_MODULE_ROOT || "ledger/int/v1",
 );
@@ -26,6 +27,7 @@ export const env = {
   API_NAMESPACE,
   API_BASE_URL: `${API_HOST}/${API_NAMESPACE}`,
   API_TIMEOUT_MS: Number.isFinite(API_TIMEOUT_MS) ? API_TIMEOUT_MS : 20000,
+  INSTALLER_API_TIMEOUT_MS: Number.isFinite(INSTALLER_API_TIMEOUT_MS) ? INSTALLER_API_TIMEOUT_MS : 600000,
   MODULE_ROOT_LEDGER,
   MODULE_ROOT_STOREFRONT,
   MODULE_ROOT_PALLET,

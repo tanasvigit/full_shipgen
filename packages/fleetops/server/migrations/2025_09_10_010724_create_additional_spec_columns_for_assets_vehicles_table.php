@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -23,9 +24,10 @@ return new class extends Migration {
             $table->mediumText('notes')->after('meta')->nullable();
             $table->string('usage_type')->after('type')->nullable();
             $table->string('measurement_system')->after('type')->nullable();
-            $table->json('vin_data')->change();
-            $table->renameColumn('model_data', 'specs');
         });
+
+        DB::statement('ALTER TABLE `vehicles` MODIFY `vin_data` JSON NULL');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `model_data` TO `specs`');
 
         Schema::table('assets', function (Blueprint $table) {
             $table->string('ownership_type')->after('type')->nullable();
@@ -70,8 +72,9 @@ return new class extends Migration {
             $table->dropColumn('usage_type');
             $table->dropColumn('measurement_system');
             $table->dropColumn('ownership_type');
-            $table->mediumText('vin_data')->change();
-            $table->renameColumn('specs', 'model_data');
         });
+
+        DB::statement('ALTER TABLE `vehicles` MODIFY `vin_data` MEDIUMTEXT NULL');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `specs` TO `model_data`');
     }
 };

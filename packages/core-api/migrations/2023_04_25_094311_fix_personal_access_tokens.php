@@ -17,9 +17,27 @@ return new class extends Migration {
             return;
         }
 
-        Schema::table('personal_access_tokens', function (Blueprint $table) {
-            $table->uuid('tokenable_id')->change();
-        });
+        if (!Schema::hasTable('personal_access_tokens') || !Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
+            return;
+        }
+
+        $column = collect(\Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM `personal_access_tokens` WHERE Field = 'tokenable_id'"))->first();
+
+        if (!$column || !str_contains(strtolower((string) $column->Type), 'bigint')) {
+            return;
+        }
+
+        Schema::disableForeignKeyConstraints();
+
+        try {
+            PersonalAccessToken::query()->delete();
+
+            Schema::table('personal_access_tokens', function (Blueprint $table) {
+                $table->uuid('tokenable_id')->change();
+            });
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
     }
 
     /**
@@ -30,6 +48,10 @@ return new class extends Migration {
     public function down()
     {
         if (config('database.default') === config('fleetbase.connection.sandbox')) {
+            return;
+        }
+
+        if (!Schema::hasTable('personal_access_tokens') || !Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
             return;
         }
 

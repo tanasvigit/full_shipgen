@@ -48,6 +48,8 @@ class PalletServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        // Shared schema: register migrations on every container (including iam-service) so
+        // installer migrate creates pallet tables before pallet-service handles API requests.
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
 
         if (!ServiceMode::bootsPalletPackage()) {

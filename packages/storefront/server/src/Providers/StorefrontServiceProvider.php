@@ -61,6 +61,8 @@ class StorefrontServiceProvider extends CoreServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/database.connections.php', 'database.connections');
         $this->mergeConfigFrom(__DIR__ . '/../../config/storefront.php', 'storefront');
+        // Shared schema: register migrations on every container (including iam-service) so
+        // installer migrate creates fleetbase_storefront tables before storefront-service starts.
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
 
         if (!ServiceMode::bootsStorefrontPackage()) {

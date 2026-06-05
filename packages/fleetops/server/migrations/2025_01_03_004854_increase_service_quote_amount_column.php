@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     /**
@@ -10,9 +9,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('service_quotes', function (Blueprint $table) {
-            $table->bigInteger('amount')->change();
-        });
+        DB::statement('ALTER TABLE `service_quotes` MODIFY `amount` BIGINT NOT NULL');
     }
 
     /**
@@ -20,8 +17,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('service_quotes', function (Blueprint $table) {
-            $table->integer('amount')->change();
-        });
+        DB::statement('ALTER TABLE `service_quotes` MODIFY `amount` INT NOT NULL');
     }
 };

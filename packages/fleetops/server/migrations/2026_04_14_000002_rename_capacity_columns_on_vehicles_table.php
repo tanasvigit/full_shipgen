@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -27,12 +28,12 @@ return new class extends Migration {
         Schema::table('vehicles', function (Blueprint $table) {
             // Drop the redundant weight capacity column (payload_capacity already exists)
             $table->dropColumn('capacity_weight_kg');
-
-            // Rename remaining columns to follow payload_capacity_* convention
-            $table->renameColumn('capacity_volume_m3', 'payload_capacity_volume');
-            $table->renameColumn('capacity_pallets', 'payload_capacity_pallets');
-            $table->renameColumn('capacity_parcels', 'payload_capacity_parcels');
         });
+
+        // Avoid Doctrine rename introspection on tables with spatial columns.
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `capacity_volume_m3` TO `payload_capacity_volume`');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `capacity_pallets` TO `payload_capacity_pallets`');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `capacity_parcels` TO `payload_capacity_parcels`');
     }
 
     public function down(): void
@@ -40,11 +41,10 @@ return new class extends Migration {
         Schema::table('vehicles', function (Blueprint $table) {
             // Restore the dropped column
             $table->unsignedDecimal('capacity_weight_kg', 10, 2)->nullable()->after('skills');
-
-            // Reverse the renames
-            $table->renameColumn('payload_capacity_volume', 'capacity_volume_m3');
-            $table->renameColumn('payload_capacity_pallets', 'capacity_pallets');
-            $table->renameColumn('payload_capacity_parcels', 'capacity_parcels');
         });
+
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `payload_capacity_volume` TO `capacity_volume_m3`');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `payload_capacity_pallets` TO `capacity_pallets`');
+        DB::statement('ALTER TABLE `vehicles` RENAME COLUMN `payload_capacity_parcels` TO `capacity_parcels`');
     }
 };

@@ -9,7 +9,7 @@ import { PORTAL_NAME } from "@/lib/branding";
 
 const STEPS = [
   { key: "createdb", label: "Create Database", action: () => authService.installerCreateDb() },
-  { key: "migrate", label: "Run Migrations", action: () => authService.installerMigrate() },
+  { key: "migrate", label: "Run Migrations (may take several minutes)", action: () => authService.installerMigrate() },
   { key: "seed", label: "Seed Database", action: () => authService.installerSeed() },
 ];
 
@@ -54,7 +54,10 @@ export default function Installer() {
           }
           updateStep(step.key, { status: "completed", message: "" });
         } catch (err) {
-          const message = err?.friendlyMessage || err?.message || `Failed at ${step.label}.`;
+          const isTimeout = err?.code === "ECONNABORTED" || /timeout/i.test(String(err?.message || ""));
+          const message = isTimeout
+            ? `${step.label} is still running on the server or took too long. Wait a minute, then click Retry install.`
+            : err?.friendlyMessage || err?.message || `Failed at ${step.label}.`;
           updateStep(step.key, { status: "failed", message });
           setError(message);
           toast.error(message);
@@ -85,7 +88,7 @@ export default function Installer() {
           before onboarding.
         </h2>
         <p className="text-sm text-[#374151] mt-3 max-w-sm">
-          Run database setup steps in order: create database, migrate schema, and seed defaults.
+          Run database setup steps in order: create database, migrate schema, and seed defaults. Migrations can take several minutes on first install — keep this tab open.
         </p>
       </div>
 
@@ -115,7 +118,7 @@ export default function Installer() {
         <LoadingButton
           type="button"
           loading={busy}
-          loadingText="Installing…"
+          loadingText="Installing… (migrations may take a few minutes)"
           onClick={run}
           className="bg-[#0066FF] hover:bg-[#0040CC] text-white"
           data-testid="installer-start"
