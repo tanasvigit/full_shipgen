@@ -75,6 +75,14 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5173,
+    proxy: {
+      "/socketcluster": {
+        target: "http://localhost:38000",
+        ws: true,
+        changeOrigin: true,
+      },
+    },
     watch: {
       ignored: [
         "**/.git/**",

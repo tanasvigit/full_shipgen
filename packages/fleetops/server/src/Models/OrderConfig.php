@@ -5,6 +5,7 @@ namespace Fleetbase\FleetOps\Models;
 use Fleetbase\Casts\Json;
 use Fleetbase\FleetOps\Casts\OrderConfigEntities;
 use Fleetbase\FleetOps\Flow\Activity;
+use Fleetbase\FleetOps\Flow\Flow;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\Model;
 use Fleetbase\Support\Auth;
@@ -247,12 +248,43 @@ class OrderConfig extends Model
      */
     public function activities(): Collection
     {
-        $activities = collect();
-        foreach ($this->flow as $activity) {
-            $activities->push(new Activity($activity, $this->flow));
+        $flow = $this->flow;
+        if (!is_array($flow)) {
+            return collect();
         }
 
-        return $activities;
+        return collect(iterator_to_array(new Flow($flow)));
+    }
+
+    /**
+     * Find a flow activity by its code.
+     */
+    protected function findActivityByCode(string $code): ?Activity
+    {
+        $code = strtolower($code);
+
+        return $this->activities()->first(function (Activity $activity) use ($code) {
+            return strtolower((string) $activity->get('code')) === $code;
+        });
+    }
+
+    /**
+     * Resolve the workflow activity code for an order, accounting for dispatch/start flags
+     * when the persisted status column has not yet caught up with workflow state.
+     */
+    protected function resolveWorkflowStatusCode(Order $order): string
+    {
+        $status = strtolower((string) $order->status);
+
+        if ($order->started) {
+            return 'started';
+        }
+
+        if ($order->dispatched || $status === 'dispatched') {
+            return 'dispatched';
+        }
+
+        return $status ?: 'created';
     }
 
     /**
@@ -262,7 +294,7 @@ class OrderConfig extends Model
      */
     public function getCreatedActivity(): ?Activity
     {
-        return $this->activities()->firstWhere('code', 'created');
+        return $this->findActivityByCode('created');
     }
 
     /**
@@ -272,7 +304,7 @@ class OrderConfig extends Model
      */
     public function getDispatchActivity(): ?Activity
     {
-        return $this->activities()->firstWhere('code', 'dispatched');
+        return $this->findActivityByCode('dispatched');
     }
 
     /**
@@ -287,10 +319,14 @@ class OrderConfig extends Model
         }
 
         if ($context instanceof Waypoint) {
-            return $this->activities()->firstWhere('code', strtolower($context->status_code));
+            return $this->findActivityByCode(strtolower($context->status_code));
         }
 
-        return $this->activities()->firstWhere('code', $context->status);
+        $workflowCode = $context instanceof Order
+            ? $this->resolveWorkflowStatusCode($context)
+            : strtolower((string) $context->status);
+
+        return $this->findActivityByCode($workflowCode);
     }
 
     /**
@@ -376,7 +412,7 @@ class OrderConfig extends Model
      */
     public function getActivityByCode(string $code): ?Activity
     {
-        return $this->activities()->firstWhere('code', $code);
+        return $this->findActivityByCode($code);
     }
 
     /**
@@ -390,7 +426,7 @@ class OrderConfig extends Model
      */
     public function getCanceledActivity()
     {
-        $canceledActivity = $this->activities()->firstWhere('code', 'canceled');
+        $canceledActivity = $this->findActivityByCode('canceled');
         if ($canceledActivity) {
             return $canceledActivity;
         }
@@ -415,7 +451,7 @@ class OrderConfig extends Model
      */
     public function getCompletedActivity()
     {
-        $completedActivity = $this->activities()->firstWhere('code', 'completed');
+        $completedActivity = $this->findActivityByCode('completed');
         if ($completedActivity) {
             return $completedActivity;
         }
@@ -440,7 +476,7 @@ class OrderConfig extends Model
      */
     public function getStartedActivity()
     {
-        $startedActivity = $this->activities()->firstWhere('code', 'started');
+        $startedActivity = $this->findActivityByCode('started');
         if ($startedActivity) {
             return $startedActivity;
         }

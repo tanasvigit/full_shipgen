@@ -26,7 +26,7 @@ Pallet registers **core-api** and **fleetops-api** (models/observers) but does *
 ## Compose
 
 ```bash
-docker compose up -d pallet-service iam-service fleetops-service application gateway frontend
+docker compose up -d pallet-service iam-service fleetops-service application gateway
 ```
 
 ## Verify

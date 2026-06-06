@@ -6,7 +6,7 @@ The legacy **Ember console** (`console/`) and Ember engine packages have been re
 
 | Layer | Path | Deploy |
 |-------|------|--------|
-| **UI** | `frontend/` | Docker service `frontend` (port **5173**) or static `dist/` + nginx |
+| **UI** | `frontend/` | Local Vite dev (`npm run dev` → **5173**) or static `dist/` + nginx for prod |
 | **API** | `api/` + `packages/*/server` | Gateway :8000 → `iam`, `fleetops`, `pallet`, `ledger`, `storefront`, `application` (registry); `httpd` :8001 |
 
 ## Local Docker
@@ -19,12 +19,12 @@ After editing `packages/*`, sync **vendor** in running containers (mounted code 
 
 ```powershell
 .\scripts\refresh-microservices.ps1
-# Full rebuild API + frontend images:
-.\scripts\refresh-microservices.ps1 -Rebuild -RebuildFrontend
+# Full API image rebuild:
+.\scripts\refresh-microservices.ps1 -Rebuild
 ```
 
-- App: http://localhost:5173  
 - API: http://localhost:8000  
+- UI (separate terminal): `cd frontend && npm run dev` → http://localhost:5173  
 
 Set in `api/.env`:
 

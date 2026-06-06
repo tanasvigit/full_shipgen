@@ -29,7 +29,7 @@ Session introspection for domain APIs: `GET /int/v1/gateway/auth` (gateway-only 
 ## Compose
 
 ```bash
-docker compose up -d iam-service application gateway frontend
+docker compose up -d iam-service application gateway
 ```
 
 ## Verify

@@ -285,6 +285,8 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                 $router->match(['get', 'post'], 'export', $controller('export'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                                 $router->post('import', $controller('import'));
+                                $router->match(['put', 'patch', 'post'], '{id}/track', 'DriverController@track');
+                                $router->post('{id}/toggle-online', 'DriverController@toggleOnline');
                                 // Driver scheduling endpoints
                                 $router->get('{id}/schedule-items', $controller('scheduleItems'));
                                 $router->get('{id}/availabilities', $controller('availabilities'));
@@ -342,6 +344,9 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                 $router->post('process-imports', $controller('importFromFiles'));
                                 $router->patch('route/{id}', $controller('editOrderRoute'));
                                 $router->patch('update-activity/{id}', $controller('updateActivity'));
+                                $router->post('{id}/capture-signature/{subjectId?}', $controller('captureSignature'));
+                                $router->post('{id}/capture-photo/{subjectId?}', $controller('capturePhoto'));
+                                $router->post('{id}/capture-qr/{subjectId?}', $controller('captureQrScan'));
                                 $router->get('{id}/proofs/{subjectId?}', $controller('proofs'));
                                 $router->patch('bulk-assign-driver', $controller('bulkAssignDriver'));
                                 $router->patch('bulk-cancel', $controller('bulkCancel'));

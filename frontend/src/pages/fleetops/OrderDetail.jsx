@@ -526,7 +526,11 @@ export default function OrderDetail({
         title={order.customer.name}
         description={
           <span className="flex items-center gap-2 text-sm flex-wrap">
-            <StatusBadge status={order.status} label={statusLabel(order.status)} />
+            <StatusBadge
+              status={order.status}
+              label={statusLabel(order.status)}
+              data-testid="order-status-badge"
+            />
             <StatusBadge status={order.priority} label={`${order.priority} priority`} dot={false} />
           </span>
         }

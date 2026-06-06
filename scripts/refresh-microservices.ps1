@@ -1,9 +1,9 @@
 # Refresh all API microservice containers with latest packages/* code.
-# Usage: .\scripts\refresh-microservices.ps1 [-Rebuild] [-RebuildFrontend]
+# Usage: .\scripts\refresh-microservices.ps1 [-Rebuild]
+# UI: run separately — cd frontend && npm run dev
 
 param(
-    [switch]$Rebuild,
-    [switch]$RebuildFrontend
+    [switch]$Rebuild
 )
 
 Set-Location $PSScriptRoot\..
@@ -28,16 +28,11 @@ php artisan route:clear && php artisan config:clear
 "@
 
 Write-Host "==> Ensuring stack is up..."
-docker compose up -d database cache socket tiles gateway iam-service fleetops-service pallet-service ledger-service storefront-service application frontend httpd 2>&1 | Out-Host
+docker compose up -d database cache socket tiles gateway iam-service fleetops-service pallet-service ledger-service storefront-service application httpd 2>&1 | Out-Host
 
 if ($Rebuild) {
     Write-Host "==> Rebuilding API image..."
     docker compose build application 2>&1 | Out-Host
-}
-
-if ($RebuildFrontend) {
-    Write-Host "==> Rebuilding frontend..."
-    docker compose build frontend 2>&1 | Out-Host
 }
 
 Write-Host "==> Rebuilding gateway (nginx routes)..."
@@ -56,20 +51,13 @@ foreach ($name in $services) {
 Write-Host "==> Restarting API + gateway..."
 docker compose restart gateway iam-service fleetops-service pallet-service ledger-service storefront-service application 2>&1 | Out-Host
 
-if ($RebuildFrontend) {
-    docker compose up -d --force-recreate frontend 2>&1 | Out-Host
-} else {
-    docker compose up -d --force-recreate gateway 2>&1 | Out-Host
-}
+docker compose up -d --force-recreate gateway 2>&1 | Out-Host
 
 Start-Sleep -Seconds 12
 
 Write-Host ""
 Write-Host "==> Health checks"
-foreach ($url in @(
-    "http://localhost:8000/health",
-    "http://localhost:5173/"
-)) {
+foreach ($url in @("http://localhost:8000/health")) {
     try {
         $code = (Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 15).StatusCode
         Write-Host "  OK $code $url"
@@ -102,5 +90,5 @@ foreach ($c in $checks) {
 
 Write-Host ""
 Write-Host ""
-Write-Host "Done. UI: http://localhost:5173  API: http://localhost:8000"
+Write-Host "Done. API: http://localhost:8000  UI: cd frontend; npm run dev -> http://localhost:5173"
 $ErrorActionPreference = $prevEap

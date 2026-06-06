@@ -2,6 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
+use Fleetbase\Attributes\SkipAuthorizationCheck;
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Fleetbase\FleetOps\Exports\DriverExport;
 use Fleetbase\FleetOps\Http\Controllers\Api\v1\DriverController as ApiDriverController;
@@ -15,6 +16,7 @@ use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\ImportRequest;
+use Fleetbase\Models\Permission;
 use Fleetbase\LaravelMysqlSpatial\Types\Point;
 use Fleetbase\Models\Invite;
 use Fleetbase\Models\User;
@@ -36,6 +38,39 @@ class DriverController extends FleetOpsController
      * @var string
      */
     public $resource = 'driver';
+
+    /**
+     * Allow drivers to update their own location/online status without create-driver permission.
+     */
+    protected function authorizeSelfDriver(string $id, Request $request)
+    {
+        $user = Auth::getUserFromSession($request);
+        if (!$user || $user->isAdmin()) {
+            return null;
+        }
+
+        $required = Permission::findByNames([
+            'fleet-ops update driver',
+            'fleet-ops * driver',
+            'fleet-ops *',
+        ]);
+
+        if (!$user->doesntHavePermissions($required)) {
+            return null;
+        }
+
+        try {
+            $driver = Driver::findRecordOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+            return response()->error('Driver not found.');
+        }
+
+        if ($driver->user_uuid === $user->uuid) {
+            return null;
+        }
+
+        return response()->authorizationError();
+    }
 
     /**
      * Creates a record with request payload.
@@ -422,9 +457,29 @@ class DriverController extends FleetOpsController
      *
      * @return \Illuminate\Http\Response
      */
+    #[SkipAuthorizationCheck]
     public function track(string $id, Request $request)
     {
+        if ($response = $this->authorizeSelfDriver($id, $request)) {
+            return $response;
+        }
+
         return app(ApiDriverController::class)->track($id, $request);
+    }
+
+    /**
+     * Toggle driver online/offline (mobile field apps).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    #[SkipAuthorizationCheck]
+    public function toggleOnline(string $id, Request $request)
+    {
+        if ($response = $this->authorizeSelfDriver($id, $request)) {
+            return $response;
+        }
+
+        return app(ApiDriverController::class)->toggleOnline($id, $request);
     }
 
     /**

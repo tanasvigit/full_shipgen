@@ -5,6 +5,9 @@ const STATUS_TONE = {
     dispatched: "info",
     en_route: "warning",
     delivered: "success",
+    completed: "success",
+    arrived: "info",
+    delayed: "warning",
     canceled: "danger",
     online: "success",
     offline: "neutral",
@@ -47,7 +50,7 @@ const DOT_CLASSES = {
     neutral: "bg-[#9CA3AF]",
 };
 
-export default function StatusBadge({ status, label, tone, dot = true, className }) {
+export default function StatusBadge({ status, label, tone, dot = true, className, "data-testid": testId }) {
     const t = tone || STATUS_TONE[status] || "neutral";
     const display = (label || status || "").toString().replace(/_/g, " ");
     return (
@@ -57,7 +60,7 @@ export default function StatusBadge({ status, label, tone, dot = true, className
                 TONE_CLASSES[t],
                 className,
             )}
-            data-testid={`status-${status}`}
+            data-testid={testId || `status-${status}`}
         >
             {dot && <span className={cn("h-1.5 w-1.5 rounded-full", DOT_CLASSES[t])} />}
             {display}

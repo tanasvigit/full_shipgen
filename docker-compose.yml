@@ -121,19 +121,7 @@ services:
       cache:
         condition: service_healthy
 
-  frontend:
-    restart: unless-stopped
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_HOST: http://localhost:8000
-        VITE_SOCKETCLUSTER_PROXY: "true"
-        VITE_MAP_TILE_URL: http://localhost:8080/styles/basic/{z}/{x}/{y}.png
-    ports:
-      - "5173:80"
-    depends_on:
-      - socket
+  # React UI runs locally (not in Docker): cd frontend && npm run dev -> http://localhost:5173
 
   # Phase 0 API gateway — public :8000; path routing + session introspection for domain APIs.
   gateway:

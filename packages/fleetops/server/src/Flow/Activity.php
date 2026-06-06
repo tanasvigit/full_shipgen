@@ -116,7 +116,7 @@ class Activity extends FlowResource
     public function getChildActivities(Order|Waypoint|null $context = null)
     {
         $children   = collect();
-        $activities = $this->activities;
+        $activities = $this->get('activities', []);
 
         // if waypoint provided
         $waypointContext = $context instanceof Waypoint;
@@ -125,7 +125,7 @@ class Activity extends FlowResource
             foreach ($activities as $childActivityCode) {
                 $childActivity = $this->flow->getActivity($childActivityCode);
                 // if waypoint context skip `created` - `started` - `dispatched`
-                if ($waypointContext && in_array($childActivity->code, ['created', 'started', 'dispatched'])) {
+                if ($childActivity && $waypointContext && in_array($childActivity->get('code'), ['created', 'started', 'dispatched'], true)) {
                     return $childActivity->getChildActivities($context);
                 }
 
@@ -161,7 +161,7 @@ class Activity extends FlowResource
     {
         return $this->children()->contains(
             function ($activity) use ($code) {
-                return $activity->code === $code;
+                return $activity->get('code') === $code;
             }
         );
     }
@@ -202,7 +202,7 @@ class Activity extends FlowResource
     {
         $previous = collect();
         foreach ($this->flow as $activity) {
-            if ($activity->hasChildActivity($this->code)) {
+            if ($activity->hasChildActivity((string) $this->get('code'))) {
                 $previous->push($activity);
             }
         }
@@ -222,7 +222,7 @@ class Activity extends FlowResource
      */
     public function is(string $code)
     {
-        return $this->code === $code;
+        return $this->get('code') === $code;
     }
 
     /**
@@ -235,7 +235,7 @@ class Activity extends FlowResource
      */
     public function complete(): bool
     {
-        return Utils::isTrue($this->complete);
+        return Utils::isTrue($this->get('complete'));
     }
 
     /**

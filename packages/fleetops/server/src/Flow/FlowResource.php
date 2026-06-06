@@ -44,7 +44,7 @@ class FlowResource implements \JsonSerializable
             return $this->attributes[$name];
         }
 
-        return $this->{$name};
+        return null;
     }
 
     /**
@@ -79,11 +79,7 @@ class FlowResource implements \JsonSerializable
             return $this->attributes[$key];
         }
 
-        if (isset($this->{$key})) {
-            return $this->{$key};
-        }
-
-        return data_get($this, $key, $defaultValue);
+        return data_get($this->attributes, $key, $defaultValue);
     }
 
     /**

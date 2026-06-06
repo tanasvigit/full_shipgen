@@ -3,11 +3,13 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
+use Fleetbase\Attributes\SkipAuthorizationCheck;
 use Fleetbase\FleetOps\Events\OrderDispatchFailed;
 use Fleetbase\FleetOps\Events\OrderReady;
 use Fleetbase\FleetOps\Events\OrderStarted;
 use Fleetbase\FleetOps\Exports\OrderExport;
 use Fleetbase\FleetOps\Flow\Activity;
+use Fleetbase\FleetOps\Http\Controllers\Api\v1\OrderController as ApiOrderController;
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\FleetOps\Http\Requests\BulkDispatchRequest;
 use Fleetbase\FleetOps\Http\Requests\CancelOrderRequest;
@@ -30,7 +32,9 @@ use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\Internal\BulkActionRequest;
 use Fleetbase\Models\File;
+use Fleetbase\Models\Permission;
 use Fleetbase\Models\Type;
+use Fleetbase\Support\Auth;
 use Fleetbase\Support\TemplateString;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -56,6 +60,34 @@ class OrderController extends FleetOpsController
      * @var string
      */
     public $indexResource = OrderIndexResource::class;
+
+    /**
+     * Allow assigned drivers to start/advance their orders without fleet-ops update order.
+     */
+    protected function authorizeAssignedDriverForOrder(Order $order, Request $request)
+    {
+        $user = Auth::getUserFromSession($request);
+        if (!$user || $user->isAdmin()) {
+            return null;
+        }
+
+        $required = Permission::findByNames([
+            'fleet-ops update order',
+            'fleet-ops * order',
+            'fleet-ops *',
+        ]);
+
+        if (!$user->doesntHavePermissions($required)) {
+            return null;
+        }
+
+        $order->loadMissing('driverAssigned');
+        if ($order->driverAssigned && $order->driverAssigned->user_uuid === $user->uuid) {
+            return null;
+        }
+
+        return response()->authorizationError();
+    }
 
     /**
      * Handle order waypoint changes if any.
@@ -565,6 +597,7 @@ class OrderController extends FleetOpsController
      *
      * @return \Illuminate\Http\Response
      */
+    #[SkipAuthorizationCheck]
     public function start(Request $request)
     {
         /**
@@ -574,6 +607,10 @@ class OrderController extends FleetOpsController
 
         if (!$order) {
             return response()->error('Unable to find order to start.');
+        }
+
+        if ($response = $this->authorizeAssignedDriverForOrder($order, $request)) {
+            return $response;
         }
 
         if ($order->started) {
@@ -634,7 +671,8 @@ class OrderController extends FleetOpsController
         }
 
         // update order activity
-        $updateActivityRequest = new Request(['activity' => $flow]);
+        $activityPayload = $flow instanceof Activity ? $flow->toArray() : $flow;
+        $updateActivityRequest = new Request(['activity' => $activityPayload]);
 
         // update activity
         return $this->updateActivity($order->uuid, $updateActivityRequest);
@@ -645,11 +683,16 @@ class OrderController extends FleetOpsController
      *
      * @return \Illuminate\Http\Response
      */
+    #[SkipAuthorizationCheck]
     public function updateActivity(string $id, Request $request)
     {
         $order = Order::findById($id, ['driverAssigned', 'payload.entities']);
         if (!$order) {
             return response()->error('No order found.');
+        }
+
+        if ($response = $this->authorizeAssignedDriverForOrder($order, $request)) {
+            return $response;
         }
 
         $activity = $request->array('activity');
@@ -673,7 +716,7 @@ class OrderController extends FleetOpsController
          * @var \Fleetbase\LaravelMysqlSpatial\Types\Point
          */
         $location = $order->getLastLocation();
-        $order->setStatus($activity->code);
+        $order->setStatus($activity->get('code'));
         $order->insertActivity($activity, $location);
 
         // also update for each order entities if not multiple drop order
@@ -1083,5 +1126,65 @@ class OrderController extends FleetOpsController
             'order'        => $order->uuid,
             'scheduled_at' => $order->scheduled_at,
         ]);
+    }
+
+    /**
+     * Capture proof-of-delivery signature (driver mobile).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    #[SkipAuthorizationCheck]
+    public function captureSignature(string $id, Request $request, ?string $subjectId = null)
+    {
+        $order = Order::findById($id);
+        if (!$order) {
+            return response()->error('Order resource not found.', 404);
+        }
+
+        if ($response = $this->authorizeAssignedDriverForOrder($order, $request)) {
+            return $response;
+        }
+
+        return app(ApiOrderController::class)->captureSignature($request, $order->public_id, $subjectId);
+    }
+
+    /**
+     * Capture proof-of-delivery photo (driver mobile).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    #[SkipAuthorizationCheck]
+    public function capturePhoto(string $id, Request $request, ?string $subjectId = null)
+    {
+        $order = Order::findById($id);
+        if (!$order) {
+            return response()->error('Order resource not found.', 404);
+        }
+
+        if ($response = $this->authorizeAssignedDriverForOrder($order, $request)) {
+            return $response;
+        }
+
+        return app(ApiOrderController::class)->capturePhoto($request, $order->public_id, $subjectId);
+    }
+
+    /**
+     * Capture proof-of-delivery QR scan (driver mobile).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    #[SkipAuthorizationCheck]
+    public function captureQrScan(string $id, Request $request, ?string $subjectId = null)
+    {
+        $order = Order::findById($id);
+        if (!$order) {
+            return response()->error('Order resource not found.', 404);
+        }
+
+        if ($response = $this->authorizeAssignedDriverForOrder($order, $request)) {
+            return $response;
+        }
+
+        return app(ApiOrderController::class)->captureQrScan($request, $order->public_id, $subjectId);
     }
 }

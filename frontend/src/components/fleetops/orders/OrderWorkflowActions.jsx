@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getAvailableOrderActions, isTerminalStatus } from "@/lib/fleetops/orderWorkflow";
+import { isOrderAlreadyDispatched } from "@/domain/fleetops/guards/orderGuards";
 
 export default function OrderWorkflowActions({
   order,
@@ -25,7 +26,11 @@ export default function OrderWorkflowActions({
   if (!order) return null;
 
   const hasNext = Boolean(nextActivity?.code || nextActivity?.activity?.code);
-  const actions = getAvailableOrderActions(order.status, { hasNextActivity: hasNext });
+  const actions = getAvailableOrderActions(order.status, {
+    order,
+    hasNextActivity: hasNext,
+    alreadyDispatched: isOrderAlreadyDispatched(order),
+  });
 
   if (isTerminalStatus(order.status) && !actions.length) {
     return (

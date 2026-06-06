@@ -44,6 +44,24 @@ export function normalizeStatus(value) {
     .replace(/\s+/g, "_");
 }
 
+/**
+ * UI/workflow status when API `status` lags behind boolean flags
+ * (e.g. dispatched=true but status still "created" after bulk dispatch).
+ */
+export function resolveEffectiveOrderStatus(order = {}) {
+  const status = normalizeStatus(order.status);
+  const dispatched = Boolean(order.dispatched || order.dispatchedAt || order.dispatched_at);
+  const started = Boolean(order.started || order.startedAt || order.started_at);
+
+  if (started && ["created", "dispatched"].includes(status)) {
+    return "en_route";
+  }
+  if (dispatched && status === "created") {
+    return "dispatched";
+  }
+  return status;
+}
+
 export function isTerminalOrderStatus(status) {
   return TERMINAL_ORDER_STATUSES.includes(normalizeStatus(status));
 }

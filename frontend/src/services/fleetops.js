@@ -119,6 +119,41 @@ const shouldTryNextCandidate = (error) => {
   return status === 404 || status === 405;
 };
 
+/** Pull human-readable messages from Fleetbase error envelopes. */
+const getApiErrorText = (error) => {
+  const data = error?.response?.data;
+  if (Array.isArray(data?.errors)) {
+    return data.errors.map((e) => (typeof e === "string" ? e : e?.message || "")).join(" ");
+  }
+  if (typeof data?.message === "string") return data.message;
+  if (typeof data?.error === "string") return data.error;
+  return error?.message || "";
+};
+
+const ORDER_TRANSITION_IDEMPOTENT = {
+  dispatch: ["order has already been dispatched"],
+  cancel: ["order was canceled", "order has already been canceled", "order has already been cancelled"],
+  start: ["order has already been started"],
+};
+
+const isIdempotentOrderTransitionError = (kind, error) => {
+  const text = getApiErrorText(error).toLowerCase();
+  return (ORDER_TRANSITION_IDEMPOTENT[kind] || []).some((phrase) => text.includes(phrase));
+};
+
+/** Internal next-activity returns an array of Activity objects. */
+const normalizeNextActivity = (payload) => {
+  if (!payload) return null;
+  if (Array.isArray(payload)) {
+    const first = payload.find((item) => item && typeof item === "object");
+    return first || null;
+  }
+  if (Array.isArray(payload?.activities)) {
+    return payload.activities[0] || null;
+  }
+  return unwrapEntity(payload, ["activity", "next_activity"]);
+};
+
 const tryCandidates = async (candidates, method, path = "", payload) => {
   let lastError;
   for (const candidate of candidates) {
@@ -184,68 +219,27 @@ const tryCandidatesMutate = async (candidates, path = "", payload) => {
   throw lastError;
 };
 
+/**
+ * Internal order workflow transitions use PATCH /orders/{dispatch|cancel} with { order: id }.
+ * Avoids retry storms (405/permission noise) from legacy fallback URLs.
+ */
 const tryOrderTransition = async (orderId, kind) => {
-  let lastError;
   const id = String(orderId);
-  const bodyVariants =
-    kind === "dispatch"
-      ? [{ order_uuid: id, id, order: id }, { orders: [id] }]
-      : [{ order_uuid: id, id, order: id }, { orders: [id] }];
+  const path = kind === "dispatch" ? "/orders/dispatch" : "/orders/cancel";
 
-  for (const candidate of RESOURCES.orders) {
-    if (kind === "dispatch") {
-      for (const body of bodyVariants) {
-        for (const method of ["patch", "post"]) {
-          try {
-            const response = await apiClient.request({
-              method,
-              url: `/${candidate}/dispatch`,
-              data: body,
-            });
-            return response.data;
-          } catch (error) {
-            lastError = error;
-          }
-        }
-      }
-      for (const method of ["patch", "post"]) {
-        try {
-          const response = await apiClient.request({
-            method,
-            url: `/${candidate}/${id}/dispatch`,
-            data: {},
-          });
-          return response.data;
-        } catch (error) {
-          lastError = error;
-        }
-      }
-    } else {
-      for (const method of ["delete"]) {
-        try {
-          const response = await apiClient.delete(`/${candidate}/${id}/cancel`);
-          return response.data;
-        } catch (error) {
-          lastError = error;
-        }
-      }
-      for (const body of bodyVariants) {
-        for (const method of ["patch", "post"]) {
-          try {
-            const response = await apiClient.request({
-              method,
-              url: `/${candidate}/cancel`,
-              data: body,
-            });
-            return response.data;
-          } catch (error) {
-            lastError = error;
-          }
-        }
-      }
+  try {
+    const response = await apiClient.patch(path, { order: id });
+    return response.data;
+  } catch (error) {
+    if (isIdempotentOrderTransitionError(kind, error)) {
+      return {
+        status: "OK",
+        message: kind === "dispatch" ? "Order was already dispatched" : "Order was already canceled",
+        order: id,
+      };
     }
+    throw error;
   }
-  throw lastError;
 };
 
 export const fleetopsService = {
@@ -409,32 +403,15 @@ export const fleetopsService = {
 
   async startOrder(orderId) {
     const id = String(orderId);
-    let lastError;
-    for (const candidate of RESOURCES.orders) {
-      for (const method of ["patch", "post"]) {
-        try {
-          const response = await apiClient.request({
-            method,
-            url: `/${candidate}/${id}/start`,
-            data: {},
-          });
-          return unwrapEntity(response.data, ["order"]);
-        } catch (error) {
-          lastError = error;
-        }
-        try {
-          const response = await apiClient.request({
-            method,
-            url: `/${candidate}/start`,
-            data: { order_uuid: id, id },
-          });
-          return unwrapEntity(response.data, ["order"]);
-        } catch (error) {
-          lastError = error;
-        }
+    try {
+      const response = await apiClient.patch("/orders/start", { order: id });
+      return unwrapEntity(response.data, ["order"]);
+    } catch (error) {
+      if (isIdempotentOrderTransitionError("start", error)) {
+        return { status: "OK", message: "Order was already started", order: id };
       }
+      throw error;
     }
-    throw lastError;
   },
 
   async completeOrder(orderId) {
@@ -460,8 +437,8 @@ export const fleetopsService = {
   async getNextActivity(orderId) {
     const id = String(orderId);
     try {
-      const payload = await tryCandidates(RESOURCES.orders, "get", `/${id}/next-activity`);
-      return unwrapEntity(payload, ["activity", "next_activity"]);
+      const response = await apiClient.get(`/orders/next-activity/${id}`);
+      return normalizeNextActivity(response.data);
     } catch {
       return null;
     }
@@ -473,22 +450,8 @@ export const fleetopsService = {
       typeof activityPayload === "string"
         ? { activity: activityPayload, code: activityPayload }
         : activityPayload;
-    let lastError;
-    for (const candidate of RESOURCES.orders) {
-      for (const method of ["patch", "post"]) {
-        try {
-          const response = await apiClient.request({
-            method,
-            url: `/${candidate}/${id}/update-activity`,
-            data: body,
-          });
-          return unwrapEntity(response.data, ["order", "activity"]);
-        } catch (error) {
-          lastError = error;
-        }
-      }
-    }
-    throw lastError;
+    const response = await apiClient.patch(`/orders/update-activity/${id}`, body);
+    return unwrapEntity(response.data, ["order", "activity"]);
   },
 
   async getOrderEta(orderId) {
@@ -665,27 +628,13 @@ export const fleetopsService = {
 
   _orderIdsBody(orderIds) {
     const ids = (orderIds || []).map((id) => String(id)).filter(Boolean);
-    return { ids, orders: ids };
+    return { ids };
   },
 
   async bulkDispatch(orderIds) {
     const body = this._orderIdsBody(orderIds);
-    let lastError;
-    for (const candidate of RESOURCES.orders) {
-      try {
-        const response = await apiClient.post(`/${candidate}/bulk-dispatch`, body);
-        return response.data;
-      } catch (error) {
-        lastError = error;
-      }
-      try {
-        const response = await apiClient.patch(`/${candidate}/bulk-dispatch`, body);
-        return response.data;
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError;
+    const response = await apiClient.post("/orders/bulk-dispatch", body);
+    return response.data;
   },
 
   async bulkCancel(orderIds) {

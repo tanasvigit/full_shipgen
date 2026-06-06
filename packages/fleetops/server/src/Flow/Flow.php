@@ -25,8 +25,14 @@ class Flow extends FlowResource implements \IteratorAggregate
      */
     public function getActivity(string $code): ?Activity
     {
-        if (isset($this->{$code})) {
-            return new Activity($this->{$code}, $this->serialize());
+        if (isset($this->attributes[$code]) && is_array($this->attributes[$code])) {
+            return new Activity($this->attributes[$code], $this->serialize());
+        }
+
+        foreach ($this->attributes['activities'] ?? [] as $activityAttributes) {
+            if (strtolower((string) data_get($activityAttributes, 'code')) === strtolower($code)) {
+                return new Activity($activityAttributes, $this->serialize());
+            }
         }
 
         return null;

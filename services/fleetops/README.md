@@ -31,7 +31,7 @@ The gateway runs `auth_request` against IAM, then forwards `X-Service-Authorizat
 ## Compose
 
 ```bash
-docker compose up -d fleetops-service iam-service application gateway frontend
+docker compose up -d fleetops-service iam-service application gateway
 ```
 
 ## Verify

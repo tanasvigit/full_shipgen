@@ -1,0 +1,46 @@
+---
+description: Prefer frontend/mobile fixes; change backend only when no other option
+alwaysApply: true
+---
+
+# Backend stability — client-first changes
+
+Fleetbase backend (`packages/*`, Laravel routes/controllers, Docker services) is well structured. **Do not change it by default.**
+
+## Default approach
+
+1. Fix in **frontend** (`frontend/`), **mobile** (`fleet_mobile-main/`), **E2E helpers**, or **config/env** first.
+2. Align clients to existing **`/int/v1`** contracts — do not invent new endpoints for convenience.
+3. Handle idempotent API responses on the client (e.g. "already dispatched") instead of retrying every legacy URL/method.
+
+## When backend changes are allowed
+
+Only if **all** are true:
+
+- The bug is clearly server-side (wrong validation, missing route that clients legitimately need, data corruption).
+- No workable client-side fix exists (mapper, query param, guard, single canonical API call).
+- The diff is **minimal** and scoped to the failure — no drive-by refactors.
+
+## Do not disturb
+
+- Onboarding/installer safeguards (`InstallerSchemaReset`, `InstallerMigrationPaths`, extension migration registration).
+- Existing API contracts used by console, mobile, and Playwright unless explicitly requested.
+
+## Examples
+
+```javascript
+// ❌ BAD — retry storm across wrong endpoints
+for (const method of ["patch", "post"]) {
+  await api.patch(`/orders/${id}/dispatch`);
+  await api.patch("/orders/dispatch", { orders: [id] });
+}
+
+// ✅ GOOD — one canonical internal call + idempotent handling
+await api.patch("/orders/dispatch", { order: id });
+// treat "already dispatched" as success when appropriate
+```
+
+```text
+❌ BAD — add internal route because mobile guessed wrong path once
+✅ GOOD — fix mobile service to call existing `/drivers/{id}/track`
+```

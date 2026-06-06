@@ -63,7 +63,7 @@ test.describe("FleetOps — workflow chains & state", () => {
     await expect(page.getByTestId("order-workflow-panel")).toBeVisible();
     await page.getByTestId("order-tab-activity").click();
     await expect(
-      page.getByTestId("activity-timeline").or(page.getByTestId("activity-timeline-empty")),
+      page.getByTestId("order-activity-timeline").or(page.getByTestId("order-activity-timeline-empty")),
     ).toBeVisible();
     await page.getByTestId("order-tab-documents").click();
     await expect(page.getByTestId("order-files-list").or(page.getByTestId("order-file-uploader")).or(page.getByTestId("attachment-list-empty"))).toBeVisible();

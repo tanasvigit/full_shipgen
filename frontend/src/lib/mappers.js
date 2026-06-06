@@ -1,11 +1,15 @@
 import { computeEffectivePermissions } from "@/lib/iam/effectivePermissions";
+import { resolveEffectiveOrderStatus } from "@/domain/fleetops/status";
 
 export const statusLabel = (value) =>
   ({
     created: "Created",
     dispatched: "Dispatched",
     en_route: "En Route",
+    arrived: "Arrived",
     delivered: "Delivered",
+    completed: "Completed",
+    delayed: "Delayed",
     canceled: "Canceled",
     online: "Online",
     offline: "Offline",
@@ -96,7 +100,8 @@ export const mapOrder = (order) => {
     email: order?.customer?.email || order?.customer_email || "",
     phone: order?.customer?.phone || order?.customer_phone || "",
   },
-  status: order?.status || "created",
+  status: resolveEffectiveOrderStatus(order),
+  apiStatus: order?.status || "created",
   priority: order?.priority || "medium",
   driverId: order?.driver_uuid || order?.driver_id || order?.driver?.id || null,
   vehicleId: order?.vehicle_uuid || order?.vehicle_id || order?.vehicle?.id || null,
@@ -105,6 +110,8 @@ export const mapOrder = (order) => {
   distance: Number(order?.distance || 0),
   eta: order?.eta || order?.estimated_arrival || "N/A",
   scheduledAt: order?.scheduled_at || order?.created_at || null,
+  dispatched: Boolean(order?.dispatched),
+  dispatchedAt: order?.dispatched_at || null,
   createdAt: order?.created_at || null,
   updatedAt: order?.updated_at || order?.updatedAt || null,
   podRequired: Boolean(order?.pod_required || order?.meta?.pod_required),

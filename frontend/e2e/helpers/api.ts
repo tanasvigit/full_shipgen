@@ -60,10 +60,11 @@ export async function apiLogin(
     data?: unknown[];
   };
 
-  const orgList =
-    orgsPayload.organizations ??
-    orgsPayload.companies ??
-    (Array.isArray(orgsPayload.data) ? orgsPayload.data : []);
+  const orgList = Array.isArray(orgsPayload)
+    ? orgsPayload
+    : orgsPayload.organizations ??
+      orgsPayload.companies ??
+      (Array.isArray(orgsPayload.data) ? orgsPayload.data : []);
 
   const firstOrg = (orgList[0] ?? null) as Record<string, unknown> | null;
   const organization = firstOrg

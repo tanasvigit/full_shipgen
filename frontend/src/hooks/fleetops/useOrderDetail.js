@@ -8,6 +8,7 @@ import {
   optimisticPatchForTransition,
   getTransitionById,
 } from "@/domain/fleetops/workflows/orderWorkflow";
+import { isOrderAlreadyDispatched } from "@/domain/fleetops/guards/orderGuards";
 import { invalidateAfterOrderMutation } from "@/domain/fleetops/mutations/orchestrator";
 import { fleetopsCache } from "@/domain/fleetops/cache/store";
 import { fleetopsCacheKeys } from "@/domain/fleetops/cache/keys";
@@ -105,6 +106,10 @@ export function useOrderDetail(orderId) {
         typeof actionOrId === "string" ? getTransitionById(actionOrId) : actionOrId;
       if (!transition || !orderId) return { ok: false };
 
+      if (transition.id === "dispatch" && isOrderAlreadyDispatched(rawOrder)) {
+        return { ok: true, skipped: true };
+      }
+
       const nextCode = nextActivity?.code || nextActivity?.activity?.code;
       const patch = optimisticPatchForTransition(transition);
 
@@ -112,7 +117,15 @@ export function useOrderDetail(orderId) {
         id: transition.id,
         apply: () => {
           const prev = rawOrder;
-          setRawOrder((o) => (o ? { ...o, ...patch } : o));
+          setRawOrder((o) => {
+            if (!o) return o;
+            const next = { ...o, ...patch };
+            if (transition.id === "dispatch") {
+              next.dispatched = true;
+              next.dispatched_at = next.dispatched_at || new Date().toISOString();
+            }
+            return next;
+          });
           if (transition.to || transition.method) {
             setOptimisticEvents((evts) => [
               createSyntheticEvent({

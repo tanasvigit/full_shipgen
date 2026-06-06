@@ -337,6 +337,7 @@ class FleetOps
                 'see order',
                 'list order',
                 'view order',
+                'update order',
                 'update-route-for order',
                 'assign-vehicle-for order',
                 'see driver',

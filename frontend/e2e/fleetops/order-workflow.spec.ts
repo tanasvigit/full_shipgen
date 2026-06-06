@@ -19,7 +19,9 @@ test.describe("FleetOps — order workflow depth", () => {
     await expect(page.getByTestId("global-loader")).toBeHidden({ timeout: 20_000 });
     await expect(page.getByTestId("order-workflow-panel")).toBeVisible();
     await page.getByTestId("order-tab-activity").click();
-    await expect(page.getByTestId("activity-timeline").or(page.getByTestId("activity-timeline-empty"))).toBeVisible();
+    await expect(
+      page.getByTestId("order-activity-timeline").or(page.getByTestId("order-activity-timeline-empty")),
+    ).toBeVisible();
     await page.getByTestId("order-tab-documents").click();
     await expect(page.getByTestId("order-file-uploader").or(page.getByTestId("order-files-list"))).toBeVisible();
     await page.getByTestId("order-tab-overview").click();
