@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import type {
   Driver,
   FuelLog,
@@ -13,6 +13,7 @@ import type {
 import { fleetService } from "@/src/services/fleetService";
 import { queryKeys } from "@/src/query/keys";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { idsMatch } from "@/src/lib/vehicleMapper";
 
 type FleetDataState = {
   orders: Order[];
@@ -39,54 +40,117 @@ const EMPTY_DATA: FleetDataState = {
 export function useFleetData() {
   const { authReady, isAuthenticated, activeOrganization, canFleetops } = useAuth();
   const companyUuid = activeOrganization?.uuid || null;
+  const enabled = authReady && isAuthenticated;
+  const canList = (resource: string) => canFleetops("list", resource);
 
-  const query = useQuery({
-    queryKey: queryKeys.fleet(companyUuid),
-    enabled: authReady && isAuthenticated,
-    queryFn: async (): Promise<FleetDataState> => {
-      const canList = (resource: string) => canFleetops("list", resource);
-      const results = await Promise.allSettled([
-        fleetService.listOrders(),
-        canList("driver") ? fleetService.listDrivers() : Promise.resolve([]),
-        canList("vehicle") ? fleetService.listVehicles() : Promise.resolve([]),
-        canList("route") ? fleetService.listRoutes() : Promise.resolve([]),
-        canList("place") ? fleetService.listPlaces() : Promise.resolve([]),
-        fleetService.listIssues(),
-        fleetService.listFuelLogs(),
-        fleetService.listNotifications(),
-      ]);
-      const value = <T,>(index: number, fallback: T): T =>
-        results[index].status === "fulfilled" ? (results[index] as PromiseFulfilledResult<T>).value : fallback;
-      return {
-        orders: value(0, []),
-        drivers: value(1, []),
-        vehicles: value(2, []),
-        routes: value(3, []),
-        places: value(4, []),
-        issues: value(5, []),
-        fuelLogs: value(6, []),
-        notifications: value(7, []),
-      };
-    },
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "orders"] as const,
+        enabled,
+        queryFn: () => fleetService.listOrders(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "drivers"] as const,
+        enabled: enabled && canList("driver"),
+        queryFn: () => fleetService.listDrivers(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "vehicles"] as const,
+        enabled: enabled && canList("vehicle"),
+        queryFn: () => fleetService.listVehicles(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "routes"] as const,
+        enabled: enabled && canList("route"),
+        queryFn: () => fleetService.listRoutes(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "places"] as const,
+        enabled: enabled && canList("place"),
+        queryFn: () => fleetService.listPlaces(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "issues"] as const,
+        enabled: enabled && canList("issue"),
+        queryFn: () => fleetService.listIssues(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "fuel"] as const,
+        enabled: enabled && (canList("fuel-report") || canList("fuel_report")),
+        queryFn: () => fleetService.listFuelLogs(),
+      },
+      {
+        queryKey: [...queryKeys.fleet(companyUuid), "notifications"] as const,
+        enabled,
+        queryFn: () => fleetService.listNotifications(),
+      },
+    ],
   });
 
-  const data = query.data || EMPTY_DATA;
-  const loading = query.isLoading || query.isFetching;
-  const error = query.error instanceof Error ? query.error.message : null;
+  const [ordersQ, driversQ, vehiclesQ, routesQ, placesQ, issuesQ, fuelQ, notificationsQ] = results;
+
+  const data: FleetDataState = {
+    orders: ordersQ.data ?? [],
+    drivers: driversQ.data ?? [],
+    vehicles: vehiclesQ.data ?? [],
+    routes: routesQ.data ?? [],
+    places: placesQ.data ?? [],
+    issues: issuesQ.data ?? [],
+    fuelLogs: fuelQ.data ?? [],
+    notifications: notificationsQ.data ?? [],
+  };
+
+  const loading = results.some((query) => query.isLoading);
+  const error =
+    results.find((query) => query.error instanceof Error)?.error instanceof Error
+      ? (results.find((query) => query.error instanceof Error)?.error as Error).message
+      : null;
+
+  const refresh = async () => {
+    await Promise.all(results.map((query) => query.refetch()));
+  };
 
   const helpers = useMemo(
     () => ({
-      findOrder: (id: string) => data.orders.find((item) => item.id === id),
-      findDriver: (id: string) =>
-        data.drivers.find((item) => item.id === id || item.name === id),
+      findOrder: (id: string) => data.orders.find((item) => idsMatch(item.id, id)),
+      findDriver: (id: string) => {
+        if (!id) return undefined;
+        return data.drivers.find((item) => idsMatch(item.id, id));
+      },
       findVehicle: (id: string) => {
         if (!id) return undefined;
-        return data.vehicles.find((item) => item.id === id || item.plate === id);
+        return data.vehicles.find(
+          (item) => idsMatch(item.id, id) || idsMatch(item.publicId, id) || item.plate === id
+        );
       },
-      findRoute: (id: string) => data.routes.find((item) => item.id === id),
+      findRoute: (id: string) => {
+        if (!id) return undefined;
+        return data.routes.find((item) => idsMatch(item.id, id));
+      },
     }),
     [data]
   );
 
-  return { ...data, ...helpers, loading, error, refresh: query.refetch };
+  return {
+    ...data,
+    ...helpers,
+    loading,
+    error,
+    refresh,
+    sectionLoading: {
+      drivers: driversQ.isLoading || driversQ.isFetching,
+      routes: routesQ.isLoading || routesQ.isFetching,
+      places: placesQ.isLoading || placesQ.isFetching,
+      issues: issuesQ.isLoading || issuesQ.isFetching,
+      fuel: fuelQ.isLoading || fuelQ.isFetching,
+    },
+    sectionError: {
+      drivers: driversQ.error instanceof Error ? driversQ.error.message : null,
+      routes: routesQ.error instanceof Error ? routesQ.error.message : null,
+      places: placesQ.error instanceof Error ? placesQ.error.message : null,
+      issues: issuesQ.error instanceof Error ? issuesQ.error.message : null,
+      fuel: fuelQ.error instanceof Error ? fuelQ.error.message : null,
+    },
+  };
 }

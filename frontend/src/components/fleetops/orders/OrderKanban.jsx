@@ -29,7 +29,7 @@ export default function OrderKanban({
   const [pendingMove, setPendingMove] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const columns = statuses?.length ? statuses : ["created", "dispatched", "en_route", "delivered", "canceled"];
+  const columns = statuses?.length ? statuses : ["created", "assigned", "dispatched", "en_route", "delivered", "canceled"];
 
   const handleDrop = async (orderId, targetStatus) => {
     setPendingMove(null);

@@ -8,6 +8,7 @@ export const queryKeys = {
   nextActivity: (companyUuid: string | null, orderRef: string) =>
     ["nextActivity", companyUuid, orderRef] as const,
   fleet: (companyUuid: string | null) => ["fleet", companyUuid] as const,
+  vehicle: (companyUuid: string | null, id: string) => ["vehicle", companyUuid, id] as const,
 };
 
 export { ORDERS_LIST_PARAMS };

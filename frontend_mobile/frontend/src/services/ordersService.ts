@@ -8,14 +8,14 @@ function normalizeOrderRefs(orderId: string, code?: string) {
   return [...new Set(refs)];
 }
 
-const ORDER_INCLUDES =
+export const ORDERS_LIST_INCLUDES =
   "driverAssigned,vehicleAssigned,driverAssigned.vehicle,payload,payload.pickup,payload.dropoff";
 
 export const ordersService = {
   async list(params?: { limit?: number; driver?: string }) {
     const query = new URLSearchParams();
     query.set("limit", String(params?.limit ?? 500));
-    query.set("with", ORDER_INCLUDES);
+    query.set("with", ORDERS_LIST_INCLUDES);
     if (params?.driver) query.set("driver", params.driver);
     const payload = await apiRequest(`/orders?${query.toString()}`);
     return unwrapList<OrderDTO>(payload, ["orders"]).map(mapBackendOrder);

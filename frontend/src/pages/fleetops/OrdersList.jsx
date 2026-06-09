@@ -45,6 +45,7 @@ const OrderKanban = lazy(() => import("@/components/fleetops/orders/OrderKanban"
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "All statuses" },
   { value: "created", label: "Created" },
+  { value: "assigned", label: "Assigned" },
   { value: "dispatched", label: "Dispatched" },
   { value: "en_route", label: "En route" },
   { value: "arrived", label: "Arrived" },

@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "../theme";
 
@@ -9,11 +9,12 @@ type Props = {
   positive?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
   full?: boolean;
+  onPress?: () => void;
 };
 
-export default function KpiCard({ label, value, delta, positive, icon, full }: Props) {
-  return (
-    <View testID={`kpi-${label}`} style={[styles.card, full && styles.full]}>
+export default function KpiCard({ label, value, delta, positive, icon, full, onPress }: Props) {
+  const content = (
+    <>
       <View style={styles.headerRow}>
         <Text style={styles.label}>{label}</Text>
         {icon ? <Ionicons name={icon} size={16} color={colors.textMuted} /> : null}
@@ -24,6 +25,25 @@ export default function KpiCard({ label, value, delta, positive, icon, full }: P
           {delta}
         </Text>
       ) : null}
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        testID={`kpi-${label}`}
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={[styles.card, full && styles.full]}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View testID={`kpi-${label}`} style={[styles.card, full && styles.full]}>
+      {content}
     </View>
   );
 }

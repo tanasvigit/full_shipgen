@@ -8,6 +8,7 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useFleetData } from "@/src/hooks/useFleetData";
 import OrgSwitchSheet from "@/src/components/OrgSwitchSheet";
 import { resolveDriverTrackId, isDriverUser } from "@/src/lib/driver";
+import { useDriverVehicle } from "@/src/hooks/useDriverVehicle";
 import { driverService } from "@/src/services/driverService";
 import { deviceService } from "@/src/services/deviceService";
 import { loadDriverPreferences, saveDriverPreferences } from "@/src/utils/preferences";
@@ -29,6 +30,7 @@ export default function Profile() {
   const [orgSheetOpen, setOrgSheetOpen] = useState(false);
   const driverMode = isDriverUser(user);
   const driverTrackId = resolveDriverTrackId(user);
+  const { vehicle: myVehicle } = useDriverVehicle();
 
   useEffect(() => {
     void loadDriverPreferences().then((prefs) => {
@@ -107,9 +109,46 @@ export default function Profile() {
 
         <View style={styles.statsRow}>
           <Stat label="Orders" value={String(orders.length)} />
-          <Stat label="Vehicles" value={String(vehicles.length)} />
-          <Stat label="Drivers" value={String(drivers.length)} />
+          {driverMode ? (
+            <Stat label="Vehicle" value={myVehicle ? "1" : "0"} />
+          ) : (
+            <>
+              <Stat label="Vehicles" value={String(vehicles.length)} />
+              <Stat label="Drivers" value={String(drivers.length)} />
+            </>
+          )}
         </View>
+
+        {driverMode ? (
+          <Section title="My vehicle">
+            {myVehicle ? (
+              <TouchableOpacity
+                testID="my-vehicle-row"
+                style={styles.vehicleCard}
+                onPress={() => router.push(`/vehicle/${myVehicle.id}`)}
+              >
+                <View style={styles.vehicleIcon}>
+                  <Ionicons name="car-sport-outline" size={22} color={colors.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.vehiclePlate}>{myVehicle.plate}</Text>
+                  <Text style={styles.vehicleModel}>{myVehicle.model}</Text>
+                  <Text style={styles.vehicleMeta}>
+                    {myVehicle.type} · {myVehicle.fuel}% fuel
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.vehicleEmpty}>
+                <Text style={styles.vehicleEmptyText}>No vehicle assigned yet.</Text>
+                <Text style={styles.vehicleEmptyHint}>
+                  Your dispatcher can assign a vehicle to your driver profile or active order.
+                </Text>
+              </View>
+            )}
+          </Section>
+        ) : null}
 
         <Section title="Workspace">
           <Row
@@ -374,6 +413,27 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: "center" },
   statValue: { fontSize: 18, fontWeight: "900", color: colors.text },
   statLabel: { fontSize: 10, fontWeight: "700", color: colors.textMuted, marginTop: 2, letterSpacing: 1 },
+  vehicleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    gap: spacing.md,
+  },
+  vehicleIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  vehiclePlate: { fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },
+  vehicleModel: { fontSize: 15, fontWeight: "800", color: colors.text, marginTop: 2 },
+  vehicleMeta: { fontSize: 11, color: colors.textSecondary, marginTop: 4, fontWeight: "600" },
+  vehicleEmpty: { paddingHorizontal: spacing.lg, paddingVertical: spacing.lg },
+  vehicleEmptyText: { fontSize: 14, fontWeight: "700", color: colors.text },
+  vehicleEmptyHint: { fontSize: 12, color: colors.textMuted, marginTop: 6, lineHeight: 18 },
   section: { marginTop: spacing.xl },
   sectionTitle: {
     fontSize: 10,

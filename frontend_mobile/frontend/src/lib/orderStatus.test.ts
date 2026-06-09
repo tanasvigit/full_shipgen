@@ -4,6 +4,7 @@ import {
   canStartTrip,
   matchesDriverBucket,
   orderBucket,
+  resolveEffectiveOrderStatus,
 } from "@/src/lib/orderStatus";
 
 describe("orderStatus", () => {
@@ -21,5 +22,11 @@ describe("orderStatus", () => {
     expect(canStartTrip("started")).toBe(false);
     expect(canCompleteOrder("started")).toBe(true);
     expect(canCompleteOrder("dispatched")).toBe(false);
+  });
+
+  it("maps started flag to started status for assigned orders", () => {
+    expect(
+      resolveEffectiveOrderStatus({ status: "dispatched", started: true, started_at: "2026-01-01" })
+    ).toBe("started");
   });
 });

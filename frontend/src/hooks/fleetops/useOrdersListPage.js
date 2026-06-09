@@ -7,6 +7,7 @@ import {
 } from "@/lib/fleetops/ordersListQuery";
 import { fleetopsService } from "@/services/fleetops";
 import { mapOrder } from "@/lib/mappers";
+import { matchesOrderStatusFilter } from "@/domain/fleetops/status";
 import { invalidateCachedQuery } from "@/hooks/fleetops/useFleetopsQueryCache";
 
 export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrders = [] } = {}) {
@@ -31,7 +32,7 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
       if (isDemoMode) {
         let rows = demoOrders.map(mapOrder);
         if (queryState.status !== "all") {
-          rows = rows.filter((o) => String(o.status).toLowerCase() === queryState.status.toLowerCase());
+          rows = rows.filter((o) => matchesOrderStatusFilter(o, queryState.status));
         }
         if (queryState.without_driver) {
           rows = rows.filter((o) => !o.driverId);
@@ -59,7 +60,11 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
         invalidateCachedQuery("fleetops:orders");
         const apiParams = buildOrdersListApiParams(queryState);
         const { rows, meta: pageMeta } = await fleetopsService.listOrdersPage(apiParams);
-        setOrders(rows.map(mapOrder));
+        let mapped = rows.map(mapOrder);
+        if (queryState.status !== "all") {
+          mapped = mapped.filter((o) => matchesOrderStatusFilter(o, queryState.status));
+        }
+        setOrders(mapped);
         setMeta(pageMeta);
       } finally {
         if (!background) setLoading(false);

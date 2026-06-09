@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
 import TripMap from "@/src/maps/tripMap";
-import { tripMarkersFromOrder } from "@/src/maps/coordinates";
+import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
 import { SyncBanner } from "@/src/sync/indicators";
 import { useSyncStatus } from "@/src/hooks/useSyncStatus";
 import StatusBadge from "@/src/components/StatusBadge";
@@ -53,7 +53,7 @@ export default function Tracking() {
   }, [engineState.lastPoint, selectedOrder]);
 
   const mapModel = mapOrder ? tripMarkersFromOrder(mapOrder) : null;
-  const mapMarkers = mapModel ? [mapModel.pickup, mapModel.dropoff, mapModel.driver].filter(Boolean) : [];
+  const mapMarkers = mapModel ? listTripMapMarkers(mapModel) : [];
   const mapRoute = mapModel?.route ?? [];
 
   return (

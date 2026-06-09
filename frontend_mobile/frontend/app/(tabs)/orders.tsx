@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   FlatList,
@@ -22,11 +21,29 @@ import { SyncBanner } from "@/src/sync/indicators";
 
 const FILTERS: DriverOrderBucket[] = ["assigned", "active", "completed"];
 
+const FILTER_LABELS: Record<DriverOrderBucket, string> = {
+  assigned: "Assigned",
+  active: "Active",
+  completed: "Completed",
+};
+
 export default function Orders() {
   const router = useRouter();
   const [filter, setFilter] = useState<DriverOrderBucket>("assigned");
   const [query, setQuery] = useState("");
-  const { orders, loading, error, refresh } = useDriverOrders();
+  const { orders, ordersForBucket, loading, error, refresh } = useDriverOrders();
+
+  const filterCounts = useMemo(
+    () =>
+      FILTERS.reduce(
+        (counts, bucket) => {
+          counts[bucket] = ordersForBucket(bucket).length;
+          return counts;
+        },
+        { assigned: 0, active: 0, completed: 0 } as Record<DriverOrderBucket, number>
+      ),
+    [ordersForBucket]
+  );
   const permissions = usePermissions();
   const { snapshot: syncSnapshot, retrySync } = useSyncStatus();
 
@@ -81,24 +98,33 @@ export default function Orders() {
         ) : null}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f}
-            testID={`filter-${f}`}
-            onPress={() => setFilter(f)}
-            style={[styles.chip, filter === f && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, filter === f && styles.chipTextActive]}>
-              {f.replace("_", " ").toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.filterRow}>
+        {FILTERS.map((bucket) => {
+          const active = filter === bucket;
+          const count = filterCounts[bucket];
+          return (
+            <TouchableOpacity
+              key={bucket}
+              testID={`filter-${bucket}`}
+              onPress={() => setFilter(bucket)}
+              style={[styles.chip, active && styles.chipActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${FILTER_LABELS[bucket]}, ${count} orders`}
+            >
+              <Text
+                style={[styles.chipLabel, active && styles.chipLabelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {FILTER_LABELS[bucket]}
+              </Text>
+              <Text style={[styles.chipCount, active && styles.chipCountActive]}>{count}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       <FlatList
         data={filtered}
@@ -203,18 +229,46 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   searchInput: { flex: 1, marginLeft: 8, color: colors.text, fontSize: 13 },
-  filterRow: { paddingHorizontal: spacing.lg, gap: 6, paddingBottom: spacing.md },
+  filterRow: {
+    flexDirection: "row",
+    paddingHorizontal: spacing.lg,
+    gap: 8,
+    paddingBottom: spacing.md,
+  },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.sm,
+    flex: 1,
+    minWidth: 0,
+    minHeight: 52,
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
   chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  chipText: { fontSize: 10, fontWeight: "700", color: colors.textSecondary, letterSpacing: 0.6 },
-  chipTextActive: { color: "#fff" },
+  chipLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: colors.textSecondary,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    textAlign: "center",
+    width: "100%",
+  },
+  chipLabelActive: { color: "#fff" },
+  chipCount: {
+    marginTop: 4,
+    fontSize: 16,
+    fontWeight: "900",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+    textAlign: "center",
+    minWidth: 24,
+  },
+  chipCountActive: { color: "#fff" },
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl },
   row: {
     backgroundColor: colors.surface,

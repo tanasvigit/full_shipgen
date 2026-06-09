@@ -409,7 +409,7 @@ export default function OrderDetail({
       open={editDialog.open}
       onOpenChange={editDialog.setOpen}
       title="Edit order"
-      description="Update assignments, route, notes, and operational fields."
+      description={`Update assignments, route, notes, and operational fields. Current status: ${statusLabel(order.status)}.`}
       submitLabel="Save changes"
       busy={editDialog.busy}
       error={editDialog.error}
@@ -473,8 +473,8 @@ export default function OrderDetail({
           onOpenChange={setAssignOpen}
           orderId={id}
           order={order}
-          initialDriverId={driver?.id || rawOrder?.driver_uuid}
-          initialVehicleId={vehicle?.id || rawOrder?.vehicle_uuid}
+          initialDriverId={driver?.id || rawOrder?.driver_assigned_uuid || rawOrder?.driver_uuid}
+          initialVehicleId={vehicle?.id || rawOrder?.vehicle_assigned_uuid || rawOrder?.vehicle_uuid}
           onAssigned={refetch}
         />
         <OrderLabelDialog
@@ -587,8 +587,8 @@ export default function OrderDetail({
         onOpenChange={setAssignOpen}
         orderId={id}
         order={order}
-        initialDriverId={driver?.id || rawOrder?.driver_uuid}
-        initialVehicleId={vehicle?.id || rawOrder?.vehicle_uuid}
+        initialDriverId={driver?.id || rawOrder?.driver_assigned_uuid || rawOrder?.driver_uuid}
+        initialVehicleId={vehicle?.id || rawOrder?.vehicle_assigned_uuid || rawOrder?.vehicle_uuid}
         onAssigned={refetch}
       />
       <OrderLabelDialog

@@ -2,6 +2,7 @@
 
 export const ORDER_STATUSES = [
   "created",
+  "assigned",
   "dispatched",
   "en_route",
   "arrived",
@@ -44,22 +45,45 @@ export function normalizeStatus(value) {
     .replace(/\s+/g, "_");
 }
 
+function orderHasDriverAssigned(order = {}) {
+  return Boolean(
+    order.has_driver_assigned ??
+      order.hasDriverAssigned ??
+      order.driver_assigned_uuid ??
+      order.driverId,
+  );
+}
+
 /**
- * UI/workflow status when API `status` lags behind boolean flags
- * (e.g. dispatched=true but status still "created" after bulk dispatch).
+ * UI/workflow status when API `status` lags behind assignment/dispatch flags.
+ * - created + driver, not dispatched → assigned
+ * - created + dispatched flag → dispatched
+ * - started flag with early status → en_route
  */
 export function resolveEffectiveOrderStatus(order = {}) {
   const status = normalizeStatus(order.status);
   const dispatched = Boolean(order.dispatched || order.dispatchedAt || order.dispatched_at);
   const started = Boolean(order.started || order.startedAt || order.started_at);
+  const hasDriver = orderHasDriverAssigned(order);
 
-  if (started && ["created", "dispatched"].includes(status)) {
-    return "en_route";
+  if (started && !isTerminalOrderStatus(status)) {
+    if (["created", "assigned", "dispatched", "scheduled"].includes(status)) {
+      return "en_route";
+    }
   }
-  if (dispatched && status === "created") {
+  if (dispatched && (status === "created" || status === "assigned")) {
     return "dispatched";
   }
+  if (!dispatched && hasDriver && status === "created") {
+    return "assigned";
+  }
   return status;
+}
+
+/** Client-side filter after mapOrder — mapped rows already carry effective status. */
+export function matchesOrderStatusFilter(mappedOrder, filterStatus) {
+  if (!filterStatus || filterStatus === "all") return true;
+  return normalizeStatus(mappedOrder?.status) === normalizeStatus(filterStatus);
 }
 
 export function isTerminalOrderStatus(status) {

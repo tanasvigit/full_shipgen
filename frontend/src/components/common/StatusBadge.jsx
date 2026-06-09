@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 
 const STATUS_TONE = {
     created: "neutral",
+    assigned: "info",
     dispatched: "info",
     en_route: "warning",
     delivered: "success",

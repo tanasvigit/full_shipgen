@@ -1,31 +1,64 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import EntityImage from "@/src/components/EntityImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { colors, radius, spacing } from "@/src/theme";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { fleetService } from "@/src/services/fleetService";
+import { queryKeys } from "@/src/query/keys";
+import { idsMatch } from "@/src/lib/vehicleMapper";
 
 export default function VehicleDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { authReady, isAuthenticated, activeOrganization } = useAuth();
+  const companyUuid = activeOrganization?.uuid || null;
   const { findVehicle, findDriver, orders, issues, fuelLogs } = useFleetData();
-  const vehicle = findVehicle(id);
+  const cached = findVehicle(id);
+
+  const vehicleQuery = useQuery({
+    queryKey: queryKeys.vehicle(companyUuid, id),
+    enabled: authReady && isAuthenticated && Boolean(id),
+    queryFn: () => fleetService.getVehicle(id),
+    initialData: cached,
+    staleTime: cached ? 30_000 : 0,
+  });
+
+  const vehicle = vehicleQuery.data;
+  const loading = vehicleQuery.isLoading && !vehicle;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="Vehicle" back />
+        <View style={styles.loader}>
+          <ActivityIndicator color={colors.text} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!vehicle) {
     return (
       <SafeAreaView style={styles.safe}>
         <ScreenHeader title="Vehicle" back />
+        <View style={styles.loader}>
+          <Text style={styles.missingText}>Vehicle not found.</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   const driver = findDriver(vehicle.driverId);
-  const vehicleOrders = orders.filter((o) => o.vehicleId === vehicle.id);
-  const vehicleIssues = issues.filter((i) => i.vehicleId === vehicle.id);
-  const fuel = fuelLogs.filter((f) => f.vehicleId === vehicle.id);
+  const driverName = driver?.name || vehicle.driverName;
+  const vehicleOrders = orders.filter((o) => idsMatch(o.vehicleId, vehicle.id));
+  const vehicleIssues = issues.filter((i) => idsMatch(i.vehicleId, vehicle.id));
+  const fuel = fuelLogs.filter((f) => idsMatch(f.vehicleId, vehicle.id));
   const fuelColor =
     vehicle.fuel < 20 ? colors.error : vehicle.fuel < 50 ? colors.warning : colors.success;
 
@@ -45,7 +78,11 @@ export default function VehicleDetail() {
 
         <View style={styles.metaGrid}>
           <MetaCard label="Type" value={vehicle.type} icon="cube-outline" />
-          <MetaCard label="Mileage" value={`${vehicle.mileage.toLocaleString()} mi`} icon="speedometer-outline" />
+          <MetaCard
+            label="Mileage"
+            value={`${vehicle.mileage.toLocaleString()} mi`}
+            icon="speedometer-outline"
+          />
         </View>
 
         <View style={styles.card}>
@@ -64,20 +101,24 @@ export default function VehicleDetail() {
           <InfoRow icon="calendar-outline" label="Next service" value={vehicle.nextService} />
         </View>
 
-        {driver ? (
+        {driver || driverName ? (
           <View style={styles.card}>
             <Text style={styles.sectionLabel}>ASSIGNED DRIVER</Text>
-            <TouchableOpacity
-              style={styles.driverCard}
-              onPress={() => router.push(`/driver/${driver.id}`)}
-            >
-              <EntityImage uri={driver.avatar} label={driver.name} style={styles.driverAvatar} rounded />
-              <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <Text style={styles.driverName}>{driver.name}</Text>
-                <Text style={styles.driverSub}>★ {driver.rating} · {driver.trips} trips</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-            </TouchableOpacity>
+            {driver ? (
+              <TouchableOpacity
+                style={styles.driverCard}
+                onPress={() => router.push(`/driver/${driver.id}`)}
+              >
+                <EntityImage uri={driver.avatar} label={driver.name} style={styles.driverAvatar} rounded />
+                <View style={{ flex: 1, marginLeft: spacing.md }}>
+                  <Text style={styles.driverName}>{driver.name}</Text>
+                  <Text style={styles.driverSub}>★ {driver.rating} · {driver.trips} trips</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.driverName}>{driverName}</Text>
+            )}
           </View>
         ) : null}
 
@@ -127,6 +168,8 @@ function MiniStat({ label, value, icon }: { label: string; value: number; icon: 
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  loader: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.lg },
+  missingText: { fontSize: 13, color: colors.textMuted, fontWeight: "600" },
   scroll: { padding: spacing.lg, gap: spacing.md },
   hero: { width: "100%", height: 180, borderRadius: radius.lg, backgroundColor: colors.surfaceAlt },
   headerCard: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },

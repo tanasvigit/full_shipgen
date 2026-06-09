@@ -60,16 +60,22 @@ export type Driver = {
 
 export type Vehicle = {
   id: string;
+  publicId?: string;
   plate: string;
   model: string;
-  type: "Truck" | "Van" | "Bike" | "Car";
+  make?: string;
+  year?: string;
+  type: string;
   status: "active" | "idle" | "maintenance" | "offline";
   fuel: number;
   mileage: number;
   driverId: string;
+  driverName?: string;
   lastService: string;
   nextService: string;
   image: string;
+  vin?: string;
+  online?: boolean;
 };
 
 export type Route = {
@@ -80,6 +86,7 @@ export type Route = {
   duration: string;
   status: "active" | "scheduled" | "completed";
   driverId: string;
+  driverName?: string;
   vehicleId: string;
   waypoints: { name: string; address: string; eta: string; done: boolean }[];
 };
@@ -97,6 +104,7 @@ export type Issue = {
   id: string;
   title: string;
   vehicleId: string;
+  vehicleName?: string;
   reportedBy: string;
   priority: "low" | "medium" | "high";
   status: "open" | "in_progress" | "resolved";
@@ -107,7 +115,9 @@ export type Issue = {
 export type FuelLog = {
   id: string;
   vehicleId: string;
+  vehicleName?: string;
   driverId: string;
+  driverName?: string;
   amount: number;
   cost: number;
   date: string;

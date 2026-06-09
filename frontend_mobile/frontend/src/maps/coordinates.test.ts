@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tripMarkersFromOrder } from "@/src/maps/coordinates";
+import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
 
 describe("trip map coordinates", () => {
   it("returns null when no coordinates are available", () => {
@@ -23,5 +23,22 @@ describe("trip map coordinates", () => {
     });
     expect(model?.pickup.kind).toBe("pickup");
     expect(model?.route.length).toBe(2);
+    expect(model?.markers.map((marker) => marker.id)).toEqual(["pickup", "dropoff"]);
+  });
+
+  it("does not duplicate pickup when driver location is missing", () => {
+    const model = tripMarkersFromOrder({
+      id: "order-1",
+      code: "ORD-1",
+      pickup: "Warehouse A",
+      dropoff: "Customer B",
+      pickupCoordinate: { latitude: 40.7, longitude: -74.0 },
+      dropoffCoordinate: { latitude: 40.7, longitude: -74.0 },
+    });
+    expect(model?.driver).toBeUndefined();
+    expect(listTripMapMarkers(model!)).toEqual([
+      expect.objectContaining({ id: "pickup" }),
+      expect.objectContaining({ id: "dropoff" }),
+    ]);
   });
 });

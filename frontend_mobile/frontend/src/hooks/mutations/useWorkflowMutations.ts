@@ -63,7 +63,11 @@ export function useStartTripMutation() {
     onMutate: async (orderId) => {
       const previous = snapshot();
       if (previous) {
-        setOrders(patchOrderStatus(previous, orderId, "started"));
+        setOrders(
+          patchOrderStatus(previous, orderId, "started").map((order) =>
+            order.id === orderId ? { ...order, started: true } : order
+          )
+        );
       }
       return { previous };
     },

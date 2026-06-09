@@ -4,6 +4,7 @@ import { PageLoader } from "@/components/loaders";
 import { useDetailTabData } from "@/hooks/fleetops/useDetailTabData";
 import { fleetopsService } from "@/services/fleetops";
 import { positionToLatLng } from "@/lib/fleetops/detailApi";
+import { statusLabel } from "@/lib/mappers";
 
 export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
   const { data: tracker, loading } = useDetailTabData(
@@ -72,7 +73,7 @@ export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
         <div className="px-4 py-2.5 border-b border-black/[0.08] flex justify-between overline">
           <span>Live tracking</span>
           <span className="font-mono text-[10px] text-[#4B5563]">
-            {tracker?.status || order?.status || "—"}
+            {statusLabel(order?.status) || tracker?.status || "—"}
           </span>
         </div>
         <div className="h-[420px]">

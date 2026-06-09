@@ -63,7 +63,13 @@ export function orderValuesFromApi(raw, lookups = {}) {
     customerId: String(raw.customer_uuid || raw.customer?.uuid || ""),
     facilitatorId: String(raw.facilitator_uuid || raw.facilitator?.uuid || ""),
     driverId: String(raw.driver_uuid || raw.driver_assigned_uuid || raw.driver?.uuid || ""),
-    vehicleId: String(raw.vehicle_uuid || raw.vehicle_assigned_uuid || ""),
+    vehicleId: String(
+      raw.vehicle_uuid ||
+        raw.vehicle_assigned_uuid ||
+        raw.vehicle_assigned?.uuid ||
+        raw.vehicle?.uuid ||
+        "",
+    ),
     serviceType: raw.service_type || "",
     status: raw.status || "created",
     priority: raw.priority || "medium",

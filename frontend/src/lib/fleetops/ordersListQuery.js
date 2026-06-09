@@ -39,8 +39,21 @@ export function buildOrdersListApiParams(state) {
     params.search = state.search.trim();
   }
   if (state.status && state.status !== "all") {
-    params.status = state.status;
-    params["filter[status]"] = state.status;
+    // API `status` is the raw DB column; fetch a superset then refine client-side via effective status.
+    if (state.status === "dispatched") {
+      params.status = "created,dispatched";
+      params["filter[status]"] = "created,dispatched";
+    } else if (state.status === "assigned" || state.status === "created") {
+      params.status = "created";
+      params["filter[status]"] = "created";
+      if (state.status === "created") {
+        params.without_driver = 1;
+        params["filter[without_driver]"] = 1;
+      }
+    } else {
+      params.status = state.status;
+      params["filter[status]"] = state.status;
+    }
   }
   if (state.without_driver) {
     params.without_driver = 1;

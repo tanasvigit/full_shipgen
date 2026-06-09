@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -9,57 +9,98 @@ import { useFleetData } from "@/src/hooks/useFleetData";
 
 export default function RoutesList() {
   const router = useRouter();
-  const { routes, findDriver } = useFleetData();
+  const { routes, findDriver, sectionLoading, sectionError, refresh } = useFleetData();
+  const loading = sectionLoading.routes;
+  const error = sectionError.routes;
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScreenHeader title="Routes" subtitle={`${routes.length} routes`} back rightIcon="add" />
-      <FlatList
-        data={routes}
-        keyExtractor={(r) => r.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => {
-          const d = findDriver(item.driverId);
-          return (
-            <TouchableOpacity
-              testID={`route-row-${item.id}`}
-              style={styles.row}
-              onPress={() => router.push(`/route/${item.id}`)}
-            >
-              <View style={styles.top}>
-                <Text style={styles.name}>{item.name}</Text>
-                <StatusBadge status={item.status} />
-              </View>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-                  <Text style={styles.metaText}>{item.stops} stops</Text>
+      {error ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={() => void refresh()}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+      {loading && !routes.length ? (
+        <View style={styles.loader}>
+          <ActivityIndicator color={colors.text} />
+        </View>
+      ) : (
+        <FlatList
+          data={routes}
+          keyExtractor={(r) => r.id}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={loading && routes.length > 0} onRefresh={() => void refresh()} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>No routes yet.</Text>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const d = findDriver(item.driverId);
+            const driverLabel = d?.name || item.driverName || "";
+            return (
+              <TouchableOpacity
+                testID={`route-row-${item.id}`}
+                style={styles.row}
+                onPress={() => router.push(`/route/${item.id}`)}
+              >
+                <View style={styles.top}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <StatusBadge status={item.status} />
                 </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="navigate-outline" size={12} color={colors.textMuted} />
-                  <Text style={styles.metaText}>{item.distance}</Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+                    <Text style={styles.metaText}>{item.stops} stops</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="navigate-outline" size={12} color={colors.textMuted} />
+                    <Text style={styles.metaText}>{item.distance}</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="time-outline" size={12} color={colors.textMuted} />
+                    <Text style={styles.metaText}>{item.duration}</Text>
+                  </View>
                 </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="time-outline" size={12} color={colors.textMuted} />
-                  <Text style={styles.metaText}>{item.duration}</Text>
-                </View>
-              </View>
-              {d ? (
-                <View style={styles.driverRow}>
-                  <Ionicons name="person-outline" size={11} color={colors.textMuted} />
-                  <Text style={styles.driverText}>{d.name}</Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          );
-        }}
-      />
+                {driverLabel ? (
+                  <View style={styles.driverRow}>
+                    <Ionicons name="person-outline" size={11} color={colors.textMuted} />
+                    <Text style={styles.driverText}>{driverLabel}</Text>
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg },
+  empty: { paddingVertical: spacing.xxl, alignItems: "center" },
+  emptyText: { fontSize: 13, color: colors.textMuted, fontWeight: "600" },
+  errorBanner: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.errorBg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  errorText: { flex: 1, fontSize: 12, color: colors.error, fontWeight: "600", marginRight: 8 },
+  retryText: { fontSize: 12, fontWeight: "800", color: colors.brand },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,

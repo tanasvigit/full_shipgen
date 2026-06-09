@@ -13,6 +13,15 @@ type TripMapProps = {
   activeMarkerId?: string;
 };
 
+function dedupeTripMarkers(markers: TripMapMarker[]) {
+  const seen = new Set<string>();
+  return markers.filter((marker) => {
+    if (seen.has(marker.id)) return false;
+    seen.add(marker.id);
+    return true;
+  });
+}
+
 function stylizedMarkersFromTrip(markers: TripMapMarker[]) {
   if (markers.length === 0) return [];
 
@@ -24,27 +33,36 @@ function stylizedMarkersFromTrip(markers: TripMapMarker[]) {
   const maxLng = Math.max(...longitudes);
   const latSpan = Math.max(maxLat - minLat, 0.0001);
   const lngSpan = Math.max(maxLng - minLng, 0.0001);
+  const seen = new Map<string, number>();
 
-  return markers.map((marker) => ({
-    id: marker.id,
-    x: 0.12 + ((marker.coordinate.longitude - minLng) / lngSpan) * 0.76,
-    y: 0.14 + (1 - (marker.coordinate.latitude - minLat) / latSpan) * 0.72,
-    color: markerPinColor(marker.kind),
-    label: marker.title,
-    icon: marker.kind === "driver" ? ("car" as const) : ("flag" as const),
-  }));
+  return markers.map((marker) => {
+    const coordKey = `${marker.coordinate.latitude.toFixed(5)},${marker.coordinate.longitude.toFixed(5)}`;
+    const overlap = seen.get(coordKey) ?? 0;
+    seen.set(coordKey, overlap + 1);
+    const offset = overlap * 0.05;
+
+    return {
+      id: marker.id,
+      x: Math.min(0.88, 0.12 + ((marker.coordinate.longitude - minLng) / lngSpan) * 0.76 + offset),
+      y: Math.min(0.86, 0.14 + (1 - (marker.coordinate.latitude - minLat) / latSpan) * 0.72 - offset),
+      color: markerPinColor(marker.kind),
+      label: marker.title,
+      icon: marker.kind === "driver" ? ("car" as const) : ("flag" as const),
+    };
+  });
 }
 
 export default function TripMap({ markers, route = [], height = 320, activeMarkerId }: TripMapProps) {
   const mapRef = useRef<MapView | null>(null);
+  const normalizedMarkers = useMemo(() => dedupeTripMarkers(markers), [markers]);
 
   const region = useMemo(() => {
-    const points = [...markers.map((m) => m.coordinate), ...route];
+    const points = [...normalizedMarkers.map((m) => m.coordinate), ...route];
     return defaultRegion(points);
-  }, [markers, route]);
+  }, [normalizedMarkers, route]);
 
   const polyline = useMemo(() => snapRoutePreview(buildRoutePolyline(route)), [route]);
-  const stylizedMarkers = useMemo(() => stylizedMarkersFromTrip(markers), [markers]);
+  const stylizedMarkers = useMemo(() => stylizedMarkersFromTrip(normalizedMarkers), [normalizedMarkers]);
 
   if (!isNativeMapsSupported()) {
     return <StylizedMap markers={stylizedMarkers} height={height} />;
@@ -58,9 +76,9 @@ export default function TripMap({ markers, route = [], height = 320, activeMarke
         provider={Platform.OS === "android" ? PROVIDER_DEFAULT : undefined}
         initialRegion={region}
         onMapReady={() => {
-          if (!mapRef.current || markers.length === 0) return;
+          if (!mapRef.current || normalizedMarkers.length === 0) return;
           mapRef.current.fitToCoordinates(
-            markers.map((marker) => marker.coordinate),
+            normalizedMarkers.map((marker) => marker.coordinate),
             {
               edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
               animated: true,
@@ -75,7 +93,7 @@ export default function TripMap({ markers, route = [], height = 320, activeMarke
             strokeWidth={4}
           />
         ) : null}
-        {markers.map((marker) => (
+        {normalizedMarkers.map((marker) => (
           <Marker
             key={marker.id}
             coordinate={marker.coordinate}

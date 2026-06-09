@@ -8,7 +8,7 @@ export const ORDER_TRANSITIONS = {
     method: "dispatch",
     confirmTitle: "Dispatch order?",
     category: "workflow",
-    from: ["created"],
+    from: ["created", "assigned"],
     to: "dispatched",
   },
   start: {
@@ -49,7 +49,7 @@ export const ORDER_TRANSITIONS = {
     confirmTitle: "Cancel order?",
     category: "workflow",
     destructive: true,
-    from: ["created", "dispatched", "en_route", "arrived", "delayed"],
+    from: ["created", "assigned", "dispatched", "en_route", "arrived", "delayed"],
     to: "canceled",
   },
 };

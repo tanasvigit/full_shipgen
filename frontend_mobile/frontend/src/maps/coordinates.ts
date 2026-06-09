@@ -56,7 +56,23 @@ export function tripMarkersFromOrder(order: OrderMapInput) {
   return {
     pickup: pickup || markers[0],
     dropoff: dropoff || markers[markers.length - 1],
-    driver: driver || markers[0],
+    driver,
     route,
+    /** Unique markers safe to pass directly to TripMap. */
+    markers,
   };
+}
+
+/** Build a render-safe marker list without duplicate React keys. */
+export function listTripMapMarkers(
+  model: NonNullable<ReturnType<typeof tripMarkersFromOrder>>
+): TripMapMarker[] {
+  const seen = new Set<string>();
+  const list: TripMapMarker[] = [];
+  for (const marker of [model.pickup, model.dropoff, model.driver]) {
+    if (!marker || seen.has(marker.id)) continue;
+    seen.add(marker.id);
+    list.push(marker);
+  }
+  return list.length > 0 ? list : model.markers;
 }

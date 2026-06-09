@@ -10,7 +10,7 @@ import * as Haptics from "expo-haptics";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import TripMap from "@/src/maps/tripMap";
-import { tripMarkersFromOrder } from "@/src/maps/coordinates";
+import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
 import { SyncBanner, SyncChip } from "@/src/sync/indicators";
 import { useSyncStatus } from "@/src/hooks/useSyncStatus";
 import { ConflictList } from "@/src/offline/conflicts/ui";
@@ -232,9 +232,9 @@ export default function OrderDetail() {
         {mapModel ? (
           <TripMap
             height={200}
-            markers={[mapModel.pickup, mapModel.dropoff, mapModel.driver]}
+            markers={listTripMapMarkers(mapModel)}
             route={mapModel.route}
-            activeMarkerId="driver"
+            activeMarkerId={mapModel.driver ? "driver" : undefined}
           />
         ) : null}
         {syncSnapshot && syncSnapshot.pendingCount > 0 ? (

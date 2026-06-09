@@ -174,7 +174,7 @@ export function buildOrderPayload(values, { orderConfigKey } = {}) {
     ...(values.driverId
       ? { driver_assigned_uuid: values.driverId, driver: values.driverId }
       : {}),
-    vehicle_assigned: values.vehicleId,
+    ...(values.vehicleId ? { vehicle_assigned_uuid: values.vehicleId } : {}),
     service_type: values.serviceType,
     status: values.status,
     priority: values.priority,

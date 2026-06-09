@@ -4,6 +4,7 @@ import { resolveEffectiveOrderStatus } from "@/domain/fleetops/status";
 export const statusLabel = (value) =>
   ({
     created: "Created",
+    assigned: "Assigned",
     dispatched: "Dispatched",
     en_route: "En Route",
     arrived: "Arrived",
@@ -103,15 +104,34 @@ export const mapOrder = (order) => {
   status: resolveEffectiveOrderStatus(order),
   apiStatus: order?.status || "created",
   priority: order?.priority || "medium",
-  driverId: order?.driver_uuid || order?.driver_id || order?.driver?.id || null,
-  vehicleId: order?.vehicle_uuid || order?.vehicle_id || order?.vehicle?.id || null,
+  driverId:
+    order?.driver_assigned_uuid ||
+    order?.driver_uuid ||
+    order?.driver_id ||
+    order?.driver_assigned?.uuid ||
+    order?.driver?.uuid ||
+    order?.driver?.id ||
+    null,
+  vehicleId:
+    order?.vehicle_assigned_uuid ||
+    order?.vehicle_uuid ||
+    order?.vehicle_id ||
+    order?.vehicle_assigned?.uuid ||
+    order?.vehicle?.uuid ||
+    order?.vehicle?.id ||
+    null,
   pickup: mapPlace(order?.pickup || order?.pickup_place || {}),
   dropoff: mapPlace(order?.dropoff || order?.dropoff_place || {}),
   distance: Number(order?.distance || 0),
   eta: order?.eta || order?.estimated_arrival || "N/A",
   scheduledAt: order?.scheduled_at || order?.created_at || null,
-  dispatched: Boolean(order?.dispatched),
+  dispatched: Boolean(order?.dispatched || order?.dispatched_at),
   dispatchedAt: order?.dispatched_at || null,
+  started: Boolean(order?.started || order?.started_at),
+  startedAt: order?.started_at || null,
+  hasDriverAssigned: Boolean(
+    order?.has_driver_assigned ?? order?.driver_assigned_uuid ?? order?.driverId,
+  ),
   createdAt: order?.created_at || null,
   updatedAt: order?.updated_at || order?.updatedAt || null,
   podRequired: Boolean(order?.pod_required || order?.meta?.pod_required),

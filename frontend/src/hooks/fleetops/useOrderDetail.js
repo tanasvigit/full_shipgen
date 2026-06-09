@@ -91,13 +91,19 @@ export function useOrderDetail(orderId) {
   );
 
   const driver = useMemo(() => {
-    const d = rawOrder?.driver || rawOrder?.assigned_driver;
-    return d ? mapDriverRow(d) : null;
+    for (const key of ["driver_assigned", "driverAssigned", "driver", "assigned_driver"]) {
+      const d = rawOrder?.[key];
+      if (d && typeof d === "object") return mapDriverRow(d);
+    }
+    return null;
   }, [rawOrder]);
 
   const vehicle = useMemo(() => {
-    const v = rawOrder?.vehicle || rawOrder?.vehicle_assigned;
-    return v ? mapVehicleRow(v) : null;
+    for (const key of ["vehicle_assigned", "vehicleAssigned", "vehicle"]) {
+      const v = rawOrder?.[key];
+      if (v && typeof v === "object") return mapVehicleRow(v);
+    }
+    return null;
   }, [rawOrder]);
 
   const runOrderTransition = useCallback(

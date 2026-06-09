@@ -631,6 +631,17 @@ class OrderController extends FleetOpsController
             return response()->error('No driver assigned to order.');
         }
 
+        if (!$order->dispatched && !$order->adhoc) {
+            return response()->error('Order has not been dispatched yet and cannot be started.');
+        }
+
+        $orderConfig = $order->config();
+        $activity    = $orderConfig->getStartedActivity();
+
+        if (!$activity) {
+            return response()->error('Unable to resolve start activity for order.');
+        }
+
         // set order to started
         $order->started    = true;
         $order->started_at = now();
@@ -642,9 +653,6 @@ class OrderController extends FleetOpsController
         // set order as drivers current order
         $driver->current_job_uuid = $order->uuid;
         $driver->save();
-
-        // get the next order activity
-        $flow = $activity = $order->config()->nextFirstActivity();
 
         /**
          * @var \Fleetbase\LaravelMysqlSpatial\Types\Point
@@ -668,11 +676,13 @@ class OrderController extends FleetOpsController
             foreach ($payload->entities as $entity) {
                 $entity->insertActivity($activity, $location);
             }
+        } else {
+            $payload->setFirstWaypoint($activity, $location);
+            $order->setRelation('payload', $payload);
         }
 
         // update order activity
-        $activityPayload = $flow instanceof Activity ? $flow->toArray() : $flow;
-        $updateActivityRequest = new Request(['activity' => $activityPayload]);
+        $updateActivityRequest = new Request(['activity' => $activity->serialize()]);
 
         // update activity
         return $this->updateActivity($order->uuid, $updateActivityRequest);

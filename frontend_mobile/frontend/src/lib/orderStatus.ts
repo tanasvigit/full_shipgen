@@ -41,8 +41,10 @@ export function resolveEffectiveOrderStatus(order: {
   const dispatched = Boolean(order.dispatched || order.dispatchedAt || order.dispatched_at);
   const started = Boolean(order.started || order.startedAt || order.started_at);
 
-  if (started && (status === "created" || status === "dispatched")) {
-    return "started";
+  if (started && status !== "completed" && status !== "canceled" && status !== "cancelled") {
+    if (status === "created" || status === "dispatched" || status === "assigned" || status === "scheduled") {
+      return "started";
+    }
   }
   if (dispatched && status === "created") {
     return "dispatched";

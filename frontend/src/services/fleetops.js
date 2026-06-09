@@ -367,8 +367,13 @@ export const fleetopsService = {
     }
     throw lastError;
   },
-  async getOrder(orderId, params) {
-    const payload = await tryCandidates(RESOURCES.orders, "get", `/${orderId}`, undefined);
+  async getOrder(orderId, params = {}) {
+    const withParam = params.with ?? "driverAssigned,vehicleAssigned";
+    const queryParams = {
+      ...params,
+      with: Array.isArray(withParam) ? withParam.join(",") : withParam,
+    };
+    const payload = await tryCandidatesQuery(RESOURCES.orders, "get", `/${orderId}`, undefined, queryParams);
     return unwrapEntity(payload, ["order"]);
   },
   async createOrder(formValues, options) {
@@ -383,7 +388,8 @@ export const fleetopsService = {
   },
 
   async patchOrder(orderId, patch) {
-    const payload = await tryCandidatesMutate(RESOURCES.orders, `/${orderId}`, patch);
+    const body = patch?.order != null ? patch : { order: patch };
+    const payload = await tryCandidatesMutate(RESOURCES.orders, `/${orderId}`, body);
     return unwrapEntity(payload, ["order"]);
   },
   async deleteOrder(orderId) {

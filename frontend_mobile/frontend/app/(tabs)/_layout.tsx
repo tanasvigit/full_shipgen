@@ -3,12 +3,11 @@ import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { showFleetTab } from "@/src/lib/fleetAccess";
 
 export default function TabLayout() {
-  const { authReady, isAuthenticated, user } = useAuth();
-  const driverMode = Boolean(
-    user && (String(user.raw?.type || "").toLowerCase() === "driver" || user.raw?.driver)
-  );
+  const { authReady, isAuthenticated, user, canFleetops } = useAuth();
+  const fleetTabVisible = showFleetTab(user, canFleetops);
 
   if (!authReady) {
     return (
@@ -49,15 +48,12 @@ export default function TabLayout() {
         },
       })}
     >
-      <Tabs.Screen
-        name="dashboard"
-        options={{ title: "Dashboard", href: driverMode ? null : undefined }}
-      />
+      <Tabs.Screen name="dashboard" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="orders" options={{ title: "Orders" }} />
       <Tabs.Screen name="tracking" options={{ title: "Tracking" }} />
       <Tabs.Screen
         name="fleet"
-        options={{ title: "Fleet", href: driverMode ? null : undefined }}
+        options={{ title: "Fleet", href: fleetTabVisible ? undefined : null }}
       />
       <Tabs.Screen name="profile" options={{ title: "Profile" }} />
     </Tabs>
