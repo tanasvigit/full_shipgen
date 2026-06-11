@@ -125,17 +125,6 @@ export default function Login() {
 
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity testID="sso-btn" style={styles.secondaryBtn} onPress={handleLogin}>
-            <Ionicons name="key-outline" size={16} color={colors.text} />
-            <Text style={styles.secondaryBtnText}>Continue with SSO</Text>
-          </TouchableOpacity>
-
           <Text style={styles.footer}>
             By signing in you agree to our Terms · v1.0
           </Text>

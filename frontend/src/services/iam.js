@@ -53,6 +53,47 @@ export const iamService = {
     return unwrapEntity(response.data, ["user"]);
   },
 
+  /** Current session user — GET /users/two-fa */
+  async getTwoFactorSettings() {
+    const response = await apiClient.get("/users/two-fa", { loading: false });
+    return response.data;
+  },
+
+  /** Current session user — POST /users/two-fa */
+  async saveTwoFactorSettings(twoFaSettings) {
+    const response = await apiClient.post("/users/two-fa", { twoFaSettings });
+    return response.data;
+  },
+
+  /** GET /users/{id}/two-fa (admin) or /users/two-fa (self). */
+  async getUserTwoFactorSettings(userId, { isCurrentUser = false } = {}) {
+    if (isCurrentUser) {
+      return this.getTwoFactorSettings();
+    }
+    const response = await apiClient.get(`/users/${userId}/two-fa`, { loading: false });
+    return response.data;
+  },
+
+  /**
+   * Save 2FA for a user.
+   * Self: POST /users/two-fa (always supported).
+   * Others: POST /users/{id}/two-fa, then PATCH fallback.
+   */
+  async saveUserTwoFactorSettings(userId, { enabled, method = "email" }, { isCurrentUser = false } = {}) {
+    const twoFaSettings = { enabled: Boolean(enabled), method };
+    if (isCurrentUser) {
+      return this.saveTwoFactorSettings(twoFaSettings);
+    }
+
+    try {
+      const response = await apiClient.post(`/users/${userId}/two-fa`, { twoFaSettings });
+      return response.data;
+    } catch (err) {
+      if (err?.response?.status !== 404) throw err;
+      return this.updateUser(userId, { twoFaSettings });
+    }
+  },
+
   async deactivateUser(id) {
     const response = await apiClient.patch(`/users/deactivate/${id}`);
     return response.data;

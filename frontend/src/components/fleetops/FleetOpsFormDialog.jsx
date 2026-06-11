@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import ArcSpinner from "@/components/loaders/Spinner/ArcSpinner";
 import { ensureFleetopsEditPortal } from "@/components/fleetops/detail/fleetopsEditPortal";
 import { cn } from "@/lib/utils";
+import { radixPlacesAutocompleteOutsideProps } from "@/lib/maps/placesAutocompleteDom";
 
 export const FLEETOPS_MODAL_OVERLAY_Z = "z-[99]";
 export const FLEETOPS_MODAL_CONTENT_Z = "z-[100]";
@@ -62,6 +63,7 @@ function DialogPanel({
           "max-md:w-full max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none",
         )}
         data-testid={testId}
+        {...radixPlacesAutocompleteOutsideProps}
       >
         <div className="shrink-0 border-b border-black/[0.08] bg-white px-6 pt-6 pb-4 pr-12 text-left">
           <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">

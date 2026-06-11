@@ -14,9 +14,11 @@ type Marker = {
 export default function StylizedMap({
   markers = [],
   height = 320,
+  attribution = "Fleetbase Map",
 }: {
   markers?: Marker[];
   height?: number;
+  attribution?: string;
 }) {
   // Pre-computed pseudo-streets to give a real map feel without external map SDKs.
   const horizontals = [0.18, 0.38, 0.55, 0.72, 0.88];
@@ -78,7 +80,7 @@ export default function StylizedMap({
       {/* Map attribution */}
       <View style={styles.attribution}>
         <Ionicons name="location" size={10} color={colors.textMuted} />
-        <Text style={styles.attributionText}>Fleetbase Map</Text>
+        <Text style={styles.attributionText}>{attribution}</Text>
       </View>
     </View>
   );

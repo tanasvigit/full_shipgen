@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
@@ -13,7 +13,11 @@ import { useFormHandle } from "./formUtils";
 import EntityCustomFieldsBlock from "@/components/fleetops/custom-fields/EntityCustomFieldsBlock";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
-import { MapPin } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
+import PlacesAutocompleteInput from "@/components/maps/PlacesAutocompleteInput";
+import { parseGooglePlace } from "@/lib/maps/parseGooglePlace";
+import { geocodeAddressWithGoogle } from "@/lib/maps/googleGeocoder";
+import { isGoogleMapsEnabled } from "@/lib/maps/googleConfig";
 
 const defaultValues = {
   name: "",
@@ -62,6 +66,28 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
   const [customFieldValues, setCustomFieldValues] = useState(initialValues?.customFieldValues || {});
   useFormHandle(ref, methods, () => ({ customFieldValues }));
 
+  const applyPlaceFields = useCallback(
+    (fields) => {
+      if (!fields) return;
+      Object.entries(fields).forEach(([key, value]) => {
+        if (value != null && value !== "" && key in defaultValues) {
+          setValue(key, value);
+        }
+      });
+    },
+    [setValue],
+  );
+
+  const onPlaceSelected = useCallback(
+    (place) => {
+      const fields = parseGooglePlace(place);
+      if (!fields) return;
+      applyPlaceFields(fields);
+      toast.success("Address filled from Google Places");
+    },
+    [applyPlaceFields],
+  );
+
   const geocodeAddress = async () => {
     const parts = [watch("street1"), watch("city"), watch("province"), watch("postalCode"), watch("country")].filter(Boolean);
     const query = parts.join(", ");
@@ -71,6 +97,14 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
     }
     setGeocoding(true);
     try {
+      if (isGoogleMapsEnabled()) {
+        const googleFields = await geocodeAddressWithGoogle(query);
+        if (googleFields?.latitude && googleFields?.longitude) {
+          applyPlaceFields(googleFields);
+          toast.success("Coordinates updated via Google Geocoding");
+          return;
+        }
+      }
       const result = await fleetopsService.lookupPlace(query).catch(() => fleetopsService.geocodeQuery({ query }));
       const place = result?.place || result?.places?.[0] || result;
       const lat = place?.latitude ?? place?.lat ?? place?.location?.latitude;
@@ -93,6 +127,20 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
     <div id={formId} className="space-y-4" data-testid="place-form">
       <FormSection title="Location" testId="place-form-location">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isGoogleMapsEnabled() ? (
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs font-mono uppercase text-[#374151]">Search address</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280] pointer-events-none z-10" />
+                <PlacesAutocompleteInput
+                  className="bg-[#F5F6F8] border-black/[0.08] pl-9"
+                  placeholder="Start typing an address or place name…"
+                  onPlaceSelect={onPlaceSelected}
+                  testId="place-address-search"
+                />
+              </div>
+            </div>
+          ) : null}
           <div className="space-y-1.5 md:col-span-2">
             <Label className="text-xs font-mono uppercase text-[#374151]">Place name</Label>
             <Input {...register("name")} className="bg-[#F5F6F8] border-black/[0.08]" data-testid="place-field-name" />

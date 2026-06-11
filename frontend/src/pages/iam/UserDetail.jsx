@@ -30,12 +30,19 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { iamService } from "@/services/iam";
 import { mapRole, mapUser, statusLabel } from "@/lib/mappers";
+import { parseTwoFaSettings, resolveTwoFaAfterSave } from "@/lib/iam/twoFa";
+import TwoFaConfirmDialog from "@/components/iam/TwoFaConfirmDialog";
+import { features } from "@/lib/features";
+import { resolveIamUserUuid } from "@/lib/iam/userIds";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function UserDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const ability = useIamAbility();
+  const { user: sessionUser } = useAuth();
+  const sessionUserUuid = resolveIamUserUuid(sessionUser);
   const [u, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +52,10 @@ export default function UserDetail() {
   const [country, setCountry] = useState("");
   const [roleId, setRoleId] = useState("");
   const [twoFa, setTwoFa] = useState(false);
+  const [twoFaMethod, setTwoFaMethod] = useState("email");
+  const [twoFaSaving, setTwoFaSaving] = useState(false);
+  const [twoFaConfirmOpen, setTwoFaConfirmOpen] = useState(false);
+  const [pendingTwoFa, setPendingTwoFa] = useState(null);
   const [policyCatalog, setPolicyCatalog] = useState([]);
   const [permissionRows, setPermissionRows] = useState([]);
   const [policies, setPolicies] = useState([]);
@@ -64,7 +75,19 @@ export default function UserDetail() {
       setPhone(mapped.phone || "");
       setCountry(mapped.country || response?.country || "");
       setRoleId(mapped.roleId ? String(mapped.roleId) : "");
-      setTwoFa(mapped.twoFa);
+      const userUuid = resolveIamUserUuid(response) || String(id);
+      const isCurrentUser = sessionUserUuid === userUuid;
+      let twoFaSettings = parseTwoFaSettings(response);
+      if (features.twoFaEnabled && !response?.two_fa) {
+        try {
+          const remote = await iamService.getUserTwoFactorSettings(userUuid, { isCurrentUser });
+          twoFaSettings = parseTwoFaSettings(remote);
+        } catch {
+          // Keep value from user payload when dedicated endpoint is unavailable.
+        }
+      }
+      setTwoFa(twoFaSettings.enabled);
+      setTwoFaMethod(twoFaSettings.method);
       setPolicies(policiesFromUserRaw(response));
       setPermissionIds(directPermissionIdsFromUser(response, permRows));
     } catch (err) {
@@ -76,7 +99,7 @@ export default function UserDetail() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, sessionUserUuid]);
 
   useEffect(() => {
     loadUser();
@@ -219,35 +242,39 @@ export default function UserDetail() {
           </div>
         )}
 
-        <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4">
+        <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4" data-testid="user-security-card">
           <div className="overline">Security</div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-4 w-4 text-[#374151]" />
-              <div>
+          {features.twoFaEnabled ? (
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <ShieldCheck className="h-4 w-4 text-[#374151] mt-0.5 shrink-0" />
+              <div className="min-w-0">
                 <div className="font-medium text-sm">Two-factor authentication</div>
-                <div className="text-xs text-[#4B5563]">User security settings from the API.</div>
+                <div className="text-xs text-[#4B5563] mt-0.5">
+                  {twoFa
+                    ? `Enabled — verification codes are sent by ${twoFaMethod}.`
+                    : "Off — sign-in only requires email and password."}
+                </div>
+                {!ability.canUpdateUser && (
+                  <div className="text-xs text-[#6B7280] mt-1">You can view but not change this setting.</div>
+                )}
               </div>
             </div>
             <Switch
               checked={twoFa}
-              disabled={!ability.canUpdateUser}
-              onCheckedChange={async (v) => {
-                const prev = twoFa;
-                setTwoFa(v);
-                try {
-                  await iamService.updateUser(u.id, { two_factor_enabled: v });
-                  toast.success("2FA preference updated");
-                } catch (err) {
-                  setTwoFa(prev);
-                  toast.error(err?.friendlyMessage || "Failed to update 2FA.");
-                }
+              disabled={!ability.canUpdateUser || twoFaSaving}
+              className="shrink-0"
+              onCheckedChange={(v) => {
+                if (v === twoFa) return;
+                setPendingTwoFa(v);
+                setTwoFaConfirmOpen(true);
               }}
               data-testid="user-2fa-switch"
             />
           </div>
+          ) : null}
           {ability.canViewUser && (
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-black/[0.08]">
+            <div className={`flex flex-wrap gap-2 ${features.twoFaEnabled ? "pt-2 border-t border-black/[0.08]" : ""}`}>
               <Button variant="outline" size="sm" onClick={() => setPermissionsOpen(true)} data-testid="user-view-permissions">
                 View permissions
               </Button>
@@ -335,7 +362,6 @@ export default function UserDetail() {
                       ...(normalizedPhone ? { phone: normalizedPhone } : {}),
                       ...(country.trim() ? { country: country.trim().toUpperCase().slice(0, 2) } : {}),
                       role: roleId,
-                      two_factor_enabled: twoFa,
                       policies: resolvePolicyIds(policies),
                       permissions: resolvePermissionIds(permissionIds),
                     },
@@ -357,6 +383,45 @@ export default function UserDetail() {
 
       <UserPermissionsDialog open={permissionsOpen} onOpenChange={setPermissionsOpen} user={u} />
       <ChangeUserPasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} user={u} />
+
+      {features.twoFaEnabled ? (
+      <TwoFaConfirmDialog
+        open={twoFaConfirmOpen}
+        onOpenChange={(open) => {
+          setTwoFaConfirmOpen(open);
+          if (!open) setPendingTwoFa(null);
+        }}
+        enabling={Boolean(pendingTwoFa)}
+        destination={email || u?.email || "this user"}
+        loading={twoFaSaving}
+        onConfirm={() => {
+          if (pendingTwoFa == null) return;
+          const prev = twoFa;
+          const userUuid = resolveIamUserUuid(u) || String(id);
+          const isCurrentUser = sessionUserUuid === userUuid;
+          setTwoFaSaving(true);
+          void (async () => {
+            try {
+              const requested = { enabled: pendingTwoFa, method: twoFaMethod };
+              const result = await iamService.saveUserTwoFactorSettings(userUuid, requested, {
+                isCurrentUser,
+              });
+              const saved = resolveTwoFaAfterSave(result, requested);
+              setTwoFa(saved.enabled);
+              setTwoFaMethod(saved.method);
+              toast.success(pendingTwoFa ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
+              setTwoFaConfirmOpen(false);
+              setPendingTwoFa(null);
+            } catch (err) {
+              setTwoFa(prev);
+              toast.error(err?.friendlyMessage || "Failed to update 2FA.");
+            } finally {
+              setTwoFaSaving(false);
+            }
+          })();
+        }}
+      />
+      ) : null}
     </div>
   );
 }

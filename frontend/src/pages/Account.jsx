@@ -4,10 +4,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { iamService } from "@/services/iam";
+import { parseTwoFaSettings, resolveTwoFaAfterSave } from "@/lib/iam/twoFa";
+import TwoFaConfirmDialog from "@/components/iam/TwoFaConfirmDialog";
+import { features } from "@/lib/features";
 
 export default function Account() {
     const { user, organizations, activeOrganization, switchOrganization } = useAuth();
@@ -18,7 +22,63 @@ export default function Account() {
         avatarColor: "bg-blue-600",
         avatarInitials: "U",
     };
-    const [twoFa, setTwoFa] = useState(Boolean(currentUser.twoFaEnabled || currentUser.raw?.two_factor_enabled));
+    const [twoFa, setTwoFa] = useState(false);
+    const [twoFaMethod, setTwoFaMethod] = useState("email");
+    const [twoFaLoading, setTwoFaLoading] = useState(true);
+    const [twoFaSaving, setTwoFaSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState("profile");
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingTwoFa, setPendingTwoFa] = useState(null);
+
+    const loadTwoFa = useCallback(async () => {
+        setTwoFaLoading(true);
+        try {
+            const settings = await iamService.getTwoFactorSettings();
+            const parsed = parseTwoFaSettings(settings);
+            setTwoFa(parsed.enabled);
+            setTwoFaMethod(parsed.method);
+        } catch (err) {
+            const fallback = parseTwoFaSettings(user);
+            setTwoFa(fallback.enabled);
+            setTwoFaMethod(fallback.method);
+            toast.error(err?.friendlyMessage || "Could not load two-factor settings.");
+        } finally {
+            setTwoFaLoading(false);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (features.twoFaEnabled && activeTab === "security") {
+            loadTwoFa();
+        }
+    }, [activeTab, loadTwoFa]);
+
+    const applyTwoFaChange = async (enabled) => {
+        const prev = twoFa;
+        const requested = { enabled, method: twoFaMethod };
+        setTwoFaSaving(true);
+        try {
+            const settings = await iamService.saveTwoFactorSettings(requested);
+            const saved = resolveTwoFaAfterSave(settings, requested);
+            setTwoFa(saved.enabled);
+            setTwoFaMethod(saved.method);
+            toast.success(saved.enabled ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
+            setConfirmOpen(false);
+            setPendingTwoFa(null);
+        } catch (err) {
+            setTwoFa(prev);
+            toast.error(err?.friendlyMessage || "Failed to update two-factor authentication.");
+        } finally {
+            setTwoFaSaving(false);
+        }
+    };
+
+    const handleTwoFaToggle = (enabled) => {
+        if (enabled === twoFa) return;
+        setPendingTwoFa(enabled);
+        setConfirmOpen(true);
+    };
+
     return (
         <div data-testid="account-page">
             <PageHeader
@@ -27,7 +87,7 @@ export default function Account() {
                 description="Manage your profile, security and organization memberships."
             />
             <div className="p-6 max-w-4xl">
-                <Tabs defaultValue="profile">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="bg-[#F1F2F5] border border-black/[0.08] mb-5">
                         <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
                         <TabsTrigger value="security" data-testid="tab-security">Security</TabsTrigger>
@@ -72,15 +132,29 @@ export default function Account() {
                     </TabsContent>
 
                     <TabsContent value="security" className="space-y-5">
-                        <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-5">
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
+                        <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-5" data-testid="account-security-card">
+                            {features.twoFaEnabled ? (
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="min-w-0">
                                     <div className="font-display font-semibold">Two-factor authentication</div>
-                                    <div className="text-xs text-[#374151] mt-0.5">Require a 6-digit code from your authenticator app on every sign in.</div>
+                                    <div className="text-xs text-[#374151] mt-0.5">
+                                        {twoFaLoading
+                                            ? "Loading security settings…"
+                                            : twoFa
+                                              ? `Enabled — a 6-digit code is emailed to ${currentUser.email} on each sign in.`
+                                              : "Off — sign-in only requires your password."}
+                                    </div>
                                 </div>
-                                <Switch checked={twoFa} onCheckedChange={(v) => { setTwoFa(v); toast.success(v ? "2FA enabled" : "2FA disabled"); }} data-testid="account-2fa-toggle" />
+                                <Switch
+                                    checked={twoFa}
+                                    disabled={twoFaLoading || twoFaSaving}
+                                    className="shrink-0"
+                                    onCheckedChange={handleTwoFaToggle}
+                                    data-testid="account-2fa-toggle"
+                                />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-black/[0.08]">
+                            ) : null}
+                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${features.twoFaEnabled ? "pt-4 border-t border-black/[0.08]" : ""}`}>
                                 <div className="space-y-1.5">
                                     <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Current password</Label>
                                     <Input type="password" placeholder="••••••••" className="bg-[#F1F2F5] border-black/[0.08]" />
@@ -116,6 +190,23 @@ export default function Account() {
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {features.twoFaEnabled ? (
+            <TwoFaConfirmDialog
+                open={confirmOpen}
+                onOpenChange={(open) => {
+                    setConfirmOpen(open);
+                    if (!open) setPendingTwoFa(null);
+                }}
+                enabling={Boolean(pendingTwoFa)}
+                destination={currentUser.email || "your email"}
+                loading={twoFaSaving}
+                onConfirm={() => {
+                    if (pendingTwoFa == null) return;
+                    void applyTwoFaChange(pendingTwoFa);
+                }}
+            />
+            ) : null}
         </div>
     );
 }

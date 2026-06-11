@@ -219,6 +219,14 @@ class UserController extends FleetbaseController
                     $policies = Policy::whereIn('id', $request->array('user.policies'))->get();
                     $user->syncPolicies($policies);
                 }
+
+                if ($request->isArray('user.twoFaSettings')) {
+                    $twoFaSettings = $request->array('user.twoFaSettings');
+                    if (isset($twoFaSettings['enabled']) && $twoFaSettings['enabled'] === false) {
+                        $twoFaSettings['enforced'] = false;
+                    }
+                    TwoFactorAuth::saveTwoFaSettingsForUser($user, $twoFaSettings);
+                }
             });
 
             return ['user' => new $this->resource($record)];
@@ -324,6 +332,72 @@ class UserController extends FleetbaseController
         $twoFaSettings = TwoFactorAuth::saveTwoFaSettingsForUser($user, $twoFaSettings);
 
         return response()->json($twoFaSettings->value);
+    }
+
+    /**
+     * Get two-factor authentication settings for a company user (IAM).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getUserTwoFactorSettings(Request $request, string $id)
+    {
+        $user = $this->resolveCompanyUserForTwoFa($id);
+
+        if (!$user) {
+            return response()->error('No user found', 404);
+        }
+
+        $twoFaSettings = TwoFactorAuth::getTwoFaSettingsForUser($user);
+
+        return response()->json($twoFaSettings->value);
+    }
+
+    /**
+     * Save two-factor authentication settings for a company user (IAM).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function saveUserTwoFactorSettings(Request $request, string $id)
+    {
+        $user = $this->resolveCompanyUserForTwoFa($id);
+
+        if (!$user) {
+            return response()->error('No user found', 404);
+        }
+
+        $currentUser = $request->user();
+        if ($currentUser && $currentUser->uuid !== $user->uuid && !$this->canManageUserTwoFa($currentUser)) {
+            return response()->error('Insufficient permissions to update two-factor authentication for this user.', 403);
+        }
+
+        $twoFaSettings = $request->array('twoFaSettings');
+        if (isset($twoFaSettings['enabled']) && $twoFaSettings['enabled'] === false) {
+            $twoFaSettings['enforced'] = false;
+        }
+
+        $settings = TwoFactorAuth::saveTwoFaSettingsForUser($user, $twoFaSettings);
+
+        return response()->json($settings->value);
+    }
+
+    /**
+     * Resolve a user in the current company for IAM two-factor endpoints.
+     */
+    private function resolveCompanyUserForTwoFa(string $id): ?User
+    {
+        return User::where('uuid', $id)
+            ->whereHas('companyUsers', function ($query) {
+                $query->where('company_uuid', session('company'));
+            })
+            ->first();
+    }
+
+    /**
+     * Whether the current user may change another user's 2FA settings.
+     */
+    private function canManageUserTwoFa(User $currentUser): bool
+    {
+        return $currentUser->isAdmin() || $currentUser->hasRole('Administrator');
     }
 
     /**

@@ -37,7 +37,7 @@ export default function ScreenHeader({ title, subtitle, back, rightIcon, onRight
             </Text>
           ) : null}
         </View>
-        {rightIcon ? (
+        {rightIcon && onRightPress ? (
           <TouchableOpacity
             testID="header-right-btn"
             onPress={onRightPress}

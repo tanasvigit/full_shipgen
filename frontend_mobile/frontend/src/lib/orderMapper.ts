@@ -12,6 +12,9 @@ function entityId(entity: any) {
   if (entity?.uuid) {
     return String(entity.uuid);
   }
+  if (entity?.id != null && String(entity.id).trim()) {
+    return String(entity.id);
+  }
   if (entity?.public_id) {
     return String(entity.public_id);
   }

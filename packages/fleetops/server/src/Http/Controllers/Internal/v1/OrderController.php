@@ -1065,7 +1065,24 @@ class OrderController extends FleetOpsController
 
     public function getDefaultOrderConfig()
     {
-        return response()->json(OrderConfig::default());
+        $companyUuid = session('company');
+
+        $config = OrderConfig::where([
+            'namespace' => 'system:order-config:transport',
+            'company_uuid' => $companyUuid,
+        ])->first();
+
+        if (!$config) {
+            $config = OrderConfig::where('company_uuid', $companyUuid)
+                ->orderBy('created_at')
+                ->first();
+        }
+
+        if (!$config) {
+            return response()->error('No default order configuration found.', 404);
+        }
+
+        return response()->json($config);
     }
 
     public function lookup(Request $request)

@@ -78,9 +78,18 @@ export type Vehicle = {
   online?: boolean;
 };
 
+export type RouteWaypoint = {
+  name: string;
+  address: string;
+  eta: string;
+  done: boolean;
+  coordinate?: OrderCoordinate | null;
+};
+
 export type Route = {
   id: string;
   name: string;
+  orderId?: string;
   stops: number;
   distance: string;
   duration: string;
@@ -88,7 +97,7 @@ export type Route = {
   driverId: string;
   driverName?: string;
   vehicleId: string;
-  waypoints: { name: string; address: string; eta: string; done: boolean }[];
+  waypoints: RouteWaypoint[];
 };
 
 export type Place = {
@@ -98,6 +107,7 @@ export type Place = {
   type: "Warehouse" | "Customer" | "Hub";
   city: string;
   ordersCount: number;
+  coordinate?: OrderCoordinate | null;
 };
 
 export type Issue = {

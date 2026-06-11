@@ -22,7 +22,7 @@ export function useIamAbility() {
       isAdmin: Boolean(user?.isAdmin),
       canViewUser: can("view", "user"),
       canCreateUser: can("create", "user"),
-      canUpdateUser: can("update", "user"),
+      canUpdateUser: Boolean(user?.isAdmin) || can("update", "user"),
       canDeleteUser: can("delete", "user"),
       canExportUser: can("export", "user"),
       canDeactivateUser: can("deactivate", "user"),

@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
-import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
+import FleetSubScreenLayout from "@/src/components/fleet/FleetSubScreenLayout";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 const priorityColor = (p: string) =>
@@ -15,16 +14,15 @@ export default function IssuesList() {
   const { issues, findVehicle, sectionLoading, sectionError, refresh } = useFleetData();
   const loading = sectionLoading.issues;
   const error = sectionError.issues;
+  const open = issues.filter((i) => i.status === "open" || i.status === "in_progress").length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader
-        title="Issues"
-        subtitle={`${issues.length} reports`}
-        back
-        rightIcon="add"
-        onRightPress={() => router.push("/report-issue")}
-      />
+    <FleetSubScreenLayout
+      active="issues"
+      title="Issues"
+      subtitle={`${issues.length} reports · ${open} open`}
+      onAddPress={() => router.push("/report-issue")}
+    >
       {error ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
@@ -55,9 +53,7 @@ export default function IssuesList() {
               <TouchableOpacity
                 testID={`issue-${item.id}`}
                 style={styles.row}
-                onPress={() => {
-                  if (v) router.push(`/vehicle/${v.id}`);
-                }}
+                onPress={() => router.push(`/issue/${item.id}`)}
               >
                 <View style={styles.top}>
                   <View style={[styles.prioDot, { backgroundColor: priorityColor(item.priority) }]} />
@@ -93,12 +89,11 @@ export default function IssuesList() {
           }}
         />
       )}
-    </SafeAreaView>
+    </FleetSubScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg },
   empty: { paddingVertical: spacing.xxl, alignItems: "center" },

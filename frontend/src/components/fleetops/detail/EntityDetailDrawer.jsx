@@ -3,6 +3,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isDetailEditGuarded } from "@/hooks/fleetops/useFleetopsDetailDirty";
+import { isGooglePlacesDropdownEvent } from "@/lib/maps/placesAutocompleteDom";
 
 /**
  * Enterprise right-side detail drawer.
@@ -81,13 +82,16 @@ export default function EntityDetailDrawer({
           aria-modal={!suspended}
           role="dialog"
           onInteractOutside={(e) => {
-            if (suspended) e.preventDefault();
+            if (suspended || isGooglePlacesDropdownEvent(e)) e.preventDefault();
           }}
           onEscapeKeyDown={(e) => {
             if (suspended) e.preventDefault();
           }}
           onPointerDownOutside={(e) => {
-            if (suspended) e.preventDefault();
+            if (suspended || isGooglePlacesDropdownEvent(e)) e.preventDefault();
+          }}
+          onFocusOutside={(e) => {
+            if (suspended || isGooglePlacesDropdownEvent(e)) e.preventDefault();
           }}
         >
           <SheetPrimitive.Title className="sr-only">{accessibilityTitle}</SheetPrimitive.Title>

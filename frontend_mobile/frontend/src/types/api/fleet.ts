@@ -98,7 +98,19 @@ export type RouteDTO = IdRef & {
     address?: string;
     eta?: string;
     done?: boolean;
+    place?: Record<string, unknown> | null;
+    location?: Record<string, unknown> | null;
   }[];
+  payload?: {
+    pickup?: Record<string, unknown> | null;
+    dropoff?: Record<string, unknown> | null;
+    waypoints?: Record<string, unknown>[] | null;
+  } | null;
+  order?: {
+    uuid?: string;
+    public_id?: string;
+    payload?: RouteDTO["payload"];
+  } | null;
 };
 
 export type PlaceDTO = IdRef & {

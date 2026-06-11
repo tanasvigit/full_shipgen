@@ -10,6 +10,24 @@ export function resolveDriverTrackId(user: MobileUser | null | undefined): strin
   return null;
 }
 
+/** Manifest list filters require driver public_id on the backend. */
+export function resolveDriverPublicId(user: MobileUser | null | undefined): string | null {
+  if (!user?.raw) return null;
+  const driver = user.raw.driver;
+  if (driver?.public_id) return String(driver.public_id);
+  return null;
+}
+
+export function resolveManifestStopId(stop?: { public_id?: string; uuid?: string } | null) {
+  const publicId = String(stop?.public_id || "").trim();
+  return publicId || null;
+}
+
+export function resolveManifestId(manifest?: { public_id?: string; uuid?: string } | null, fallback?: string) {
+  const publicId = String(manifest?.public_id || fallback || "").trim();
+  return publicId || null;
+}
+
 export function isDriverUser(user: MobileUser | null | undefined): boolean {
   if (!user) return false;
   if (String(user.raw?.type || "").toLowerCase() === "driver") return true;

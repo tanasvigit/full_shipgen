@@ -7,7 +7,7 @@ import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import { colors, radius, spacing } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { resolveDriverTrackId } from "@/src/lib/driver";
+import { resolveDriverPublicId } from "@/src/lib/driver";
 import { manifestsService } from "@/src/services/manifestsService";
 
 type ManifestRow = {
@@ -22,7 +22,7 @@ type ManifestRow = {
 export default function ManifestsList() {
   const router = useRouter();
   const { user } = useAuth();
-  const driverId = resolveDriverTrackId(user);
+  const driverId = resolveDriverPublicId(user);
   const [rows, setRows] = useState<ManifestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,7 +50,11 @@ export default function ManifestsList() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Manifests" subtitle={driverId ? "Your routes" : "All manifests"} back />
+      <ScreenHeader
+        title="Manifests"
+        subtitle={driverId ? "Your routes" : "Link a driver public id to see assigned manifests"}
+        back
+      />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.text} />
@@ -61,9 +65,14 @@ export default function ManifestsList() {
           keyExtractor={(item) => String(item.public_id || item.uuid)}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.empty}>No manifests assigned.</Text>}
+          ListEmptyComponent={
+            <Text style={styles.empty}>
+              {driverId ? "No manifests assigned." : "Driver public id required to load manifests."}
+            </Text>
+          }
           renderItem={({ item }) => {
-            const id = String(item.public_id || item.uuid);
+            const id = String(item.public_id || "");
+            if (!id) return null;
             return (
               <TouchableOpacity
                 testID={`manifest-${id}`}

@@ -25,8 +25,8 @@ export default function Profile() {
   const { orders, drivers, vehicles } = useFleetData();
   const [notif, setNotif] = useState(true);
   const [tracking, setTracking] = useState(true);
-  const [dark, setDark] = useState(false);
   const [online, setOnline] = useState(true);
+  const [pushReady, setPushReady] = useState<boolean | null>(null);
   const [orgSheetOpen, setOrgSheetOpen] = useState(false);
   const driverMode = isDriverUser(user);
   const driverTrackId = resolveDriverTrackId(user);
@@ -36,9 +36,10 @@ export default function Profile() {
     void loadDriverPreferences().then((prefs) => {
       setNotif(prefs.pushNotifications);
       setTracking(prefs.locationTracking);
-      setDark(prefs.darkMode);
       if (prefs.pushNotifications) {
-        void deviceService.registerCurrentDevice();
+        void deviceService.registerCurrentDevice().then((token) => setPushReady(Boolean(token)));
+      } else {
+        setPushReady(null);
       }
     });
   }, []);
@@ -57,7 +58,7 @@ export default function Profile() {
       .catch(() => undefined);
   }, [driverTrackId]);
 
-  const persistPreference = useCallback(async (patch: Partial<{ pushNotifications: boolean; locationTracking: boolean; darkMode: boolean }>) => {
+  const persistPreference = useCallback(async (patch: Partial<{ pushNotifications: boolean; locationTracking: boolean }>) => {
     await saveDriverPreferences(patch);
   }, []);
 
@@ -102,9 +103,6 @@ export default function Profile() {
               <Text style={styles.roleText}>{(user?.role || "MEMBER").toUpperCase()}</Text>
             </View>
           </View>
-          <TouchableOpacity testID="edit-profile-btn" style={styles.editBtn}>
-            <Ionicons name="create-outline" size={16} color={colors.text} />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.statsRow}>
@@ -197,10 +195,17 @@ export default function Profile() {
               setNotif(value);
               void persistPreference({ pushNotifications: value });
               if (value) {
-                void deviceService.registerCurrentDevice();
+                void deviceService.registerCurrentDevice().then((token) => setPushReady(Boolean(token)));
+              } else {
+                setPushReady(null);
               }
             }}
           />
+          {notif && pushReady === false ? (
+            <Text style={styles.preferenceHint}>
+              Push is unavailable in this build. Use a dev client or release build with expo-notifications configured.
+            </Text>
+          ) : null}
           <ToggleRow
             icon="location-outline"
             label="Location tracking"
@@ -208,15 +213,6 @@ export default function Profile() {
             onChange={(value) => {
               setTracking(value);
               void persistPreference({ locationTracking: value });
-            }}
-          />
-          <ToggleRow
-            icon="moon-outline"
-            label="Dark mode"
-            value={dark}
-            onChange={(value) => {
-              setDark(value);
-              void persistPreference({ darkMode: value });
             }}
           />
         </Section>
@@ -249,12 +245,6 @@ export default function Profile() {
             />
           </Section>
         ) : null}
-
-        <Section title="Support">
-          <Row icon="help-circle-outline" label="Help center" onPress={() => {}} />
-          <Row icon="document-text-outline" label="Privacy policy" onPress={() => {}} />
-          <Row icon="information-circle-outline" label="About Fleetbase" value="v1.0.0" onPress={() => {}} />
-        </Section>
 
         <TouchableOpacity
           testID="logout-btn"
@@ -392,15 +382,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   roleText: { fontSize: 9, fontWeight: "800", color: colors.success, letterSpacing: 0.8 },
-  editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   statsRow: {
     flexDirection: "row",
     backgroundColor: colors.surface,
@@ -468,6 +449,14 @@ const styles = StyleSheet.create({
   },
   rowLabel: { fontSize: 14, fontWeight: "600", color: colors.text },
   rowValue: { fontSize: 12, color: colors.textSecondary, fontWeight: "600", marginRight: 8 },
+  preferenceHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    lineHeight: 16,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    marginTop: -4,
+  },
   logout: {
     flexDirection: "row",
     alignItems: "center",

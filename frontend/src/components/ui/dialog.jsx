@@ -4,6 +4,7 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Z_INDEX } from "@/lib/zIndex"
+import { radixPlacesAutocompleteOutsideProps } from "@/lib/maps/placesAutocompleteDom"
 
 const Dialog = DialogPrimitive.Root
 
@@ -39,6 +40,7 @@ const DialogContent = React.forwardRef(({ className, overlayClassName, children,
       )}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
+      {...radixPlacesAutocompleteOutsideProps}
       {...props}>
       {children}
       <DialogPrimitive.Close

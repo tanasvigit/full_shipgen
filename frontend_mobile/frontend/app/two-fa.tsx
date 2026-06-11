@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,13 +13,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { Redirect, useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { authService } from "@/src/services/authService";
+import { twoFaUiEnabled } from "@/src/lib/features";
 
 export default function TwoFactorScreen() {
   const router = useRouter();
-  const { authReady, isAuthenticated, session, verifyTwoFactor } = useAuth();
+  const { authReady, isAuthenticated, session, verifyTwoFactor, resendTwoFactorCode } = useAuth();
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session?.requiresTwoFactor || session?.twoFaClientToken) return;
+    void authService.beginTwoFactorSession().catch((error) => {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to start verification.");
+    });
+  }, [session?.requiresTwoFactor, session?.twoFaClientToken]);
+
+  if (!twoFaUiEnabled) {
+    return <Redirect href="/" />;
+  }
 
   if (authReady && isAuthenticated) {
     return <Redirect href="/(tabs)/orders" />;
@@ -33,6 +48,7 @@ export default function TwoFactorScreen() {
     if (submitting || code.trim().length < 4) return;
     setSubmitting(true);
     setErrorMessage(null);
+    setStatusMessage(null);
     try {
       await verifyTwoFactor(code.trim());
       router.replace("/(tabs)/orders");
@@ -40,6 +56,20 @@ export default function TwoFactorScreen() {
       setErrorMessage(error instanceof Error ? error.message : "Verification failed");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resending) return;
+    setResending(true);
+    setErrorMessage(null);
+    try {
+      await resendTwoFactorCode();
+      setStatusMessage("A new verification code was sent.");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to resend code.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -77,12 +107,22 @@ export default function TwoFactorScreen() {
         <TouchableOpacity
           testID="two-fa-submit-btn"
           style={styles.primaryBtn}
-          onPress={handleVerify}
+          onPress={() => void handleVerify()}
           disabled={submitting}
         >
           <Text style={styles.primaryBtnText}>{submitting ? "Verifying..." : "Verify & continue"}</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          testID="two-fa-resend-btn"
+          style={styles.secondaryBtn}
+          onPress={() => void handleResend()}
+          disabled={resending}
+        >
+          <Text style={styles.secondaryBtnText}>{resending ? "Sending..." : "Resend code"}</Text>
+        </TouchableOpacity>
+
+        {statusMessage ? <Text style={styles.statusText}>{statusMessage}</Text> : null}
         {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -126,5 +166,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   primaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  secondaryBtn: {
+    marginTop: spacing.md,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryBtnText: { color: colors.textSecondary, fontWeight: "700", fontSize: 13 },
+  statusText: { color: colors.success, marginTop: spacing.md, fontSize: 12, fontWeight: "600" },
   errorText: { color: colors.error, marginTop: spacing.md, fontSize: 12, fontWeight: "600" },
 });

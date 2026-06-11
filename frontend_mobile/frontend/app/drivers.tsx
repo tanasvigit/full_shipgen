@@ -1,11 +1,10 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import EntityImage from "@/src/components/EntityImage";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
-import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
+import FleetSubScreenLayout from "@/src/components/fleet/FleetSubScreenLayout";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 export default function DriversList() {
@@ -13,10 +12,14 @@ export default function DriversList() {
   const { drivers, sectionLoading, sectionError, refresh } = useFleetData();
   const loading = sectionLoading.drivers;
   const error = sectionError.drivers;
+  const online = drivers.filter((d) => d.status === "online").length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Drivers" subtitle={`${drivers.length} total`} back rightIcon="add" />
+    <FleetSubScreenLayout
+      active="drivers"
+      title="Drivers"
+      subtitle={`${drivers.length} total · ${online} online`}
+    >
       {error ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
@@ -81,12 +84,11 @@ export default function DriversList() {
           )}
         />
       )}
-    </SafeAreaView>
+    </FleetSubScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg, gap: spacing.md },
   empty: { paddingVertical: spacing.xxl, alignItems: "center" },

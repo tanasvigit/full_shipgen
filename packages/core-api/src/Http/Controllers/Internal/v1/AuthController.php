@@ -98,11 +98,14 @@ class AuthController extends Controller
 
         // Check if 2FA enabled
         if (TwoFactorAuth::isEnabled($user)) {
-            $twoFaSession = TwoFactorAuth::start($user);
+            $twoFaSession = TwoFactorAuth::startForUser($user);
+            $twoFaSettings = TwoFactorAuth::getTwoFaSettingsForUser($user);
 
             return response()->json([
                 'twoFaSession' => $twoFaSession,
                 'isEnabled'    => true,
+                'method'       => $twoFaSettings->getValue('method', 'email'),
+                'identity'     => $user->getIdentity(),
             ]);
         }
 
@@ -184,11 +187,14 @@ class AuthController extends Controller
         }
 
         if (TwoFactorAuth::isEnabled($user)) {
-            $twoFaSession = TwoFactorAuth::start($user);
+            $twoFaSession = TwoFactorAuth::startForUser($user);
+            $twoFaSettings = TwoFactorAuth::getTwoFaSettingsForUser($user);
 
             return response()->json([
                 'twoFaSession' => $twoFaSession,
                 'isEnabled'    => true,
+                'method'       => $twoFaSettings->getValue('method', 'email'),
+                'identity'     => $user->getIdentity(),
             ]);
         }
 

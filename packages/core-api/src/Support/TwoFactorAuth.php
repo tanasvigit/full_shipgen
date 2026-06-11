@@ -409,13 +409,21 @@ class TwoFactorAuth
         $user = static::getUserFromIdentity($identity);
 
         if ($user) {
-            $token           = Str::random($tokenLength);
-            $twoFaSessionKey = static::createTwoFaSessionKey($user, $token);
-
-            return static::encryptSessionKey($twoFaSessionKey, $user->uuid);
+            return static::startForUser($user, $tokenLength);
         }
 
         return null;
+    }
+
+    /**
+     * Start a Two-Factor Authentication session for a resolved user model.
+     */
+    public static function startForUser(User $user, int $tokenLength = 40): ?string
+    {
+        $token           = Str::random($tokenLength);
+        $twoFaSessionKey = static::createTwoFaSessionKey($user, $token);
+
+        return static::encryptSessionKey($twoFaSessionKey, $user->uuid);
     }
 
     /**

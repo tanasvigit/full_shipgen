@@ -3,10 +3,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { realtimeSubscriptions } from "@/src/realtime/subscriptions";
-import { colors, radius, spacing } from "@/src/theme";
-import * as Haptics from "expo-haptics";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import TripMap from "@/src/maps/tripMap";
@@ -22,6 +18,8 @@ import { trackEvent } from "@/src/analytics/tracker";
 import { AnalyticsEvents } from "@/src/analytics/events";
 import { useDriverOrders } from "@/src/hooks/useDriverOrders";
 import { useOrderQuery } from "@/src/hooks/useOrderQuery";
+import { useOrderEtaQuery, useOrderTrackerQuery } from "@/src/hooks/useOrderTrackerQuery";
+import { useOrderGeofenceEventsQuery } from "@/src/hooks/useOrderGeofenceEventsQuery";
 import { useNextActivityQuery } from "@/src/hooks/useNextActivityQuery";
 import { usePermissions } from "@/src/hooks/usePermissions";
 import {
@@ -34,10 +32,25 @@ import { canCompleteOrder, canStartTrip, isTerminalStatus } from "@/src/lib/orde
 import { isDriverUser } from "@/src/lib/driver";
 import type { Order } from "@/src/data/types";
 import { ordersService } from "@/src/services/ordersService";
+import { parseTrackerSummary, resolveDriverCoordinate, resolveOrderEtaLabel } from "@/src/lib/orderTracker";
 import { openMapsNavigation } from "@/src/lib/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useCompanyScope } from "@/src/hooks/useCompanyScope";
 import { useFleetData } from "@/src/hooks/useFleetData";
+import { resolveOrderMutationRef, resolveOrderTrackingRef } from "@/src/lib/orderRef";
+import { confirmAction } from "@/src/lib/confirmAction";
+import AssignOrderSheet from "@/src/components/AssignOrderSheet";
+import { useOrderActionsMutations } from "@/src/hooks/useOrderActionsMutations";
+import {
+  canAssignOrder,
+  canCancelOrderAction,
+  canDispatchOrderAction,
+  showOpsToolbar,
+} from "@/src/lib/orderOps";
+import { useQuery } from "@tanstack/react-query";
+import { realtimeSubscriptions } from "@/src/realtime/subscriptions";
+import { colors, radius, spacing } from "@/src/theme";
+import * as Haptics from "expo-haptics";
 
 export default function OrderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,12 +75,17 @@ export default function OrderDetail() {
   const permissions = usePermissions();
   const { user } = useAuth();
   const { companyUuid } = useCompanyScope();
-  const { findDriver, findVehicle } = useFleetData();
+  const { findDriver, findVehicle, drivers, vehicles } = useFleetData();
   const { snapshot: syncSnapshot, retrySync } = useSyncStatus();
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [opsError, setOpsError] = useState<string | null>(null);
+  const [opsSuccess, setOpsSuccess] = useState<string | null>(null);
 
   const workflowBusy =
     startTripMutation.isPending || advanceMutation.isPending || completeMutation.isPending;
   const loadingOrder = orderQuery.isLoading && !order;
+  const orderLoadError =
+    orderQuery.error instanceof Error ? orderQuery.error.message : null;
 
   const optimisticOrder = useMemo(() => {
     if (!order) return null;
@@ -77,13 +95,18 @@ export default function OrderDetail() {
   }, [completeMutation.isPending, order, startTripMutation.isPending]);
 
   const displayOrder = optimisticOrder || order;
-  const orderRefKey = displayOrder?.code || displayOrder?.id || orderRef;
+  const orderTrackingRef = resolveOrderTrackingRef(displayOrder, orderRef);
+  const orderMutationRef = resolveOrderMutationRef(displayOrder, orderRef);
+  const opsActions = useOrderActionsMutations(orderMutationRef);
+  const trackLive = Boolean(displayOrder && !isTerminalStatus(displayOrder.status));
 
-  const etaQuery = useQuery({
-    queryKey: ["orderEta", companyUuid, orderRefKey],
-    queryFn: () => ordersService.getEta(orderRefKey),
-    enabled: Boolean(displayOrder?.id),
-  });
+  const trackerQuery = useOrderTrackerQuery(orderTrackingRef, trackLive);
+  const etaQuery = useOrderEtaQuery(orderTrackingRef, trackLive);
+  const geofenceQuery = useOrderGeofenceEventsQuery(
+    displayOrder?.driverId,
+    orderTrackingRef,
+    trackLive && Boolean(displayOrder?.driverId)
+  );
 
   const proofsQuery = useQuery({
     queryKey: ["orderProofs", companyUuid, displayOrder?.id],
@@ -91,21 +114,25 @@ export default function OrderDetail() {
     enabled: Boolean(displayOrder?.id),
   });
 
-  const etaLabel = useMemo(() => {
-    const payload = etaQuery.data as any;
-    const eta = payload?.eta ?? payload?.data?.eta ?? payload?.duration ?? payload?.time;
-    if (!eta) return null;
-    if (typeof eta === "object") {
-      return eta.text || eta.human || eta.minutes ? `${eta.minutes} min` : JSON.stringify(eta);
-    }
-    return String(eta);
-  }, [etaQuery.data]);
+  const etaLabel = useMemo(
+    () => resolveOrderEtaLabel(trackerQuery.data, etaQuery.data),
+    [etaQuery.data, trackerQuery.data]
+  );
+  const trackerSummary = useMemo(() => parseTrackerSummary(trackerQuery.data), [trackerQuery.data]);
+  const geofenceEvents = geofenceQuery.data || [];
 
   const proofs = (proofsQuery.data as any[]) || [];
 
+  const mapOrder = useMemo(() => {
+    if (!displayOrder) return null;
+    const driverCoordinate = resolveDriverCoordinate(undefined, trackerQuery.data);
+    if (!driverCoordinate) return displayOrder;
+    return { ...displayOrder, driverCoordinate };
+  }, [displayOrder, trackerQuery.data]);
+
   const mapModel = useMemo(
-    () => (displayOrder ? tripMarkersFromOrder(displayOrder) : null),
-    [displayOrder]
+    () => (mapOrder ? tripMarkersFromOrder(mapOrder) : null),
+    [mapOrder]
   );
 
   const assignmentLabels = useMemo(() => {
@@ -142,6 +169,33 @@ export default function OrderDetail() {
     void listConflicts().then(setConflicts);
   }, [syncSnapshot?.pendingCount, syncSnapshot?.deadLetterCount, podStatus]);
 
+  useEffect(() => {
+    if (!opsSuccess) return;
+    const timer = setTimeout(() => setOpsSuccess(null), 4000);
+    return () => clearTimeout(timer);
+  }, [opsSuccess]);
+
+  const runOpsAction = async (
+    label: string,
+    action: () => Promise<unknown>,
+    options?: { confirmTitle?: string; confirmMessage?: string; confirmLabel?: string; destructive?: boolean }
+  ) => {
+    if (options?.confirmTitle) {
+      const confirmed = await confirmAction(options.confirmTitle, options.confirmMessage || "", {
+        confirmLabel: options.confirmLabel,
+        destructive: options.destructive,
+      });
+      if (!confirmed) return;
+    }
+    try {
+      setOpsError(null);
+      await action();
+      setOpsSuccess(label);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      setOpsError(error instanceof Error ? error.message : `${label} failed`);
+    }
+  };
 
   const runWorkflowAction = async (action: "start" | "advance" | "complete") => {
     if (!displayOrder) return;
@@ -199,7 +253,14 @@ export default function OrderDetail() {
       <SafeAreaView style={styles.safe}>
         <ScreenHeader title="Order" back />
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>Order not found.</Text>
+          <Text style={styles.emptyText}>
+            {orderLoadError ? "Unable to load order details." : "Order not found."}
+          </Text>
+          {orderLoadError ? (
+            <TouchableOpacity style={styles.retryBtn} onPress={() => void orderQuery.refetch()}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </SafeAreaView>
     );
@@ -209,6 +270,10 @@ export default function OrderDetail() {
   const canAdvance = Boolean(nextActivity?.code) && !isTerminalStatus(displayOrder.status);
   const canComplete = canCompleteOrder(displayOrder.status);
   const driverMode = isDriverUser(user);
+  const showOps = displayOrder ? showOpsToolbar(displayOrder, permissions, driverMode) : false;
+  const canAssign = displayOrder ? canAssignOrder(displayOrder, permissions, driverMode) : false;
+  const canDispatch = displayOrder ? canDispatchOrderAction(displayOrder, permissions, driverMode) : false;
+  const canCancel = displayOrder ? canCancelOrderAction(displayOrder, permissions, driverMode) : false;
   const hasWorkflowPermission =
     permissions.canUpdateOrder || permissions.canDispatchOrder || driverMode;
   const startDisabledReason = !hasWorkflowPermission
@@ -226,7 +291,7 @@ export default function OrderDetail() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title={displayOrder.code} subtitle={displayOrder.customer} back rightIcon="ellipsis-horizontal" />
+      <ScreenHeader title={displayOrder.code} subtitle={displayOrder.customer} back />
       <SyncBanner snapshot={syncSnapshot} onRetry={retrySync} compact />
       <ScrollView contentContainerStyle={styles.scroll}>
         {mapModel ? (
@@ -261,7 +326,13 @@ export default function OrderDetail() {
           {etaLabel ? (
             <View style={[styles.metaGrid, { marginTop: spacing.sm, paddingTop: spacing.sm }]}>
               <Cell label="ETA" value={etaLabel} />
+              {trackerSummary.progressPercent != null ? (
+                <Cell label="PROGRESS" value={`${Math.round(trackerSummary.progressPercent)}%`} />
+              ) : null}
             </View>
+          ) : null}
+          {trackerSummary.estimatedCompletion ? (
+            <Text style={styles.trackerHint}>Est. completion {trackerSummary.estimatedCompletion}</Text>
           ) : null}
         </View>
 
@@ -306,6 +377,75 @@ export default function OrderDetail() {
             </View>
           </View>
         </View>
+
+        {showOps ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionLabel}>DISPATCH ACTIONS</Text>
+            <View style={styles.actionRow}>
+              {canAssign ? (
+                <TouchableOpacity
+                  style={styles.secondaryBtn}
+                  testID="assign-order-btn"
+                  disabled={opsActions.busy}
+                  onPress={() => setAssignOpen(true)}
+                >
+                  <Text style={styles.secondaryBtnText}>Assign</Text>
+                </TouchableOpacity>
+              ) : null}
+              {canDispatch ? (
+                <TouchableOpacity
+                  style={styles.primaryBtn}
+                  testID="dispatch-order-btn"
+                  disabled={opsActions.busy}
+                  onPress={() =>
+                    void runOpsAction("Order dispatched", () => opsActions.dispatchMutation.mutateAsync(), {
+                      confirmTitle: "Dispatch order?",
+                      confirmMessage: "The assigned driver will be notified to start the trip.",
+                      confirmLabel: "Dispatch",
+                    })
+                  }
+                >
+                  <Ionicons name="paper-plane-outline" size={14} color="#fff" />
+                  <Text style={styles.primaryBtnText}>Dispatch</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            {canCancel ? (
+              <TouchableOpacity
+                style={[styles.dangerBtn, opsActions.busy && styles.btnDisabled]}
+                testID="cancel-order-btn"
+                disabled={opsActions.busy}
+                onPress={() =>
+                  void runOpsAction("Order canceled", () => opsActions.cancelMutation.mutateAsync(), {
+                    confirmTitle: "Cancel order?",
+                    confirmMessage: "This cannot be undone. The order will be marked canceled.",
+                    confirmLabel: "Cancel order",
+                    destructive: true,
+                  })
+                }
+              >
+                <Text style={styles.dangerBtnText}>Cancel order</Text>
+              </TouchableOpacity>
+            ) : null}
+            {opsSuccess ? <Text style={styles.opsSuccess}>{opsSuccess}</Text> : null}
+            {opsError ? <Text style={styles.workflowError}>{opsError}</Text> : null}
+          </View>
+        ) : null}
+
+        {geofenceEvents.length > 0 ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionLabel}>GEOFENCE ACTIVITY</Text>
+            {geofenceEvents.map((event) => (
+              <View key={event.id} style={styles.geofenceRow}>
+                <Ionicons name="radio-outline" size={14} color={colors.text} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.geofenceLabel}>{event.label}</Text>
+                  <Text style={styles.geofenceTime}>{event.occurredAt}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>ITEMS ({displayOrder.items.length})</Text>
@@ -482,6 +622,22 @@ export default function OrderDetail() {
 
         <View style={{ height: spacing.xxxl }} />
       </ScrollView>
+
+      <AssignOrderSheet
+        visible={assignOpen}
+        drivers={drivers}
+        vehicles={vehicles}
+        initialDriverId={displayOrder.driverId}
+        initialVehicleId={displayOrder.vehicleId}
+        loading={opsActions.assignMutation.isPending}
+        onClose={() => setAssignOpen(false)}
+        onSubmit={(input) => {
+          void runOpsAction("Driver assigned", async () => {
+            await opsActions.assignMutation.mutateAsync(input);
+            setAssignOpen(false);
+          });
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -499,7 +655,15 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, gap: spacing.md },
   empty: { padding: spacing.xxxl, alignItems: "center" },
-  emptyText: { color: colors.textMuted },
+  emptyText: { color: colors.textMuted, textAlign: "center" },
+  retryBtn: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand,
+  },
+  retryBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -525,6 +689,10 @@ const styles = StyleSheet.create({
   metaCell: { flex: 1 },
   metaLabel: { fontSize: 9, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },
   metaValue: { fontSize: 13, fontWeight: "800", color: colors.text, marginTop: 4 },
+  trackerHint: { marginTop: spacing.sm, fontSize: 11, color: colors.textSecondary, fontWeight: "600" },
+  geofenceRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, paddingVertical: 6 },
+  geofenceLabel: { fontSize: 12, fontWeight: "700", color: colors.text },
+  geofenceTime: { fontSize: 11, color: colors.textMuted, marginTop: 2, fontWeight: "600" },
   routeStep: { flexDirection: "row", alignItems: "center" },
   dot: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.md },
   routeTitle: { fontSize: 13, fontWeight: "700", color: colors.text },
@@ -594,9 +762,21 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   primaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
+  dangerBtn: {
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: radius.md,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.errorBg,
+  },
+  dangerBtnText: { color: colors.error, fontWeight: "800", fontSize: 13 },
   workflowState: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: spacing.md },
   workflowText: { color: colors.textSecondary, fontSize: 12, fontWeight: "600" },
   workflowError: { color: colors.error, marginTop: spacing.sm, fontSize: 12, fontWeight: "600" },
+  opsSuccess: { color: colors.success, marginTop: spacing.sm, fontSize: 12, fontWeight: "700" },
   proofRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 },
   proofText: { fontSize: 12, color: colors.textSecondary, fontWeight: "600" },
 });

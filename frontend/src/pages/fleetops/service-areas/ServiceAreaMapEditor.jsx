@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
+import GoogleServiceAreaMapEditor from "@/components/maps/GoogleServiceAreaMapEditor";
 import { isValidPolygon, toGeoJsonPolygon, toLeafletPolygon } from "@/lib/fleetops/geofence";
+import { isGoogleMapsEnabled } from "@/lib/maps/googleConfig";
 import { leafletTileLayerOptions } from "@/lib/maps/tiles";
 
-export default function ServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false }) {
+function LeafletServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
@@ -117,4 +119,11 @@ export default function ServiceAreaMapEditor({ geometry, onSave, onDelete, busy 
       </div>
     </div>
   );
+}
+
+export default function ServiceAreaMapEditor(props) {
+  if (isGoogleMapsEnabled()) {
+    return <GoogleServiceAreaMapEditor {...props} />;
+  }
+  return <LeafletServiceAreaMapEditor {...props} />;
 }

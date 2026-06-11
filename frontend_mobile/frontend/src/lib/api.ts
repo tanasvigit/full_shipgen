@@ -11,6 +11,7 @@ export type AuthSession = {
   requiresTwoFactor?: boolean;
   twoFaSession?: string | null;
   twoFaIdentity?: string | null;
+  twoFaClientToken?: string | null;
 };
 
 type RequestOptions = {

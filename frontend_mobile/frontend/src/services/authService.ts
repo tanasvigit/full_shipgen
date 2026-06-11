@@ -8,6 +8,7 @@ import {
   setObservabilityContext,
 } from "@/src/services/observability";
 import { createPermissionResolver } from "@/src/services/permissions";
+import { twoFaUiEnabled } from "@/src/lib/features";
 
 export type MobileUser = {
   id: string;
@@ -125,13 +126,26 @@ export const authService = {
       const requiresTwoFactor = Boolean(
         payload?.requires_2fa || payload?.two_fa_required || payload?.isEnabled || twoFaSession
       );
-      if (requiresTwoFactor && twoFaSession) {
+      if (requiresTwoFactor) {
+        if (!twoFaUiEnabled) {
+          throw new Error(
+            "This account requires two-factor authentication, but it is not enabled in this app build. Contact your administrator."
+          );
+        }
+        if (!twoFaSession) {
+          throw new Error(
+            "Two-factor authentication is enabled but the verification session could not be started. Try again."
+          );
+        }
         await setStoredSession({
           token: null,
           requiresTwoFactor: true,
           twoFaSession,
-          twoFaIdentity: email,
+          twoFaIdentity: payload?.identity || email,
+          twoFaMethod: payload?.method || "email",
+          twoFaClientToken: null,
         });
+        await authService.beginTwoFactorSession();
         logEvent("auth.login.2fa_required", { email });
         return { requiresTwoFactor: true, twoFaSession };
       }
@@ -206,7 +220,37 @@ export const authService = {
     return { organizations, activeOrg };
   },
 
-  async verifyTwoFactor(code: string) {
+  async beginTwoFactorSession() {
+    const session = await getStoredSession();
+    const identity = session?.twoFaIdentity;
+    const token = session?.twoFaSession;
+    if (!identity || !token) {
+      throw new Error("Two-factor session expired. Sign in again.");
+    }
+    if (session?.twoFaClientToken) {
+      return session.twoFaClientToken;
+    }
+    const validated = await apiRequest<{ clientToken?: string; expired?: boolean }>("/two-fa/validate", {
+      method: "POST",
+      body: { identity, token },
+      auth: false,
+    });
+    if (validated?.expired) {
+      throw new Error("Verification session expired. Sign in again.");
+    }
+    const clientToken = validated?.clientToken;
+    if (!clientToken) {
+      throw new Error("Unable to start verification. Try again.");
+    }
+    await setStoredSession({
+      ...session,
+      requiresTwoFactor: true,
+      twoFaClientToken: clientToken,
+    });
+    return clientToken;
+  },
+
+  async resendTwoFactorCode() {
     const session = await getStoredSession();
     const identity = session?.twoFaIdentity;
     const token = session?.twoFaSession;
@@ -220,7 +264,27 @@ export const authService = {
     });
     const clientToken = resend?.clientToken;
     if (!clientToken) {
-      throw new Error("Unable to start verification. Try again.");
+      throw new Error("Unable to resend verification code.");
+    }
+    await setStoredSession({
+      ...session,
+      requiresTwoFactor: true,
+      twoFaClientToken: clientToken,
+    });
+    logEvent("auth.2fa.resent", { identity });
+    return clientToken;
+  },
+
+  async verifyTwoFactor(code: string) {
+    const session = await getStoredSession();
+    const identity = session?.twoFaIdentity;
+    const token = session?.twoFaSession;
+    if (!identity || !token) {
+      throw new Error("Two-factor session expired. Sign in again.");
+    }
+    let clientToken = session?.twoFaClientToken || null;
+    if (!clientToken) {
+      clientToken = await authService.beginTwoFactorSession();
     }
     const verify = await apiRequest<{ authToken?: string }>("/two-fa/verify", {
       method: "POST",

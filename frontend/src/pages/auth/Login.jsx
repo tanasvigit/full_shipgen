@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, ArrowRight, Fingerprint } from "lucide-react";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,8 +27,7 @@ export default function Login() {
         try {
             const result = await login({ email, password, remember });
             if (result.requiresTwoFactor) {
-                toast.success("Verification code required");
-                navigate("/auth/two-fa");
+                navigate("/auth/two-fa", { replace: true });
                 return;
             }
             toast.success(`Signed in to ${PORTAL_CONSOLE_LABEL}`);
@@ -111,7 +109,7 @@ export default function Login() {
                     </div>
                 )}
 
-                <div className="space-y-3 pt-1">
+                <div className="pt-1">
                     <LoadingButton
                         type="submit"
                         loading={loading}
@@ -121,16 +119,6 @@ export default function Login() {
                     >
                         Sign in <ArrowRight className="h-4 w-4 ml-1.5" />
                     </LoadingButton>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate("/auth/two-fa")}
-                        className="w-full h-12 bg-white border-black/[0.08] hover:bg-[#F5F6F8] hover:text-[#0A0E1A] text-[#374151] font-medium rounded-lg transition-all"
-                        data-testid="login-two-fa-button"
-                    >
-                        <Fingerprint className="h-4 w-4 mr-2" /> Sign in with 2FA
-                    </Button>
                 </div>
             </form>
 

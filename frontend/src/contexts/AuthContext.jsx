@@ -310,9 +310,25 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const beginTwoFactorSession = useCallback(async () => {
+    try {
+      return await authService.beginTwoFactorSession();
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }, []);
+
+  const resendTwoFactorCode = useCallback(async () => {
+    try {
+      return await authService.resendTwoFactorCode();
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }, []);
+
   const completeTwoFactor = useCallback(async (code) => {
     try {
-      await authService.validateTwoFactor(code);
+      await authService.verifyTwoFactor(code);
       const auth = authService.getAuth();
       const { me, organizations: orgs, activeOrg } = await authService.bootstrap();
       setSession(auth);
@@ -322,6 +338,14 @@ export function AuthProvider({ children }) {
     } catch (error) {
       throw toApiError(error);
     }
+  }, []);
+
+  const cancelTwoFactor = useCallback(async () => {
+    await authService.cancelTwoFactorSession();
+    setSession(null);
+    setUser(null);
+    setOrganizations([]);
+    setActiveOrganization(null);
   }, []);
 
   const logout = useCallback(async () => {
@@ -390,7 +414,10 @@ export function AuthProvider({ children }) {
       verifyOnboardingCode,
       resendOnboardingEmail,
       resendOnboardingSms,
+      beginTwoFactorSession,
+      resendTwoFactorCode,
       completeTwoFactor,
+      cancelTwoFactor,
       logout,
       switchOrganization,
       refreshInstallStatus,
@@ -415,7 +442,10 @@ export function AuthProvider({ children }) {
       verifyOnboardingCode,
       resendOnboardingEmail,
       resendOnboardingSms,
+      beginTwoFactorSession,
+      resendTwoFactorCode,
       completeTwoFactor,
+      cancelTwoFactor,
       logout,
       switchOrganization,
       refreshInstallStatus,

@@ -1,17 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
-import TripMap from "@/src/maps/tripMap";
+import TripMap, { type TripMapHandle } from "@/src/maps/tripMap";
 import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
+import { hasGoogleMapsApiKey, mapsProviderLabel, needsNativeMapsRebuild } from "@/src/maps/provider";
 import { SyncBanner } from "@/src/sync/indicators";
 import { useSyncStatus } from "@/src/hooks/useSyncStatus";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useDriverOrders } from "@/src/hooks/useDriverOrders";
+import { useOrderTrackerQuery, useOrderEtaQuery } from "@/src/hooks/useOrderTrackerQuery";
 import { useTrackingEngine } from "@/src/hooks/useTrackingEngine";
+import { useLiveDriversQuery } from "@/src/hooks/useLiveDriversQuery";
 import { isTerminalStatus } from "@/src/lib/orderStatus";
+import { resolveDriverCoordinate, resolveOrderEtaLabel } from "@/src/lib/orderTracker";
+import { liveDriversToMapMarkers } from "@/src/lib/liveMapper";
+import { canListFleetDrivers } from "@/src/lib/fleetAccess";
+import { isDriverUser } from "@/src/lib/driver";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 function matchesOrderRef(order: { id: string; code: string }, ref?: string) {
   const key = String(ref || "").trim();
@@ -21,36 +29,61 @@ function matchesOrderRef(order: { id: string; code: string }, ref?: string) {
 
 export default function Tracking() {
   const router = useRouter();
-  const { orderId: routeOrderId } = useLocalSearchParams<{ orderId?: string }>();
+  const { user, canFleetops } = useAuth();
+  const driverMode = isDriverUser(user);
+  const opsFleetView = !driverMode && canListFleetDrivers(canFleetops);
+
+  if (opsFleetView) {
+    return <OpsFleetTracking router={router} />;
+  }
+
+  return <DriverTripTracking router={router} routeOrderId={undefined} />;
+}
+
+function DriverTripTracking({
+  router,
+  routeOrderId,
+}: {
+  router: ReturnType<typeof useRouter>;
+  routeOrderId?: string;
+}) {
+  const mapRef = useRef<TripMapHandle>(null);
+  const params = useLocalSearchParams<{ orderId?: string }>();
+  const resolvedRouteOrderId = routeOrderId ?? params.orderId;
   const { orders } = useDriverOrders();
   const trackableOrders = orders.filter((order) => !isTerminalStatus(order.status));
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!routeOrderId) return;
-    const match = trackableOrders.find((order) => matchesOrderRef(order, routeOrderId));
+    if (!resolvedRouteOrderId) return;
+    const match = trackableOrders.find((order) => matchesOrderRef(order, resolvedRouteOrderId));
     if (match) setSelected(match.id);
-  }, [routeOrderId, trackableOrders]);
+  }, [resolvedRouteOrderId, trackableOrders]);
 
   const selectedOrder =
     trackableOrders.find((order) => order.id === selected) ??
-    trackableOrders.find((order) => matchesOrderRef(order, routeOrderId)) ??
+    trackableOrders.find((order) => matchesOrderRef(order, resolvedRouteOrderId)) ??
     trackableOrders[0];
+  const orderRefKey = selectedOrder?.code || selectedOrder?.id;
   const { status: trackingStatus, syncNow, engineState } = useTrackingEngine(selectedOrder?.id, "active_trip");
+  const trackerQuery = useOrderTrackerQuery(orderRefKey, Boolean(selectedOrder));
+  const etaQuery = useOrderEtaQuery(orderRefKey, Boolean(selectedOrder));
   const { snapshot: syncSnapshot, retrySync } = useSyncStatus();
+
+  const etaLabel = useMemo(
+    () => resolveOrderEtaLabel(trackerQuery.data, etaQuery.data),
+    [etaQuery.data, trackerQuery.data]
+  );
 
   const mapOrder = useMemo(() => {
     if (!selectedOrder) return null;
-    const lastPoint = engineState.lastPoint;
-    if (!lastPoint) return selectedOrder;
+    const driverCoordinate = resolveDriverCoordinate(engineState.lastPoint, trackerQuery.data);
+    if (!driverCoordinate) return selectedOrder;
     return {
       ...selectedOrder,
-      driverCoordinate: {
-        latitude: lastPoint.latitude,
-        longitude: lastPoint.longitude,
-      },
+      driverCoordinate,
     };
-  }, [engineState.lastPoint, selectedOrder]);
+  }, [engineState.lastPoint, selectedOrder, trackerQuery.data]);
 
   const mapModel = mapOrder ? tripMarkersFromOrder(mapOrder) : null;
   const mapMarkers = mapModel ? listTripMapMarkers(mapModel) : [];
@@ -64,10 +97,7 @@ export default function Tracking() {
           <Text style={styles.title}>Tracking</Text>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity testID="filter-vehicles-btn" style={styles.smallBtn}>
-            <Ionicons name="options-outline" size={16} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity testID="recenter-btn" style={styles.smallBtn}>
+          <TouchableOpacity testID="recenter-btn" style={styles.smallBtn} onPress={() => mapRef.current?.recenter()}>
             <Ionicons name="locate-outline" size={16} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -75,8 +105,21 @@ export default function Tracking() {
 
       <SyncBanner snapshot={syncSnapshot} onRetry={retrySync} />
       <View style={styles.mapWrap}>
+        {needsNativeMapsRebuild() ? (
+          <View style={styles.mapsHint}>
+            <Text style={styles.mapsHintText}>
+              Google Maps key detected in `.env`. Rebuild the Android app (`npm run run-android:usb`) to enable live maps.
+            </Text>
+          </View>
+        ) : !hasGoogleMapsApiKey() ? (
+          <View style={styles.mapsHint}>
+            <Text style={styles.mapsHintText}>
+              Add EXPO_PUBLIC_GOOGLE_MAPS_API_KEY to `.env` and rebuild the Android app for live Google Maps.
+            </Text>
+          </View>
+        ) : null}
         {mapModel ? (
-          <TripMap markers={mapMarkers} route={mapRoute} height={420} activeMarkerId="driver" />
+          <TripMap ref={mapRef} markers={mapMarkers} route={mapRoute} height={420} activeMarkerId="driver" />
         ) : (
           <View style={styles.mapPlaceholder}>
             <Ionicons name="map-outline" size={28} color={colors.textMuted} />
@@ -90,7 +133,7 @@ export default function Tracking() {
         <View style={styles.mapLegend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.accent }]} />
-            <Text style={styles.legendText}>Selected</Text>
+            <Text style={styles.legendText}>{mapsProviderLabel()}</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: colors.text }]} />
@@ -154,20 +197,112 @@ export default function Tracking() {
 
             <View style={styles.detailMeta}>
               <View style={styles.metaCell}>
-                <Text style={styles.metaLabel}>DRIVER</Text>
+                <Text style={styles.metaLabel}>ETA</Text>
                 <Text style={styles.metaValue} numberOfLines={1}>
-                  {selectedOrder.driverId || "—"}
+                  {etaLabel || "—"}
                 </Text>
               </View>
               <View style={styles.metaCell}>
-                <Text style={styles.metaLabel}>VEHICLE</Text>
-                <Text style={styles.metaValue}>{selectedOrder.vehicleId || "—"}</Text>
+                <Text style={styles.metaLabel}>DRIVER</Text>
+                <Text style={styles.metaValue} numberOfLines={1}>
+                  {selectedOrder.driverName || selectedOrder.driverId || "—"}
+                </Text>
               </View>
               <View style={styles.metaCell}>
                 <Text style={styles.metaLabel}>DISTANCE</Text>
                 <Text style={styles.metaValue}>{selectedOrder.distance}</Text>
               </View>
             </View>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function OpsFleetTracking({ router }: { router: ReturnType<typeof useRouter> }) {
+  const mapRef = useRef<TripMapHandle>(null);
+  const liveQuery = useLiveDriversQuery(true);
+  const pins = liveQuery.data || [];
+  const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(undefined);
+  const { snapshot: syncSnapshot, retrySync } = useSyncStatus();
+
+  const markers = useMemo(() => liveDriversToMapMarkers(pins), [pins]);
+  const selectedDriver = pins.find((pin) => pin.id === selectedDriverId) ?? pins[0];
+
+  useEffect(() => {
+    if (!selectedDriverId && pins[0]) setSelectedDriverId(pins[0].id);
+  }, [pins, selectedDriverId]);
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.overline}>FLEET LIVE</Text>
+          <Text style={styles.title}>Tracking</Text>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity testID="recenter-btn" style={styles.smallBtn} onPress={() => mapRef.current?.recenter()}>
+            <Ionicons name="locate-outline" size={16} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <SyncBanner snapshot={syncSnapshot} onRetry={retrySync} />
+      <View style={styles.mapWrap}>
+        {markers.length > 0 ? (
+          <TripMap ref={mapRef} markers={markers} height={420} activeMarkerId={selectedDriver?.id} />
+        ) : (
+          <View style={styles.mapPlaceholder}>
+            <Ionicons name="map-outline" size={28} color={colors.textMuted} />
+            <Text style={styles.mapPlaceholderText}>
+              {liveQuery.isLoading
+                ? "Loading live driver positions..."
+                : "No online drivers with location data right now."}
+            </Text>
+          </View>
+        )}
+        <View style={styles.mapLegend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
+            <Text style={styles.legendText}>Drivers online</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.bottomSheet}>
+        <View style={styles.sheetHandle} />
+        <Text style={styles.sheetLabel}>ONLINE DRIVERS · {pins.length}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tripStrip}>
+          {pins.map((pin) => (
+            <TouchableOpacity
+              key={pin.id}
+              testID={`live-driver-chip-${pin.id}`}
+              style={[styles.tripChip, selectedDriver?.id === pin.id && styles.tripChipActive]}
+              onPress={() => setSelectedDriverId(pin.id)}
+            >
+              <Text style={[styles.tripChipText, selectedDriver?.id === pin.id && styles.tripChipTextActive]}>
+                {pin.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {selectedDriver ? (
+          <TouchableOpacity
+            style={styles.detail}
+            onPress={() => router.push(`/driver/${selectedDriver.id}`)}
+            testID="live-driver-detail-card"
+          >
+            <View style={styles.detailHeader}>
+              <View>
+                <Text style={styles.detailCode}>{selectedDriver.name}</Text>
+                <Text style={styles.detailCustomer}>{selectedDriver.status}</Text>
+              </View>
+            </View>
+            <Text style={styles.routeText}>
+              {selectedDriver.coordinate.latitude.toFixed(4)}, {selectedDriver.coordinate.longitude.toFixed(4)}
+            </Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -199,6 +334,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mapWrap: { paddingHorizontal: spacing.lg, marginTop: spacing.sm, position: "relative" },
+  mapsHint: {
+    marginBottom: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radius.sm,
+    backgroundColor: colors.warningBg,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  mapsHintText: { fontSize: 11, color: colors.textSecondary, lineHeight: 16, fontWeight: "600" },
   mapPlaceholder: {
     height: 420,
     borderRadius: radius.lg,

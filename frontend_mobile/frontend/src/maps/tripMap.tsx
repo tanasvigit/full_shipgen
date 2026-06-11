@@ -1,16 +1,25 @@
-import { useMemo, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import { Platform, StyleSheet, View } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import StylizedMap from "@/src/components/StylizedMap";
 import { defaultRegion, type TripMapMarker } from "@/src/maps/markers";
 import { buildRoutePolyline, snapRoutePreview } from "@/src/maps/polylines";
-import { isNativeMapsSupported, markerPinColor } from "@/src/maps/provider";
+import {
+  isNativeMapsSupported,
+  mapsProviderLabel,
+  markerPinColor,
+  shouldUseGoogleMapProvider,
+} from "@/src/maps/provider";
 
 type TripMapProps = {
   markers: TripMapMarker[];
   route?: TripMapMarker["coordinate"][];
   height?: number;
   activeMarkerId?: string;
+};
+
+export type TripMapHandle = {
+  recenter: () => void;
 };
 
 function dedupeTripMarkers(markers: TripMapMarker[]) {
@@ -52,7 +61,21 @@ function stylizedMarkersFromTrip(markers: TripMapMarker[]) {
   });
 }
 
-export default function TripMap({ markers, route = [], height = 320, activeMarkerId }: TripMapProps) {
+function fitMapToMarkers(mapRef: MapView | null, markers: TripMapMarker[]) {
+  if (!mapRef || markers.length === 0) return;
+  mapRef.fitToCoordinates(
+    markers.map((marker) => marker.coordinate),
+    {
+      edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
+      animated: true,
+    }
+  );
+}
+
+const TripMap = forwardRef<TripMapHandle, TripMapProps>(function TripMap(
+  { markers, route = [], height = 320, activeMarkerId },
+  ref
+) {
   const mapRef = useRef<MapView | null>(null);
   const normalizedMarkers = useMemo(() => dedupeTripMarkers(markers), [markers]);
 
@@ -63,9 +86,20 @@ export default function TripMap({ markers, route = [], height = 320, activeMarke
 
   const polyline = useMemo(() => snapRoutePreview(buildRoutePolyline(route)), [route]);
   const stylizedMarkers = useMemo(() => stylizedMarkersFromTrip(normalizedMarkers), [normalizedMarkers]);
+  const useGoogleProvider = shouldUseGoogleMapProvider();
+
+  useImperativeHandle(ref, () => ({
+    recenter: () => fitMapToMarkers(mapRef.current, normalizedMarkers),
+  }));
 
   if (!isNativeMapsSupported()) {
-    return <StylizedMap markers={stylizedMarkers} height={height} />;
+    return (
+      <StylizedMap
+        markers={stylizedMarkers}
+        height={height}
+        attribution={mapsProviderLabel()}
+      />
+    );
   }
 
   return (
@@ -73,18 +107,11 @@ export default function TripMap({ markers, route = [], height = 320, activeMarke
       <MapView
         ref={mapRef}
         style={styles.map}
-        provider={Platform.OS === "android" ? PROVIDER_DEFAULT : undefined}
+        provider={useGoogleProvider ? PROVIDER_GOOGLE : undefined}
         initialRegion={region}
-        onMapReady={() => {
-          if (!mapRef.current || normalizedMarkers.length === 0) return;
-          mapRef.current.fitToCoordinates(
-            normalizedMarkers.map((marker) => marker.coordinate),
-            {
-              edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
-              animated: true,
-            }
-          );
-        }}
+        showsUserLocation={Platform.OS === "ios" && !useGoogleProvider}
+        showsMyLocationButton={false}
+        onMapReady={() => fitMapToMarkers(mapRef.current, normalizedMarkers)}
       >
         {polyline.length > 1 ? (
           <Polyline
@@ -105,7 +132,9 @@ export default function TripMap({ markers, route = [], height = 320, activeMarke
       </MapView>
     </View>
   );
-}
+});
+
+export default TripMap;
 
 const styles = StyleSheet.create({
   wrap: { borderRadius: 12, overflow: "hidden", backgroundColor: "#E5E7EB" },

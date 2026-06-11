@@ -76,3 +76,34 @@ export function listTripMapMarkers(
   }
   return list.length > 0 ? list : model.markers;
 }
+
+type RouteMapInput = {
+  waypoints: { name: string; address: string; coordinate?: MapCoordinate | null; done?: boolean }[];
+};
+
+export function tripMarkersFromRoute(route: RouteMapInput) {
+  const markers: TripMapMarker[] = route.waypoints
+    .map((waypoint, index) => {
+      if (!waypoint.coordinate) return null;
+      const kind: TripMapMarker["kind"] =
+        index === 0 ? "pickup" : index === route.waypoints.length - 1 ? "dropoff" : "waypoint";
+      return {
+        id: `wp-${index}`,
+        coordinate: waypoint.coordinate,
+        title: waypoint.name,
+        description: waypoint.address,
+        kind,
+      };
+    })
+    .filter(Boolean) as TripMapMarker[];
+
+  if (markers.length === 0) return null;
+
+  return {
+    pickup: markers[0],
+    dropoff: markers[markers.length - 1],
+    driver: undefined,
+    route: markers.map((marker) => marker.coordinate),
+    markers,
+  };
+}

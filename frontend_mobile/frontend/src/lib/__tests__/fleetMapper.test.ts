@@ -37,9 +37,12 @@ describe("fleetMapper", () => {
       street1: "100 Main St",
       city: "Austin",
       type: "warehouse",
+      latitude: 30.2672,
+      longitude: -97.7431,
     });
     expect(place.type).toBe("Warehouse");
     expect(place.address).toContain("100 Main St");
+    expect(place.coordinate).toEqual({ latitude: 30.2672, longitude: -97.7431 });
 
     const route = mapRouteFromApi({
       uuid: "route-1",
@@ -54,6 +57,27 @@ describe("fleetMapper", () => {
     expect(route.stops).toBe(2);
     expect(route.status).toBe("active");
     expect(route.driverName).toBe("Alex Driver");
+  });
+
+  it("maps route waypoint coordinates from payload places", () => {
+    const route = mapRouteFromApi({
+      uuid: "route-2",
+      payload: {
+        pickup: {
+          name: "Warehouse",
+          street1: "100 Main",
+          location: { type: "Point", coordinates: [-97.74, 30.27] },
+        },
+        dropoff: {
+          name: "Customer",
+          street1: "200 Oak",
+          location: { type: "Point", coordinates: [-97.7, 30.25] },
+        },
+      },
+    });
+    expect(route.waypoints).toHaveLength(2);
+    expect(route.waypoints[0]?.coordinate).toEqual({ latitude: 30.27, longitude: -97.74 });
+    expect(route.waypoints[1]?.coordinate).toEqual({ latitude: 30.25, longitude: -97.7 });
   });
 
   it("maps issue and fuel report API fields", () => {

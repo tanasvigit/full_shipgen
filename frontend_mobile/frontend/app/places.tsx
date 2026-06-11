@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
-import ScreenHeader from "@/src/components/ScreenHeader";
+import FleetSubScreenLayout from "@/src/components/fleet/FleetSubScreenLayout";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 const typeIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -12,13 +12,13 @@ const typeIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function PlacesList() {
+  const router = useRouter();
   const { places, sectionLoading, sectionError, refresh } = useFleetData();
   const loading = sectionLoading.places;
   const error = sectionError.places;
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Places" subtitle={`${places.length} locations`} back rightIcon="add" />
+    <FleetSubScreenLayout active="places" title="Places" subtitle={`${places.length} locations`}>
       {error ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
@@ -43,7 +43,11 @@ export default function PlacesList() {
             </View>
           }
           renderItem={({ item }) => (
-            <TouchableOpacity testID={`place-${item.id}`} style={styles.row}>
+            <TouchableOpacity
+              testID={`place-${item.id}`}
+              style={styles.row}
+              onPress={() => router.push(`/place/${item.id}`)}
+            >
               <View style={styles.iconBox}>
                 <Ionicons name={typeIcons[item.type] ?? "location-outline"} size={16} color={colors.text} />
               </View>
@@ -71,12 +75,11 @@ export default function PlacesList() {
           )}
         />
       )}
-    </SafeAreaView>
+    </FleetSubScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg },
   empty: { paddingVertical: spacing.xxl, alignItems: "center" },

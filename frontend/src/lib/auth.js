@@ -1,5 +1,6 @@
 import { apiClient, unwrapEntity, unwrapList } from "@/lib/api";
 import { env } from "@/lib/env";
+import { features } from "@/lib/features";
 import { resolveEffectivePermissions } from "@/lib/fleetops/permissions";
 import { authStorage, orgStorage } from "@/lib/storage";
 
@@ -97,14 +98,42 @@ export const authService = {
       { loading: false },
     );
     const payload = response.data || {};
-    const token = payload?.token || payload?.access_token || payload?.bearer_token;
-    const requiresTwoFactor = Boolean(payload?.requires_2fa || payload?.two_fa_required);
+    const twoFaSession = payload?.twoFaSession || null;
+    const requiresTwoFactor = Boolean(
+      payload?.requires_2fa ||
+        payload?.two_fa_required ||
+        payload?.isEnabled ||
+        twoFaSession,
+    );
 
-    if (!token && !requiresTwoFactor) {
+    if (requiresTwoFactor) {
+      if (!features.twoFaEnabled) {
+        throw new Error(
+          "This account requires two-factor authentication, but it is not enabled in this console build. Contact your administrator.",
+        );
+      }
+      if (!twoFaSession) {
+        throw new Error("Two-factor authentication is enabled but the verification session could not be started. Try again.");
+      }
+      const auth = {
+        token: null,
+        requiresTwoFactor: true,
+        twoFaSession,
+        twoFaIdentity: payload?.identity || email,
+        twoFaMethod: payload?.method || "email",
+        twoFaClientToken: null,
+        remember,
+      };
+      authStorage.set(auth);
+      return auth;
+    }
+
+    const token = payload?.token || payload?.access_token || payload?.bearer_token;
+    if (!token) {
       throw new Error("Login succeeded but no token was returned.");
     }
 
-    const auth = { token: token || null, requiresTwoFactor };
+    const auth = { token, requiresTwoFactor: false };
     authStorage.set(auth);
     return auth;
   },
@@ -152,15 +181,91 @@ export const authService = {
     return response?.data || {};
   },
 
-  async validateTwoFactor(code) {
-    await apiClient.post("/two-fa/validate", { code });
-    const response = await apiClient.post("/two-fa/verify", { code });
-    const payload = response.data || {};
-    const token = payload?.token || payload?.access_token || payload?.bearer_token;
-    if (token) {
-      authStorage.set({ token, requiresTwoFactor: false });
+  async beginTwoFactorSession() {
+    const auth = authStorage.get();
+    const identity = auth?.twoFaIdentity;
+    const token = auth?.twoFaSession;
+    if (!identity || !token) {
+      throw new Error("Two-factor session expired. Sign in again.");
     }
-    return payload;
+    if (auth?.twoFaClientToken) {
+      return auth.twoFaClientToken;
+    }
+    const response = await apiClient.post(
+      "/two-fa/validate",
+      { identity, token },
+      { loading: false },
+    );
+    const payload = response.data || {};
+    if (payload?.expired) {
+      throw new Error("Verification session expired. Sign in again.");
+    }
+    const clientToken = payload?.clientToken;
+    if (!clientToken) {
+      throw new Error("Unable to start verification. Try again.");
+    }
+    authStorage.set({ ...auth, twoFaClientToken: clientToken });
+    return clientToken;
+  },
+
+  async resendTwoFactorCode() {
+    const auth = authStorage.get();
+    const identity = auth?.twoFaIdentity;
+    const token = auth?.twoFaSession;
+    if (!identity || !token) {
+      throw new Error("Two-factor session expired. Sign in again.");
+    }
+    const response = await apiClient.post(
+      "/two-fa/resend",
+      { identity, token },
+      { loading: false },
+    );
+    const clientToken = response.data?.clientToken;
+    if (!clientToken) {
+      throw new Error("Unable to resend verification code.");
+    }
+    authStorage.set({ ...auth, twoFaClientToken: clientToken });
+    return clientToken;
+  },
+
+  async verifyTwoFactor(code) {
+    const auth = authStorage.get();
+    const identity = auth?.twoFaIdentity;
+    const token = auth?.twoFaSession;
+    if (!identity || !token) {
+      throw new Error("Two-factor session expired. Sign in again.");
+    }
+    let clientToken = auth?.twoFaClientToken || null;
+    if (!clientToken) {
+      clientToken = await this.beginTwoFactorSession();
+    }
+    const response = await apiClient.post(
+      "/two-fa/verify",
+      { code, token, clientToken },
+      { loading: false },
+    );
+    const authToken = response.data?.authToken || response.data?.token;
+    if (!authToken) {
+      throw new Error("Invalid verification code.");
+    }
+    authStorage.set({ token: authToken, requiresTwoFactor: false });
+    return authToken;
+  },
+
+  async cancelTwoFactorSession() {
+    const auth = authStorage.get();
+    if (auth?.twoFaSession && auth?.twoFaIdentity) {
+      try {
+        await apiClient.post(
+          "/two-fa/invalidate",
+          { identity: auth.twoFaIdentity, token: auth.twoFaSession },
+          { loading: false, silent: true },
+        );
+      } catch {
+        // Best-effort cleanup.
+      }
+    }
+    authStorage.clear();
   },
 
   async logout() {

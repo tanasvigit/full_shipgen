@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isDriverUser, orderAssignedToDriver, resolveDriverTrackId } from "@/src/lib/driver";
+import {
+  isDriverUser,
+  orderAssignedToDriver,
+  resolveDriverPublicId,
+  resolveDriverTrackId,
+  resolveManifestStopId,
+} from "@/src/lib/driver";
 import type { MobileUser } from "@/src/services/authService";
 
 function makeUser(partial: Partial<MobileUser["raw"]> = {}): MobileUser {
@@ -21,6 +27,16 @@ function makeUser(partial: Partial<MobileUser["raw"]> = {}): MobileUser {
 describe("driver helpers", () => {
   it("resolves driver track id from linked driver record", () => {
     expect(resolveDriverTrackId(makeUser())).toBe("driver_abc123");
+  });
+
+  it("resolves driver public id for manifest filters", () => {
+    expect(resolveDriverPublicId(makeUser())).toBe("driver_abc123");
+    expect(resolveDriverPublicId(makeUser({ driver: { uuid: "uuid-only" } }))).toBeNull();
+  });
+
+  it("requires manifest stop public id", () => {
+    expect(resolveManifestStopId({ public_id: "stop_abc" })).toBe("stop_abc");
+    expect(resolveManifestStopId({ uuid: "uuid-only" })).toBeNull();
   });
 
   it("detects driver users", () => {

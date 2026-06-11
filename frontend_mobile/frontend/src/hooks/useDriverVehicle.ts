@@ -24,7 +24,7 @@ export function useDriverVehicle(): { driverMode: boolean; vehicle: Vehicle | nu
       if (match) return match;
     }
 
-    return vehicles[0] ?? null;
+    return null;
   }, [driverMode, driverTrackId, vehicles, drivers, findDriver]);
 
   return { driverMode, vehicle };

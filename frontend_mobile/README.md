@@ -29,6 +29,27 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:8000/int/v1
 
 Default if unset: `http://localhost:8000/int/v1`
 
+### Google Maps (Android native maps)
+
+In-app maps (Tracking tab, order detail) use **Google Maps on Android** when configured.
+
+1. Copy `.env.example` → `.env` in `frontend/`
+2. Set your key:
+
+```bash
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+```
+
+3. Enable **Maps SDK for Android** in [Google Cloud Console](https://console.cloud.google.com/google/maps-apis)
+4. **Rebuild** the dev client (required — the key is baked into `AndroidManifest.xml`):
+
+```bash
+cd frontend
+npm run run-android:usb
+```
+
+Without a key, the app shows a stylized preview map. iOS uses Apple Maps by default (Google Maps on iOS when the key is set and the app is rebuilt on macOS).
+
 ## End-to-end guide
 
 See **[docs/END-TO-END-GUIDE.md](./docs/END-TO-END-GUIDE.md)** for the full dispatcher → driver → console realtime flow (aligned with `documents/BACKEND-LOW-LEVEL-REQUIREMENTS.md` and `documents/LOW-LEVEL-REQUIREMENTS.md`).

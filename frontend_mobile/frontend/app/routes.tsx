@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
-import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
+import FleetSubScreenLayout from "@/src/components/fleet/FleetSubScreenLayout";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 export default function RoutesList() {
@@ -12,10 +11,14 @@ export default function RoutesList() {
   const { routes, findDriver, sectionLoading, sectionError, refresh } = useFleetData();
   const loading = sectionLoading.routes;
   const error = sectionError.routes;
+  const active = routes.filter((r) => r.status === "active").length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Routes" subtitle={`${routes.length} routes`} back rightIcon="add" />
+    <FleetSubScreenLayout
+      active="routes"
+      title="Routes"
+      subtitle={`${routes.length} routes · ${active} active`}
+    >
       {error ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
@@ -77,12 +80,11 @@ export default function RoutesList() {
           }}
         />
       )}
-    </SafeAreaView>
+    </FleetSubScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg },
   empty: { paddingVertical: spacing.xxl, alignItems: "center" },

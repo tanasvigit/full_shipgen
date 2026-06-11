@@ -1,23 +1,55 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { colors, radius, spacing } from "@/src/theme";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
-import StylizedMap from "@/src/components/StylizedMap";
+import TripMap from "@/src/maps/tripMap";
+import { listTripMapMarkers, tripMarkersFromRoute } from "@/src/maps/coordinates";
 import { useFleetData } from "@/src/hooks/useFleetData";
+import { useCompanyScope } from "@/src/hooks/useCompanyScope";
+import { fleetService } from "@/src/services/fleetService";
+import { queryKeys } from "@/src/query/keys";
 
 export default function RouteDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { companyUuid } = useCompanyScope();
   const { findRoute, findDriver, findVehicle } = useFleetData();
-  const route = findRoute(id);
+  const cachedRoute = findRoute(id);
+
+  const routeQuery = useQuery({
+    queryKey: queryKeys.route(companyUuid, String(id)),
+    queryFn: () => fleetService.getRoute(String(id)),
+    initialData: cachedRoute ?? undefined,
+    staleTime: 60_000,
+  });
+
+  const route = routeQuery.data ?? cachedRoute ?? null;
+  const mapModel = useMemo(() => (route ? tripMarkersFromRoute(route) : null), [route]);
+
+  if (!route && routeQuery.isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="Route" back />
+        <View style={styles.empty}>
+          <ActivityIndicator color={colors.text} />
+          <Text style={styles.emptyText}>Loading route...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!route) {
     return (
       <SafeAreaView style={styles.safe}>
         <ScreenHeader title="Route" back />
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>Route not found.</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -29,13 +61,20 @@ export default function RouteDetail() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScreenHeader title={route.name} subtitle={`${route.stops} stops · ${route.distance}`} back />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <StylizedMap height={200} markers={route.waypoints.map((w, i) => ({
-          id: `wp-${i}`,
-          x: 0.15 + (i * (0.7 / Math.max(route.waypoints.length - 1, 1))),
-          y: 0.3 + ((i % 2) * 0.3),
-          color: w.done ? colors.success : i === 0 ? colors.text : colors.accent,
-          icon: "location" as const,
-        }))} />
+        {mapModel ? (
+          <TripMap
+            height={200}
+            markers={listTripMapMarkers(mapModel)}
+            route={mapModel.route}
+          />
+        ) : (
+          <View style={styles.mapPlaceholder}>
+            <Ionicons name="map-outline" size={24} color={colors.textMuted} />
+            <Text style={styles.mapPlaceholderText}>
+              Map appears when waypoint coordinates are available from the route order payload.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.metaGrid}>
           <Meta label="Distance" value={route.distance} />
@@ -68,6 +107,19 @@ export default function RouteDetail() {
             <View style={{ flex: 1 }}>
               <Text style={styles.assignLabel}>Vehicle</Text>
               <Text style={styles.assignValue}>{vehicle.plate} · {vehicle.model}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : null}
+
+        {route.orderId ? (
+          <TouchableOpacity style={styles.assignCard} onPress={() => router.push(`/order/${route.orderId}`)}>
+            <View style={styles.assignIcon}>
+              <Ionicons name="document-text-outline" size={16} color={colors.text} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.assignLabel}>Linked order</Text>
+              <Text style={styles.assignValue}>{route.orderId}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </TouchableOpacity>
@@ -112,6 +164,25 @@ function Meta({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, gap: spacing.md },
+  empty: { padding: spacing.xxxl, alignItems: "center", gap: spacing.sm },
+  emptyText: { color: colors.textMuted },
+  mapPlaceholder: {
+    height: 200,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+  },
+  mapPlaceholderText: {
+    marginTop: spacing.sm,
+    textAlign: "center",
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
   metaGrid: { flexDirection: "row", backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg },
   metaCell: { flex: 1 },
   metaLabel: { fontSize: 9, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },

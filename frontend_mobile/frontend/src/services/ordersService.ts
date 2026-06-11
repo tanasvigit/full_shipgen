@@ -11,6 +11,9 @@ function normalizeOrderRefs(orderId: string, code?: string) {
 export const ORDERS_LIST_INCLUDES =
   "driverAssigned,vehicleAssigned,driverAssigned.vehicle,payload,payload.pickup,payload.dropoff";
 
+/** Same relation graph for single-order fetch. */
+export const ORDER_INCLUDES = ORDERS_LIST_INCLUDES;
+
 export const ordersService = {
   async list(params?: { limit?: number; driver?: string }) {
     const query = new URLSearchParams();

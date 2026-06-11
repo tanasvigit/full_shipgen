@@ -1,5 +1,6 @@
-import type { Driver, FuelLog, Issue, Place, Route } from "@/src/data/types";
+import type { Driver, FuelLog, Issue, Place, Route, RouteWaypoint } from "@/src/data/types";
 import type { DriverDTO, FuelLogDTO, IssueDTO, PlaceDTO, RouteDTO } from "@/src/types/api/fleet";
+import { placeCoordinate } from "@/src/lib/placeCoordinates";
 import { idsMatch, resolveEntityId } from "@/src/lib/vehicleMapper";
 
 export { idsMatch, resolveEntityId };
@@ -94,6 +95,7 @@ export function mapPlaceFromApi(dto: PlaceDTO): Place {
     type: normalizePlaceType(dto.type),
     city: dto.city || dto.province || dto.country || "—",
     ordersCount: Number(dto.orders_count ?? dto.ordersCount ?? meta.orders_count ?? 0),
+    coordinate: placeCoordinate(dto),
   };
 }
 
@@ -104,21 +106,59 @@ function normalizeRouteStatus(raw?: string | null): Route["status"] {
   return "scheduled";
 }
 
+function mapRouteWaypoint(raw: Record<string, unknown>, fallbackName: string): RouteWaypoint {
+  const place = (raw.place || raw) as Record<string, unknown>;
+  return {
+    name: String(raw.name || place.name || fallbackName),
+    address: String(raw.address || place.address || place.street1 || "—"),
+    eta: String(raw.eta || "—"),
+    done: Boolean(raw.done || raw.completed),
+    coordinate: placeCoordinate(raw.place || raw.location || raw),
+  };
+}
+
+function waypointsFromPayload(payload: RouteDTO["payload"]): RouteWaypoint[] {
+  if (!payload || typeof payload !== "object") return [];
+  const stops: RouteWaypoint[] = [];
+
+  if (payload.pickup) {
+    stops.push(mapRouteWaypoint(payload.pickup as Record<string, unknown>, "Pickup"));
+  }
+
+  for (const waypoint of payload.waypoints || []) {
+    if (waypoint && typeof waypoint === "object") {
+      stops.push(mapRouteWaypoint(waypoint as Record<string, unknown>, "Waypoint"));
+    }
+  }
+
+  if (payload.dropoff) {
+    stops.push(mapRouteWaypoint(payload.dropoff as Record<string, unknown>, "Dropoff"));
+  }
+
+  return stops;
+}
+
 export function mapRouteFromApi(dto: RouteDTO): Route {
   const id = resolveEntityId(dto);
   const details = dto.details && typeof dto.details === "object" ? (dto.details as Record<string, unknown>) : {};
   const assignments = Array.isArray(details.assignments) ? details.assignments : [];
   const driver = dto.driver && typeof dto.driver === "object" ? dto.driver : null;
   const vehicle = dto.vehicle && typeof dto.vehicle === "object" ? dto.vehicle : null;
-  const waypoints = (dto.waypoints || []).map((waypoint) => ({
-    name: waypoint.name || "Waypoint",
-    address: waypoint.address || "—",
-    eta: waypoint.eta || "—",
-    done: Boolean(waypoint.done),
-  }));
+  const payload = dto.payload || dto.order?.payload || null;
+
+  let waypoints = (dto.waypoints || []).map((waypoint) =>
+    mapRouteWaypoint(waypoint as Record<string, unknown>, "Waypoint")
+  );
+  if (!waypoints.some((waypoint) => waypoint.coordinate)) {
+    const payloadWaypoints = waypointsFromPayload(payload);
+    if (payloadWaypoints.some((waypoint) => waypoint.coordinate)) {
+      waypoints = payloadWaypoints;
+    }
+  }
 
   return {
     id,
+    orderId: String(dto.order_uuid || dto.order?.uuid || dto.order?.public_id || ""),
     name:
       dto.name ||
       dto.order_public_id ||

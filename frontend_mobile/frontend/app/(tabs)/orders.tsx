@@ -15,9 +15,11 @@ import { colors, radius, spacing } from "@/src/theme";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useDriverOrders } from "@/src/hooks/useDriverOrders";
 import { matchesDriverBucket, type DriverOrderBucket } from "@/src/lib/orderStatus";
-import { usePermissions } from "@/src/hooks/usePermissions";
 import { useSyncStatus } from "@/src/hooks/useSyncStatus";
 import { SyncBanner } from "@/src/sync/indicators";
+import { usePermissions } from "@/src/hooks/usePermissions";
+import { isDriverUser } from "@/src/lib/driver";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 const FILTERS: DriverOrderBucket[] = ["assigned", "active", "completed"];
 
@@ -32,6 +34,10 @@ export default function Orders() {
   const [filter, setFilter] = useState<DriverOrderBucket>("assigned");
   const [query, setQuery] = useState("");
   const { orders, ordersForBucket, loading, error, refresh } = useDriverOrders();
+  const permissions = usePermissions();
+  const { user } = useAuth();
+  const driverMode = isDriverUser(user);
+  const canCreate = permissions.canCreateOrder && !driverMode;
 
   const filterCounts = useMemo(
     () =>
@@ -44,7 +50,6 @@ export default function Orders() {
       ),
     [ordersForBucket]
   );
-  const permissions = usePermissions();
   const { snapshot: syncSnapshot, retrySync } = useSyncStatus();
 
   const filtered = useMemo(() => {
@@ -65,20 +70,19 @@ export default function Orders() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.overline}>MY ORDERS</Text>
+          <Text style={styles.overline}>{driverMode ? "MY ORDERS" : "OPERATIONS"}</Text>
           <Text style={styles.title}>Orders</Text>
         </View>
-        <TouchableOpacity
-          testID="new-order-btn"
-          style={[styles.iconBtn, !permissions.canCreateOrder && styles.iconBtnDisabled]}
-          disabled={!permissions.canCreateOrder}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-        </TouchableOpacity>
+        {canCreate ? (
+          <TouchableOpacity
+            testID="create-order-btn"
+            style={styles.iconBtn}
+            onPress={() => router.push("/order/create")}
+          >
+            <Ionicons name="add" size={20} color="#fff" />
+          </TouchableOpacity>
+        ) : null}
       </View>
-      {!permissions.canCreateOrder ? (
-        <Text style={styles.permissionHint}>{permissions.permissionReason("create", "order")}</Text>
-      ) : null}
       <SyncBanner snapshot={syncSnapshot} onRetry={retrySync} />
 
       <View style={styles.searchRow}>
@@ -208,13 +212,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
-  },
-  iconBtnDisabled: { backgroundColor: colors.offline },
-  permissionHint: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.xs,
-    fontSize: 11,
-    color: colors.textMuted,
   },
   searchRow: {
     flexDirection: "row",

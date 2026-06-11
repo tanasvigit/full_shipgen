@@ -15,6 +15,7 @@ import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import { colors, radius, spacing } from "@/src/theme";
 import { manifestsService } from "@/src/services/manifestsService";
+import { resolveManifestStopId } from "@/src/lib/driver";
 
 type ManifestStop = {
   public_id?: string;
@@ -42,13 +43,16 @@ export default function ManifestDetail() {
     void load().finally(() => setLoading(false));
   }, [load]);
 
-  const completeStop = async (stop: ManifestStop) => {
-    const stopId = String(stop.public_id || stop.uuid);
-    if (!stopId) return;
+  const updateStop = async (stop: ManifestStop, status: "arrived" | "completed") => {
+    const stopId = resolveManifestStopId(stop);
+    if (!stopId) {
+      Alert.alert("Stop unavailable", "This stop is missing a public id. Refresh and try again.");
+      return;
+    }
     setUpdating(stopId);
     try {
       await manifestsService.updateStop(stopId, {
-        status: "completed",
+        status,
         actual_arrival: new Date().toISOString(),
       });
       await load();
@@ -96,8 +100,9 @@ export default function ManifestDetail() {
 
         <Text style={styles.section}>STOPS</Text>
         {stops.map((stop, index) => {
-          const stopId = String(stop.public_id || stop.uuid || index);
+          const stopId = resolveManifestStopId(stop) || String(index);
           const done = stop.status === "completed";
+          const arrived = stop.status === "arrived";
           return (
             <View key={stopId} style={styles.stopCard}>
               <View style={styles.stopHeader}>
@@ -113,16 +118,29 @@ export default function ManifestDetail() {
                 </TouchableOpacity>
               ) : null}
               {!done ? (
-                <TouchableOpacity
-                  style={styles.completeBtn}
-                  disabled={updating === stopId}
-                  onPress={() => void completeStop(stop)}
-                >
-                  <Ionicons name="checkmark-circle-outline" size={14} color="#fff" />
-                  <Text style={styles.completeBtnText}>
-                    {updating === stopId ? "Updating..." : "Mark completed"}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.stopActions}>
+                  {!arrived ? (
+                    <TouchableOpacity
+                      style={styles.secondaryBtn}
+                      disabled={updating === stopId}
+                      onPress={() => void updateStop(stop, "arrived")}
+                    >
+                      <Text style={styles.secondaryBtnText}>
+                        {updating === stopId ? "Updating..." : "Mark arrived"}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.completeBtn}
+                    disabled={updating === stopId}
+                    onPress={() => void updateStop(stop, "completed")}
+                  >
+                    <Ionicons name="checkmark-circle-outline" size={14} color="#fff" />
+                    <Text style={styles.completeBtnText}>
+                      {updating === stopId ? "Updating..." : "Mark completed"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               ) : null}
             </View>
           );
@@ -161,8 +179,18 @@ const styles = StyleSheet.create({
   stopTitle: { fontSize: 13, fontWeight: "800", color: colors.text, flex: 1, marginRight: 8 },
   stopAddress: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
   orderLink: { fontSize: 12, color: colors.brand, fontWeight: "700", marginTop: 6 },
+  stopActions: { marginTop: spacing.md, gap: spacing.sm },
+  secondaryBtn: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceAlt,
+  },
+  secondaryBtnText: { color: colors.text, fontWeight: "700", fontSize: 12 },
   completeBtn: {
-    marginTop: spacing.md,
     backgroundColor: colors.brand,
     borderRadius: radius.md,
     height: 40,

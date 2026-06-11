@@ -3,7 +3,6 @@ import { storage } from "@/src/utils/storage";
 export type DriverPreferences = {
   pushNotifications: boolean;
   locationTracking: boolean;
-  darkMode: boolean;
 };
 
 const PREFERENCES_KEY = "fleet_mobile.preferences";
@@ -11,7 +10,6 @@ const PREFERENCES_KEY = "fleet_mobile.preferences";
 const DEFAULTS: DriverPreferences = {
   pushNotifications: true,
   locationTracking: true,
-  darkMode: false,
 };
 
 let cachedLocationTracking: boolean | null = null;

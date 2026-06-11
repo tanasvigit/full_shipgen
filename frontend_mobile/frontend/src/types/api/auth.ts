@@ -14,6 +14,8 @@ export type LoginResponseDTO = {
   two_fa_required?: boolean;
   twoFaSession?: string;
   isEnabled?: boolean;
+  method?: string;
+  identity?: string;
 };
 
 export type TwoFaVerifyResponseDTO = {

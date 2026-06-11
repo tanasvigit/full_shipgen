@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
+import { tripMarkersFromOrder, listTripMapMarkers, tripMarkersFromRoute } from "@/src/maps/coordinates";
 
 describe("trip map coordinates", () => {
   it("returns null when no coordinates are available", () => {
@@ -40,5 +40,24 @@ describe("trip map coordinates", () => {
       expect.objectContaining({ id: "pickup" }),
       expect.objectContaining({ id: "dropoff" }),
     ]);
+  });
+
+  it("builds route waypoint markers from coordinates", () => {
+    const model = tripMarkersFromRoute({
+      waypoints: [
+        {
+          name: "Pickup",
+          address: "A",
+          coordinate: { latitude: 40.7, longitude: -74.0 },
+        },
+        {
+          name: "Dropoff",
+          address: "B",
+          coordinate: { latitude: 40.72, longitude: -73.98 },
+        },
+      ],
+    });
+    expect(model?.markers).toHaveLength(2);
+    expect(model?.route).toHaveLength(2);
   });
 });

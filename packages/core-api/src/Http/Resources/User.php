@@ -4,6 +4,7 @@ namespace Fleetbase\Http\Resources;
 
 use Fleetbase\Support\Http;
 use Fleetbase\Support\ResourceTransformerRegistry;
+use Fleetbase\Support\TwoFactorAuth;
 use Fleetbase\Support\Utils;
 
 class User extends FleetbaseResource
@@ -50,6 +51,7 @@ class User extends FleetbaseResource
             'last_seen_at'                                                             => $this->last_seen_at,
             'last_login'                                                               => $this->last_login,
             'status'                                                                   => $this->status,
+            'two_fa'                                                                   => $this->when(Http::isInternalRequest(), fn () => TwoFactorAuth::getTwoFaSettingsForUser($this->resource)->value),
             'slug'                                                                     => $this->slug,
             'updated_at'                                                               => $this->updated_at,
             'created_at'                                                               => $this->created_at,

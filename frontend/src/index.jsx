@@ -9,6 +9,7 @@ import { TenantProvider } from "@/contexts/TenantContext";
 import { PlatformProvider } from "@/contexts/PlatformContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { LoadingProvider } from "@/providers/LoadingProvider";
+import GoogleMapsProvider from "@/providers/GoogleMapsProvider";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
 import PlatformErrorBoundary from "@/components/platform/PlatformErrorBoundary";
 import { validateRuntimeConfig } from "@/lib/runtimeConfig";
@@ -33,11 +34,13 @@ root.render(
           <PlatformProvider>
             <DemoModeProvider>
               <BrowserRouter>
-                <LoadingProvider>
-                  <Suspense fallback={<SuspenseFallback />}>
-                    <App />
-                  </Suspense>
-                </LoadingProvider>
+                <GoogleMapsProvider>
+                  <LoadingProvider>
+                    <Suspense fallback={<SuspenseFallback />}>
+                      <App />
+                    </Suspense>
+                  </LoadingProvider>
+                </GoogleMapsProvider>
               </BrowserRouter>
             </DemoModeProvider>
           </PlatformProvider>

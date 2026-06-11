@@ -1,9 +1,8 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, spacing } from "@/src/theme";
-import ScreenHeader from "@/src/components/ScreenHeader";
+import FleetSubScreenLayout from "@/src/components/fleet/FleetSubScreenLayout";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 export default function FuelList() {
@@ -15,14 +14,12 @@ export default function FuelList() {
   const totalVol = fuelLogs.reduce((s, f) => s + f.amount, 0);
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader
-        title="Fuel reports"
-        subtitle={`${fuelLogs.length} entries`}
-        back
-        rightIcon="add"
-        onRightPress={() => router.push("/report-fuel")}
-      />
+    <FleetSubScreenLayout
+      active="fuel"
+      title="Fuel reports"
+      subtitle={`${fuelLogs.length} entries · $${totalCost.toFixed(0)} logged`}
+      onAddPress={() => router.push("/report-fuel")}
+    >
       {error ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
@@ -96,12 +93,11 @@ export default function FuelList() {
           }}
         />
       )}
-    </SafeAreaView>
+    </FleetSubScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, alignItems: "center", justifyContent: "center" },
   statsRow: { flexDirection: "row", paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.md },
   stat: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },

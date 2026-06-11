@@ -12,8 +12,11 @@ import type { Driver, FuelLog, Issue, NotificationItem, Place, Route, Vehicle } 
 import type { DriverDTO, FuelLogDTO, IssueDTO, NotificationDTO, PlaceDTO, RouteDTO, VehicleDTO } from "@/src/types/api/fleet";
 import type { OrderDTO } from "@/src/types/api/orders";
 import { ORDERS_LIST_INCLUDES } from "@/src/services/ordersService";
+import { placeCoordinate } from "@/src/lib/placeCoordinates";
+import type { OrderCoordinate } from "@/src/data/types";
 
 const FLEET_LIST_LIMIT = 500;
+const ROUTES_LIST_INCLUDES = "order,payload.pickup,payload.dropoff,payload.waypoints";
 const VEHICLES_LIST_INCLUDES = "driver";
 const DRIVERS_LIST_INCLUDES = "vehicle";
 const ISSUES_LIST_INCLUDES = "vehicle,driver";
@@ -100,12 +103,44 @@ export const fleetService = {
   },
   listRoutes: async () =>
     (
-      await fetchCollectionOptional<RouteDTO>(`/routes?limit=${FLEET_LIST_LIMIT}`, ["routes"])
+      await fetchCollectionOptional<RouteDTO>(
+        `/routes?limit=${FLEET_LIST_LIMIT}&with=${encodeURIComponent(ROUTES_LIST_INCLUDES)}`,
+        ["routes"]
+      )
     ).map(mapRouteFromApi),
+  getRoute: async (id: string) => {
+    const payload = await apiRequest(
+      `/routes/${encodeURIComponent(id)}?with=${encodeURIComponent(ROUTES_LIST_INCLUDES)}`
+    );
+    const dto = unwrapEntity<RouteDTO>(payload, ["route"]);
+    return mapRouteFromApi(dto);
+  },
   listPlaces: async () =>
     (
       await fetchCollectionOptional<PlaceDTO>(`/places?limit=${FLEET_LIST_LIMIT}`, ["places"])
     ).map(mapPlaceFromApi),
+  getPlace: async (id: string) => {
+    const payload = await apiRequest(`/places/${encodeURIComponent(id)}`);
+    const dto = unwrapEntity<PlaceDTO>(payload, ["place"]);
+    return mapPlaceFromApi(dto);
+  },
+  searchPlaces: async (query: string, limit = 30) => {
+    const params = new URLSearchParams({
+      query: query.trim(),
+      limit: String(limit),
+    });
+    const payload = await apiRequest(`/places/search?${params.toString()}`);
+    return unwrapList<PlaceDTO>(payload, ["places"]).map(mapPlaceFromApi);
+  },
+  lookupPlaceCoordinate: async (query: string): Promise<OrderCoordinate | null> => {
+    const trimmed = query.trim();
+    if (!trimmed) return null;
+    const params = new URLSearchParams({ query: trimmed });
+    const payload = await apiRequest(`/places/lookup?${params.toString()}`);
+    const rows = Array.isArray(payload) ? payload : unwrapList<PlaceDTO>(payload, ["places", "results"]);
+    const first = rows[0];
+    return placeCoordinate(first);
+  },
   listIssues: async () =>
     (
       await fetchCollectionOptional<IssueDTO>(

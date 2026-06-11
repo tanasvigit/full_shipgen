@@ -19,6 +19,7 @@ type AuthContextValue = {
   activeOrganization: MobileOrganization | null;
   login: (email: string, password: string) => Promise<{ requiresTwoFactor: boolean }>;
   verifyTwoFactor: (code: string) => Promise<void>;
+  resendTwoFactorCode: () => Promise<void>;
   switchOrganization: (organizationId: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -100,6 +101,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [refresh]
   );
 
+  const resendTwoFactorCode = useCallback(async () => {
+    await authService.resendTwoFactorCode();
+    setSession(await getStoredSession());
+  }, []);
+
   const switchOrganization = useCallback(
     async (organizationId: string) => {
       const previousCompany = activeOrganization?.uuid || activeOrganization?.id || null;
@@ -134,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       activeOrganization,
       login,
       verifyTwoFactor,
+      resendTwoFactorCode,
       switchOrganization,
       logout,
       refresh,
@@ -145,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authReady,
       login,
       verifyTwoFactor,
+      resendTwoFactorCode,
       logout,
       organizations,
       permissionResolver.canFleetops,

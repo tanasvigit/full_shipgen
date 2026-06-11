@@ -2,10 +2,11 @@ import { useRef } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
+import { features } from "@/lib/features";
 
 export default function AuthLayout() {
     const location = useLocation();
-    const { authReady, onboardingGateReady, shouldInstall, shouldOnboard, isAuthenticated } = useAuth();
+    const { authReady, onboardingGateReady, shouldInstall, shouldOnboard, isAuthenticated, requiresTwoFactor } = useAuth();
     const installSessionRef = useRef(false);
     if (location.pathname === "/install" && shouldInstall) {
         installSessionRef.current = true;
@@ -14,6 +15,9 @@ export default function AuthLayout() {
         return <div className="min-h-screen grid place-items-center text-sm text-[#4B5563]">Loading...</div>;
     }
     if (isAuthenticated) return <Navigate to="/" replace />;
+    if (features.twoFaEnabled && requiresTwoFactor && location.pathname !== "/auth/two-fa") {
+        return <Navigate to="/auth/two-fa" replace />;
+    }
     if (shouldInstall && location.pathname !== "/install") {
         return <Navigate to="/install" replace />;
     }

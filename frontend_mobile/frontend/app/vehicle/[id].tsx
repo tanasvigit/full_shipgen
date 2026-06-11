@@ -64,7 +64,7 @@ export default function VehicleDetail() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title={vehicle.plate} subtitle={vehicle.model} back rightIcon="ellipsis-horizontal" />
+      <ScreenHeader title={vehicle.plate} subtitle={vehicle.model} back />
       <ScrollView contentContainerStyle={styles.scroll}>
         <EntityImage uri={vehicle.image} label={vehicle.plate} style={styles.hero} rounded={false} />
 

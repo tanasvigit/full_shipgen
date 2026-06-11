@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
 import EntityImage from "@/src/components/EntityImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,17 +7,37 @@ import { colors, radius, spacing } from "@/src/theme";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
+import { useDriverQuery } from "@/src/hooks/useDriverQuery";
 
 export default function DriverDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { findDriver, findVehicle, orders } = useFleetData();
-  const driver = findDriver(id);
+  const driverRef = String(id);
+  const driverQuery = useDriverQuery(driverRef);
+  const driver = driverQuery.data ?? null;
+  const { findVehicle, orders } = useFleetData();
+
+  if (driverQuery.isLoading && !driver) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="Driver" back />
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.text} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!driver) {
     return (
       <SafeAreaView style={styles.safe}>
         <ScreenHeader title="Driver" back />
+        <View style={styles.center}>
+          <Text style={styles.empty}>Unable to load driver details.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => void driverQuery.refetch()}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -27,7 +47,7 @@ export default function DriverDetail() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Driver" subtitle={driver.name} back rightIcon="ellipsis-horizontal" />
+      <ScreenHeader title="Driver" subtitle={driver.name} back />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.hero}>
           <EntityImage uri={driver.avatar} label={driver.name} style={styles.avatar} rounded />
@@ -45,10 +65,6 @@ export default function DriverDetail() {
             >
               <Ionicons name="call" size={14} color="#fff" />
               <Text style={styles.actionBtnText}>Call</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtnAlt} testID="driver-msg-btn">
-              <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.text} />
-              <Text style={styles.actionBtnAltText}>Message</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -147,6 +163,7 @@ function InfoRow({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xxxl },
   scroll: { padding: spacing.lg, gap: spacing.md },
   hero: {
     backgroundColor: colors.surface,
@@ -162,8 +179,6 @@ const styles = StyleSheet.create({
   heroActions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg, width: "100%" },
   actionBtn: { flex: 1, height: 42, borderRadius: radius.md, backgroundColor: colors.text, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 },
   actionBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
-  actionBtnAlt: { flex: 1, height: 42, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 },
-  actionBtnAltText: { color: colors.text, fontWeight: "700", fontSize: 13 },
   statsRow: { flexDirection: "row", backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg },
   stat: { flex: 1, alignItems: "center" },
   statValue: { fontSize: 18, fontWeight: "900", color: colors.text },
@@ -188,4 +203,6 @@ const styles = StyleSheet.create({
   orderCode: { fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },
   orderCustomer: { fontSize: 13, fontWeight: "700", color: colors.text, marginTop: 2 },
   empty: { color: colors.textMuted, textAlign: "center", padding: spacing.md, fontSize: 12 },
+  retryBtn: { marginTop: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: colors.brand },
+  retryText: { color: "#fff", fontWeight: "700", fontSize: 12 },
 });

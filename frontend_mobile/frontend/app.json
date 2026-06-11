@@ -80,6 +80,13 @@
         {
           "cameraPermission": "Allow Fleetbase to capture POD photos for proof of delivery."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#0A0A0A"
+        }
       ]
     ],
     "experiments": {

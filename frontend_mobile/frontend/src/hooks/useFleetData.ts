@@ -128,6 +128,10 @@ export function useFleetData() {
         if (!id) return undefined;
         return data.routes.find((item) => idsMatch(item.id, id));
       },
+      findPlace: (id: string) => {
+        if (!id) return undefined;
+        return data.places.find((item) => idsMatch(item.id, id));
+      },
     }),
     [data]
   );
