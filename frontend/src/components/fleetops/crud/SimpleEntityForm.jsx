@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function valuesFromApi(raw = {}, fields = []) {
   const out = {};
@@ -18,7 +19,10 @@ const SimpleEntityForm = forwardRef(function SimpleEntityForm(
   { formId, fields = [], initialValues, mode = "create" },
   ref,
 ) {
-  const defaults = fields.reduce((acc, f) => ({ ...acc, [f.name]: "" }), {});
+  const defaults = fields.reduce(
+    (acc, f) => ({ ...acc, [f.name]: f.defaultValue ?? "" }),
+    {},
+  );
   const form = useForm({
     defaultValues: initialValues || defaults,
   });
@@ -27,17 +31,23 @@ const SimpleEntityForm = forwardRef(function SimpleEntityForm(
     if (initialValues) form.reset(initialValues);
   }, [initialValues, form]);
 
+  const validateValues = async () => {
+    const values = { ...form.getValues() };
+    for (const f of fields) {
+      if (!values[f.name] && f.defaultValue) {
+        values[f.name] = f.defaultValue;
+      }
+      if (f.required && !String(values[f.name] || "").trim()) {
+        throw new Error(`${f.label} is required`);
+      }
+    }
+    return values;
+  };
+
   useImperativeHandle(ref, () => ({
     getValues: () => form.getValues(),
-    validate: async () => {
-      const values = form.getValues();
-      for (const f of fields) {
-        if (f.required && !String(values[f.name] || "").trim()) {
-          throw new Error(`${f.label} is required`);
-        }
-      }
-      return values;
-    },
+    validate: validateValues,
+    submit: validateValues,
   }));
 
   return (
@@ -55,6 +65,22 @@ const SimpleEntityForm = forwardRef(function SimpleEntityForm(
               data-testid={`field-${field.name}`}
               rows={3}
             />
+          ) : field.type === "select" ? (
+            <Select
+              value={form.watch(field.name) || field.defaultValue || ""}
+              onValueChange={(value) => form.setValue(field.name, value, { shouldDirty: true })}
+            >
+              <SelectTrigger id={`${formId}-${field.name}`} data-testid={`field-${field.name}`}>
+                <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {(field.options || []).map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           ) : (
             <Input
               id={`${formId}-${field.name}`}

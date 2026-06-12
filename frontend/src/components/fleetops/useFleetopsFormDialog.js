@@ -41,11 +41,12 @@ export function useFleetopsFormDialog({
   }, [setOpenRaw, suspendDrawer, beginDetailEdit]);
 
   async function handleSubmit() {
-    if (!formRef.current?.submit) return;
+    const submitForm = formRef.current?.submit || formRef.current?.validate;
+    if (!submitForm) return;
     setBusy(true);
     setError(null);
     try {
-      const values = await formRef.current.submit();
+      const values = await submitForm.call(formRef.current);
       const result = await onSubmit(values);
       toast.success(successMessage);
       onSuccess?.(result);

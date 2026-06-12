@@ -1,17 +1,8 @@
 import { computeEffectivePermissions } from "@/lib/iam/effectivePermissions";
-import { resolveEffectiveOrderStatus } from "@/domain/fleetops/status";
+import { orderStatusLabel, resolveEffectiveOrderStatus } from "@/domain/fleetops/status";
 
 export const statusLabel = (value) =>
   ({
-    created: "Created",
-    assigned: "Assigned",
-    dispatched: "Dispatched",
-    en_route: "En Route",
-    arrived: "Arrived",
-    delivered: "Delivered",
-    completed: "Completed",
-    delayed: "Delayed",
-    canceled: "Canceled",
     online: "Online",
     offline: "Offline",
     on_break: "On Break",
@@ -23,7 +14,7 @@ export const statusLabel = (value) =>
     disabled: "Disabled",
     paid: "Paid",
     pending: "Pending",
-  }[value] || value || "Unknown");
+  }[value] ?? orderStatusLabel(value));
 
 /** Route/API identifier — prefer uuid for Fleetbase internal API paths. */
 export const entityRouteId = (record) =>
@@ -124,7 +115,7 @@ export const mapOrder = (order) => {
   dropoff: mapPlace(order?.dropoff || order?.dropoff_place || {}),
   distance: Number(order?.distance || 0),
   eta: order?.eta || order?.estimated_arrival || "N/A",
-  scheduledAt: order?.scheduled_at || order?.created_at || null,
+  scheduledAt: order?.scheduled_at || null,
   dispatched: Boolean(order?.dispatched || order?.dispatched_at),
   dispatchedAt: order?.dispatched_at || null,
   started: Boolean(order?.started || order?.started_at),

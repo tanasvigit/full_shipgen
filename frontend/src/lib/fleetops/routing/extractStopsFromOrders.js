@@ -72,3 +72,10 @@ export function orderPublicIds(orders = []) {
     .filter(Boolean)
     .map(String);
 }
+
+/** Orchestrator `order_ids` must be public_id values, not internal uuids. */
+export function resolveOrchestratorOrderIds(orders = [], orderIds = []) {
+  const fromOrders = orderPublicIds(orders);
+  if (fromOrders.length) return fromOrders;
+  return (orderIds || []).filter(Boolean).map(String);
+}

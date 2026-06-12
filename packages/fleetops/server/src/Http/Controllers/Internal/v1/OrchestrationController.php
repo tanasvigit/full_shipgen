@@ -56,7 +56,7 @@ class OrchestrationController extends Controller
     {
         $companyUuid = session('company');
 
-        $query = Order::where('company_uuid', $companyUuid)->whereIn('status', ['created', 'dispatched', 'started']);
+        $query = Order::where('company_uuid', $companyUuid)->whereIn('status', ['created', 'dispatched', 'started', 'en_route', 'enroute']);
 
         $query->whereHas('payload', function ($payloadQuery) {
             $payloadQuery->where(function ($q) {
@@ -120,6 +120,11 @@ class OrchestrationController extends Controller
     {
         $companyUuid       = session('company');
         $mode              = $request->input('mode', 'assign_vehicles');
+
+        if ($mode === 'best_fit_drivers') {
+            return $this->runBestFitDrivers($request, $companyUuid);
+        }
+
         $orderIds          = $request->input('order_ids', []);
         $vehicleIds        = $request->input('vehicle_ids', []);
         $driverIds         = $request->input('driver_ids', []);
@@ -131,7 +136,7 @@ class OrchestrationController extends Controller
 
         // ── Resolve orders ────────────────────────────────────────────────────
         $ordersQuery = Order::where('company_uuid', $companyUuid)
-            ->whereIn('status', ['created', 'dispatched', 'started'])
+            ->whereIn('status', ['created', 'dispatched', 'started', 'en_route', 'enroute'])
             ->with(['payload.dropoff', 'payload.pickup', 'payload.waypoints', 'payload.waypointMarkers', 'payload.entities']);
 
         if ($mode === 'assign_vehicles' || $mode === 'allocate') {
@@ -971,5 +976,109 @@ class OrchestrationController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Fleet-schedule best-fit driver assignment (shift-aware, server-side scoring).
+     *
+     * POST /int/v1/fleet-ops/orchestrator/run  { mode: "best_fit_drivers", ... }
+     */
+    protected function runBestFitDrivers(Request $request, string $companyUuid): JsonResponse
+    {
+        $orderIds  = $request->input('order_ids', []);
+        $driverIds = $request->input('driver_ids', []);
+        $options   = array_merge([
+            'require_active_shift' => true,
+            'respect_scheduled_at' => true,
+            'respect_skills'       => true,
+        ], $request->input('options', []));
+
+        $ordersQuery = Order::where('company_uuid', $companyUuid)
+            ->whereNull('driver_assigned_uuid')
+            ->whereIn('status', ['created', 'dispatched', 'started', 'en_route', 'enroute'])
+            ->with(['payload.pickup', 'payload.dropoff']);
+
+        if (!empty($orderIds)) {
+            $ordersQuery->whereIn('public_id', $orderIds);
+        }
+
+        $orders = $ordersQuery->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'message'     => 'No unassigned orders found for best-fit.',
+                'assignments' => [],
+                'unassigned'  => [],
+                'summary'     => ['orders_assigned' => 0],
+            ]);
+        }
+
+        $driversQuery = Driver::where('company_uuid', $companyUuid)
+            ->with(['scheduleItems', 'vehicle']);
+
+        if (!empty($driverIds)) {
+            $driversQuery->whereIn('public_id', $driverIds);
+        }
+
+        $drivers = $driversQuery->get();
+
+        $engine = new DriverAssignmentEngine();
+        $result = $engine->assignBestFit($orders, $drivers, $options);
+
+        $shouldApply = $request->boolean('apply') || ($options['apply'] ?? false);
+        if ($shouldApply && !empty($result['assignments'])) {
+            $result = $this->applyBestFitDriverAssignments($result, $companyUuid);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Persist best-fit driver assignments on orders (no manifest creation).
+     */
+    protected function applyBestFitDriverAssignments(array $result, string $companyUuid): array
+    {
+        $applied = [];
+        $failed  = [];
+
+        foreach ($result['assignments'] ?? [] as $assignment) {
+            $order = Order::where('company_uuid', $companyUuid)
+                ->where('public_id', $assignment['order_id'] ?? null)
+                ->first();
+
+            if (!$order) {
+                $failed[] = $assignment['order_id'] ?? 'unknown';
+                continue;
+            }
+
+            $driver = Driver::where('company_uuid', $companyUuid)
+                ->where('public_id', $assignment['driver_id'] ?? null)
+                ->first();
+
+            if (!$driver) {
+                $failed[] = $assignment['order_id'] ?? 'unknown';
+                continue;
+            }
+
+            $order->driver_assigned_uuid = $driver->uuid;
+
+            if (!empty($assignment['vehicle_id'])) {
+                $vehicle = Vehicle::where('company_uuid', $companyUuid)
+                    ->where('public_id', $assignment['vehicle_id'])
+                    ->first();
+                if ($vehicle) {
+                    $order->vehicle_assigned_uuid = $vehicle->uuid;
+                }
+            }
+
+            $order->save();
+            $applied[] = $assignment['order_id'];
+        }
+
+        $result['applied'] = $applied;
+        $result['failed']  = array_values(array_unique(array_merge($result['failed'] ?? [], $failed)));
+        $result['summary']['applied'] = count($applied);
+
+        return $result;
     }
 }

@@ -55,6 +55,7 @@ class FleetOpsServiceProvider extends CoreServiceProvider
         \Fleetbase\FleetOps\Console\Commands\FixDriverCompanies::class,
         \Fleetbase\FleetOps\Console\Commands\FixCustomerCompanies::class,
         \Fleetbase\FleetOps\Console\Commands\FixLegacyOrderConfigs::class,
+        \Fleetbase\FleetOps\Console\Commands\UpgradeTransportOrderConfigFlows::class,
         \Fleetbase\FleetOps\Console\Commands\FixInvalidPolymorphicRelationTypeNamespaces::class,
         \Fleetbase\FleetOps\Console\Commands\AssignDriverRoles::class,
         \Fleetbase\FleetOps\Console\Commands\AssignCustomerRoles::class,

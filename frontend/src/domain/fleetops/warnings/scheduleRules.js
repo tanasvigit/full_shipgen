@@ -1,11 +1,28 @@
 import { SCHEDULE_DAYS } from "@/lib/fleetops/constants";
+import {
+  driverIdFromScheduleItem,
+  hourWindowFromScheduleItem,
+  scheduleItemMeta,
+  weekdayFromScheduleItem,
+} from "@/lib/fleetops/scheduleItemHelpers";
 
 export function parseHourWindow(item) {
-  const start = Number(item?.start_hour ?? item?.startHour);
-  const end = Number(item?.end_hour ?? item?.endHour);
+  const start = Number(
+    scheduleItemMeta(item, "start_hour") ?? item?.start_hour ?? item?.startHour,
+  );
+  const end = Number(scheduleItemMeta(item, "end_hour") ?? item?.end_hour ?? item?.endHour);
   if (Number.isFinite(start) && Number.isFinite(end)) {
     return { start, end };
   }
+
+  const window = hourWindowFromScheduleItem(item);
+  if (!window) return null;
+
+  const [startText, endText] = window.split("-").map(Number);
+  if (Number.isFinite(startText) && Number.isFinite(endText)) {
+    return { start: startText, end: endText };
+  }
+
   return null;
 }
 
@@ -30,11 +47,10 @@ export function detectScheduleConflicts(items, candidate) {
   const conflicts = [];
 
   for (const item of items) {
-    const itemDriver = String(item?.driver_uuid || item?.driver_id || item?.driver?.id || "");
+    const itemDriver = String(driverIdFromScheduleItem(item) || "");
     if (itemDriver !== driverId) continue;
 
-    let itemDay = item?.weekday ?? item?.day;
-    if (typeof itemDay === "number" && SCHEDULE_DAYS[itemDay]) itemDay = SCHEDULE_DAYS[itemDay];
+    let itemDay = weekdayFromScheduleItem(item);
     if (String(itemDay) !== String(day)) continue;
 
     const w = parseHourWindow(item);
@@ -56,12 +72,11 @@ export function driverUtilization(items, driverId) {
   let total = 0;
 
   for (const item of items) {
-    if (String(item?.driver_uuid || item?.driver_id || "") !== String(driverId)) continue;
+    if (String(driverIdFromScheduleItem(item) || "") !== String(driverId)) continue;
     const w = parseHourWindow(item);
     if (!w) continue;
     const hours = w.end >= w.start ? w.end - w.start : 24 - w.start + w.end;
-    let day = item?.weekday ?? item?.day;
-    if (typeof day === "number" && SCHEDULE_DAYS[day]) day = SCHEDULE_DAYS[day];
+    const day = weekdayFromScheduleItem(item);
     if (dayHours[day] != null) dayHours[day] += hours;
     total += hours;
   }

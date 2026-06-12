@@ -28,7 +28,7 @@ import {
   useStartTripMutation,
 } from "@/src/hooks/mutations/useWorkflowMutations";
 import { usePodMutation } from "@/src/hooks/mutations/usePodMutation";
-import { canCompleteOrder, canStartTrip, isTerminalStatus } from "@/src/lib/orderStatus";
+import { canCompleteOrder, canStartTrip, isTerminalStatus, isTripInProgress } from "@/src/lib/orderStatus";
 import { isDriverUser } from "@/src/lib/driver";
 import type { Order } from "@/src/data/types";
 import { ordersService } from "@/src/services/ordersService";
@@ -89,7 +89,7 @@ export default function OrderDetail() {
 
   const optimisticOrder = useMemo(() => {
     if (!order) return null;
-    if (startTripMutation.isPending) return { ...order, status: "started" } as Order;
+    if (startTripMutation.isPending) return { ...order, status: "en_route" } as Order;
     if (completeMutation.isPending) return { ...order, status: "completed" } as Order;
     return order;
   }, [completeMutation.isPending, order, startTripMutation.isPending]);
@@ -535,15 +535,13 @@ export default function OrderDetail() {
             style={styles.secondaryBtn}
             testID="navigate-order-btn"
             onPress={() => {
-              const target =
-                displayOrder.status === "started" || displayOrder.status === "in_progress"
-                  ? displayOrder.dropoffCoordinate
-                  : displayOrder.pickupCoordinate;
+              const enRoute = isTripInProgress(displayOrder.status);
+              const target = enRoute ? displayOrder.dropoffCoordinate : displayOrder.pickupCoordinate;
               if (!target) return;
               void openMapsNavigation({
                 latitude: target.latitude,
                 longitude: target.longitude,
-                label: displayOrder.status === "started" ? "Dropoff" : "Pickup",
+                label: enRoute ? "Dropoff" : "Pickup",
               });
             }}
             disabled={!displayOrder.pickupCoordinate && !displayOrder.dropoffCoordinate}

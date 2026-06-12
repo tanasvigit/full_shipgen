@@ -4,102 +4,168 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, mapOrder } from "@/lib/mappers";
-import { suggestBestDriverForOrder } from "@/lib/fleetops/allocation";
+import { bestFitDriversToOrders } from "@/lib/fleetops/allocation";
 import OrderScheduleDialog from "@/components/fleetops/orders/modals/OrderScheduleDialog";
-import SchedulingConflictDialog from "@/components/fleetops/schedule/SchedulingConflictDialog";
-import { detectScheduleConflicts } from "@/lib/fleetops/scheduleConflicts";
-import { schedulesService } from "@/services/schedules";
 import { toast } from "sonner";
-import { Calendar, Sparkles, Truck } from "lucide-react";
+import { Calendar, Sparkles, Truck, Package } from "lucide-react";
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 7);
+function orderScheduledDay(order) {
+  const raw = order?.scheduledAt;
+  if (!raw) return null;
+  return String(raw).slice(0, 10);
+}
 
-export default function FleetScheduleView({ weekOffset = 0 }) {
+function OrderChip({ order, selectedOrderIds, setSelectedOrderIds }) {
+  return (
+    <label
+      key={order.id}
+      className="flex items-center gap-1 px-1.5 py-1 rounded bg-[#EEF0F4] hover:bg-[#E0E7FF] cursor-pointer"
+    >
+      <Checkbox
+        checked={selectedOrderIds.has(order.id)}
+        onCheckedChange={(v) => {
+          const next = new Set(selectedOrderIds);
+          if (v) next.add(order.id);
+          else next.delete(order.id);
+          setSelectedOrderIds(next);
+        }}
+      />
+      <span className="font-mono truncate">{order.publicId}</span>
+    </label>
+  );
+}
+
+export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
   const [drivers, setDrivers] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [items, setItems] = useState([]);
   const [selectedOrderIds, setSelectedOrderIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
+  const [assigning, setAssigning] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [conflicts, setConflicts] = useState([]);
-  const [conflictOpen, setConflictOpen] = useState(false);
 
-  const weekStart = startOfWeek(addWeeks(new Date(), weekOffset), { weekStartsOn: 1 });
+  const weekStart = useMemo(
+    () => startOfWeek(addWeeks(new Date(), weekOffset), { weekStartsOn: 1 }),
+    [weekOffset],
+  );
+  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
+  const weekRange = useMemo(
+    () => `${format(weekStart, "yyyy-MM-dd")},${format(weekEnd, "yyyy-MM-dd")}`,
+    [weekStart, weekEnd],
+  );
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
+  const weekLabel = `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`;
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [rawDrivers, rawOrders, rawItems] = await Promise.all([
+      const [rawDrivers, weekOrders, unassignedOrders] = await Promise.all([
         fleetopsService.listDrivers(),
-        fleetopsService.listOrders({ without_driver: 1, limit: 100 }),
-        schedulesService.listScheduleItems().catch(() => []),
+        fleetopsService.listOrders({
+          scheduled_at: weekRange,
+          "filter[scheduled_at]": weekRange,
+          limit: 200,
+        }),
+        fleetopsService.listOrders({
+          without_driver: 1,
+          "filter[without_driver]": 1,
+          limit: 100,
+        }),
       ]);
+      const merged = new Map();
+      for (const raw of [...weekOrders, ...unassignedOrders]) {
+        const mapped = mapOrder(raw);
+        merged.set(mapped.id, mapped);
+      }
       setDrivers(rawDrivers.map(mapDriverRow));
-      setOrders(rawOrders.map(mapOrder));
-      setItems(Array.isArray(rawItems) ? rawItems : []);
+      setOrders([...merged.values()]);
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not load fleet schedule.");
+      setDrivers([]);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [weekRange]);
 
   useEffect(() => {
     reload();
-  }, [reload, weekOffset]);
+  }, [reload, refreshKey]);
 
   const selectedIds = [...selectedOrderIds];
 
-  const ordersByDay = useMemo(() => {
+  const unassignedByDay = useMemo(() => {
     const map = {};
     for (const day of days) {
       const key = format(day, "yyyy-MM-dd");
       map[key] = orders.filter((o) => {
-        const sched = o.scheduledAt || o.scheduled_at;
-        if (!sched) return key === format(new Date(), "yyyy-MM-dd");
-        return String(sched).slice(0, 10) === key;
+        if (o.driverId) return false;
+        const sched = orderScheduledDay(o);
+        if (!sched) return key === format(days[0], "yyyy-MM-dd");
+        return sched === key;
       });
     }
     return map;
   }, [orders, days]);
+
+  const assignedByDriverDay = useMemo(() => {
+    const map = {};
+    for (const driver of drivers) {
+      map[driver.id] = {};
+      for (const day of days) {
+        const key = format(day, "yyyy-MM-dd");
+        map[driver.id][key] = orders.filter((o) => {
+          if (String(o.driverId || "") !== String(driver.id)) return false;
+          const sched = orderScheduledDay(o);
+          if (!sched) return false;
+          return sched === key;
+        });
+      }
+    }
+    return map;
+  }, [orders, drivers, days]);
 
   const handleBestFit = async () => {
     if (!selectedIds.length) {
       toast.error("Select orders first");
       return;
     }
-    let assigned = 0;
-    for (const oid of selectedIds) {
-      const order = orders.find((o) => o.id === oid || o.publicId === oid);
-      if (!order) continue;
-      const best = await suggestBestDriverForOrder(order, drivers);
-      if (!best) continue;
-      try {
-        await fleetopsService.patchOrder(order.id, {
-          driver_assigned_uuid: best.id || best.uuid,
-        });
-        assigned += 1;
-      } catch {
-        /* skip */
-      }
-    }
-    toast.success(`Best-fit assigned ${assigned} order(s)`);
-    await reload();
-  };
+    setAssigning(true);
+    try {
+      const orderPublicIds = selectedIds
+        .map((oid) => {
+          const order = orders.find((o) => o.id === oid || o.publicId === oid);
+          return order?.publicId || order?.public_id || oid;
+        })
+        .filter(Boolean);
 
-  const handleBulkSchedule = async () => {
-    const draft = {
-      driver_uuid: drivers[0]?.id,
-      weekday: "Mon",
-      start_hour: 8,
-      end_hour: 17,
-    };
-    const found = detectScheduleConflicts(items, draft);
-    if (found.length) {
-      setConflicts(found);
-      setConflictOpen(true);
-      return;
+      const driverPublicIds = drivers.map((d) => d.publicId || d.public_id || d.id).filter(Boolean);
+
+      const result = await bestFitDriversToOrders({
+        orderIds: orderPublicIds,
+        driverIds: driverPublicIds,
+        apply: true,
+      });
+
+      const assigned = result?.summary?.applied ?? result?.assignments?.length ?? 0;
+      const unassigned = Array.isArray(result?.unassigned) ? result.unassigned.length : 0;
+
+      if (assigned > 0) {
+        toast.success(`Best-fit assigned ${assigned} order(s)`);
+      }
+      if (unassigned > 0) {
+        toast.message(`${unassigned} order(s) could not be assigned — no eligible driver on shift`);
+      }
+      if (assigned === 0 && unassigned === 0) {
+        toast.message("No orders were assigned");
+      }
+
+      setSelectedOrderIds(new Set());
+      await reload();
+    } catch (err) {
+      toast.error(err?.friendlyMessage || err?.message || "Best-fit assignment failed");
+    } finally {
+      setAssigning(false);
     }
-    setScheduleOpen(true);
   };
 
   if (loading) {
@@ -108,21 +174,39 @@ export default function FleetScheduleView({ weekOffset = 0 }) {
 
   return (
     <div className="space-y-4" data-testid="fleet-schedule-view">
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" variant="outline" disabled={!selectedIds.length} onClick={handleBestFit} data-testid="fleet-schedule-best-fit">
-          <Sparkles className="h-3.5 w-3.5 mr-1" /> Best-fit driver
+      <div className="flex flex-wrap gap-2 items-center">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!selectedIds.length || assigning}
+          onClick={handleBestFit}
+          data-testid="fleet-schedule-best-fit"
+        >
+          <Sparkles className="h-3.5 w-3.5 mr-1" /> {assigning ? "Assigning…" : "Best-fit driver"}
         </Button>
-        <Button type="button" size="sm" variant="outline" disabled={!selectedIds.length} onClick={handleBulkSchedule} data-testid="fleet-schedule-bulk">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!selectedIds.length}
+          onClick={() => setScheduleOpen(true)}
+          data-testid="fleet-schedule-bulk"
+        >
           <Calendar className="h-3.5 w-3.5 mr-1" /> Bulk schedule
         </Button>
-        <span className="text-xs text-[#6B7280] self-center">{drivers.length} drivers · {orders.length} unassigned orders</span>
+        <span className="text-xs text-[#6B7280] self-center">
+          {drivers.length} drivers · {orders.length} unassigned orders · {weekLabel}
+        </span>
       </div>
 
       <div className="overflow-x-auto border border-black/[0.08] rounded-md bg-white">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-black/[0.08] bg-[#F5F6F8]">
-              <th className="text-left px-3 py-2 font-mono uppercase tracking-wider text-[#4B5563] sticky left-0 bg-[#F5F6F8]">Driver</th>
+              <th className="text-left px-3 py-2 font-mono uppercase tracking-wider text-[#4B5563] sticky left-0 bg-[#F5F6F8] min-w-[160px]">
+                Resource
+              </th>
               {days.map((d) => (
                 <th key={d.toISOString()} className="text-center px-2 py-2 font-mono text-[#4B5563] min-w-[120px]">
                   {format(d, "EEE d")}
@@ -131,6 +215,36 @@ export default function FleetScheduleView({ weekOffset = 0 }) {
             </tr>
           </thead>
           <tbody>
+            <tr className="border-b border-black/[0.08] bg-[#FFFBEB]/40" data-testid="fleet-schedule-unassigned-row">
+              <td className="px-3 py-2 sticky left-0 bg-[#FFFBEB]/40 font-medium whitespace-nowrap">
+                <Package className="h-3 w-3 inline mr-1 text-[#A16207]" />
+                Unassigned
+              </td>
+              {days.map((d) => {
+                const key = format(d, "yyyy-MM-dd");
+                const dayOrders = unassignedByDay[key] || [];
+                return (
+                  <td key={key} className="px-1 py-1 align-top">
+                    <div className="space-y-1 min-h-[48px]">
+                      {dayOrders.length === 0 ? (
+                        <div className="h-12 mx-1 border border-dashed border-black/[0.08] rounded-sm grid place-items-center text-[10px] font-mono uppercase tracking-wider text-[#4B5563]">
+                          —
+                        </div>
+                      ) : (
+                        dayOrders.slice(0, 6).map((o) => (
+                          <OrderChip
+                            key={o.id}
+                            order={o}
+                            selectedOrderIds={selectedOrderIds}
+                            setSelectedOrderIds={setSelectedOrderIds}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
             {drivers.map((driver) => (
               <tr key={driver.id} className="border-b border-black/[0.05]" data-testid={`fleet-schedule-driver-${driver.id}`}>
                 <td className="px-3 py-2 sticky left-0 bg-white font-medium whitespace-nowrap">
@@ -139,26 +253,17 @@ export default function FleetScheduleView({ weekOffset = 0 }) {
                 </td>
                 {days.map((d) => {
                   const key = format(d, "yyyy-MM-dd");
-                  const dayOrders = ordersByDay[key] || [];
+                  const dayOrders = assignedByDriverDay[driver.id]?.[key] || [];
                   return (
                     <td key={key} className="px-1 py-1 align-top">
                       <div className="space-y-1 min-h-[48px]">
                         {dayOrders.slice(0, 4).map((o) => (
-                          <label
+                          <OrderChip
                             key={o.id}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded bg-[#EEF0F4] hover:bg-[#E0E7FF] cursor-pointer"
-                          >
-                            <Checkbox
-                              checked={selectedOrderIds.has(o.id)}
-                              onCheckedChange={(v) => {
-                                const next = new Set(selectedOrderIds);
-                                if (v) next.add(o.id);
-                                else next.delete(o.id);
-                                setSelectedOrderIds(next);
-                              }}
-                            />
-                            <span className="font-mono truncate">{o.publicId}</span>
-                          </label>
+                            order={o}
+                            selectedOrderIds={selectedOrderIds}
+                            setSelectedOrderIds={setSelectedOrderIds}
+                          />
                         ))}
                       </div>
                     </td>
@@ -170,6 +275,10 @@ export default function FleetScheduleView({ weekOffset = 0 }) {
         </table>
       </div>
 
+      <p className="text-[11px] font-mono text-[#6B7280]">
+        Unscheduled orders appear under the first day of the week. After bulk schedule, they move to the chosen date column.
+      </p>
+
       <OrderScheduleDialog
         open={scheduleOpen}
         onOpenChange={setScheduleOpen}
@@ -179,8 +288,6 @@ export default function FleetScheduleView({ weekOffset = 0 }) {
           await reload();
         }}
       />
-
-      <SchedulingConflictDialog open={conflictOpen} onOpenChange={setConflictOpen} conflicts={conflicts} />
     </div>
   );
 }

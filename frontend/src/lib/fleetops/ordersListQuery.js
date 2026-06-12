@@ -1,3 +1,5 @@
+import { EN_ROUTE_API_STATUS_VALUES } from "@/domain/fleetops/status";
+
 /** URL + API query helpers for orders list (Day 1 — G001, G034, G055). */
 
 export const ORDERS_LIST_DEFAULTS = {
@@ -50,6 +52,10 @@ export function buildOrdersListApiParams(state) {
         params.without_driver = 1;
         params["filter[without_driver]"] = 1;
       }
+    } else if (state.status === "en_route") {
+      const statusList = EN_ROUTE_API_STATUS_VALUES.join(",");
+      params.status = statusList;
+      params["filter[status]"] = statusList;
     } else {
       params.status = state.status;
       params["filter[status]"] = state.status;

@@ -10,6 +10,7 @@ use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\Searchable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * Represents a concrete, materialized shift instance on a specific date.
@@ -49,6 +50,13 @@ class ScheduleItem extends Model
     use HasMetaAttributes;
     use Searchable;
     use SoftDeletes;
+
+    /**
+     * Normalize driver shift payloads before insert.
+     *
+     * @var string
+     */
+    public $creationMethod = 'createFromNormalizedInput';
 
     /**
      * The type of public Id to generate.
@@ -328,6 +336,119 @@ class ScheduleItem extends Model
     {
         return $this->status === 'in_progress'
             || ($this->start_at <= now() && $this->end_at >= now());
+    }
+
+    /**
+     * Create a schedule item after normalizing legacy driver shift payloads.
+     */
+    public function createFromNormalizedInput(array $input): self
+    {
+        return static::create(static::normalizeDriverShiftInput($input));
+    }
+
+    /**
+     * Map UI shift fields (driver_uuid, weekday, start_hour, …) to model columns.
+     */
+    public static function normalizeDriverShiftInput(array $input): array
+    {
+        $meta = is_array($input['meta'] ?? null) ? $input['meta'] : [];
+
+        $driverUuid = $input['assignee_uuid']
+            ?? $input['driver_uuid']
+            ?? $input['driver']
+            ?? null;
+
+        if ($driverUuid && empty($input['assignee_uuid'])) {
+            $input['assignee_uuid'] = $driverUuid;
+        }
+
+        if ($driverUuid && empty($input['assignee_type'])) {
+            $input['assignee_type'] = 'fleet-ops:driver';
+        }
+
+        $shiftFields = [
+            'weekday'     => $input['weekday'] ?? $input['day'] ?? null,
+            'day_of_week' => $input['day_of_week'] ?? null,
+            'start_hour'  => $input['start_hour'] ?? $input['startHour'] ?? null,
+            'end_hour'    => $input['end_hour'] ?? $input['endHour'] ?? null,
+            'notes'       => $input['notes'] ?? null,
+        ];
+
+        foreach ($shiftFields as $key => $value) {
+            if ($value !== null && $value !== '' && !isset($meta[$key])) {
+                $meta[$key] = $value;
+            }
+        }
+
+        if (!empty($meta) || !empty($input['meta'])) {
+            $input['meta'] = array_merge($meta, is_array($input['meta'] ?? null) ? $input['meta'] : []);
+            if (empty($input['meta']['recurring'])) {
+                $input['meta']['recurring'] = true;
+            }
+        }
+
+        if (empty($input['start_at']) && isset($input['meta']['weekday'], $input['meta']['start_hour'])) {
+            $times = static::computeRecurringShiftTimes(
+                (string) $input['meta']['weekday'],
+                (int) $input['meta']['start_hour'],
+                (int) ($input['meta']['end_hour'] ?? $input['meta']['start_hour'])
+            );
+            $input['start_at'] = $times['start_at'];
+            $input['end_at']   = $times['end_at'];
+        }
+
+        if (empty($input['status'])) {
+            $input['status'] = 'scheduled';
+        }
+
+        unset(
+            $input['driver_uuid'],
+            $input['driver'],
+            $input['weekday'],
+            $input['day'],
+            $input['day_of_week'],
+            $input['start_hour'],
+            $input['end_hour'],
+            $input['startHour'],
+            $input['endHour'],
+            $input['notes']
+        );
+
+        return $input;
+    }
+
+    /**
+     * Build anchor datetimes for a recurring weekday shift.
+     */
+    public static function computeRecurringShiftTimes(string $weekday, int $startHour, int $endHour): array
+    {
+        $days   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $target = array_search($weekday, $days, true);
+
+        if ($target === false && is_numeric($weekday)) {
+            $target = (int) $weekday;
+        }
+
+        if ($target === false || $target < 0 || $target > 6) {
+            return ['start_at' => null, 'end_at' => null];
+        }
+
+        $start = Carbon::now()->startOfWeek(Carbon::MONDAY)->addDays($target)->setTime($startHour, 0, 0);
+        if ($start->isPast()) {
+            $start->addWeek();
+        }
+
+        $end = $start->copy();
+        if ($endHour >= $startHour) {
+            $end->setTime($endHour, 0, 0);
+        } else {
+            $end->addDay()->setTime($endHour, 0, 0);
+        }
+
+        return [
+            'start_at' => $start,
+            'end_at'   => $end,
+        ];
     }
 
     /**

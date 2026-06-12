@@ -85,6 +85,10 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
     setBusy(true);
     try {
       const normalized = await runRouteOptimization({ orders, orderIds, engine });
+      if (!normalized.assignments?.length) {
+        const msg = normalized.raw?.message || "No route assignments returned. Check drivers/vehicles and order stops.";
+        throw new Error(msg);
+      }
       setResult(normalized);
       setStep(2);
       toast.success(`Optimized ${normalized.assignments.length} assignment(s)`);
@@ -106,25 +110,41 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
       const commitResult = await fleetopsService.runOrchestratorCommit(commitBody);
 
       const manifestId = commitResult?.manifests?.[0];
+      let savedRouteId = null;
       for (const order of orders) {
         const oid = order?.uuid || order?.id;
         if (!oid) continue;
         try {
-          await fleetopsService.createRoute({
+          const created = await fleetopsService.createRoute({
             order_uuid: oid,
-            details: { assignments: result.assignments, polyline: result.polyline },
-            total_distance: result.totalDistance,
-            total_time: result.totalDuration,
+            details: {
+              assignments: result.assignments,
+              polyline: result.polyline,
+              stops: result.sequencedStops,
+            },
+            total_distance: Math.round(result.totalDistance || 0),
+            total_time: Math.round(result.totalDuration || 0),
           });
+          if (!savedRouteId) {
+            savedRouteId = created?.uuid || created?.id || created?.public_id || null;
+          }
         } catch {
           /* route may already exist */
         }
       }
 
-      toast.success(manifestId ? `Plan saved — manifest ${manifestId}` : "Route plan committed");
-      onComplete?.({ manifestId, commitResult, result });
-      if (manifestId) {
-        navigate(`/fleet-ops/operations/routes/${manifestId}`);
+      toast.success(
+        savedRouteId
+          ? "Route plan saved"
+          : manifestId
+            ? `Plan saved — manifest ${manifestId}`
+            : "Route plan committed",
+      );
+      onComplete?.({ manifestId, savedRouteId, commitResult, result });
+      if (savedRouteId) {
+        navigate(`/fleet-ops/operations/routes/${savedRouteId}`);
+      } else if (manifestId) {
+        navigate(`/fleet-ops/admin/manifests/${manifestId}`);
       } else {
         navigate("/fleet-ops/operations/routes");
       }

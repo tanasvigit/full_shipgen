@@ -5,10 +5,11 @@ import MapView from "@/components/common/MapView";
 import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { fleetopsService } from "@/services/fleetops";
-import { normalizeOptimizationResult } from "@/lib/fleetops/routing";
+import { normalizeOptimizationResult, resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import ServiceRatesForRoutePicker from "@/components/fleetops/service-rates/ServiceRatesForRoutePicker";
 import { Sparkles, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,12 @@ import {
 
 function polylineFromRoute(route) {
   const details = route?.details || route?.payload?.details;
+  if (Array.isArray(details?.polyline) && details.polyline.length >= 2) return details.polyline;
+  if (Array.isArray(details?.stops) && details.stops.length >= 2) {
+    return details.stops
+      .filter((s) => s.lat != null && s.lng != null)
+      .map((s) => [Number(s.lat), Number(s.lng)]);
+  }
   if (Array.isArray(details?.polyline)) return details.polyline;
   if (Array.isArray(details?.coordinates)) {
     return details.coordinates.map((c) => (Array.isArray(c) ? [c[1] ?? c[0], c[0] ?? c[1]] : c));
@@ -31,7 +38,7 @@ function polylineFromRoute(route) {
 
 function markersFromRoute(route) {
   const details = route?.details || {};
-  const stops = details?.stops || details?.assignments || [];
+  const stops = details?.stops?.length ? details.stops : details?.assignments || [];
   if (!Array.isArray(stops)) return [];
   return stops
     .map((s, i) => ({
@@ -39,8 +46,8 @@ function markersFromRoute(route) {
       lat: s.lat ?? s.latitude,
       lng: s.lng ?? s.longitude,
       label: String((s.sequence ?? i) + 1),
-      popup: s.name || s.order_id,
-      color: "#0066FF",
+      popup: s.name || s.type || s.order_id || s.orderId,
+      color: s.type === "pickup" ? "#10B981" : s.type === "dropoff" ? "#F59E0B" : "#0066FF",
     }))
     .filter((m) => m.lat != null && m.lng != null);
 }
@@ -79,16 +86,30 @@ export default function RouteDetail() {
     }
     setBusy(true);
     try {
-      const orderId = route?.order_uuid || route?.order?.uuid || route?.order_public_id;
+      const orderIds = resolveOrderIdsFromRoute(route);
       const result = await fleetopsService.optimizeRoutes({
-        orders: orderId ? [orderId] : [],
+        route,
         route_uuid: id,
+        orders: orderIds,
       });
-      const normalized = normalizeOptimizationResult(result, route?.order ? [route.order] : []);
+      let orders = route?.order ? [route.order] : [];
+      if (!orders.length && orderIds.length) {
+        try {
+          orders = [await fleetopsService.getOrder(orderIds[0])];
+        } catch {
+          /* use assignment-only normalization */
+        }
+      }
+      const normalized = normalizeOptimizationResult(result, orders);
       await fleetopsService.updateRoute(id, {
-        details: { ...route?.details, ...normalized, polyline: normalized.polyline },
-        total_distance: normalized.totalDistance,
-        total_time: normalized.totalDuration,
+        details: {
+          ...route?.details,
+          assignments: normalized.assignments,
+          polyline: normalized.polyline,
+          stops: normalized.sequencedStops,
+        },
+        total_distance: Math.round(normalized.totalDistance || 0),
+        total_time: Math.round(normalized.totalDuration || 0),
       });
       toast.success("Route optimized");
       await load();
@@ -110,6 +131,18 @@ export default function RouteDetail() {
   };
 
   const stopRows = useMemo(() => {
+    const stops = route?.details?.stops || [];
+    if (stops.length) {
+      return stops.map((s, i) => ({
+        id: s.id || `${s.order_id || s.orderId}-${i}`,
+        sequence: s.sequence ?? i + 1,
+        orderId: s.order_id || s.orderId,
+        type: s.type,
+        driverId: s.driver_id || s.driverId,
+        distance: s.distance,
+        duration: s.duration,
+      }));
+    }
     const assignments = route?.details?.assignments || [];
     return assignments.map((a, i) => ({
       id: a.order_id || i,
@@ -167,6 +200,7 @@ export default function RouteDetail() {
             testid="route-stops-table"
             columns={[
               { key: "sequence", header: "#", render: (r) => r.sequence },
+              { key: "type", header: "Type", render: (r) => r.type || "—" },
               { key: "orderId", header: "Order", render: (r) => <span className="font-mono text-xs">{r.orderId}</span> },
               { key: "driverId", header: "Driver", render: (r) => r.driverId || "—" },
               { key: "distance", header: "Distance (m)", render: (r) => r.distance ?? "—" },

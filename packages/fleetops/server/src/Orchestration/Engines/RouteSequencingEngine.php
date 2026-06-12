@@ -2,6 +2,9 @@
 
 namespace Fleetbase\FleetOps\Orchestration\Engines;
 
+use Fleetbase\FleetOps\Support\OSRM;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\LaravelMysqlSpatial\Types\Point as SpatialPoint;
 use Illuminate\Support\Collection;
 
 /**
@@ -35,8 +38,12 @@ class RouteSequencingEngine
      */
     public function sequence(Collection $orders, array $options = []): array
     {
-        $assignments = [];
-        $unassigned  = [];
+        $assignments  = [];
+        $unassigned   = [];
+        $allStops     = [];
+        $allPolyline  = [];
+        $totalDistance = 0;
+        $totalDuration = 0;
 
         // Group orders by their currently assigned vehicle UUID
         $byVehicle = [];
@@ -74,6 +81,23 @@ class RouteSequencingEngine
             // dropoff as a hard constraint.
             $sequenced = $this->_sequenceOrdersForVehicle($vehicleOrders, $startLat, $startLng);
 
+            foreach ($sequenced as $seq => $stop) {
+                $allStops[] = [
+                    'order_id' => $stop['order_public_id'],
+                    'sequence' => $seq + 1,
+                    'lat'      => $stop['lat'],
+                    'lng'      => $stop['lng'],
+                    'type'     => $stop['type'],
+                ];
+            }
+
+            $routeMetrics = $this->_routeMetricsForStops($sequenced);
+            $totalDistance += $routeMetrics['distance'];
+            $totalDuration += $routeMetrics['duration'];
+            foreach ($routeMetrics['polyline'] as $point) {
+                $allPolyline[] = $point;
+            }
+
             // Build assignment entries — one per order, with the sequence number
             // being the position of the order's FIRST stop in the sequenced list.
             $orderSequences = [];
@@ -86,6 +110,7 @@ class RouteSequencingEngine
             }
 
             foreach ($vehicleOrders as $order) {
+                $orderDistance = $this->_orderLegDistance($order);
                 $assignments[] = [
                     'order_id'          => $order->public_id,
                     'vehicle_id'        => $vehicle?->public_id ?? $vehicleUuid,
@@ -93,19 +118,34 @@ class RouteSequencingEngine
                     'sequence'          => $orderSequences[$order->public_id] ?? 1,
                     'waypoint_sequence' => null,
                     'arrival'           => null,
-                    'duration'          => null,
-                    'distance'          => null,
+                    'duration'          => $orderDistance > 0 ? (int) round($orderDistance / 11.11) : null,
+                    'distance'          => $orderDistance > 0 ? (int) round($orderDistance) : null,
                 ];
             }
+        }
+
+        if (count($allPolyline) < 2 && count($allStops) >= 2) {
+            $allPolyline = array_map(fn ($stop) => [$stop['lat'], $stop['lng']], $allStops);
+        }
+
+        if ($totalDistance === 0 && count($allStops) >= 2) {
+            $totalDistance = (int) round($this->_pathDistance($allStops));
+            $totalDuration = $totalDistance > 0 ? (int) round($totalDistance / 11.11) : 0;
         }
 
         return [
             'assignments' => $assignments,
             'unassigned'  => $unassigned,
+            'stops'       => $allStops,
+            'polyline'    => $allPolyline,
             'summary'     => [
-                'engine'     => 'route_sequencing',
-                'assigned'   => count($assignments),
-                'unassigned' => count($unassigned),
+                'engine'             => 'route_sequencing',
+                'assigned'           => count($assignments),
+                'unassigned'         => count($unassigned),
+                'total_distance_m'   => $totalDistance,
+                'total_duration_s'   => $totalDuration,
+                'total_distance'     => $totalDistance,
+                'total_duration'     => $totalDuration,
             ],
         ];
     }
@@ -142,13 +182,14 @@ class RouteSequencingEngine
                 $sorted = $waypoints->sortBy('order')->values();
                 foreach ($sorted as $idx => $wp) {
                     $place = $wp->place;
-                    if (!$place) {
+                    $coords = $this->_placeCoordinates($place);
+                    if (!$coords) {
                         continue;
                     }
                     $pool[] = [
                         'order_public_id'  => $order->public_id,
-                        'lat'              => (float) ($place->lat ?? 0),
-                        'lng'              => (float) ($place->lng ?? 0),
+                        'lat'              => $coords[0],
+                        'lng'              => $coords[1],
                         'type'             => 'waypoint',
                         'precedence_after' => $idx > 0 ? ($pool[count($pool) - 1]['id'] ?? null) : null,
                         'id'               => $order->public_id . '_wp_' . $idx,
@@ -162,11 +203,12 @@ class RouteSequencingEngine
                 $pickupId  = $order->public_id . '_pickup';
                 $dropoffId = $order->public_id . '_dropoff';
 
-                if ($pickup && $pickup->lat && $pickup->lng) {
+                $pickupCoords = $this->_placeCoordinates($pickup);
+                if ($pickupCoords) {
                     $pool[] = [
                         'order_public_id'  => $order->public_id,
-                        'lat'              => (float) $pickup->lat,
-                        'lng'              => (float) $pickup->lng,
+                        'lat'              => $pickupCoords[0],
+                        'lng'              => $pickupCoords[1],
                         'type'             => 'pickup',
                         'precedence_after' => null, // pickup has no prerequisite
                         'id'               => $pickupId,
@@ -174,11 +216,12 @@ class RouteSequencingEngine
                     ];
                 }
 
-                if ($dropoff && $dropoff->lat && $dropoff->lng) {
+                $dropoffCoords = $this->_placeCoordinates($dropoff);
+                if ($dropoffCoords) {
                     $pool[] = [
                         'order_public_id'  => $order->public_id,
-                        'lat'              => (float) $dropoff->lat,
-                        'lng'              => (float) $dropoff->lng,
+                        'lat'              => $dropoffCoords[0],
+                        'lng'              => $dropoffCoords[1],
                         'type'             => 'dropoff',
                         'precedence_after' => $pickupId, // must come after pickup
                         'id'               => $dropoffId,
@@ -255,6 +298,121 @@ class RouteSequencingEngine
         }
 
         return $sequence;
+    }
+
+    /**
+     * Resolve lat/lng from a Place model (location column or legacy lat/lng attrs).
+     *
+     * @return array{0: float, 1: float}|null
+     */
+    protected function _placeCoordinates($place): ?array
+    {
+        if (!$place) {
+            return null;
+        }
+
+        $lat = Utils::getLatitudeFromCoordinates($place);
+        $lng = Utils::getLongitudeFromCoordinates($place);
+
+        if (!$lat && !$lng) {
+            return null;
+        }
+
+        return [(float) $lat, (float) $lng];
+    }
+
+    /**
+     * Build polyline + distance/duration for a sequenced stop list.
+     *
+     * @param array<int, array<string, mixed>> $stops
+     *
+     * @return array{polyline: array<int, array{0: float, 1: float}>, distance: int, duration: int}
+     */
+    protected function _routeMetricsForStops(array $stops): array
+    {
+        if (count($stops) < 2) {
+            $polyline = count($stops) === 1 ? [[$stops[0]['lat'], $stops[0]['lng']]] : [];
+
+            return ['polyline' => $polyline, 'distance' => 0, 'duration' => 0];
+        }
+
+        $points = array_map(
+            fn ($stop) => new SpatialPoint((float) $stop['lat'], (float) $stop['lng']),
+            $stops
+        );
+
+        try {
+            $routeData = OSRM::getRouteFromPoints($points, [
+                'overview'   => 'full',
+                'geometries' => 'polyline',
+            ]);
+            $route = $routeData['routes'][0] ?? null;
+
+            if (($routeData['code'] ?? null) === 'Ok' && $route && (int) ($route['distance'] ?? 0) > 0) {
+                $polyline = [];
+                foreach ($route['waypoints'] ?? [] as $waypoint) {
+                    $polyline[] = [$waypoint->getLat(), $waypoint->getLng()];
+                }
+
+                if (count($polyline) < 2) {
+                    $polyline = array_map(fn ($stop) => [$stop['lat'], $stop['lng']], $stops);
+                }
+
+                return [
+                    'polyline' => $polyline,
+                    'distance' => (int) round((float) ($route['distance'] ?? 0)),
+                    'duration' => (int) round((float) ($route['duration'] ?? 0)),
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Fall through to straight-line metrics when OSRM is unavailable or out of region.
+        }
+
+        $distance = (int) round($this->_pathDistance($stops));
+
+        return [
+            'polyline' => array_map(fn ($stop) => [$stop['lat'], $stop['lng']], $stops),
+            'distance' => $distance,
+            'duration' => $distance > 0 ? (int) round($distance / 11.11) : 0,
+        ];
+    }
+
+    /**
+     * Straight-line distance for a single order's pickup → dropoff leg.
+     */
+    protected function _orderLegDistance($order): float
+    {
+        $pickupCoords  = $this->_placeCoordinates($order->payload?->pickup);
+        $dropoffCoords = $this->_placeCoordinates($order->payload?->dropoff);
+
+        if (!$pickupCoords || !$dropoffCoords) {
+            return 0;
+        }
+
+        return $this->_haversine($pickupCoords[0], $pickupCoords[1], $dropoffCoords[0], $dropoffCoords[1]);
+    }
+
+    /**
+     * Sum of haversine distances across consecutive stops.
+     *
+     * @param array<int, array<string, mixed>> $stops
+     */
+    protected function _pathDistance(array $stops): float
+    {
+        $distance = 0.0;
+
+        for ($i = 1, $count = count($stops); $i < $count; $i++) {
+            $prev = $stops[$i - 1];
+            $next = $stops[$i];
+            $distance += $this->_haversine(
+                (float) $prev['lat'],
+                (float) $prev['lng'],
+                (float) $next['lat'],
+                (float) $next['lng']
+            );
+        }
+
+        return $distance;
     }
 
     /**

@@ -40,7 +40,7 @@ const RESOURCES = {
   routes: ["routes"],
   settingsNavigator: ["fleet-ops/settings/navigator", "settings/navigator"],
   settingsNotifications: ["fleet-ops/settings/notifications", "settings/notifications"],
-  settingsRouting: ["fleet-ops/settings/routing", "settings/routing"],
+  settingsRouting: ["fleet-ops/settings/routing-settings", "settings/routing-settings"],
   settingsOrchestrator: ["fleet-ops/settings/orchestrator", "settings/orchestrator"],
   settingsScheduling: ["fleet-ops/settings/scheduling", "settings/scheduling"],
   settingsBranding: ["fleet-ops/settings/branding", "settings/branding"],
@@ -283,18 +283,6 @@ export const fleetopsService = {
     };
     let lastError;
     for (const candidate of RESOURCES.orders) {
-      for (const method of ["patch", "post"]) {
-        try {
-          const response = await apiClient.request({
-            method,
-            url: `/${candidate}/${id}/schedule`,
-            data: body,
-          });
-          return unwrapEntity(response.data, ["order"]);
-        } catch (error) {
-          lastError = error;
-        }
-      }
       try {
         const response = await apiClient.patch(`/${candidate}/schedule`, body);
         return unwrapEntity(response.data, ["order"]);
@@ -991,11 +979,32 @@ export const fleetopsService = {
   },
 
   async listContacts(params = {}) {
-    return fleetopsService.listContact();
+    return fleetopsService.listContact(params);
   },
 
   async listVendors(params = {}) {
-    return fleetopsService.listVendor();
+    return fleetopsService.listVendor(params);
+  },
+
+  async queryCustomers(params = {}) {
+    const payload = await tryCandidatesQuery(["query/customers", ...RESOURCES.customers], "get", "", undefined, {
+      limit: 500,
+      ...params,
+    });
+    const direct = unwrapList(payload, ["customers", "data"]);
+    if (direct.length) return direct;
+    if (payload?.data && typeof payload.data === "object" && !Array.isArray(payload.data)) {
+      return unwrapList(payload.data, ["customers", "data"]);
+    }
+    return [];
+  },
+
+  async queryFacilitators(params = {}) {
+    const payload = await tryCandidatesQuery(["query/facilitators", "facilitators"], "get", "", undefined, {
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["facilitators"]);
   },
 
   async attachDeviceToVehicle(vehicleId, deviceId) {
@@ -1053,7 +1062,7 @@ export const fleetopsService = {
   },
 
   async assignVendorToDriver(driverId, vendorId) {
-    return fleetopsService.updateDriver(driverId, { vendorId, facilitator_uuid: vendorId });
+    return fleetopsService.assignVendorToDriverViaVendor(vendorId, driverId);
   },
 
   async assignVendorToDriverViaVendor(vendorId, driverId) {
@@ -1133,15 +1142,17 @@ export const fleetopsService = {
 
   async listRoutes(params = {}) {
     try {
-      const payload = await tryCandidates(RESOURCES.routes, "get", "", undefined);
+      const query = { with: "order", ...params };
+      const payload = await tryCandidatesQuery(RESOURCES.routes, "get", "", undefined, query);
       return unwrapList(payload, ["routes"]);
     } catch {
       return [];
     }
   },
 
-  async getRoute(routeId) {
-    const payload = await tryCandidates(RESOURCES.routes, "get", `/${routeId}`);
+  async getRoute(routeId, params = {}) {
+    const query = { with: "order", ...params };
+    const payload = await tryCandidatesQuery(RESOURCES.routes, "get", `/${routeId}`, undefined, query);
     return unwrapEntity(payload, ["route"]);
   },
 
@@ -1151,31 +1162,29 @@ export const fleetopsService = {
   },
 
   async optimizeRoutes(body = {}) {
-    const orderIds = body.orders || body.order_ids || body.order_uuids || [];
-    if (orderIds.length) {
-      return this.runOrchestrator({
-        mode: body.mode || "optimize_routes",
-        order_ids: orderIds,
-        options: { engine: body.engine || "greedy", ...body.options },
-        prior_assignments: body.prior_assignments,
-      });
+    const { resolveOrderIdsFromRoute } = await import("@/lib/fleetops/routing/resolveOrderIdsFromRoute");
+
+    let orderIds = (body.orders || body.order_ids || body.order_uuids || []).filter(Boolean).map(String);
+
+    if (!orderIds.length && body.route) {
+      orderIds = resolveOrderIdsFromRoute(body.route);
     }
-    let lastError;
-    try {
-      const response = await apiClient.post("/routes/optimize", body);
-      return response.data;
-    } catch (error) {
-      lastError = error;
+
+    if (!orderIds.length && body.route_uuid) {
+      const route = await this.getRoute(body.route_uuid);
+      orderIds = resolveOrderIdsFromRoute(route);
     }
-    for (const candidate of RESOURCES.routes) {
-      try {
-        const response = await apiClient.post(`/${candidate}/optimize`, body);
-        return response.data;
-      } catch (error) {
-        lastError = error;
-      }
+
+    if (!orderIds.length) {
+      throw new Error("No orders linked to this route. Link an order or re-plan from Orders.");
     }
-    throw lastError;
+
+    return this.runOrchestrator({
+      mode: body.mode || "optimize_routes",
+      order_ids: orderIds,
+      options: { engine: body.engine || "greedy", ...body.options },
+      prior_assignments: body.prior_assignments,
+    });
   },
 
   async updateRoute(routeId, body = {}) {
@@ -1265,7 +1274,7 @@ export const fleetopsService = {
     await tryCandidates(RESOURCES.serviceRates, "delete", `/${id}`);
   },
 
-  /** Nearest active driver heuristic (G010). */
+  /** Legacy client-side fallback when orchestrator best-fit is unavailable. */
   suggestBestDriver(drivers = [], order = {}) {
     const active = drivers.filter((d) =>
       ["online", "active", "on_duty", "available"].includes(String(d.status || "").toLowerCase()),
@@ -1958,6 +1967,40 @@ attachGenericCrud(fleetopsService, "integratedVendor", RESOURCES.integratedVendo
 ]);
 attachGenericCrud(fleetopsService, "contact", RESOURCES.contacts, "contact", ["contacts"]);
 attachGenericCrud(fleetopsService, "customer", RESOURCES.customers, "customer", ["customers"]);
+
+fleetopsService.listContact = async (params = {}) => {
+  const payload = await tryCandidatesQuery(RESOURCES.contacts, "get", "", undefined, params);
+  return unwrapList(payload, ["contacts"]);
+};
+
+fleetopsService.listCustomer = async (params = {}) => {
+  try {
+    const rows = await fleetopsService.queryCustomers(params);
+    if (rows.length) return rows;
+  } catch {
+    /* fallback to contacts filter */
+  }
+  const contacts = await fleetopsService.listContact({ type: "customer", limit: 500, ...params });
+  return contacts.filter((row) => String(row?.type || "").toLowerCase() === "customer");
+};
+
+fleetopsService.getCustomer = (id) => fleetopsService.getContact(id);
+
+fleetopsService.createCustomer = async (formValues = {}) => {
+  const contact = { ...formValues, type: "customer" };
+  const body = { contact, ...contact };
+  const payload = await tryCandidates(RESOURCES.contacts, "post", "", body);
+  return unwrapEntity(payload, ["contact", "customer"]);
+};
+
+fleetopsService.updateCustomer = async (id, formValues = {}) => {
+  const contact = { ...formValues, type: formValues.type || "customer" };
+  const body = { contact, ...contact };
+  const payload = await tryCandidatesMutate(RESOURCES.contacts, `/${id}`, body);
+  return unwrapEntity(payload, ["contact", "customer"]);
+};
+
+fleetopsService.deleteCustomer = (id) => fleetopsService.deleteContact(id);
 attachGenericCrud(fleetopsService, "fuelReport", RESOURCES.fuelReports, "fuel_report", ["fuel_reports", "fuelReports"]);
 attachGenericCrud(fleetopsService, "issue", RESOURCES.issues, "issue", ["issues"]);
 attachGenericCrud(fleetopsService, "device", RESOURCES.devices, "device", ["devices"]);

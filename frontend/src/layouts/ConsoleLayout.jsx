@@ -4,7 +4,6 @@ import Sidebar from "@/components/console/Sidebar";
 import CommandPalette from "@/components/console/CommandPalette";
 import OfflineBanner from "@/components/platform/OfflineBanner";
 import DemoModeBanner from "@/components/platform/DemoModeBanner";
-import OnboardingChecklist from "@/components/platform/OnboardingChecklist";
 import { useState, useEffect } from "react";
 
 export default function ConsoleLayout() {
@@ -32,7 +31,6 @@ export default function ConsoleLayout() {
                 </main>
             </div>
             <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-            <OnboardingChecklist />
         </div>
     );
 }

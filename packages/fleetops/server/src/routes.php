@@ -355,6 +355,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                 $router->patch('dispatch', $controller('dispatchOrder'));
                                 $router->patch('start', $controller('start'));
                                 // Scheduler: set scheduled_at + driver without triggering dispatch
+                                $router->match(['patch', 'post'], '{id}/schedule', $controller('scheduleOrder'));
                                 $router->patch('schedule', $controller('scheduleOrder'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                                 $router->match(['get', 'post'], 'export', $controller('export'));

@@ -35,7 +35,16 @@ export const CRUD_ENTITIES = {
     searchKeys: ["name", "publicId", "email", "phone"],
     fields: [
       { name: "name", label: "Name", required: true },
-      { name: "type", label: "Category / type" },
+      {
+        name: "type",
+        label: "Role",
+        type: "select",
+        options: [
+          { value: "facilitator", label: "Facilitator (carrier / partner)" },
+          { value: "customer", label: "Customer (order billing only)" },
+        ],
+        defaultValue: "facilitator",
+      },
       { name: "email", label: "Email", type: "email" },
       { name: "phone", label: "Phone" },
       { name: "status", label: "Status" },
@@ -70,11 +79,20 @@ export const CRUD_ENTITIES = {
     searchKeys: ["name", "publicId", "email", "phone"],
     fields: [
       { name: "name", label: "Name", required: true },
+      {
+        name: "type",
+        label: "Role",
+        type: "select",
+        options: [
+          { value: "contact", label: "Contact" },
+          { value: "customer", label: "Customer (can log in)" },
+          { value: "facilitator", label: "Facilitator" },
+        ],
+        defaultValue: "contact",
+      },
       { name: "email", label: "Email", type: "email" },
       { name: "phone", label: "Phone" },
       { name: "title", label: "Title" },
-      { name: "company_name", label: "Company" },
-      { name: "customer_id", label: "Linked customer ID" },
       { name: "status", label: "Status" },
     ],
   },
@@ -88,9 +106,10 @@ export const CRUD_ENTITIES = {
     searchKeys: ["name", "publicId", "email"],
     fields: [
       { name: "name", label: "Name", required: true },
-      { name: "email", label: "Email", type: "email" },
+      { name: "email", label: "Email", type: "email", required: true },
       { name: "phone", label: "Phone" },
-      { name: "contact_id", label: "Contact ID" },
+      { name: "title", label: "Title" },
+      { name: "internal_id", label: "Internal ID" },
     ],
   },
   fuelReport: {

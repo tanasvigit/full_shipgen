@@ -1,11 +1,11 @@
-import { isTerminalOrderStatus, normalizeStatus, resolveEffectiveOrderStatus } from "../status";
+import { canonicalOrderStatus, isTerminalOrderStatus, resolveEffectiveOrderStatus } from "../status";
 import { ORDER_TRANSITIONS } from "../transitions/orderTransitions";
 
 const workflowStatus = (status, context = {}) => {
   if (context.order && typeof context.order === "object") {
     return resolveEffectiveOrderStatus(context.order);
   }
-  return normalizeStatus(status);
+  return canonicalOrderStatus(status);
 };
 
 /** True when the API marks the order dispatched (status may still be `created`). */
@@ -13,8 +13,8 @@ export function isOrderAlreadyDispatched(orderOrRaw = {}) {
   if (!orderOrRaw || typeof orderOrRaw !== "object") return false;
   if (orderOrRaw.dispatchedAt || orderOrRaw.dispatched_at) return true;
   if (orderOrRaw.dispatched === true) return true;
-  const status = normalizeStatus(orderOrRaw.status);
-  return ["dispatched", "en_route", "started", "arrived", "delivered", "completed"].includes(status);
+  const status = canonicalOrderStatus(orderOrRaw.status);
+  return ["dispatched", "en_route", "arrived", "delivered", "completed"].includes(status);
 }
 
 export function canEditOrder(status) {

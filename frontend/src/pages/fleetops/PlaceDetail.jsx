@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
+import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import PageHeader from "@/components/common/PageHeader";
 import MapView from "@/components/common/MapView";
 import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
@@ -15,7 +17,18 @@ import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import PlaceForm, { placeValuesFromApi } from "@/components/fleetops/forms/PlaceForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, Phone, Clock, MapPin } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Edit3, Phone, Clock, MapPin, Trash2 } from "lucide-react";
+import { fleetopsCache } from "@/domain/fleetops/cache/store";
 import { toast } from "sonner";
 import { fleetopsService } from "@/services/fleetops";
 import { mapPlaceRow } from "@/lib/mappers";
@@ -29,10 +42,15 @@ export default function PlaceDetail({
   const { id: routeId } = useParams();
   const id = resolveDetailEntityId(entityIdProp, routeId);
   const navigate = useNavigate();
+  const { closeDetail } = useFleetopsDetailDrawer("place");
+  const { can } = useFleetopsPermission();
+  const canDelete = can("delete", "place");
   const tabActive = (tab) => (activeTabProp || "overview") === tab;
   const [loading, setLoading] = useState(true);
   const [place, setPlace] = useState(null);
   const [placeApi, setPlaceApi] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const formRef = useFormRef();
   const editDialog = useFleetopsFormDialog({
     formRef,
@@ -67,6 +85,23 @@ export default function PlaceDetail({
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleDelete = useCallback(async () => {
+    if (!id) return;
+    setDeleteBusy(true);
+    try {
+      await fleetopsService.deletePlace(id);
+      fleetopsCache.invalidatePlace(id);
+      toast.success("Place deleted");
+      setDeleteOpen(false);
+      if (embedded) closeDetail();
+      else navigate("/fleet-ops/management/places");
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not delete place.");
+    } finally {
+      setDeleteBusy(false);
+    }
+  }, [closeDetail, embedded, id, navigate]);
 
   if (!loading && !place) {
     return <div className="p-8 text-[#374151]">Place not found.</div>;
@@ -129,6 +164,19 @@ export default function PlaceDetail({
         publicId={p.publicId}
         onEdit={embedded ? editDialog.openEdit : () => editDialog.setOpen(true)}
         editTestId="place-edit"
+        actions={
+          canDelete
+            ? [
+                {
+                  id: "delete",
+                  label: "Delete",
+                  testId: "place-delete",
+                  onClick: () => setDeleteOpen(true),
+                  icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+                },
+              ]
+            : []
+        }
       />
       <DetailDrawerTabs
         value={activeTabProp || "overview"}
@@ -202,6 +250,29 @@ export default function PlaceDetail({
           )}
         </FleetOpsFormDialog>,
       )}
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && !deleteBusy && setDeleteOpen(open)}>
+        <AlertDialogContent data-testid="place-delete-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete place?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="font-medium text-[#1F2937]">{p.name}</span> will be removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteBusy}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleDelete();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   ) : null;
 
@@ -228,6 +299,16 @@ export default function PlaceDetail({
             <Button onClick={() => editDialog.setOpen(true)} className="bg-blue-600 hover:bg-blue-700" data-testid="place-edit">
               <Edit3 className="h-4 w-4 mr-1" /> Edit
             </Button>
+            {canDelete ? (
+              <Button
+                variant="outline"
+                onClick={() => setDeleteOpen(true)}
+                className="border-red-200 text-red-700 hover:bg-red-50"
+                data-testid="place-delete"
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            ) : null}
           </>
         }
       />
@@ -251,6 +332,29 @@ export default function PlaceDetail({
           <PlaceForm key={`place-edit-${id}`} ref={formRef} formId="place-edit-form" initialValues={placeValuesFromApi(placeApi)} />
         )}
       </FleetOpsFormDialog>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && !deleteBusy && setDeleteOpen(open)}>
+        <AlertDialogContent data-testid="place-delete-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete place?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="font-medium text-[#1F2937]">{p.name}</span> will be removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteBusy}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleDelete();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

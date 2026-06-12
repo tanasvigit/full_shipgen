@@ -1113,8 +1113,8 @@ class OrderController extends Controller
                 $entity->insertActivity($activity, $location, $proof);
             }
         } else {
-            // Update parent order when status is `dispatched` or `started`
-            if (in_array($activity->code, ['started', 'dispatched'])) {
+            // Update parent order when status is `dispatched` or en route
+            if (in_array($activity->code, ['started', 'en_route', 'enroute', 'dispatched'])) {
                 $order->updateActivity($activity, $proof);
             }
 

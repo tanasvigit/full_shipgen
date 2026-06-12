@@ -6,7 +6,18 @@ import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import PlaceForm from "@/components/fleetops/forms/PlaceForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, MapPin } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, MapPin, Trash2 } from "lucide-react";
+import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import MapView from "@/components/common/MapView";
 import { fleetopsService } from "@/services/fleetops";
 import { mapPlaceRow } from "@/lib/mappers";
@@ -21,8 +32,13 @@ import { toast } from "sonner";
 
 export default function PlacesList() {
   const { openDetail } = useFleetopsDetailDrawer("place");
+  const { can } = useFleetopsPermission();
+  const canDelete = can("delete", "place");
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const formRef = useFormRef();
   const dialog = useFleetopsFormDialog({
     formRef,
@@ -59,6 +75,30 @@ export default function PlacesList() {
     loadPlaces();
   }, [loadPlaces]);
 
+  const selectedIds = useMemo(() => Array.from(selectedKeys), [selectedKeys]);
+
+  const confirmDelete = async () => {
+    const ids = deleteTarget?.ids || [];
+    if (!ids.length) return;
+    setDeleteBusy(true);
+    try {
+      await Promise.all(ids.map((placeId) => fleetopsService.deletePlace(placeId)));
+      setPlaces((prev) => prev.filter((row) => !ids.includes(row.id)));
+      ids.forEach((placeId) => fleetopsCache.invalidatePlace(placeId));
+      setSelectedKeys((prev) => {
+        const next = new Set(prev);
+        ids.forEach((placeId) => next.delete(placeId));
+        return next;
+      });
+      toast.success(ids.length === 1 ? "Place deleted" : `${ids.length} places deleted`);
+      setDeleteTarget(null);
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not delete place.");
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -84,8 +124,31 @@ export default function PlacesList() {
         header: "Hours",
         render: (r) => <span className="font-mono text-xs">{r.openingHours || "—"}</span>,
       },
+      ...(canDelete
+        ? [
+            {
+              key: "actions",
+              header: "",
+              render: (r) => (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-[#4B5563] hover:text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget({ ids: [r.id], label: r.name });
+                  }}
+                  data-testid={`place-delete-${r.id}`}
+                  aria-label={`Delete ${r.name}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              ),
+            },
+          ]
+        : []),
     ],
-    [],
+    [canDelete],
   );
 
   return (
@@ -120,6 +183,28 @@ export default function PlacesList() {
             loadingMessage="Loading places…"
             searchKeys={["name", "address", "publicId"]}
             pageSize={10}
+            selectable={canDelete}
+            selectedKeys={selectedKeys}
+            onSelectedKeysChange={setSelectedKeys}
+            toolbarRight={
+              canDelete && selectedIds.length > 0 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 border-red-200 text-red-700 hover:bg-red-50"
+                  onClick={() =>
+                    setDeleteTarget({
+                      ids: selectedIds,
+                      label: `${selectedIds.length} selected place${selectedIds.length === 1 ? "" : "s"}`,
+                    })
+                  }
+                  data-testid="places-bulk-delete"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Delete ({selectedIds.length})
+                </Button>
+              ) : null
+            }
             onRowClick={(r) => openDetail(r.id)}
           />
         </div>
@@ -156,6 +241,38 @@ export default function PlacesList() {
       >
         <PlaceForm ref={formRef} formId="place-create-form" />
       </FleetOpsFormDialog>
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && !deleteBusy && setDeleteTarget(null)}>
+        <AlertDialogContent data-testid="place-delete-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {deleteTarget?.ids?.length === 1 ? "place" : "places"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.label ? (
+                <>
+                  <span className="font-medium text-[#1F2937]">{deleteTarget.label}</span> will be removed. This cannot
+                  be undone.
+                </>
+              ) : (
+                "This cannot be undone."
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteBusy}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

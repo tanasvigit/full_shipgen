@@ -1,13 +1,13 @@
 import { fleetopsService } from "@/services/fleetops";
 import { buildAssignDriversPayload, buildOptimizeRoutesPayload } from "./buildOptimizePayload";
 import { normalizeOptimizationResult } from "./normalizeOptimizationResult";
-import { orderPublicIds } from "./extractStopsFromOrders";
+import { resolveOrchestratorOrderIds } from "./extractStopsFromOrders";
 
 /**
  * Full route optimization pipeline: assign drivers (if needed) → sequence routes → normalized result.
  */
 export async function runRouteOptimization({ orders = [], orderIds = [], engine = "greedy" } = {}) {
-  const ids = orderIds.length ? orderIds : orderPublicIds(orders);
+  const ids = resolveOrchestratorOrderIds(orders, orderIds);
   if (!ids.length) {
     throw new Error("Select at least one order");
   }

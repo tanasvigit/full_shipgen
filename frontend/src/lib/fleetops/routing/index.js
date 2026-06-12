@@ -1,4 +1,9 @@
-export { extractStopsFromOrder, extractStopsFromOrders, orderPublicIds } from "./extractStopsFromOrders";
+export {
+  extractStopsFromOrder,
+  extractStopsFromOrders,
+  orderPublicIds,
+  resolveOrchestratorOrderIds,
+} from "./extractStopsFromOrders";
 export {
   buildOptimizePayload,
   buildAssignDriversPayload,
@@ -6,3 +11,4 @@ export {
 } from "./buildOptimizePayload";
 export { normalizeOptimizationResult, assignmentsForCommit } from "./normalizeOptimizationResult";
 export { runRouteOptimization } from "./runRouteOptimization";
+export { resolveOrderIdsFromRoute } from "./resolveOrderIdsFromRoute";

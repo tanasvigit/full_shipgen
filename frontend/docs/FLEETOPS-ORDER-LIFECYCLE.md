@@ -1,5 +1,8 @@
 # FleetOps order lifecycle — creation through completion
 
+> **Canonical order status flow:** **[`src/domain/fleetops/ORDER-STATUS-FLOW.md`](../src/domain/fleetops/ORDER-STATUS-FLOW.md)**  
+> (`created → assigned → dispatched → en_route → arrived → delivered → completed` + `canceled` / `failed`)
+>
 > **All gaps & parity:** see **[FLEETOPS-GAPS.md](./FLEETOPS-GAPS.md)** (single canonical document).  
 > This file covers **order lifecycle, APIs, and events only** — not full platform gaps.
 
@@ -129,10 +132,15 @@ Stored on `order_configs.flow` and indexed by activity `code`:
 | Code | Typical meaning |
 |--------|-----------------|
 | `created` | Order exists; not yet in field execution |
-| `dispatched` | Assigned / released to driver operations |
-| `started` | Execution begun (maps to “en route” in UI) |
+| `assigned` | Driver allocated (UI-derived when not dispatched) |
+| `dispatched` | Released to driver operations |
+| `en_route` | Trip started (legacy: `started`, `enroute` → normalize in UI) |
+| `arrived` | At stop (optional) |
+| `delivered` | POD / handoff done |
 | `completed` | Terminal success |
-| `canceled` | Terminal cancel |
+| `canceled` / `failed` | Terminal exceptions |
+
+See **[ORDER-STATUS-FLOW.md](../src/domain/fleetops/ORDER-STATUS-FLOW.md)** for the full cross-platform spec.
 
 `OrderConfig` helpers: `activities()`, `getCreatedActivity()`, `getDispatchedActivity()`, `getStartedActivity()`, `getCompletedActivity()`, `getCanceledActivity()`, `getActivity(code)`.
 

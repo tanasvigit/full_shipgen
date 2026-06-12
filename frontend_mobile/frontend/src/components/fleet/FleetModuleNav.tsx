@@ -5,11 +5,18 @@ import { colors, radius, spacing } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useFleetData } from "@/src/hooks/useFleetData";
 import { useFleetModuleStats } from "@/src/hooks/useFleetModuleStats";
-import { visibleFleetModules, type FleetModuleId } from "@/src/lib/fleetModules";
+import {
+  fleetTabHref,
+  visibleFleetModules,
+  type FleetModuleId,
+  type FleetWorkspaceTab,
+} from "@/src/lib/fleetModules";
 
 type Props = {
-  active: FleetModuleId;
+  active?: FleetModuleId;
   variant?: "bar" | "grid";
+  /** When set, switches workspace tabs in-place instead of navigating away. */
+  onSelectTab?: (tab: FleetWorkspaceTab) => void;
 };
 
 function badgeColor(tone?: "error" | "warning" | "info") {
@@ -18,16 +25,20 @@ function badgeColor(tone?: "error" | "warning" | "info") {
   return colors.info;
 }
 
-export default function FleetModuleNav({ active, variant = "bar" }: Props) {
+export default function FleetModuleNav({ active, variant = "bar", onSelectTab }: Props) {
   const router = useRouter();
   const { canFleetops } = useAuth();
   const { vehicles, drivers, routes, places, issues, fuelLogs } = useFleetData();
   const { byModule } = useFleetModuleStats({ vehicles, drivers, routes, places, issues, fuelLogs });
   const modules = visibleFleetModules(canFleetops);
 
-  const onPress = (route: string, id: FleetModuleId) => {
+  const onPress = (id: FleetModuleId) => {
     if (id === active) return;
-    router.push(route as never);
+    if (onSelectTab) {
+      onSelectTab(id);
+      return;
+    }
+    router.push(fleetTabHref(id));
   };
 
   if (variant === "grid") {
@@ -48,7 +59,7 @@ export default function FleetModuleNav({ active, variant = "bar" }: Props) {
                   testID={`fleet-module-${module.id}`}
                   style={[styles.gridTile, isActive && styles.gridTileActive]}
                   activeOpacity={0.75}
-                  onPress={() => onPress(module.route, module.id)}
+                  onPress={() => onPress(module.id)}
                 >
                   <View style={styles.gridTop}>
                     <View style={[styles.iconWrap, isActive && styles.iconWrapActive]}>
@@ -90,7 +101,7 @@ export default function FleetModuleNav({ active, variant = "bar" }: Props) {
             testID={`fleet-module-${module.id}`}
             style={[styles.barChip, isActive && styles.barChipActive]}
             activeOpacity={0.75}
-            onPress={() => onPress(module.route, module.id)}
+            onPress={() => onPress(module.id)}
           >
             <Ionicons name={module.icon} size={12} color={isActive ? "#fff" : colors.text} />
             <Text style={[styles.barLabel, isActive && styles.barLabelActive]}>{module.label}</Text>

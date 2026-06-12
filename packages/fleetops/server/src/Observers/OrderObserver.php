@@ -97,10 +97,12 @@ class OrderObserver
      */
     protected function ensureOrderStarted(Order $order): void
     {
+        $startedStatuses = ['started', 'en_route', 'enroute'];
+
         if (
             $order->isDirty('status')
             && $order->getOriginal('status') === 'dispatched'
-            && $order->status === 'started'
+            && in_array($order->status, $startedStatuses, true)
         ) {
             // Only set defaults if not explicitly provided
             if (is_null($order->started_at)) {

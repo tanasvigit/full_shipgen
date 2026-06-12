@@ -32,15 +32,15 @@ export function useFleetopsLookups(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      const [configs, driverRows, vehicleRows, placeRows, fleetRows, contactRows, vendorRows, areaRows] =
+      const [configs, driverRows, vehicleRows, placeRows, fleetRows, customerRows, facilitatorRows, areaRows] =
         await Promise.all([
           fleetopsService.listOrderConfigs(),
           fleetopsService.listDrivers(),
           fleetopsService.listVehicles(),
           fleetopsService.listPlaces(),
           fleetopsService.listFleets(),
-          fleetopsService.listContacts(),
-          fleetopsService.listVendors(),
+          fleetopsService.queryCustomers().catch(() => fleetopsService.listContacts({ type: "customer" })),
+          fleetopsService.queryFacilitators().catch(() => fleetopsService.listVendors()),
           fleetopsService.listServiceAreas(),
         ]);
 
@@ -62,18 +62,8 @@ export function useFleetopsLookups(enabled = true) {
           .filter((p) => p.id),
       );
       setFleets(fleetRows.map((f) => toOption(f)).filter(Boolean));
-      setCustomers(
-        contactRows
-          .filter((c) => String(c?.type || "").toLowerCase() !== "facilitator")
-          .map((c) => toOption(c, ["name", "public_id"]))
-          .filter(Boolean),
-      );
-      setFacilitators(
-        vendorRows
-          .concat(contactRows.filter((c) => String(c?.type || "").toLowerCase() === "facilitator"))
-          .map((v) => toOption(v, ["name", "public_id"]))
-          .filter(Boolean),
-      );
+      setCustomers(customerRows.map((c) => toOption(c, ["name", "public_id"])).filter(Boolean));
+      setFacilitators(facilitatorRows.map((v) => toOption(v, ["name", "public_id"])).filter(Boolean));
       setServiceAreas(areaRows.map((a) => toOption(a)).filter(Boolean));
     } catch (err) {
       setError(err?.friendlyMessage || err?.message || "Failed to load FleetOps lookups");

@@ -277,6 +277,12 @@ class OrderConfig extends Model
         $status = strtolower((string) $order->status);
 
         if ($order->started) {
+            foreach (['en_route', 'started', 'enroute'] as $code) {
+                if ($this->findActivityByCode($code)) {
+                    return $code;
+                }
+            }
+
             return 'started';
         }
 
@@ -476,16 +482,18 @@ class OrderConfig extends Model
      */
     public function getStartedActivity()
     {
-        $startedActivity = $this->findActivityByCode('started');
-        if ($startedActivity) {
-            return $startedActivity;
+        foreach (['en_route', 'started', 'enroute'] as $code) {
+            $activity = $this->findActivityByCode($code);
+            if ($activity) {
+                return $activity;
+            }
         }
 
         return new Activity([
             'key'      => 'order_started',
-            'code'     => 'started',
-            'status'   => 'Order started',
-            'details'  => 'Order has started',
+            'code'     => 'en_route',
+            'status'   => 'En route',
+            'details'  => 'Order is en route',
             'complete' => false,
         ], $this->flow);
     }

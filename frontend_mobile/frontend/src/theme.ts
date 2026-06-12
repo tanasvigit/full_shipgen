@@ -60,11 +60,13 @@ export const typography = {
 
 export const statusColor = (status: string) => {
   const s = status.toLowerCase();
-  if (["active", "online", "delivered", "completed", "available", "in_transit", "in transit", "paid", "en_route", "arrived"].includes(s))
+  if (["completed", "available", "paid", "online", "active"].includes(s))
     return { fg: colors.success, bg: colors.successBg };
-  if (["idle", "pending", "assigned", "scheduled", "maintenance", "created", "dispatched"].includes(s))
+  if (["delivered", "arrived", "en_route", "started", "enroute", "in_transit", "in transit"].includes(s))
+    return { fg: colors.info, bg: colors.infoBg };
+  if (["idle", "pending", "assigned", "scheduled", "maintenance", "created", "dispatched", "delayed"].includes(s))
     return { fg: colors.warning, bg: colors.warningBg };
-  if (["offline", "cancelled", "failed", "out_of_service", "critical", "unpaid"].includes(s))
+  if (["offline", "canceled", "cancelled", "failed", "out_of_service", "critical", "unpaid"].includes(s))
     return { fg: colors.error, bg: colors.errorBg };
   if (["new", "draft", "info"].includes(s)) return { fg: colors.info, bg: colors.infoBg };
   return { fg: colors.offline, bg: colors.offlineBg };

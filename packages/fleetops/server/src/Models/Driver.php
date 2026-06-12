@@ -359,11 +359,12 @@ class Driver extends Model
      */
     public function activeShiftFor(?\DateTimeInterface $date = null): ?ScheduleItem
     {
-        $date = $date ?? now();
+        $at = $date ? \Illuminate\Support\Carbon::instance($date) : now();
 
         return $this->scheduleItems()
-            ->whereDate('start_at', $date)
-            ->whereIn('status', ['pending', 'active'])
+            ->whereIn('status', ['pending', 'scheduled', 'active'])
+            ->where('start_at', '<=', $at)
+            ->where('end_at', '>=', $at)
             ->orderBy('start_at')
             ->first();
     }

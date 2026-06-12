@@ -12,48 +12,26 @@ import { schedulesService } from "@/services/schedules";
 import { mapDriverRow } from "@/lib/mappers";
 import { detectScheduleConflicts } from "@/lib/fleetops/scheduleConflicts";
 import FleetScheduleView from "@/components/fleetops/schedule/FleetScheduleView";
+import {
+  driverIdFromScheduleItem,
+  hourWindowFromScheduleItem,
+  weekdayFromScheduleItem,
+} from "@/lib/fleetops/scheduleItemHelpers";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function weekdayFromItem(item) {
-  const raw = item?.weekday ?? item?.day ?? item?.day_of_week ?? item?.dayOfWeek;
-  if (raw == null) return null;
-  if (typeof raw === "number" && DAYS[raw] != null) return DAYS[raw];
-  const s = String(raw).trim();
-  if (DAYS.includes(s)) return s;
-  const short = s.slice(0, 3);
-  const ix = DAYS.findIndex((d) => d.toLowerCase().startsWith(short.toLowerCase()));
-  return ix >= 0 ? DAYS[ix] : null;
-}
-
-function driverIdFromItem(item) {
-  return item?.driver_uuid || item?.driver_id || item?.driver?.id || item?.driver?.uuid || null;
-}
-
-function hourWindowFromItem(item) {
-  const a = item?.start_hour ?? item?.startHour;
-  const b = item?.end_hour ?? item?.endHour;
-  if (a != null && b != null) return `${Number(a)}-${Number(b)}`;
-  const start = item?.starts_at || item?.start_time || item?.start;
-  const end = item?.ends_at || item?.end_time || item?.end;
-  if (!start || !end) return null;
-  try {
-    const da = new Date(start);
-    const db = new Date(end);
-    if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) return null;
-    return `${da.getHours()}-${db.getHours()}`;
-  } catch {
-    return null;
-  }
-}
 
 function buildRows(drivers, items) {
   return drivers.map((d) => ({
     id: d.id,
     name: d.name,
     shifts: DAYS.map((day) => {
-      const match = items.find((it) => driverIdFromItem(it) && String(driverIdFromItem(it)) === String(d.id) && weekdayFromItem(it) === day);
-      return match ? hourWindowFromItem(match) : null;
+      const match = items.find(
+        (it) =>
+          driverIdFromScheduleItem(it) &&
+          String(driverIdFromScheduleItem(it)) === String(d.id) &&
+          weekdayFromScheduleItem(it) === day,
+      );
+      return match ? hourWindowFromScheduleItem(match) : null;
     }),
   }));
 }
@@ -64,6 +42,7 @@ export default function SchedulePlanner() {
   const [loading, setLoading] = useState(true);
   const [driverRows, setDriverRows] = useState([]);
   const [items, setItems] = useState([]);
+  const [fleetRefreshKey, setFleetRefreshKey] = useState(0);
   const formRef = useFormRef();
   const driverOptions = useMemo(
     () => driverRows.map((d) => ({ id: String(d.id), label: d.name })),
@@ -178,12 +157,30 @@ export default function SchedulePlanner() {
             </Button>
               </>
             )}
+            {tab === "fleet" && (
+              <>
+                <div className="flex items-center gap-1 border border-black/[0.08] rounded-md px-1 h-10 bg-white" data-testid="fleet-schedule-week-nav">
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w) => w - 1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-mono text-[#374151] px-2 flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" /> {weekLabel}
+                  </span>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w) => w + 1)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button variant="outline" onClick={() => setFleetRefreshKey((k) => k + 1)} className="border-black/[0.08] h-10">
+                  Refresh
+                </Button>
+              </>
+            )}
           </>
         }
       />
       <div className="p-6">
         {tab === "fleet" ? (
-          <FleetScheduleView weekOffset={weekOffset} />
+          <FleetScheduleView weekOffset={weekOffset} refreshKey={fleetRefreshKey} />
         ) : (
           <>
         {!loading && schedule.drivers.length === 0 && (

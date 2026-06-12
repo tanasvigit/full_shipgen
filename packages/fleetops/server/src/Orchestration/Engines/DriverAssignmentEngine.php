@@ -5,6 +5,7 @@ namespace Fleetbase\FleetOps\Orchestration\Engines;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Vehicle;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -179,6 +180,189 @@ class DriverAssignmentEngine
     }
 
     /**
+     * Fleet-schedule best-fit: assign drivers to orders using shift windows,
+     * skills, pickup proximity, and soft workload balancing.
+     *
+     * @param Collection $orders  Unassigned orders
+     * @param Collection $drivers Candidate drivers (pre-filtered by caller)
+     * @param array      $options require_active_shift, respect_scheduled_at, respect_skills
+     *
+     * @return array{assignments: array, unassigned: array, summary: array}
+     */
+    public function assignBestFit(Collection $orders, Collection $drivers, array $options = []): array
+    {
+        $requireActiveShift   = $options['require_active_shift'] ?? true;
+        $respectScheduledAt   = $options['respect_scheduled_at'] ?? true;
+        $respectSkills        = $options['respect_skills'] ?? true;
+
+        if ($orders->isEmpty()) {
+            return [
+                'assignments' => [],
+                'unassigned'  => [],
+                'summary'     => ['message' => 'No orders to assign.'],
+            ];
+        }
+
+        if ($drivers->isEmpty()) {
+            return [
+                'assignments' => [],
+                'unassigned'  => $orders->map(fn (Order $order) => [
+                    'order_id' => $order->public_id,
+                    'reason'   => 'no_drivers',
+                ])->values()->all(),
+                'summary'     => ['message' => 'No drivers available.'],
+            ];
+        }
+
+        $drivers = $drivers->loadMissing(['scheduleItems', 'vehicle']);
+
+        $sortedOrders = $orders->sortBy([
+            fn (Order $order) => $order->scheduled_at
+                ? Carbon::parse($order->scheduled_at)->timestamp
+                : PHP_INT_MAX,
+            fn (Order $order) => -((int) ($order->orchestrator_priority ?? 50)),
+        ])->values();
+
+        $assignments = [];
+        $unassigned  = [];
+        $driverLoad  = [];
+
+        foreach ($sortedOrders as $order) {
+            $referenceAt = ($respectScheduledAt && $order->scheduled_at)
+                ? Carbon::parse($order->scheduled_at)
+                : now();
+
+            $pickupLat = $order->payload?->pickup?->location?->getLat();
+            $pickupLng = $order->payload?->pickup?->location?->getLng();
+            if (!$pickupLat || !$pickupLng) {
+                $pickupLat = $order->payload?->dropoff?->location?->getLat();
+                $pickupLng = $order->payload?->dropoff?->location?->getLng();
+            }
+
+            $requiredSkills = $order->required_skills ?? [];
+            $candidates     = $drivers;
+
+            if ($requireActiveShift) {
+                $candidates = $candidates->filter(function (Driver $driver) use ($referenceAt) {
+                    $hasSchedule = $driver->scheduleItems && $driver->scheduleItems->isNotEmpty();
+                    if (!$hasSchedule) {
+                        return true;
+                    }
+
+                    return $driver->activeShiftFor($referenceAt) !== null;
+                });
+            }
+
+            if ($candidates->isEmpty()) {
+                $unassigned[] = [
+                    'order_id' => $order->public_id,
+                    'reason'   => 'no_shift',
+                ];
+                continue;
+            }
+
+            $bestDriver = $this->findBestDriverForOrder(
+                $candidates,
+                $requiredSkills,
+                $respectSkills,
+                $pickupLat,
+                $pickupLng,
+                $referenceAt,
+                $driverLoad
+            );
+
+            if (!$bestDriver) {
+                $unassigned[] = [
+                    'order_id' => $order->public_id,
+                    'reason'   => 'no_match',
+                ];
+                continue;
+            }
+
+            $driverLoad[$bestDriver->uuid] = ($driverLoad[$bestDriver->uuid] ?? 0) + 1;
+
+            $assignments[] = [
+                'order_id'   => $order->public_id,
+                'driver_id'  => $bestDriver->public_id,
+                'vehicle_id' => $bestDriver->vehicle?->public_id,
+                'sequence'   => null,
+            ];
+        }
+
+        return [
+            'assignments' => $assignments,
+            'unassigned'  => $unassigned,
+            'summary'     => [
+                'orders_assigned'   => count($assignments),
+                'orders_unassigned' => count($unassigned),
+                'drivers_used'      => count($driverLoad),
+            ],
+        ];
+    }
+
+    /**
+     * Score drivers for a single order (fleet schedule / best-fit).
+     */
+    protected function findBestDriverForOrder(
+        Collection $availableDrivers,
+        array $requiredSkills,
+        bool $respectSkills,
+        ?float $pickupLat,
+        ?float $pickupLng,
+        \DateTimeInterface $referenceAt,
+        array $driverLoad,
+    ): ?Driver {
+        if ($availableDrivers->isEmpty()) {
+            return null;
+        }
+
+        $scored = $availableDrivers->map(function (Driver $driver) use (
+            $requiredSkills,
+            $respectSkills,
+            $pickupLat,
+            $pickupLng,
+            $referenceAt,
+            $driverLoad
+        ) {
+            $score = 0;
+
+            if ($respectSkills && !empty($requiredSkills)) {
+                $driverSkills = $driver->skills ?? [];
+                $matchCount   = count(array_intersect($requiredSkills, $driverSkills));
+                if ($matchCount < count($requiredSkills)) {
+                    return null;
+                }
+                $score += $matchCount * 100;
+            }
+
+            if ($driver->online) {
+                $score += 30;
+            }
+
+            $hasSchedule = $driver->scheduleItems && $driver->scheduleItems->isNotEmpty();
+            if ($hasSchedule && $driver->activeShiftFor($referenceAt) !== null) {
+                $score += 50;
+            }
+
+            if ($pickupLat && $pickupLng && $driver->location) {
+                $distance = $this->haversineDistance(
+                    $pickupLat,
+                    $pickupLng,
+                    $driver->location->getLat(),
+                    $driver->location->getLng()
+                );
+                $score += max(0, 50 - ($distance / 1000));
+            }
+
+            $score -= (($driverLoad[$driver->uuid] ?? 0) * 15);
+
+            return ['driver' => $driver, 'score' => $score];
+        })->filter()->sortByDesc('score');
+
+        return $scored->first()['driver'] ?? null;
+    }
+
+    /**
      * Find the best available driver for a given vehicle.
      *
      * Scoring:
@@ -225,7 +409,6 @@ class DriverAssignmentEngine
                 $score += 50;
             }
 
-            // Proximity bonus (only if vehicle has a known location)
             if ($vehicleLat && $vehicleLng && $driver->location) {
                 $distance = $this->haversineDistance(
                     $vehicleLat, $vehicleLng,

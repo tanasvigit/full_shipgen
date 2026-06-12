@@ -17,6 +17,7 @@ test.describe("FleetOps Phase 3 — Management CRUD", () => {
       await page.getByTestId("vendor-new-button").click();
       await expect(page.getByTestId("vendor-create-dialog")).toBeVisible();
       await page.getByTestId("field-name").fill(`phase3-vendor-${Date.now()}`);
+      await expect(page.getByTestId("field-type")).toBeVisible();
       await page.getByRole("button", { name: /cancel/i }).first().click();
     }
     const contactOk = await expectCrudSurface(page, "contact", "/fleet-ops/management/contacts");
@@ -24,6 +25,7 @@ test.describe("FleetOps Phase 3 — Management CRUD", () => {
       await page.getByTestId("contact-new-button").click();
       await expect(page.getByTestId("contact-create-dialog")).toBeVisible();
       await page.getByTestId("field-name").fill(`phase3-contact-${Date.now()}`);
+      await expect(page.getByTestId("field-type")).toBeVisible();
       await page.getByRole("button", { name: /cancel/i }).first().click();
     }
   });

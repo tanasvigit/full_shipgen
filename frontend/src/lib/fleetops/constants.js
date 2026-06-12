@@ -1,6 +1,6 @@
 /** Operational enums aligned with packages/fleetops/server config & form requests. */
 
-export const ORDER_STATUSES = ["created", "dispatched", "en_route", "delivered", "canceled"];
+export { ORDER_STATUSES, TERMINAL_ORDER_STATUSES } from "@/domain/fleetops/status";
 export const ORDER_PRIORITIES = ["low", "medium", "high", "urgent"];
 export const POD_METHODS = ["scan", "signature", "photo"];
 

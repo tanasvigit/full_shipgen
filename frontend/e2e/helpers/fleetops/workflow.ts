@@ -2,7 +2,15 @@ import { expect, type Page, type Response } from "@playwright/test";
 import { gotoRoute } from "../navigation";
 import { waitForApiSettle } from "../network";
 
-export type FleetopsResource = "orders" | "drivers" | "vehicles" | "places" | "fleets";
+export type FleetopsResource =
+  | "orders"
+  | "drivers"
+  | "vehicles"
+  | "places"
+  | "fleets"
+  | "contacts"
+  | "vendors"
+  | "customers";
 
 const RESOURCE_SEGMENT: Record<FleetopsResource, string> = {
   orders: "orders",
@@ -10,6 +18,9 @@ const RESOURCE_SEGMENT: Record<FleetopsResource, string> = {
   vehicles: "vehicles",
   places: "places",
   fleets: "fleets",
+  contacts: "contacts",
+  vendors: "vendors",
+  customers: "customers",
 };
 
 export function isFleetopsWriteResponse(
@@ -48,7 +59,7 @@ export function waitForFleetopsWrite(
   );
 }
 
-/** Radix Select — pick first real option (skips "— None —"). */
+/** Radix Select — pick first real option (skips "— None —" and disabled placeholders). */
 export async function selectFirstEntityOption(
   page: Page,
   testId: string,
@@ -61,12 +72,38 @@ export async function selectFirstEntityOption(
   for (let i = 0; i < count; i++) {
     const opt = options.nth(i);
     const text = (await opt.textContent())?.trim() || "";
-    if (!text || text.includes("None") || text === "—") continue;
+    const disabled =
+      (await opt.getAttribute("data-disabled")) != null ||
+      (await opt.getAttribute("aria-disabled")) === "true";
+    if (disabled) continue;
+    if (!text || text.includes("None") || text === "—" || /no options/i.test(text)) continue;
     await opt.click();
     return true;
   }
   await page.keyboard.press("Escape");
   return false;
+}
+
+/** Wait until an EntityAsyncSelect trigger is ready (not loading / empty). */
+export async function waitForEntitySelectReady(page: Page, testId: string, timeout = 30_000) {
+  const trigger = page.getByTestId(`${testId}-trigger`);
+  await expect(trigger).toBeVisible({ timeout });
+  await expect(trigger).not.toContainText(/loading/i, { timeout });
+  await trigger.click();
+  const listbox = page.getByRole("listbox").last();
+  await expect(listbox).toBeVisible({ timeout });
+  const options = listbox.getByRole("option");
+  const count = await options.count();
+  let enabledCount = 0;
+  for (let i = 0; i < count; i++) {
+    const opt = options.nth(i);
+    if ((await opt.getAttribute("data-disabled")) != null) continue;
+    const text = (await opt.textContent()) || "";
+    if (/no options/i.test(text) || text.includes("None")) continue;
+    enabledCount += 1;
+  }
+  expect(enabledCount, `${testId} should expose selectable options`).toBeGreaterThan(0);
+  await page.keyboard.press("Escape");
 }
 
 export async function selectRadixOption(

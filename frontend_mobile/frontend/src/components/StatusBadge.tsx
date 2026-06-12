@@ -1,12 +1,14 @@
 import { Text, View, StyleSheet } from "react-native";
+import { canonicalOrderStatus, orderStatusLabel } from "@/src/lib/orderStatus";
 import { colors, radius, statusColor } from "../theme";
 
 export default function StatusBadge({ status }: { status: string }) {
-  const c = statusColor(status);
-  const label = status.replace(/_/g, " ").toUpperCase();
+  const canonical = canonicalOrderStatus(status);
+  const c = statusColor(canonical);
+  const label = orderStatusLabel(status).toUpperCase();
   return (
     <View
-      testID={`status-badge-${status}`}
+      testID={`status-badge-${canonical}`}
       style={[styles.badge, { backgroundColor: c.bg, borderColor: c.fg }]}
     >
       <View style={[styles.dot, { backgroundColor: c.fg }]} />

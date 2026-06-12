@@ -62,17 +62,20 @@ export function mapBackendOrder(raw: any): Order {
   const id = entityId(raw);
   const code = raw?.public_id || raw?.tracking_number || raw?.internal_id || id;
   const customerName = raw?.customer?.name || raw?.customer_name || "Customer";
+  const driver = resolveDriver(raw);
   const status = resolveEffectiveOrderStatus({
     status: raw?.status || "created",
     dispatched: raw?.dispatched,
     dispatched_at: raw?.dispatched_at,
     started: raw?.started,
     started_at: raw?.started_at,
+    driver_assigned_uuid: raw?.driver_assigned_uuid,
+    driverId: driver.id,
+    has_driver_assigned: Boolean(raw?.driver_assigned_uuid || raw?.driver_assigned || raw?.driver),
   });
 
   const pickupPlace = raw?.pickup || raw?.pickup_place || raw?.payload?.pickup;
   const dropoffPlace = raw?.dropoff || raw?.dropoff_place || raw?.payload?.dropoff;
-  const driver = resolveDriver(raw);
   const vehicle = resolveVehicle(raw);
 
   return {

@@ -1,4 +1,5 @@
 import { POD_METHODS } from "./constants";
+import { buildRecurringShiftTimes } from "./scheduleItemHelpers";
 
 const clean = (obj) => {
   const out = {};
@@ -205,13 +206,23 @@ export function buildOrderPayload(values, { orderConfigKey } = {}) {
 
 export function buildScheduleItemPayload(values) {
   const dayIdx = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(values.day);
+  const startHour = Number(values.start);
+  const endHour = Number(values.end);
+  const { start_at, end_at } = buildRecurringShiftTimes(values.day, startHour, endHour);
+
   return clean({
-    driver_uuid: values.driverId,
-    driver: values.driverId,
-    weekday: values.day,
-    day_of_week: dayIdx >= 0 ? dayIdx : undefined,
-    start_hour: Number(values.start),
-    end_hour: Number(values.end),
-    notes: values.notes,
+    assignee_uuid: values.driverId,
+    assignee_type: "fleet-ops:driver",
+    start_at,
+    end_at,
+    status: "scheduled",
+    meta: clean({
+      weekday: values.day,
+      day_of_week: dayIdx >= 0 ? dayIdx : undefined,
+      start_hour: startHour,
+      end_hour: endHour,
+      notes: values.notes,
+      recurring: true,
+    }),
   });
 }

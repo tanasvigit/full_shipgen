@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { fleetopsService } from "@/services/fleetops";
+import { suggestBestDriverForOrder } from "@/lib/fleetops/allocation";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
 
@@ -45,13 +46,13 @@ export default function AssignDriverDialog({
       setError(null);
       try {
         const rows = await fleetopsService.listDrivers();
-        const best = fleetopsService.suggestBestDriver(rows, order);
-        const id = best?.uuid || best?.id;
+        const best = await suggestBestDriverForOrder(order, rows);
+        const id = best?.uuid || best?.id || best?.public_id || best?.publicId;
         if (id) {
           setDriverId(String(id));
-          if (!silent) toast.success("Suggested nearest available driver");
+          if (!silent) toast.success("Suggested best-fit driver (shift-aware)");
         } else if (!silent) {
-          toast.message("No available driver found for this order");
+          toast.message("No eligible driver found for this order");
         }
       } catch (err) {
         const msg = parseFleetopsApiError(err);

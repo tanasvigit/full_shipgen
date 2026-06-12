@@ -19,6 +19,7 @@ import { useDriverOrders } from "@/src/hooks/useDriverOrders";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { isDriverUser } from "@/src/lib/driver";
 import { isTerminalStatus, matchesDriverBucket } from "@/src/lib/orderStatus";
+import { fleetTabHref } from "@/src/lib/fleetModules";
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Good morning";
@@ -100,7 +101,7 @@ export default function Dashboard() {
           delta: "from API",
           positive: true,
           icon: "alert-circle-outline" as const,
-          onPress: () => router.push("/issues"),
+          onPress: () => router.push(fleetTabHref("issues")),
         },
       }
     : {
@@ -126,7 +127,7 @@ export default function Dashboard() {
           delta: `of ${drivers.length}`,
           positive: true,
           icon: "people-outline" as const,
-          onPress: () => router.push("/drivers"),
+          onPress: () => router.push(fleetTabHref("drivers")),
         },
         quaternary: {
           label: "Vehicles active",
@@ -134,7 +135,7 @@ export default function Dashboard() {
           delta: `of ${vehicles.length}`,
           positive: true,
           icon: "car-sport-outline" as const,
-          onPress: () => router.push("/(tabs)/fleet"),
+          onPress: () => router.push(fleetTabHref("vehicles")),
         },
       };
 
@@ -215,18 +216,18 @@ export default function Dashboard() {
         <Text style={styles.sectionTitle}>Quick access</Text>
         <View style={styles.quickGrid}>
           {!driverMode ? (
-            <QuickItem icon="people-outline" label="Drivers" onPress={() => router.push("/drivers")} />
+            <QuickItem icon="people-outline" label="Drivers" onPress={() => router.push(fleetTabHref("drivers"))} />
           ) : null}
           <QuickItem icon="cube-outline" label="Orders" onPress={() => router.push("/(tabs)/orders")} />
           <QuickItem icon="navigate-outline" label="Tracking" onPress={() => router.push("/(tabs)/tracking")} />
           {!driverMode ? (
-            <QuickItem icon="map-outline" label="Routes" onPress={() => router.push("/routes")} />
+            <QuickItem icon="map-outline" label="Routes" onPress={() => router.push(fleetTabHref("routes"))} />
           ) : null}
           {!driverMode ? (
-            <QuickItem icon="location-outline" label="Places" onPress={() => router.push("/places")} />
+            <QuickItem icon="location-outline" label="Places" onPress={() => router.push(fleetTabHref("places"))} />
           ) : null}
-          <QuickItem icon="alert-circle-outline" label="Issues" onPress={() => router.push("/issues")} />
-          <QuickItem icon="flame-outline" label="Fuel" onPress={() => router.push("/fuel")} />
+          <QuickItem icon="alert-circle-outline" label="Issues" onPress={() => router.push(fleetTabHref("issues"))} />
+          <QuickItem icon="flame-outline" label="Fuel" onPress={() => router.push(fleetTabHref("fuel"))} />
           <QuickItem icon="notifications-outline" label="Alerts" onPress={() => router.push("/notifications")} />
         </View>
 
@@ -270,7 +271,7 @@ export default function Dashboard() {
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Drivers online</Text>
-              <TouchableOpacity onPress={() => router.push("/drivers")}>
+              <TouchableOpacity onPress={() => router.push(fleetTabHref("drivers"))}>
                 <Text style={styles.linkText}>View all →</Text>
               </TouchableOpacity>
             </View>

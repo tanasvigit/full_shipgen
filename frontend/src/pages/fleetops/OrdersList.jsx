@@ -181,6 +181,12 @@ export default function OrdersList() {
 
   const selectedIds = useMemo(() => [...selectedKeys], [selectedKeys]);
 
+  /** Plan-routes URL + orchestrator expect public_id, not table row uuid keys. */
+  const selectedPlanRouteIds = useMemo(() => {
+    const byKey = new Map(filtered.map((o) => [o.id, o.publicId || o.id]));
+    return selectedIds.map((id) => byKey.get(id) || id);
+  }, [selectedIds, filtered]);
+
   const runBulk = async (fn) => {
     if (!selectedIds.length) return;
     setBulkBusy(true);
@@ -436,7 +442,7 @@ export default function OrdersList() {
           onRunOrchestrator={() => navigate("/fleet-ops/operations/orchestrator")}
           onOrchestratorImport={() => setOrchestratorImportOpen(true)}
           onPlanRoutes={() =>
-            navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedIds.join(","))}`)
+            navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedPlanRouteIds.join(","))}`)
           }
           onBulkDispatch={() => runBulk((ids) => fleetopsService.bulkDispatch(ids))}
           onBulkCancel={() => runBulk((ids) => fleetopsService.bulkCancel(ids))}
@@ -499,7 +505,7 @@ export default function OrdersList() {
               canSchedule={ability.canUpdateOrder}
               canAssign={ability.canAssignDriver}
               onPlanRoute={() =>
-                navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedIds.join(","))}`)
+                navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedPlanRouteIds.join(","))}`)
               }
               onSchedule={() => setScheduleOpen(true)}
             />

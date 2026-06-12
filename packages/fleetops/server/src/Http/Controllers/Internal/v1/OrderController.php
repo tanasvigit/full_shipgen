@@ -28,6 +28,7 @@ use Fleetbase\FleetOps\Models\Proof;
 use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Models\TrackingStatus;
 use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Support\OrderPartyResolver;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\Internal\BulkActionRequest;
@@ -90,6 +91,25 @@ class OrderController extends FleetOpsController
     }
 
     /**
+     * Resolve facilitator/customer identifiers before order create.
+     */
+    public function onBeforeCreate($request, &$input)
+    {
+        $serviceQuote            = ServiceQuote::resolveFromRequest($request);
+        $isIntegratedVendorOrder = $serviceQuote instanceof ServiceQuote && $serviceQuote->fromIntegratedVendor();
+
+        OrderPartyResolver::apply($input, $request, $serviceQuote, $isIntegratedVendorOrder);
+    }
+
+    /**
+     * Resolve facilitator/customer identifiers before order update.
+     */
+    public function onBeforeUpdate($request, $order, &$input)
+    {
+        OrderPartyResolver::apply($input, $request);
+    }
+
+    /**
      * Handle order waypoint changes if any.
      */
     public function onAfterUpdate($request, $order)
@@ -140,6 +160,8 @@ class OrderController extends FleetOpsController
 
                         $input['integrated_vendor_order'] = $integratedVendorOrder;
                     }
+
+                    $this->onBeforeCreate($request, $input);
 
                     // if no type is set its default to default
                     if (!isset($input['type'])) {
@@ -1120,11 +1142,15 @@ class OrderController extends FleetOpsController
      *
      * @return \Illuminate\Http\Response
      */
-    public function scheduleOrder(Request $request)
+    public function scheduleOrder(Request $request, $id = null)
     {
-        $orderId     = $request->input('order');
+        $orderId     = $request->input('order') ?: $request->input('order_uuid') ?: $id;
         $scheduledAt = $request->input('scheduled_at');
         $driverId    = $request->input('driver_id');
+
+        if (empty($orderId)) {
+            return response()->error('No order found to schedule.');
+        }
 
         $order = Order::findById($orderId);
         if (!$order) {

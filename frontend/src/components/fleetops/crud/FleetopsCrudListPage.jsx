@@ -155,20 +155,21 @@ export default function FleetopsCrudListPage({ config }) {
         {entitySupportsImportExport(config.key) && (
           <CrudImportExportBar entityKey={config.key} onComplete={load} testPrefix={testPrefix} />
         )}
-        {!loading && rows.length === 0 && (
+        {!loading && rows.length === 0 ? (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid={`${testPrefix}-empty`}>
             No {config.pluralLabel.toLowerCase()} yet.
           </div>
+        ) : (
+          <DataTable
+            testid={`${testPrefix}-table`}
+            columns={columns}
+            data={rows}
+            loading={loading}
+            searchKeys={config.searchKeys}
+            pageSize={10}
+            onRowClick={(r) => navigate(`${config.listPath}/${r.id}`)}
+          />
         )}
-        <DataTable
-          testid={`${testPrefix}-table`}
-          columns={columns}
-          data={rows}
-          loading={loading}
-          searchKeys={config.searchKeys}
-          pageSize={10}
-          onRowClick={(r) => navigate(`${config.listPath}/${r.id}`)}
-        />
       </div>
 
       {!config.readOnly && (

@@ -37,8 +37,8 @@ class CreateOrderRequest extends FleetbaseRequest
             'driver'            => ['nullable', 'exists:drivers,uuid'],
             'service_quote'     => ['nullable', 'exists:service_quotes,uuid'],
             'purchase_rate'     => ['nullable', 'exists:purchase_rates,uuid'],
-            'facilitator'       => ['nullable', new ExistsInAny(['vendors', 'contacts', 'integrated_vendors'], ['uuid', 'provider'])],
-            'customer'          => ['nullable', new ExistsInAny(['vendors', 'contacts'], 'uuid')],
+            'facilitator'       => ['nullable', new ExistsInAny(['vendors', 'contacts', 'integrated_vendors'], ['uuid', 'public_id', 'provider'])],
+            'customer'          => ['nullable', new ExistsInAny(['vendors', 'contacts'], ['uuid', 'public_id'])],
             'status'            => ['nullable', 'string'],
             'type'              => ['string'],
         ];

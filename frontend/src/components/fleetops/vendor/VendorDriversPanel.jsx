@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 
-export default function VendorPersonnelPanel({ vendorId }) {
+export default function VendorDriversPanel({ vendorId }) {
   const ability = useFleetopsAbility();
   const canManage = ability.canUpdateOrder || ability.isDispatcher;
   const [drivers, setDrivers] = useState([]);
@@ -67,7 +67,7 @@ export default function VendorPersonnelPanel({ vendorId }) {
   };
 
   return (
-    <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-3" data-testid="vendor-personnel-panel">
+    <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-3" data-testid="vendor-drivers-panel">
       <div className="flex items-center justify-between">
         <div className="overline">Assigned drivers ({drivers.length})</div>
         {canManage && (

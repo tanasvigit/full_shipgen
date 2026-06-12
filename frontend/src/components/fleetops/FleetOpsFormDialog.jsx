@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { forwardRef } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ArcSpinner from "@/components/loaders/Spinner/ArcSpinner";
@@ -24,20 +25,23 @@ function getPortalContainer() {
   return ensureFleetopsEditPortal() || document.body;
 }
 
-function DialogPanel({
-  title,
-  description,
-  children,
-  onSubmit,
-  submitLabel,
-  busyLabel,
-  busy,
-  submitDisabled,
-  error,
-  testId,
-  maxW,
-  onOpenChange,
-}) {
+const DialogPanel = forwardRef(function DialogPanel(
+  {
+    title,
+    description,
+    children,
+    onSubmit,
+    submitLabel,
+    busyLabel,
+    busy,
+    submitDisabled,
+    error,
+    testId,
+    maxW,
+    onOpenChange,
+  },
+  ref,
+) {
   return (
     <>
       <DialogPrimitive.Overlay
@@ -49,6 +53,7 @@ function DialogPanel({
         )}
       />
       <DialogPrimitive.Content
+        ref={ref}
         className={cn(
           FLEETOPS_MODAL_CONTENT_Z,
           maxW,
@@ -132,7 +137,7 @@ function DialogPanel({
       </DialogPrimitive.Content>
     </>
   );
-}
+});
 
 export default function FleetOpsFormDialog({
   open,

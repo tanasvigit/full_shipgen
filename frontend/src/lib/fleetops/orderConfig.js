@@ -17,16 +17,40 @@ const STATUS_COLORS = {
 export const DEFAULT_ORDER_FLOW = {
   activities: [
     { code: "created", status: "created", activities: ["dispatched"], logic: [], events: ["order.created"] },
-    { code: "dispatched", status: "dispatched", activities: ["started"], logic: [], events: ["order.dispatched"] },
-    { code: "started", status: "en_route", activities: ["completed"], logic: [], events: ["order.started"] },
+    { code: "dispatched", status: "dispatched", activities: ["en_route"], logic: [], events: ["order.dispatched"] },
+    { code: "en_route", status: "en_route", activities: ["arrived", "delivered"], logic: [], events: ["order.started"] },
+    { code: "arrived", status: "arrived", activities: ["delivered"], logic: [], events: [] },
+    { code: "delivered", status: "delivered", activities: ["completed"], logic: [], events: [] },
     { code: "completed", status: "completed", activities: [], logic: [], events: ["order.completed"] },
     { code: "canceled", status: "canceled", activities: [], logic: [], events: ["order.canceled"] },
   ],
 };
 
+/**
+ * Normalize flow JSON from either UI shape (`{ activities: [...] }`) or
+ * backend keyed shape (`{ created: {...}, dispatched: {...} }`).
+ */
+export function extractFlowActivityNodes(flow) {
+  if (!flow || typeof flow !== "object") return [];
+
+  if (Array.isArray(flow.activities) && flow.activities.length) {
+    return flow.activities.filter((node) => node && typeof node === "object");
+  }
+
+  return Object.entries(flow)
+    .filter(([key, node]) => key !== "activities" && node && typeof node === "object" && (node.code || node.key))
+    .map(([, node]) => node)
+    .sort((a, b) => (Number(a.sequence) || 0) - (Number(b.sequence) || 0));
+}
+
 export function countFlowActivities(flow) {
-  const list = flow?.activities;
-  return Array.isArray(list) ? list.length : 0;
+  return extractFlowActivityNodes(flow).length;
+}
+
+function addActivityStatus(out, node) {
+  if (!node || typeof node !== "object") return;
+  const code = normalizeStatus(node.code || node.key || node.status);
+  if (code && !WORKFLOW_SCHEMA_FIELD_CODES.has(code)) out.add(code);
 }
 
 /** Collect unique status codes from flow graph nodes. */
@@ -35,22 +59,28 @@ export function extractStatusesFromFlow(flow) {
   const walk = (nodes) => {
     if (!Array.isArray(nodes)) return;
     for (const node of nodes) {
-      if (node?.status) {
-        const status = normalizeStatus(node.status);
-        if (!WORKFLOW_SCHEMA_FIELD_CODES.has(status)) out.add(status);
-      }
-      if (node?.code) {
-        const code = normalizeStatus(node.code);
-        if (!WORKFLOW_SCHEMA_FIELD_CODES.has(code)) out.add(code);
-      }
+      addActivityStatus(out, node);
       walk(node.activities?.filter?.((c) => typeof c === "object") ? node.activities : null);
     }
   };
-  walk(flow?.activities);
-  if (!out.size && flow?.created) {
-    Object.keys(flow.created || {}).forEach((k) => out.add(normalizeStatus(k)));
-  }
+  walk(extractFlowActivityNodes(flow));
   return [...out];
+}
+
+/** Convert keyed backend flow to editor-friendly `{ activities: [...] }`. */
+export function normalizeFlowForEditor(flow) {
+  const nodes = extractFlowActivityNodes(flow);
+  if (!nodes.length) return structuredClone(DEFAULT_ORDER_FLOW);
+  return {
+    activities: nodes.map((node) => ({
+      ...node,
+      code: node.code || node.key,
+      status: normalizeStatus(node.code || node.status || node.key),
+      activities: Array.isArray(node.activities) ? [...node.activities] : [],
+      logic: Array.isArray(node.logic) ? [...node.logic] : [],
+      events: Array.isArray(node.events) ? [...node.events] : [],
+    })),
+  };
 }
 
 export function statusColor(status, meta = {}) {
@@ -132,7 +162,7 @@ export function orderConfigFormFromRow(row) {
     type: row.type,
     enabled: row.enabled,
     status: row.status,
-    flow: row.flow || structuredClone(DEFAULT_ORDER_FLOW),
+    flow: normalizeFlowForEditor(row.flow),
     statusColors: colors,
     meta: row.meta || {},
   };

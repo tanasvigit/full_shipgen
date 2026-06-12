@@ -18,6 +18,7 @@ import {
   logQueryCacheSnapshot,
   logRuntimeDiagnostics,
 } from "@/src/dev/diagnostics";
+import { fleetTabHref } from "@/src/lib/fleetModules";
 
 export default function Profile() {
   const router = useRouter();
@@ -168,17 +169,17 @@ export default function Profile() {
         </Section>
 
         <Section title={driverMode ? "Driver tools" : "Modules"}>
-          {!driverMode ? <Row icon="people-outline" label="Drivers" onPress={() => router.push("/drivers")} /> : null}
-          {!driverMode ? <Row icon="map-outline" label="Routes" onPress={() => router.push("/routes")} /> : null}
-          {!driverMode ? <Row icon="location-outline" label="Places" onPress={() => router.push("/places")} /> : null}
+          {!driverMode ? <Row icon="people-outline" label="Drivers" onPress={() => router.push(fleetTabHref("drivers"))} /> : null}
+          {!driverMode ? <Row icon="map-outline" label="Routes" onPress={() => router.push(fleetTabHref("routes"))} /> : null}
+          {!driverMode ? <Row icon="location-outline" label="Places" onPress={() => router.push(fleetTabHref("places"))} /> : null}
           {driverMode ? (
             <Row icon="list-outline" label="Manifests" onPress={() => router.push("/manifests")} />
           ) : null}
           {driverMode ? (
             <Row icon="time-outline" label="Schedule & HOS" onPress={() => router.push("/schedule")} />
           ) : null}
-          <Row icon="alert-circle-outline" label="Issues" onPress={() => router.push("/issues")} />
-          <Row icon="flame-outline" label="Fuel reports" onPress={() => router.push("/fuel")} />
+          <Row icon="alert-circle-outline" label="Issues" onPress={() => router.push(fleetTabHref("issues"))} />
+          <Row icon="flame-outline" label="Fuel reports" onPress={() => router.push(fleetTabHref("fuel"))} />
           <Row
             icon="notifications-outline"
             label="Notifications"

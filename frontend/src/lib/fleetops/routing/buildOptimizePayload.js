@@ -1,4 +1,4 @@
-import { orderPublicIds } from "./extractStopsFromOrders";
+import { resolveOrchestratorOrderIds } from "./extractStopsFromOrders";
 
 /**
  * Build orchestrator / route optimization request body (Ember route-optimization + vroom parity).
@@ -14,7 +14,7 @@ export function buildOptimizePayload({
   priorAssignments = [],
   options = {},
 } = {}) {
-  const ids = orderIds.length ? orderIds : orderPublicIds(orders);
+  const ids = resolveOrchestratorOrderIds(orders, orderIds);
 
   const payload = {
     mode,

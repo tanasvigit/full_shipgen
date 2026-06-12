@@ -5,6 +5,7 @@ import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
+import { resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 
@@ -87,7 +88,11 @@ export default function RoutesList() {
                 data-testid={`route-optimize-${rid}`}
                 onClick={async () => {
                   try {
-                    await fleetopsService.optimizeRoutes({ route_uuid: rid, orders: row.order_uuid ? [row.order_uuid] : [] });
+                    await fleetopsService.optimizeRoutes({
+                      route: row,
+                      route_uuid: rid,
+                      orders: resolveOrderIdsFromRoute(row),
+                    });
                     toast.success("Optimized");
                     load();
                   } catch (err) {

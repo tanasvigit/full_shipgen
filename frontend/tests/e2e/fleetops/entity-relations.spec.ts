@@ -72,7 +72,7 @@ test.describe("FleetOps Day 2 — Entity relations", () => {
     }
   });
 
-  test("contacts ↔ customers relation panel is stable", async ({ page }) => {
+  test("contact customer-orders panel is stable", async ({ page }) => {
     await page.goto("/fleet-ops/management/contacts");
     if (await page.getByTestId("contact-forbidden").isVisible().catch(() => false)) {
       test.skip();
