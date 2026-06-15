@@ -58,6 +58,42 @@ export const FLEETOPS_DETAIL_ENTITIES = {
     large: false,
     testId: "route-detail-drawer",
   },
+  vendor: {
+    key: "vendor",
+    param: "vendor",
+    label: "Vendor",
+    basePath: "/fleet-ops/management/vendors",
+    width: 720,
+    large: false,
+    testId: "vendor-detail-drawer",
+  },
+  contact: {
+    key: "contact",
+    param: "contact",
+    label: "Contact",
+    basePath: "/fleet-ops/management/contacts",
+    width: 720,
+    large: false,
+    testId: "contact-detail-drawer",
+  },
+  issue: {
+    key: "issue",
+    param: "issue",
+    label: "Issue",
+    basePath: "/fleet-ops/management/issues",
+    width: 720,
+    large: false,
+    testId: "issue-detail-drawer",
+  },
+  fuelReport: {
+    key: "fuelReport",
+    param: "fuelReport",
+    label: "Fuel report",
+    basePath: "/fleet-ops/management/fuel-reports",
+    width: 720,
+    large: false,
+    testId: "fuel-report-detail-drawer",
+  },
 };
 
 export function getEntityConfig(entityKey) {

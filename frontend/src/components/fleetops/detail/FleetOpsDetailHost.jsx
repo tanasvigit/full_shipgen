@@ -17,6 +17,10 @@ const DETAIL_VIEWS = {
   place: lazy(() => import("@/pages/fleetops/PlaceDetail")),
   order: lazy(() => import("@/pages/fleetops/OrderDetail")),
   route: lazy(() => import("@/pages/fleetops/routes/RouteDetail")),
+  vendor: lazy(() => import("@/pages/fleetops/management/VendorDetail")),
+  contact: lazy(() => import("@/pages/fleetops/management/ContactDetail")),
+  issue: lazy(() => import("@/pages/fleetops/management/IssueDetail")),
+  fuelReport: lazy(() => import("@/pages/fleetops/management/FuelReportDetail")),
 };
 
 function FleetOpsDetailHostInner() {

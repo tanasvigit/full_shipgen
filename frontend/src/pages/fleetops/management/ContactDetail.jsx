@@ -3,9 +3,12 @@ import FleetopsCrudDetailPage from "@/components/fleetops/crud/FleetopsCrudDetai
 import { CRUD_ENTITIES, mapCrudRow } from "@/lib/fleetops/crudEntities";
 import DataTable from "@/components/common/DataTable";
 import { fleetopsService } from "@/services/fleetops";
-import { Link, useParams } from "react-router-dom";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
+import { resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
+import { useParams } from "react-router-dom";
 
 function ContactCustomerOrdersPanel({ contactId, contactType }) {
+  const { openDetail: openOrderDetail } = useFleetopsDetailDrawer("order");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const isCustomer = String(contactType || "").toLowerCase() === "customer";
@@ -56,9 +59,13 @@ function ContactCustomerOrdersPanel({ contactId, contactType }) {
             key: "name",
             header: "Order",
             render: (row) => (
-              <Link className="text-[#0066FF] font-medium" to={`/fleet-ops/orders/${row.id}`}>
+              <button
+                type="button"
+                className="text-[#0066FF] font-medium"
+                onClick={() => openOrderDetail(row.id)}
+              >
                 {row.publicId}
-              </Link>
+              </button>
             ),
           },
           { key: "status", header: "Status" },
@@ -71,11 +78,17 @@ function ContactCustomerOrdersPanel({ contactId, contactType }) {
   );
 }
 
-export default function ContactDetail() {
-  const { id } = useParams();
+export default function ContactDetail({
+  embedded = false,
+  entityId: entityIdProp,
+  onClose,
+}) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
   const [contactType, setContactType] = useState("");
 
   useEffect(() => {
+    if (!id) return;
     fleetopsService
       .getContact(id)
       .then((contact) => setContactType(contact?.type || ""))
@@ -84,6 +97,9 @@ export default function ContactDetail() {
 
   return (
     <FleetopsCrudDetailPage
+      embedded={embedded}
+      entityId={id}
+      onClose={onClose}
       config={CRUD_ENTITIES.contact}
       relationSlots={<ContactCustomerOrdersPanel contactId={id} contactType={contactType} />}
     />

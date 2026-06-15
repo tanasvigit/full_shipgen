@@ -3,24 +3,40 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
+import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import SimpleEntityForm, { valuesFromApi } from "@/components/fleetops/crud/SimpleEntityForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { Button } from "@/components/ui/button";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Edit3, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { getCrudApi } from "@/lib/fleetops/crudApi";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { fleetopsService } from "@/services/fleetops";
+import {
+  DetailLoadingState,
+  resolveDetailEntityId,
+  wrapDetailEditDialog,
+} from "@/lib/fleetops/detailEmbedded";
 
 const ISSUE_STATUSES = ["open", "in_progress", "resolved", "closed"];
 const WO_STATUSES = ["draft", "scheduled", "in_progress", "completed", "cancelled"];
 
-export default function FleetopsCrudDetailPage({ config, relationSlots = null }) {
-  const { id } = useParams();
+export default function FleetopsCrudDetailPage({
+  config,
+  relationSlots = null,
+  embedded = false,
+  entityId: entityIdProp,
+  onClose,
+}) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
   const navigate = useNavigate();
+  const { closeDetail } = useFleetopsDetailDrawer(config.key);
   const formRef = useFormRef();
   const api = useMemo(() => getCrudApi(config.key), [config.key]);
   const { can } = useFleetopsPermission();
@@ -60,12 +76,22 @@ export default function FleetopsCrudDetailPage({ config, relationSlots = null })
 
   const editDialog = useFleetopsFormDialog({
     formRef,
+    suspendDrawer: embedded,
     successMessage: "Saved",
     onSubmit: async (values) => {
       await api.update(id, values);
       await load();
     },
   });
+
+  const leaveDetail = useCallback(() => {
+    if (embedded) {
+      onClose?.();
+      closeDetail();
+      return;
+    }
+    navigate(config.listPath);
+  }, [closeDetail, config.listPath, embedded, navigate, onClose]);
 
   const handleDelete = async () => {
     if (!canDelete) {
@@ -76,7 +102,7 @@ export default function FleetopsCrudDetailPage({ config, relationSlots = null })
     try {
       await api.remove(id);
       toast.success("Deleted");
-      navigate(config.listPath);
+      leaveDetail();
     } catch (err) {
       toast.error(err?.friendlyMessage || "Delete failed");
     }
@@ -103,18 +129,116 @@ export default function FleetopsCrudDetailPage({ config, relationSlots = null })
     );
   }
 
+  if (loading && !row) {
+    return (
+      <DetailLoadingState
+        embedded={embedded}
+        message={`Loading ${config.singularLabel.toLowerCase()}…`}
+        testId={`${testPrefix}-detail-loader`}
+      />
+    );
+  }
+
   if (!loading && !row) {
     return (
       <div className="p-8" data-testid={`${testPrefix}-detail-not-found`}>
         {config.singularLabel} not found.{" "}
-        <Link to={config.listPath} className="text-[#0066FF]">
-          Back to list
-        </Link>
+        {embedded ? (
+          <button type="button" className="text-[#0066FF]" onClick={leaveDetail}>
+            Back to list
+          </button>
+        ) : (
+          <Link to={config.listPath} className="text-[#0066FF]">
+            Back to list
+          </Link>
+        )}
       </div>
     );
   }
 
   const statusOptions = config.key === "issue" ? ISSUE_STATUSES : config.key === "workOrder" ? WO_STATUSES : [];
+
+  const mainPanel = (
+    <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        {!embedded && <StatusBadge status={row.status} label={String(row.status || "—")} />}
+        {config.statusField && canUpdate && (
+          <Select value={String(row.status || "")} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px]" data-testid={`${testPrefix}-status-select`}>
+              <SelectValue placeholder="Update status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s.replace(/_/g, " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+      <DetailFieldGrid
+        fields={config.fields.map((f) => ({
+          label: f.label,
+          value: row.raw?.[f.name] ?? row.raw?.[f.name.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] ?? "—",
+        }))}
+      />
+      {relationSlots}
+    </div>
+  );
+
+  const editDialogNode = (
+    <FleetOpsFormDialog
+      open={editDialog.open}
+      onOpenChange={editDialog.setOpen}
+      title={`Edit ${config.singularLabel.toLowerCase()}`}
+      submitLabel="Save changes"
+      busy={editDialog.busy}
+      error={editDialog.error}
+      onSubmit={editDialog.handleSubmit}
+      testId={`${testPrefix}-edit-dialog`}
+    >
+      {editDialog.open && (
+        <SimpleEntityForm
+          ref={formRef}
+          formId={`${testPrefix}-edit`}
+          mode="edit"
+          fields={config.fields}
+          initialValues={valuesFromApi(raw, config.fields)}
+        />
+      )}
+    </FleetOpsFormDialog>
+  );
+
+  if (embedded) {
+    return (
+      <div data-testid={`${testPrefix}-detail-page`}>
+        <DetailDrawerHeader
+          overline={config.singularLabel}
+          title={row.name}
+          publicId={row.publicId}
+          status={row.status}
+          onEdit={canUpdate && !config.readOnly ? () => editDialog.setOpen(true) : undefined}
+          editTestId={`${testPrefix}-edit`}
+          extraActions={
+            canDelete && !config.readOnly ? (
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => {
+                  void handleDelete();
+                }}
+                data-testid={`${testPrefix}-delete`}
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              </DropdownMenuItem>
+            ) : null
+          }
+        />
+        <div className="px-4 pb-4">{mainPanel}</div>
+        {wrapDetailEditDialog(embedded, editDialog.open, editDialogNode)}
+      </div>
+    );
+  }
 
   return (
     <div data-testid={`${testPrefix}-detail-page`}>
@@ -147,38 +271,7 @@ export default function FleetopsCrudDetailPage({ config, relationSlots = null })
         }
       />
       <div className="p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4">
-          {loading ? (
-            <p className="text-sm text-[#4B5563]">Loading…</p>
-          ) : (
-            <>
-              <div className="flex items-center gap-3">
-                <StatusBadge status={row.status} label={String(row.status || "—")} />
-                {config.statusField && canUpdate && (
-                  <Select value={String(row.status || "")} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[180px]" data-testid={`${testPrefix}-status-select`}>
-                      <SelectValue placeholder="Update status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s.replace(/_/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <DetailFieldGrid
-                fields={config.fields.map((f) => ({
-                  label: f.label,
-                  value: row.raw?.[f.name] ?? row.raw?.[f.name.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] ?? "—",
-                }))}
-              />
-              {relationSlots}
-            </>
-          )}
-        </div>
+        {mainPanel}
         <aside className="bg-white border border-black/[0.08] rounded-md p-4 text-sm text-[#374151] space-y-2">
           <div className="overline">Relations</div>
           {relationSlots ? (
@@ -188,27 +281,7 @@ export default function FleetopsCrudDetailPage({ config, relationSlots = null })
           )}
         </aside>
       </div>
-
-      <FleetOpsFormDialog
-        open={editDialog.open}
-        onOpenChange={editDialog.setOpen}
-        title={`Edit ${config.singularLabel.toLowerCase()}`}
-        submitLabel="Save changes"
-        busy={editDialog.busy}
-        error={editDialog.error}
-        onSubmit={editDialog.handleSubmit}
-        testId={`${testPrefix}-edit-dialog`}
-      >
-        {editDialog.open && (
-          <SimpleEntityForm
-            ref={formRef}
-            formId={`${testPrefix}-edit`}
-            mode="edit"
-            fields={config.fields}
-            initialValues={valuesFromApi(raw, config.fields)}
-          />
-        )}
-      </FleetOpsFormDialog>
+      {editDialogNode}
     </div>
   );
 }

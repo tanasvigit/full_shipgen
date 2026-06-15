@@ -1,6 +1,17 @@
 import FleetopsCrudDetailPage from "@/components/fleetops/crud/FleetopsCrudDetailPage";
 import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 
-export default function FuelReportDetail() {
-  return <FleetopsCrudDetailPage config={CRUD_ENTITIES.fuelReport} />;
+export default function FuelReportDetail({
+  embedded = false,
+  entityId,
+  onClose,
+}) {
+  return (
+    <FleetopsCrudDetailPage
+      embedded={embedded}
+      entityId={entityId}
+      onClose={onClose}
+      config={CRUD_ENTITIES.fuelReport}
+    />
+  );
 }

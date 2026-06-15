@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -12,11 +12,15 @@ import { toast } from "sonner";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { getCrudApi } from "@/lib/fleetops/crudApi";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { getEntityConfig } from "@/domain/fleetops/detail/registry";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
 import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
 
 export default function FleetopsCrudListPage({ config }) {
   const navigate = useNavigate();
+  const drawerConfig = getEntityConfig(config.key);
+  const { openDetail } = useFleetopsDetailDrawer(config.key);
   const formRef = useFormRef();
   const api = useMemo(() => getCrudApi(config.key), [config.key]);
   const { can } = useFleetopsPermission();
@@ -76,6 +80,14 @@ export default function FleetopsCrudListPage({ config }) {
     }
   };
 
+  const openRowDetail = useCallback(
+    (rowId) => {
+      if (drawerConfig) openDetail(rowId);
+      else navigate(`${config.listPath}/${rowId}`);
+    },
+    [config.listPath, drawerConfig, navigate, openDetail],
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -83,9 +95,16 @@ export default function FleetopsCrudListPage({ config }) {
         header: "Name",
         sortable: true,
         render: (r) => (
-          <Link className="text-[#0066FF] font-medium" to={`${config.listPath}/${r.id}`}>
+          <button
+            type="button"
+            className="text-[#0066FF] font-medium text-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              openRowDetail(r.id);
+            }}
+          >
             {r.name}
-          </Link>
+          </button>
         ),
       },
       {
@@ -117,7 +136,7 @@ export default function FleetopsCrudListPage({ config }) {
           ) : null,
       },
     ],
-    [config, canDelete, testPrefix],
+    [config, canDelete, openRowDetail, testPrefix],
   );
 
   if (!canView) {
@@ -167,7 +186,7 @@ export default function FleetopsCrudListPage({ config }) {
             loading={loading}
             searchKeys={config.searchKeys}
             pageSize={10}
-            onRowClick={(r) => navigate(`${config.listPath}/${r.id}`)}
+            onRowClick={(r) => openRowDetail(r.id)}
           />
         )}
       </div>

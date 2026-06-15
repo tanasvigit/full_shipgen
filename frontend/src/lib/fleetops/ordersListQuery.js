@@ -1,4 +1,4 @@
-import { EN_ROUTE_API_STATUS_VALUES } from "@/domain/fleetops/status";
+import { EN_ROUTE_API_STATUS_VALUES, matchesOrderStatusFilter } from "@/domain/fleetops/status";
 import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 
 /** URL + API query helpers for orders list (Day 1 — G001, G034, G055). */
@@ -76,6 +76,33 @@ export function buildOrdersListApiParams(state) {
     params.bulk_query = state.bulk_query.trim();
   }
   return appendFleetFilterParams(params, state.fleet);
+}
+
+/** True when the API response contains every row for the current request (safe to recount after client filter). */
+export function hasCompleteOrdersPage(fetchedRowCount, pageMeta) {
+  const total = Number(pageMeta?.total ?? 0);
+  return Number(pageMeta?.lastPage ?? 1) === 1 || fetchedRowCount >= total;
+}
+
+/** Refine mapped rows to the UI status bucket (effective status may differ from raw API `status`). */
+export function applyOrdersListStatusFilter(rows, status) {
+  if (!status || status === "all") return rows;
+  return rows.filter((row) => matchesOrderStatusFilter(row, status));
+}
+
+/**
+ * After client-side status refinement, align pagination meta with visible rows.
+ * API totals are coarse for buckets like assigned, dispatched, and en_route.
+ */
+export function reconcileOrdersListMetaAfterStatusFilter({ pageMeta, filteredRows, fetchedRowCount, queryState }) {
+  if (!queryState.status || queryState.status === "all") return pageMeta;
+  if (!hasCompleteOrdersPage(fetchedRowCount, pageMeta)) return pageMeta;
+
+  const perPage = pageMeta.perPage || queryState.limit;
+  const total = filteredRows.length;
+  const lastPage = Math.max(1, Math.ceil(total / perPage) || 1);
+  const page = total === 0 ? 1 : Math.min(queryState.page, lastPage);
+  return { ...pageMeta, total, lastPage, page, perPage };
 }
 
 export function ordersListSearchParamsFromState(state, overrides = {}) {

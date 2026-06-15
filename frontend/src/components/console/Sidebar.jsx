@@ -74,7 +74,7 @@ const sections = {
         {
             label: "Operations",
             items: [
-                { to: "/fleet-ops/operations/orders", label: "Orders", icon: Package, badge: "12" },
+                { to: "/fleet-ops/operations/orders", label: "Orders", icon: Package },
                 { to: "/fleet-ops/operations/routes", label: "Routes", icon: Route },
                 { to: "/fleet-ops/operations/schedule", label: "Schedule", icon: CalendarClock },
                 { to: "/fleet-ops/operations/order-config", label: "Order config", icon: SettingsIcon },

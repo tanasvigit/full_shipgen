@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
+  applyOrdersListStatusFilter,
   buildOrdersListApiParams,
   ordersListSearchParamsFromState,
   parseOrdersListSearchParams,
+  reconcileOrdersListMetaAfterStatusFilter,
 } from "@/lib/fleetops/ordersListQuery";
 import { fleetopsService } from "@/services/fleetops";
 import { mapOrder } from "@/lib/mappers";
-import { matchesOrderStatusFilter } from "@/domain/fleetops/status";
 import { invalidateCachedQuery } from "@/hooks/fleetops/useFleetopsQueryCache";
 
 export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrders = [] } = {}) {
@@ -31,9 +32,7 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
       const { background = false } = opts;
       if (isDemoMode) {
         let rows = demoOrders.map(mapOrder);
-        if (queryState.status !== "all") {
-          rows = rows.filter((o) => matchesOrderStatusFilter(o, queryState.status));
-        }
+        rows = applyOrdersListStatusFilter(rows, queryState.status);
         if (queryState.without_driver) {
           rows = rows.filter((o) => !o.driverId);
         }
@@ -60,12 +59,17 @@ export function useOrdersListPage({ enabled = true, isDemoMode = false, demoOrde
         invalidateCachedQuery("fleetops:orders");
         const apiParams = buildOrdersListApiParams(queryState);
         const { rows, meta: pageMeta } = await fleetopsService.listOrdersPage(apiParams);
-        let mapped = rows.map(mapOrder);
-        if (queryState.status !== "all") {
-          mapped = mapped.filter((o) => matchesOrderStatusFilter(o, queryState.status));
-        }
-        setOrders(mapped);
-        setMeta(pageMeta);
+        const mapped = rows.map(mapOrder);
+        const filtered = applyOrdersListStatusFilter(mapped, queryState.status);
+        const nextMeta = reconcileOrdersListMetaAfterStatusFilter({
+          pageMeta,
+          filteredRows: filtered,
+          fetchedRowCount: rows.length,
+          queryState,
+        });
+
+        setOrders(filtered);
+        setMeta(nextMeta);
       } finally {
         if (!background) setLoading(false);
       }

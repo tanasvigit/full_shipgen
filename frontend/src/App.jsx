@@ -78,17 +78,13 @@ import Orchestrator from "@/pages/fleetops/Orchestrator";
 import SchedulePlanner from "@/pages/fleetops/SchedulePlanner";
 import OrderConfigManager from "@/pages/fleetops/OrderConfigManager";
 import VendorsList from "@/pages/fleetops/management/VendorsList";
-import VendorDetail from "@/pages/fleetops/management/VendorDetail";
 import ContactsList from "@/pages/fleetops/management/ContactsList";
-import ContactDetail from "@/pages/fleetops/management/ContactDetail";
 import IssuesList from "@/pages/fleetops/management/IssuesList";
-import IssueDetail from "@/pages/fleetops/management/IssueDetail";
 import FleetopsCustomersList from "@/pages/fleetops/management/CustomersList";
 import FleetopsCustomerDetail from "@/pages/fleetops/management/CustomerDetail";
 import IntegratedVendorsList from "@/pages/fleetops/management/IntegratedVendorsList";
 import IntegratedVendorDetail from "@/pages/fleetops/management/IntegratedVendorDetail";
 import FuelReportsList from "@/pages/fleetops/management/FuelReportsList";
-import FuelReportDetail from "@/pages/fleetops/management/FuelReportDetail";
 import TelematicsList from "@/pages/fleetops/connectivity/TelematicsList";
 import TelematicDetail from "@/pages/fleetops/connectivity/TelematicDetail";
 import DevicesList from "@/pages/fleetops/connectivity/DevicesList";
@@ -215,15 +211,27 @@ function App() {
                             element={<DetailRouteRedirect entityKey="fleet" />}
                           />
                           <Route path="/fleet-ops/management/vendors" element={<VendorsList />} />
-                          <Route path="/fleet-ops/management/vendors/:id" element={<VendorDetail />} />
+                          <Route
+                            path="/fleet-ops/management/vendors/:id"
+                            element={<DetailRouteRedirect entityKey="vendor" />}
+                          />
                           <Route path="/fleet-ops/management/integrated-vendors" element={<IntegratedVendorsList />} />
                           <Route path="/fleet-ops/management/integrated-vendors/:id" element={<IntegratedVendorDetail />} />
                           <Route path="/fleet-ops/management/contacts" element={<ContactsList />} />
-                          <Route path="/fleet-ops/management/contacts/:id" element={<ContactDetail />} />
+                          <Route
+                            path="/fleet-ops/management/contacts/:id"
+                            element={<DetailRouteRedirect entityKey="contact" />}
+                          />
                           <Route path="/fleet-ops/management/fuel-reports" element={<FuelReportsList />} />
-                          <Route path="/fleet-ops/management/fuel-reports/:id" element={<FuelReportDetail />} />
+                          <Route
+                            path="/fleet-ops/management/fuel-reports/:id"
+                            element={<DetailRouteRedirect entityKey="fuelReport" />}
+                          />
                           <Route path="/fleet-ops/management/issues" element={<IssuesList />} />
-                          <Route path="/fleet-ops/management/issues/:id" element={<IssueDetail />} />
+                          <Route
+                            path="/fleet-ops/management/issues/:id"
+                            element={<DetailRouteRedirect entityKey="issue" />}
+                          />
                           <Route path="/fleet-ops/management/customers" element={<FleetopsCustomersList />} />
                           <Route path="/fleet-ops/management/customers/:id" element={<FleetopsCustomerDetail />} />
                           <Route path="/fleet-ops/connectivity/telematics" element={<TelematicsList />} />
