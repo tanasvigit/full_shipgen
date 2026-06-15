@@ -107,14 +107,14 @@ export function buildPlacePayload(values) {
 export function buildFleetPayload(values) {
   const body = clean({
     name: values.name,
-    description: values.description,
+    task: values.task,
+    color: values.color,
+    status: values.status,
     service_area: values.serviceAreaId,
-    meta: clean({
-      region: values.region,
-      territory: values.territory,
-      status: values.status,
-      manager_name: values.managerName,
-    }),
+    zone: values.zoneId,
+    vendor: values.vendorId,
+    parent_fleet: values.parentFleetId,
+    custom_field_values: values.customFieldValues,
   });
   return { fleet: body };
 }

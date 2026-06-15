@@ -41,4 +41,6 @@ export const PLACE_TYPES = [
 
 export const FLEET_STATUSES = ["active", "paused", "inactive"];
 
+export const FLEET_COLORS = ["#0066FF", "#16A34A", "#7C3AED", "#EA580C", "#0891B2", "#DC2626"];
+
 export const SCHEDULE_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

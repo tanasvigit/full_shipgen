@@ -1,18 +1,33 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
+import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import PageHeader from "@/components/common/PageHeader";
 import StatusBadge from "@/components/common/StatusBadge";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import FleetForm from "@/components/fleetops/forms/FleetForm";
+import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Truck, Building } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Users, Truck, Search } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapFleet, statusLabel } from "@/lib/mappers";
 import {
   ensureRowId,
   FLEET_LAST_CREATED_ID_KEY,
+  getRowId,
   markPendingSync,
   mergeListWithPending,
   reconcileCreatedRow,
@@ -23,12 +38,16 @@ import { hydrateFleetListRows } from "@/lib/fleetops/hydrate-fleet-list";
 import { fleetopsCache } from "@/domain/fleetops/cache/store";
 import { toast } from "sonner";
 
-const COLORS = ["#0066FF", "#16A34A", "#7C3AED", "#EA580C", "#0891B2", "#DC2626"];
-
 export default function FleetsList() {
   const { openDetail } = useFleetopsDetailDrawer("fleet");
+  const { can } = useFleetopsPermission();
+  const canDelete = can("delete", "fleet");
   const [fleets, setFleets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
   const formRef = useFormRef();
   const lookups = useFleetopsLookups();
   const dialog = useFleetopsFormDialog({
@@ -40,7 +59,7 @@ export default function FleetsList() {
         ensureRowId(
           reconcileCreatedRow(mapFleet(created), values, {
             name: "name",
-            description: "description",
+            task: "task",
           }),
           "id",
           "pending-fleet",
@@ -63,7 +82,7 @@ export default function FleetsList() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await fleetopsService.listFleets();
+      const rows = await fleetopsService.listFleets({ limit: 500 });
       const hydrateId = sessionStorage.getItem(FLEET_LAST_CREATED_ID_KEY);
       const fromApi = await hydrateFleetListRows(rows, hydrateId);
       setFleets((prev) => mergeListWithPending(fromApi, prev));
@@ -88,6 +107,53 @@ export default function FleetsList() {
     });
   }, [load]);
 
+  const filteredFleets = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return fleets;
+    return fleets.filter((f) => {
+      const haystack = [f.name, f.publicId, f.task, f.serviceAreaName, f.zoneName, f.vendorName]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [fleets, search]);
+
+  const selectedIds = useMemo(() => Array.from(selectedKeys), [selectedKeys]);
+
+  const toggleSelected = (fleetId, checked) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(fleetId);
+      else next.delete(fleetId);
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedKeys(new Set(filteredFleets.map((f) => f.id)));
+  };
+
+  const clearSelection = () => setSelectedKeys(new Set());
+
+  const confirmBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    setBulkDeleteBusy(true);
+    try {
+      await fleetopsService.bulkDeleteResource("fleet", selectedIds);
+      selectedIds.forEach((fleetId) => fleetopsCache.invalidateFleet(fleetId));
+      setFleets((prev) => prev.filter((row) => !selectedIds.includes(row.id)));
+      clearSelection();
+      toast.success(selectedIds.length === 1 ? "Fleet deleted" : `${selectedIds.length} fleets deleted`);
+      setBulkDeleteOpen(false);
+      await load();
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not delete selected fleets.");
+    } finally {
+      setBulkDeleteBusy(false);
+    }
+  };
+
   return (
     <div data-testid="fleets-list-page">
       <PageHeader
@@ -105,51 +171,125 @@ export default function FleetsList() {
           </Button>
         }
       />
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {!loading && fleets.length === 0 && (
+      <div className="px-6 pb-2">
+        <CrudImportExportBar
+          entityKey="fleet"
+          selectedIds={selectedIds}
+          onComplete={load}
+          testPrefix="fleets"
+        />
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <div className="relative max-w-md flex-1 min-w-[220px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B5563]" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search fleets…"
+              className="pl-9 bg-[#F5F6F8] border-black/[0.08]"
+              data-testid="fleets-search"
+            />
+          </div>
+          {filteredFleets.length > 0 && (
+            <Button variant="outline" size="sm" onClick={selectAllFiltered} data-testid="fleets-select-all">
+              Select all
+            </Button>
+          )}
+          {selectedIds.length > 0 && (
+            <>
+              <span className="text-sm text-[#4B5563]" data-testid="fleets-selected-count">
+                {selectedIds.length} selected
+              </span>
+              <Button variant="outline" size="sm" onClick={clearSelection} data-testid="fleets-clear-selection">
+                Clear
+              </Button>
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-200 text-red-700 hover:bg-red-50"
+                  onClick={() => setBulkDeleteOpen(true)}
+                  data-testid="fleets-bulk-delete"
+                >
+                  Delete selected
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {!loading && filteredFleets.length === 0 && (
           <div className="col-span-full text-sm text-[#4B5563]" data-testid="fleets-empty">
-            No fleets returned from the API.
+            {search ? "No fleets match your search." : "No fleets returned from the API."}
           </div>
         )}
-        {fleets.map((f, idx) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => openDetail(f.id)}
-            className="bg-white border border-black/[0.08] hover:border-black/[0.14] rounded-md p-5 transition-colors block w-full text-left"
-            data-testid={`fleet-card-${f.id}`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-1.5 rounded-sm" style={{ background: f.color || COLORS[idx % COLORS.length] }} />
-                <div>
-                  <div className="overline">{f.publicId}</div>
-                  <div className="font-display font-bold text-lg tracking-tight">{f.name}</div>
+        {filteredFleets.map((f) => {
+          const selected = selectedKeys.has(f.id);
+          return (
+            <div
+              key={f.id}
+              className={`relative bg-white border rounded-md transition-colors ${
+                selected ? "border-[#0066FF] ring-1 ring-[#0066FF]/30" : "border-black/[0.08] hover:border-black/[0.14]"
+              }`}
+              data-testid={`fleet-card-${f.id}`}
+            >
+              <label
+                className="absolute top-3 right-3 z-10 flex items-center gap-2 cursor-pointer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Checkbox
+                  checked={selected}
+                  onCheckedChange={(checked) => toggleSelected(f.id, Boolean(checked))}
+                  data-testid={`fleet-select-${f.id}`}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => openDetail(f.id)}
+                className="block w-full text-left p-5 pr-12"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-1.5 rounded-sm" style={{ background: f.color || "#0066FF" }} />
+                    <div>
+                      <div className="overline">{f.publicId}</div>
+                      <div className="font-display font-bold text-lg tracking-tight">{f.name}</div>
+                    </div>
+                  </div>
+                  <StatusBadge status={f.status} label={statusLabel(f.status)} />
                 </div>
-              </div>
-              <StatusBadge status={f.status} label={statusLabel(f.status)} />
+                <p className="text-sm text-[#374151]">{f.task || "No task or notes"}</p>
+                {(f.serviceAreaName || f.zoneName) && (
+                  <p className="text-xs text-[#4B5563] mt-1">
+                    {[f.serviceAreaName, f.zoneName].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-black/[0.08]">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-[#4B5563]" strokeWidth={1.75} />
+                    <span className="font-mono text-sm tabular">{f.driversCount ?? f.driverIds.length}</span>
+                    <span className="text-xs text-[#4B5563]">
+                      drivers{f.driversOnlineCount ? ` (${f.driversOnlineCount} online)` : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-[#4B5563]" strokeWidth={1.75} />
+                    <span className="font-mono text-sm tabular">{f.vehiclesCount ?? f.vehicleIds.length}</span>
+                    <span className="text-xs text-[#4B5563]">
+                      vehicles{f.vehiclesOnlineCount ? ` (${f.vehiclesOnlineCount} online)` : ""}
+                    </span>
+                  </div>
+                </div>
+              </button>
             </div>
-            <p className="text-sm text-[#374151]">{f.description || "No description"}</p>
-            <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-black/[0.08]">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#4B5563]" strokeWidth={1.75} />
-                <span className="font-mono text-sm tabular">{f.driverIds.length}</span>
-                <span className="text-xs text-[#4B5563]">drivers</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-[#4B5563]" strokeWidth={1.75} />
-                <span className="font-mono text-sm tabular">{f.vehicleIds.length}</span>
-                <span className="text-xs text-[#4B5563]">vehicles</span>
-              </div>
-            </div>
-          </button>
-        ))}
+          );
+        })}
       </div>
       <FleetOpsFormDialog
         open={dialog.open}
         onOpenChange={dialog.setOpen}
         title="Create fleet"
-        description="Fleet groups assets by region and service area."
+        description="Group drivers and vehicles by service area, zone, and vendor."
         submitLabel="Create fleet"
         busy={dialog.busy}
         error={dialog.error}
@@ -157,8 +297,37 @@ export default function FleetsList() {
         testId="create-fleet-dialog"
         size="lg"
       >
-        <FleetForm ref={formRef} formId="fleet-create-form" serviceAreaOptions={lookups.serviceAreas} />
+        <FleetForm
+          ref={formRef}
+          formId="fleet-create-form"
+          serviceAreaOptions={lookups.serviceAreas}
+          vendorOptions={lookups.facilitators}
+          fleetOptions={lookups.fleets}
+        />
       </FleetOpsFormDialog>
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={(open) => !open && !bulkDeleteBusy && setBulkDeleteOpen(open)}>
+        <AlertDialogContent data-testid="fleets-bulk-delete-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.length} fleet{selectedIds.length === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Selected fleets will be removed. Drivers and vehicles are not deleted — only fleet membership links.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleteBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={bulkDeleteBusy}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmBulkDelete();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

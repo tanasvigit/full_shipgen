@@ -968,12 +968,12 @@ export const fleetopsService = {
     await tryCandidates(RESOURCES.places, "delete", `/${placeId}`);
   },
 
-  async listFleets(params) {
-    const payload = await tryCandidates(RESOURCES.fleets, "get", "", undefined);
+  async listFleets(params = {}) {
+    const payload = await tryCandidatesQuery(RESOURCES.fleets, "get", "", undefined, params);
     return unwrapList(payload, ["fleets"]);
   },
-  async getFleet(fleetId) {
-    const payload = await tryCandidates(RESOURCES.fleets, "get", `/${fleetId}`);
+  async getFleet(fleetId, params = {}) {
+    const payload = await tryCandidatesQuery(RESOURCES.fleets, "get", `/${fleetId}`, undefined, params);
     return unwrapEntity(payload, ["fleet"]);
   },
   async createFleet(formValues) {

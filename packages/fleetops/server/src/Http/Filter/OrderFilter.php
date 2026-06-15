@@ -427,4 +427,28 @@ class OrderFilter extends Filter
             $this->builder->whereNull('driver_assigned_uuid');
         }
     }
+
+    /**
+     * Orders assigned to drivers or vehicles belonging to a fleet.
+     */
+    public function fleet(string $fleet)
+    {
+        $companyUuid = $this->request->session()->get('company');
+        $fleetUuid   = Str::isUuid($fleet)
+            ? $fleet
+            : Utils::getUuid('fleets', ['public_id' => $fleet, 'company_uuid' => $companyUuid]);
+
+        if (!$fleetUuid) {
+            return;
+        }
+
+        $this->builder->where(function ($query) use ($fleetUuid) {
+            $query->whereHas('driverAssigned.fleets', function ($q) use ($fleetUuid) {
+                $q->where('fleet_uuid', $fleetUuid);
+            });
+            $query->orWhereHas('vehicleAssigned.fleets', function ($q) use ($fleetUuid) {
+                $q->where('fleet_uuid', $fleetUuid);
+            });
+        });
+    }
 }

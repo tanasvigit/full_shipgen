@@ -74,12 +74,13 @@ export const placeFormSchema = z
 
 export const fleetFormSchema = z.object({
   name: z.string().min(1, "Fleet name is required"),
-  description: z.string().optional(),
+  task: z.string().optional(),
+  color: z.string().optional(),
   serviceAreaId: z.string().optional(),
-  region: z.string().optional(),
-  territory: z.string().optional(),
+  zoneId: z.string().optional(),
+  vendorId: z.string().optional(),
+  parentFleetId: z.string().optional(),
   status: z.string().optional(),
-  managerName: z.string().optional(),
 });
 
 const waypointSchema = z.object({

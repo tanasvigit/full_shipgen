@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, mapVehicleRow } from "@/lib/mappers";
-import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
+import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
@@ -11,8 +11,13 @@ import StatusBadge from "@/components/common/StatusBadge";
 import { statusLabel } from "@/lib/mappers";
 
 export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = [], onChanged, mode = "all" }) {
-  const ability = useFleetopsAbility();
-  const canManage = ability.canUpdateOrder || ability.isDispatcher;
+  const { can } = useFleetopsPermission();
+  const canManage =
+    can("update", "fleet") ||
+    can("assign-driver-for", "fleet") ||
+    can("assign-vehicle-for", "fleet") ||
+    can("remove-driver-for", "fleet") ||
+    can("remove-vehicle-for", "fleet");
   const [driverPick, setDriverPick] = useState("");
   const [vehiclePick, setVehiclePick] = useState("");
   const [availableDrivers, setAvailableDrivers] = useState([]);

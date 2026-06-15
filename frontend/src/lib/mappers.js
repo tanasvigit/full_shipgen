@@ -322,17 +322,38 @@ export const mapPlaceRow = (p) => ({
   openingHours: p?.opening_hours || p?.openingHours || "—",
 });
 
-export const mapFleet = (f) => ({
-  id: entityRouteId(f),
-  publicId: f?.public_id || f?.id,
-  name: f?.name || "Fleet",
-  description: f?.description || "",
-  driverIds: f?.drivers?.map((d) => d.id || d.uuid || d) || f?.driver_ids || [],
-  vehicleIds: f?.vehicles?.map((v) => v.id || v.uuid || v) || f?.vehicle_ids || [],
-  status: f?.status || "active",
-  color: f?.color || "#3B82F6",
-  region: f?.region || f?.service_area || "",
-});
+export const mapFleet = (f) => {
+  const driverIds = f?.drivers?.map((d) => d.id || d.uuid || d) || f?.driver_ids || [];
+  const vehicleIds = f?.vehicles?.map((v) => v.id || v.uuid || v) || f?.vehicle_ids || [];
+  return {
+    id: entityRouteId(f),
+    publicId: f?.public_id || f?.id,
+    name: f?.name || "Fleet",
+    task: f?.task || "",
+    description: f?.task || "",
+    driverIds,
+    vehicleIds,
+    driversCount: f?.drivers_count ?? driverIds.length,
+    driversOnlineCount: f?.drivers_online_count ?? 0,
+    vehiclesCount: f?.vehicles_count ?? vehicleIds.length,
+    vehiclesOnlineCount: f?.vehicles_online_count ?? 0,
+    status: f?.status || "active",
+    color: f?.color || "#3B82F6",
+    serviceAreaId: f?.service_area_uuid || f?.service_area?.uuid || "",
+    serviceAreaName: f?.service_area?.name || "",
+    zoneId: f?.zone_uuid || f?.zone?.uuid || "",
+    zoneName: f?.zone?.name || "",
+    vendorId: f?.vendor_uuid || f?.vendor?.uuid || "",
+    vendorName: f?.vendor?.name || "",
+    parentFleetId: f?.parent_fleet_uuid || f?.parent_fleet?.uuid || "",
+    parentFleetName: f?.parent_fleet?.name || "",
+    subfleets: Array.isArray(f?.subfleets) ? f.subfleets.map((sub) => mapFleet(sub)) : [],
+    photoUrl: f?.photo_url || "",
+    createdAt: f?.created_at,
+    updatedAt: f?.updated_at,
+    region: f?.service_area?.name || "",
+  };
+};
 
 export const mapVehicleRow = (vehicle) => {
   const t = vehicle?.telematics || {};

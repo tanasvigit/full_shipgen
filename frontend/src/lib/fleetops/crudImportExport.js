@@ -17,6 +17,7 @@ export const CRUD_IMPORT_EXPORT_RESOURCES = {
   part: ["parts"],
   driver: ["drivers"],
   vehicle: ["vehicles"],
+  fleet: ["fleets"],
   place: ["places"],
   warranty: ["warranties"],
   payload: ["payloads"],

@@ -140,9 +140,6 @@ export async function fillFleetForm(
 ) {
   await page.getByTestId("fleet-field-name").fill(options.editedName || data.name);
   await page.getByTestId("fleet-field-description").fill(data.notes);
-  await page.getByTestId("fleet-field-region").fill("Northeast");
-  await page.getByTestId("fleet-field-territory").fill("Zone A");
-  await page.getByTestId("fleet-field-manager").fill("E2E Manager");
 }
 
 async function fleetIdFromCreateResponse(response: Response | null): Promise<string | null> {
