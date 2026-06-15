@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ export default function OrderScheduleDialog({
   orderId,
   orderIds,
   driverId,
+  defaultDate = "",
   onScheduled,
 }) {
   const [date, setDate] = useState("");
@@ -30,6 +31,10 @@ export default function OrderScheduleDialog({
 
   const ids = orderIds?.length ? orderIds : orderId ? [orderId] : [];
   const isBulk = ids.length > 1;
+
+  useEffect(() => {
+    if (open && defaultDate) setDate(defaultDate);
+  }, [open, defaultDate]);
 
   const handleSave = async () => {
     if (!ids.length || !date) {
@@ -47,17 +52,21 @@ export default function OrderScheduleDialog({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
       if (isBulk) {
-        const { successful, failed } = await fleetopsService.bulkScheduleOrders(ids, options);
+        const { successful, failed, results } = await fleetopsService.bulkScheduleOrders(ids, options);
         if (failed.length) {
           toast.error(`Scheduled ${successful.length}/${ids.length} — ${failed.length} failed`);
         } else {
           toast.success(`Scheduled ${successful.length} order(s)`);
         }
+        onScheduled?.({ results, scheduledAt: scheduledAt });
       } else {
-        await fleetopsService.scheduleOrder(ids[0], options);
+        const res = await fleetopsService.scheduleOrder(ids[0], options);
+        onScheduled?.({
+          results: [{ id: ids[0], scheduledAt: res?.scheduled_at || scheduledAt }],
+          scheduledAt: res?.scheduled_at || scheduledAt,
+        });
         toast.success("Order scheduled");
       }
-      onScheduled?.();
       onOpenChange(false);
     } catch (err) {
       toast.error(parseFleetopsApiError(err));

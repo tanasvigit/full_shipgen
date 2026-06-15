@@ -28,6 +28,7 @@ use Fleetbase\FleetOps\Models\Proof;
 use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Models\TrackingStatus;
 use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Support\LiveCacheService;
 use Fleetbase\FleetOps\Support\OrderPartyResolver;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Requests\ExportRequest;
@@ -1172,6 +1173,12 @@ class OrderController extends FleetOpsController
         }
 
         $order->saveQuietly();
+
+        // saveQuietly() skips Eloquent events — bust list/query caches manually.
+        if (method_exists($order, 'invalidateApiCache')) {
+            $order->invalidateApiCache();
+        }
+        LiveCacheService::invalidateMultiple(['orders', 'routes', 'coordinates']);
 
         return response()->json([
             'status'       => 'OK',

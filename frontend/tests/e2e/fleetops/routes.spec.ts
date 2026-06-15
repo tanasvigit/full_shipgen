@@ -28,13 +28,14 @@ test.describe("FleetOps Phase 2 — Routes", () => {
 
   test("route detail map shell when route exists", async ({ page }) => {
     await gotoRoute(page, "/fleet-ops/operations/routes", { pageTestId: "routes-list-page" });
-    const link = page.locator('[data-testid="routes-table"] a').first();
+    const link = page.locator('[data-testid="routes-table"] tbody tr').first();
     if (!(await link.isVisible())) {
       test.skip();
       return;
     }
     await link.click();
-    await expect(page.getByTestId("route-detail-page")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("route-detail-drawer")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("route-detail-page")).toBeVisible();
     await expect(page.getByTestId("route-detail-map")).toBeVisible();
   });
 });

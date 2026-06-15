@@ -999,14 +999,37 @@ class OrchestrationController extends Controller
             ->with(['payload.pickup', 'payload.dropoff']);
 
         if (!empty($orderIds)) {
-            $ordersQuery->whereIn('public_id', $orderIds);
+            $ordersQuery->where(function ($query) use ($orderIds) {
+                $query->whereIn('public_id', $orderIds)
+                    ->orWhereIn('uuid', $orderIds);
+            });
         }
 
         $orders = $ordersQuery->get();
 
         if ($orders->isEmpty()) {
+            $message = 'No unassigned orders found for best-fit.';
+
+            if (!empty($orderIds)) {
+                $selected = Order::where('company_uuid', $companyUuid)
+                    ->where(function ($query) use ($orderIds) {
+                        $query->whereIn('public_id', $orderIds)
+                            ->orWhereIn('uuid', $orderIds);
+                    })
+                    ->get();
+
+                if ($selected->isNotEmpty()) {
+                    $alreadyAssigned = $selected->filter(fn (Order $order) => !empty($order->driver_assigned_uuid));
+                    if ($alreadyAssigned->count() === $selected->count()) {
+                        $message = 'Selected orders already have drivers assigned. Best-fit only applies to unassigned orders.';
+                    } elseif ($alreadyAssigned->isNotEmpty()) {
+                        $message = 'Some selected orders already have drivers assigned. Select only unassigned orders from the schedule grid.';
+                    }
+                }
+            }
+
             return response()->json([
-                'message'     => 'No unassigned orders found for best-fit.',
+                'message'     => $message,
                 'assignments' => [],
                 'unassigned'  => [],
                 'summary'     => ['orders_assigned' => 0],

@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import MapView from "@/components/common/MapView";
 import DataTable from "@/components/common/DataTable";
+import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
+import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { Button } from "@/components/ui/button";
 import { fleetopsService } from "@/services/fleetops";
 import { normalizeOptimizationResult, resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
+import { DetailLoadingState, resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
 import ServiceRatesForRoutePicker from "@/components/fleetops/service-rates/ServiceRatesForRoutePicker";
-import { Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -52,8 +57,20 @@ function markersFromRoute(route) {
     .filter((m) => m.lat != null && m.lng != null);
 }
 
-export default function RouteDetail() {
-  const { id } = useParams();
+/**
+ * @param {{ embedded?: boolean, entityId?: string, activeTab?: string|null, onTabChange?: (tab: string) => void, onClose?: () => void }} props
+ */
+export default function RouteDetail({
+  embedded = false,
+  entityId: entityIdProp,
+  activeTab: activeTabProp,
+  onTabChange,
+  onClose,
+}) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
+  const navigate = useNavigate();
+  const { closeDetail } = useFleetopsDetailDrawer("route");
   const ability = useFleetopsAbility();
   const [route, setRoute] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,11 +79,13 @@ export default function RouteDetail() {
   const [serviceRateId, setServiceRateId] = useState("");
 
   const load = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     try {
       setRoute(await fleetopsService.getRoute(id));
     } catch (err) {
       toast.error(err?.friendlyMessage || "Route not found");
+      setRoute(null);
     } finally {
       setLoading(false);
     }
@@ -124,7 +143,13 @@ export default function RouteDetail() {
     try {
       await fleetopsService.deleteRoute(id);
       toast.success("Route deleted");
-      window.location.href = "/fleet-ops/operations/routes";
+      setDeleteOpen(false);
+      if (embedded) {
+        closeDetail();
+        onClose?.();
+      } else {
+        navigate("/fleet-ops/operations/routes");
+      }
     } catch (err) {
       toast.error(err?.friendlyMessage || "Delete failed");
     }
@@ -154,14 +179,194 @@ export default function RouteDetail() {
     }));
   }, [route]);
 
+  if (!id) {
+    return <div className="p-8 text-[#374151]">Route not found.</div>;
+  }
+
+  if (loading && !route) {
+    return (
+      <DetailLoadingState embedded={embedded} message="Loading route…" testId="route-detail-loader" />
+    );
+  }
+
+  if (!loading && !route) {
+    return <div className="p-8 text-[#374151]">Route not found.</div>;
+  }
+
+  const routeTitle = route?.public_id || route?.order_public_id || route?.tracking_number || "Route";
+  const routeStatus = route?.status || route?.order_status || null;
+  const routeDescription = [routeStatus, route?.total_distance || route?.total_distance_m]
+    .filter(Boolean)
+    .join(" · ");
+
+  const headerActions = [
+    ...(ability.canUpdateOrder || ability.isDispatcher
+      ? [
+          {
+            id: "optimize",
+            label: "Optimize",
+            testId: "route-optimize",
+            onClick: optimize,
+            disabled: busy || loading,
+            icon: <Sparkles className="h-3.5 w-3.5 mr-1" />,
+          },
+        ]
+      : []),
+    ...(ability.canDeleteOrder
+      ? [
+          {
+            id: "delete",
+            label: "Delete",
+            testId: "route-delete",
+            onClick: () => setDeleteOpen(true),
+            disabled: busy,
+            icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+          },
+        ]
+      : []),
+  ];
+
+  const mapHeight = embedded ? "h-[320px]" : "h-[480px]";
+
+  const mapPanel = (
+    <div className={`${mapHeight} border border-black/[0.08] rounded-md overflow-hidden bg-white`}>
+      <MapView
+        loading={loading}
+        markers={markers}
+        routePoints={polyline.length >= 2 ? polyline : undefined}
+        testid="route-detail-map"
+      />
+    </div>
+  );
+
+  const linkedOrderBlock =
+    route?.order_public_id || route?.order_uuid ? (
+      <p className="text-sm text-[#374151]">
+        Linked order:{" "}
+        <DetailEntityLink entityKey="order" entityId={route.order_uuid || route.order_public_id}>
+          {route.order_public_id || route.order_uuid}
+        </DetailEntityLink>
+      </p>
+    ) : null;
+
+  const stopsTable =
+    stopRows.length > 0 ? (
+      <DataTable
+        testid="route-stops-table"
+        columns={[
+          { key: "sequence", header: "#", render: (r) => r.sequence },
+          { key: "type", header: "Type", render: (r) => r.type || "—" },
+          {
+            key: "orderId",
+            header: "Order",
+            render: (r) =>
+              r.orderId ? (
+                <DetailEntityLink entityKey="order" entityId={r.orderId}>
+                  <span className="font-mono text-xs">{r.orderId}</span>
+                </DetailEntityLink>
+              ) : (
+                "—"
+              ),
+          },
+          { key: "driverId", header: "Driver", render: (r) => r.driverId || "—" },
+          { key: "distance", header: "Distance (m)", render: (r) => r.distance ?? "—" },
+          { key: "duration", header: "Duration (s)", render: (r) => r.duration ?? "—" },
+        ]}
+        data={stopRows}
+        pageSize={25}
+      />
+    ) : (
+      <p className="text-sm text-[#4B5563]">No stops on this route yet.</p>
+    );
+
+  const tabs = [
+    {
+      id: "map",
+      label: "Map",
+      testId: "route-tab-map",
+      content: (
+        <div className="p-4 space-y-4">
+          {mapPanel}
+          {linkedOrderBlock}
+          {routeDescription && (
+            <p className="text-xs font-mono text-[#4B5563] uppercase tracking-wide">{routeDescription}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: "stops",
+      label: "Stops",
+      badge: stopRows.length || undefined,
+      testId: "route-tab-stops",
+      content: <div className="p-4">{stopsTable}</div>,
+    },
+    {
+      id: "rates",
+      label: "Service rates",
+      testId: "route-tab-rates",
+      content: (
+        <div className="p-4 max-w-md">
+          <ServiceRatesForRoutePicker routeId={id} value={serviceRateId} onChange={setServiceRateId} />
+        </div>
+      ),
+    },
+  ];
+
+  const drawerBody = (
+    <>
+      <DetailDrawerHeader
+        overline="Route"
+        title={routeTitle}
+        publicId={route?.public_id || route?.uuid || id}
+        status={routeStatus}
+        actions={headerActions}
+      />
+      <DetailDrawerTabs
+        value={activeTabProp || "map"}
+        onValueChange={onTabChange}
+        tabs={tabs}
+      />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete route?</AlertDialogTitle>
+            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+
+  if (embedded) {
+    return <div data-testid="route-detail-page">{drawerBody}</div>;
+  }
+
   return (
     <div data-testid="route-detail-page">
       <PageHeader
-        breadcrumbs={[{ label: "FleetOps", to: "/fleet-ops" }, { label: "Routes", to: "/fleet-ops/operations/routes" }, { label: id }]}
-        title={route?.public_id || route?.order_public_id || route?.tracking_number || "Route"}
-        description={[route?.status || route?.order_status, route?.total_distance || route?.total_distance_m].filter(Boolean).join(" · ")}
+        breadcrumbs={[
+          { label: "FleetOps", to: "/fleet-ops" },
+          { label: "Routes", to: "/fleet-ops/operations/routes" },
+          { label: routeTitle },
+        ]}
+        title={routeTitle}
+        description={routeDescription}
         actions={
           <>
+            <Button
+              variant="outline"
+              onClick={() => (onClose ? onClose() : navigate(-1))}
+              className="bg-transparent border-black/[0.08] hover:bg-[#F1F2F5] text-[#1F2937]"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            </Button>
             {(ability.canUpdateOrder || ability.isDispatcher) && (
               <Button variant="outline" disabled={busy || loading} onClick={optimize} data-testid="route-optimize">
                 <Sparkles className="h-4 w-4 mr-1" /> Optimize
@@ -176,42 +381,13 @@ export default function RouteDetail() {
         }
       />
       <div className="p-6 space-y-4">
-        <div className="h-[480px] border border-black/[0.08] rounded-md overflow-hidden bg-white">
-          <MapView
-            loading={loading}
-            markers={markers}
-            routePoints={polyline.length >= 2 ? polyline : undefined}
-            testid="route-detail-map"
-          />
-        </div>
-        {route?.order_public_id && (
-          <p className="text-sm text-[#374151]">
-            Linked order:{" "}
-            <Link className="text-[#0066FF] font-mono" to={`/fleet-ops/operations/orders/${route.order_uuid || route.order_public_id}`}>
-              {route.order_public_id}
-            </Link>
-          </p>
-        )}
+        {mapPanel}
+        {linkedOrderBlock}
         <div className="max-w-md">
           <ServiceRatesForRoutePicker routeId={id} value={serviceRateId} onChange={setServiceRateId} />
         </div>
-        {stopRows.length > 0 && (
-          <DataTable
-            testid="route-stops-table"
-            columns={[
-              { key: "sequence", header: "#", render: (r) => r.sequence },
-              { key: "type", header: "Type", render: (r) => r.type || "—" },
-              { key: "orderId", header: "Order", render: (r) => <span className="font-mono text-xs">{r.orderId}</span> },
-              { key: "driverId", header: "Driver", render: (r) => r.driverId || "—" },
-              { key: "distance", header: "Distance (m)", render: (r) => r.distance ?? "—" },
-              { key: "duration", header: "Duration (s)", render: (r) => r.duration ?? "—" },
-            ]}
-            data={stopRows}
-            pageSize={25}
-          />
-        )}
+        {stopRows.length > 0 && stopsTable}
       </div>
-
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

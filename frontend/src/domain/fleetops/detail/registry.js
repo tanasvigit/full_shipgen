@@ -49,6 +49,15 @@ export const FLEETOPS_DETAIL_ENTITIES = {
     large: false,
     testId: "order-detail-drawer",
   },
+  route: {
+    key: "route",
+    param: "route",
+    label: "Route",
+    basePath: "/fleet-ops/operations/routes",
+    width: 840,
+    large: false,
+    testId: "route-detail-drawer",
+  },
 };
 
 export function getEntityConfig(entityKey) {

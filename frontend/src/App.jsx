@@ -72,7 +72,6 @@ import PurchaseOrdersList from "@/pages/pallet/PurchaseOrdersList";
 import RoutingOptimization from "@/pages/fleetops/RoutingOptimization";
 import RoutesList from "@/pages/fleetops/routes/RoutesList";
 import RouteNew from "@/pages/fleetops/routes/RouteNew";
-import RouteDetail from "@/pages/fleetops/routes/RouteDetail";
 import ServiceRatesList from "@/pages/fleetops/ServiceRatesList";
 import ServiceRateForm from "@/pages/fleetops/ServiceRateForm";
 import Orchestrator from "@/pages/fleetops/Orchestrator";
@@ -185,7 +184,10 @@ function App() {
                           <Route path="/fleet-ops/operations/routing" element={<Navigate to="/fleet-ops/operations/routes" replace />} />
                           <Route path="/fleet-ops/operations/routes" element={<RoutesList />} />
                           <Route path="/fleet-ops/operations/routes/new" element={<RouteNew />} />
-                          <Route path="/fleet-ops/operations/routes/:id" element={<RouteDetail />} />
+                          <Route
+                            path="/fleet-ops/operations/routes/:id"
+                            element={<DetailRouteRedirect entityKey="route" />}
+                          />
                           <Route path="/fleet-ops/operations/orchestrator" element={<Orchestrator />} />
                           <Route path="/fleet-ops/operations/schedule" element={<SchedulePlanner />} />
                           <Route path="/fleet-ops/operations/order-config" element={<OrderConfigManager />} />

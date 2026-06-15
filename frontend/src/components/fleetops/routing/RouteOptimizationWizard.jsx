@@ -142,7 +142,7 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
       );
       onComplete?.({ manifestId, savedRouteId, commitResult, result });
       if (savedRouteId) {
-        navigate(`/fleet-ops/operations/routes/${savedRouteId}`);
+        navigate(`/fleet-ops/operations/routes?route=${encodeURIComponent(savedRouteId)}`);
       } else if (manifestId) {
         navigate(`/fleet-ops/admin/manifests/${manifestId}`);
       } else {

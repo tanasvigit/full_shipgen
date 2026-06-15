@@ -285,7 +285,12 @@ export const fleetopsService = {
     for (const candidate of RESOURCES.orders) {
       try {
         const response = await apiClient.patch(`/${candidate}/schedule`, body);
-        return unwrapEntity(response.data, ["order"]);
+        const payload = response.data || {};
+        return {
+          ...unwrapEntity(payload, ["order"]),
+          order_uuid: payload.order || id,
+          scheduled_at: payload.scheduled_at || scheduledAt,
+        };
       } catch (error) {
         lastError = error;
       }
@@ -297,15 +302,20 @@ export const fleetopsService = {
     const ids = (orderIds || []).map(String).filter(Boolean);
     const successful = [];
     const failed = [];
+    const results = [];
     for (const id of ids) {
       try {
-        await this.scheduleOrder(id, scheduleOptions);
+        const res = await this.scheduleOrder(id, scheduleOptions);
         successful.push(id);
+        results.push({
+          id,
+          scheduledAt: res?.scheduled_at || scheduleOptions.scheduledAt,
+        });
       } catch (error) {
         failed.push({ id, error });
       }
     }
-    return { successful, failed };
+    return { successful, failed, results, scheduledAt: scheduleOptions.scheduledAt };
   },
 
   async searchOrders(query, params = {}) {

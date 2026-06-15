@@ -5,24 +5,41 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, mapOrder } from "@/lib/mappers";
 import { bestFitDriversToOrders } from "@/lib/fleetops/allocation";
+import {
+  buildFleetScheduleOrderMap,
+  fleetScheduleWeekRange,
+  isUnassignedFleetOrder,
+  orderScheduledDayKey,
+  patchOrdersWithSchedule,
+  summarizeBestFitResult,
+} from "@/lib/fleetops/fleetScheduleHelpers";
 import OrderScheduleDialog from "@/components/fleetops/orders/modals/OrderScheduleDialog";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { toast } from "sonner";
 import { Calendar, Sparkles, Truck, Package } from "lucide-react";
 
-function orderScheduledDay(order) {
-  const raw = order?.scheduledAt;
-  if (!raw) return null;
-  return String(raw).slice(0, 10);
-}
+function OrderChip({ order, selectedOrderIds, setSelectedOrderIds, selectable = true, variant = "unassigned" }) {
+  if (!selectable) {
+    return (
+      <div
+        className={`px-1.5 py-1 rounded font-mono truncate text-[10px] border ${
+          variant === "assigned"
+            ? "bg-[#EEF2FF] border-[#0066FF]/20 text-[#0040CC]"
+            : "bg-[#F1F2F5] border-black/[0.06] text-[#374151]"
+        }`}
+        title={order.publicId}
+      >
+        {order.publicId}
+      </div>
+    );
+  }
 
-function OrderChip({ order, selectedOrderIds, setSelectedOrderIds }) {
+  const selected = selectedOrderIds?.has(order.id) ?? false;
+
   return (
-    <label
-      key={order.id}
-      className="flex items-center gap-1 px-1.5 py-1 rounded bg-[#EEF0F4] hover:bg-[#E0E7FF] cursor-pointer"
-    >
+    <label className="flex items-center gap-1 px-1.5 py-1 rounded bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A]/80 cursor-pointer">
       <Checkbox
-        checked={selectedOrderIds.has(order.id)}
+        checked={selected}
         onCheckedChange={(v) => {
           const next = new Set(selectedOrderIds);
           if (v) next.add(order.id);
@@ -30,12 +47,13 @@ function OrderChip({ order, selectedOrderIds, setSelectedOrderIds }) {
           setSelectedOrderIds(next);
         }}
       />
-      <span className="font-mono truncate">{order.publicId}</span>
+      <span className="font-mono truncate text-[10px]">{order.publicId}</span>
     </label>
   );
 }
 
 export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
+  const { openDetail: openOrderDetail } = useFleetopsDetailDrawer("order");
   const [drivers, setDrivers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [selectedOrderIds, setSelectedOrderIds] = useState(() => new Set());
@@ -48,12 +66,10 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
     [weekOffset],
   );
   const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
-  const weekRange = useMemo(
-    () => `${format(weekStart, "yyyy-MM-dd")},${format(weekEnd, "yyyy-MM-dd")}`,
-    [weekStart, weekEnd],
-  );
+  const weekRange = useMemo(() => fleetScheduleWeekRange(weekStart, weekEnd), [weekStart, weekEnd]);
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
   const weekLabel = `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`;
+  const defaultScheduleDate = format(weekStart, "yyyy-MM-dd");
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -71,13 +87,17 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
           limit: 100,
         }),
       ]);
-      const merged = new Map();
-      for (const raw of [...weekOrders, ...unassignedOrders]) {
-        const mapped = mapOrder(raw);
-        merged.set(mapped.id, mapped);
-      }
+      const merged = buildFleetScheduleOrderMap(unassignedOrders, weekOrders, mapOrder);
       setDrivers(rawDrivers.map(mapDriverRow));
       setOrders([...merged.values()]);
+      setSelectedOrderIds((prev) => {
+        const next = new Set();
+        for (const id of prev) {
+          const order = merged.get(id);
+          if (order && isUnassignedFleetOrder(order)) next.add(id);
+        }
+        return next;
+      });
     } catch (err) {
       toast.error(err?.friendlyMessage || "Could not load fleet schedule.");
       setDrivers([]);
@@ -91,21 +111,31 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
     reload();
   }, [reload, refreshKey]);
 
+  const unassignedOrders = useMemo(() => orders.filter(isUnassignedFleetOrder), [orders]);
+  const assignedInWeekCount = useMemo(
+    () => orders.filter((o) => o.driverId && orderScheduledDayKey(o)).length,
+    [orders],
+  );
+
   const selectedIds = [...selectedOrderIds];
+  const selectedUnassignedIds = selectedIds.filter((id) => {
+    const order = orders.find((o) => o.id === id);
+    return order && isUnassignedFleetOrder(order);
+  });
 
   const unassignedByDay = useMemo(() => {
     const map = {};
+    const firstDayKey = format(days[0], "yyyy-MM-dd");
     for (const day of days) {
       const key = format(day, "yyyy-MM-dd");
-      map[key] = orders.filter((o) => {
-        if (o.driverId) return false;
-        const sched = orderScheduledDay(o);
-        if (!sched) return key === format(days[0], "yyyy-MM-dd");
+      map[key] = unassignedOrders.filter((o) => {
+        const sched = orderScheduledDayKey(o);
+        if (!sched) return key === firstDayKey;
         return sched === key;
       });
     }
     return map;
-  }, [orders, days]);
+  }, [unassignedOrders, days]);
 
   const assignedByDriverDay = useMemo(() => {
     const map = {};
@@ -115,7 +145,7 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
         const key = format(day, "yyyy-MM-dd");
         map[driver.id][key] = orders.filter((o) => {
           if (String(o.driverId || "") !== String(driver.id)) return false;
-          const sched = orderScheduledDay(o);
+          const sched = orderScheduledDayKey(o);
           if (!sched) return false;
           return sched === key;
         });
@@ -125,16 +155,18 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
   }, [orders, drivers, days]);
 
   const handleBestFit = async () => {
-    if (!selectedIds.length) {
-      toast.error("Select orders first");
+    if (!selectedUnassignedIds.length) {
+      toast.error("Select unassigned orders from the Unassigned row (assigned orders cannot be best-fit).");
       return;
     }
+
+    const skippedAssigned = selectedIds.length - selectedUnassignedIds.length;
     setAssigning(true);
     try {
-      const orderPublicIds = selectedIds
+      const orderPublicIds = selectedUnassignedIds
         .map((oid) => {
-          const order = orders.find((o) => o.id === oid || o.publicId === oid);
-          return order?.publicId || order?.public_id || oid;
+          const order = orders.find((o) => o.id === oid);
+          return order?.publicId || order?.public_id;
         })
         .filter(Boolean);
 
@@ -146,18 +178,11 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
         apply: true,
       });
 
-      const assigned = result?.summary?.applied ?? result?.assignments?.length ?? 0;
-      const unassigned = Array.isArray(result?.unassigned) ? result.unassigned.length : 0;
-
-      if (assigned > 0) {
-        toast.success(`Best-fit assigned ${assigned} order(s)`);
-      }
-      if (unassigned > 0) {
-        toast.message(`${unassigned} order(s) could not be assigned — no eligible driver on shift`);
-      }
-      if (assigned === 0 && unassigned === 0) {
-        toast.message("No orders were assigned");
-      }
+      const summary = summarizeBestFitResult(result, { skippedAssigned });
+      if (summary.tone === "success") toast.success(summary.text);
+      else if (summary.tone === "error") toast.error(summary.text);
+      else if (summary.tone === "warning") toast.warning(summary.text);
+      else toast.message(summary.text);
 
       setSelectedOrderIds(new Set());
       await reload();
@@ -169,7 +194,11 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
   };
 
   if (loading) {
-    return <div className="p-4 text-sm text-[#4B5563]" data-testid="fleet-schedule-loading">Loading fleet schedule…</div>;
+    return (
+      <div className="p-4 text-sm text-[#4B5563]" data-testid="fleet-schedule-loading">
+        Loading fleet schedule…
+      </div>
+    );
   }
 
   return (
@@ -179,7 +208,7 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
           type="button"
           size="sm"
           variant="outline"
-          disabled={!selectedIds.length || assigning}
+          disabled={!selectedUnassignedIds.length || assigning}
           onClick={handleBestFit}
           data-testid="fleet-schedule-best-fit"
         >
@@ -189,14 +218,15 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
           type="button"
           size="sm"
           variant="outline"
-          disabled={!selectedIds.length}
+          disabled={!selectedUnassignedIds.length}
           onClick={() => setScheduleOpen(true)}
           data-testid="fleet-schedule-bulk"
         >
           <Calendar className="h-3.5 w-3.5 mr-1" /> Bulk schedule
         </Button>
-        <span className="text-xs text-[#6B7280] self-center">
-          {drivers.length} drivers · {orders.length} unassigned orders · {weekLabel}
+        <span className="text-xs text-[#6B7280] self-center" data-testid="fleet-schedule-stats">
+          {drivers.length} drivers · {unassignedOrders.length} unassigned · {assignedInWeekCount} assigned this week ·{" "}
+          {weekLabel}
         </span>
       </div>
 
@@ -237,6 +267,8 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
                             order={o}
                             selectedOrderIds={selectedOrderIds}
                             setSelectedOrderIds={setSelectedOrderIds}
+                            selectable
+                            variant="unassigned"
                           />
                         ))
                       )}
@@ -257,14 +289,23 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
                   return (
                     <td key={key} className="px-1 py-1 align-top">
                       <div className="space-y-1 min-h-[48px]">
-                        {dayOrders.slice(0, 4).map((o) => (
-                          <OrderChip
-                            key={o.id}
-                            order={o}
-                            selectedOrderIds={selectedOrderIds}
-                            setSelectedOrderIds={setSelectedOrderIds}
-                          />
-                        ))}
+                        {dayOrders.length === 0 ? (
+                          <div className="h-12 mx-1 border border-dashed border-black/[0.08] rounded-sm grid place-items-center text-[10px] font-mono uppercase tracking-wider text-[#4B5563]">
+                            —
+                          </div>
+                        ) : (
+                          dayOrders.slice(0, 4).map((o) => (
+                            <button
+                              key={o.id}
+                              type="button"
+                              className="w-full text-left"
+                              onClick={() => openOrderDetail(o.id)}
+                              data-testid={`fleet-schedule-order-${o.publicId}`}
+                            >
+                              <OrderChip order={o} selectable={false} variant="assigned" />
+                            </button>
+                          ))
+                        )}
                       </div>
                     </td>
                   );
@@ -276,14 +317,19 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
       </div>
 
       <p className="text-[11px] font-mono text-[#6B7280]">
-        Unscheduled orders appear under the first day of the week. After bulk schedule, they move to the chosen date column.
+        Select unassigned orders to bulk-schedule or run best-fit (shift-aware). Orders without a schedule date appear
+        under Monday. Click assigned orders to open order details.
       </p>
 
       <OrderScheduleDialog
         open={scheduleOpen}
         onOpenChange={setScheduleOpen}
-        orderIds={selectedIds}
-        onScheduled={async () => {
+        orderIds={selectedUnassignedIds}
+        defaultDate={defaultScheduleDate}
+        onScheduled={async ({ results } = {}) => {
+          if (results?.length) {
+            setOrders((prev) => patchOrdersWithSchedule(prev, results));
+          }
           setSelectedOrderIds(new Set());
           await reload();
         }}

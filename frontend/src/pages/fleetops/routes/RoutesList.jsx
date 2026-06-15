@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 
 export default function RoutesList() {
-  const navigate = useNavigate();
+  const { openDetail } = useFleetopsDetailDrawer("route");
   const ability = useFleetopsAbility();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,16 +37,28 @@ export default function RoutesList() {
   const paged = rows.slice((page - 1) * pageSize, page * pageSize);
   const lastPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
+  const routeId = (row) => row.uuid || row.id || row.public_id;
+
   const columns = [
     {
       key: "id",
       header: "Route",
       sortable: true,
-      render: (row) => (
-        <Link className="text-[#0066FF] font-mono text-xs" to={`/fleet-ops/operations/routes/${row.uuid || row.id || row.public_id}`}>
-          {row.public_id || row.order_public_id || row.tracking_number || row.uuid || row.id}
-        </Link>
-      ),
+      render: (row) => {
+        const rid = routeId(row);
+        return (
+          <button
+            type="button"
+            className="text-[#0066FF] font-mono text-xs hover:underline text-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDetail(rid);
+            }}
+          >
+            {row.public_id || row.order_public_id || row.tracking_number || rid}
+          </button>
+        );
+      },
     },
     { key: "status", header: "Status", sortable: true, render: (row) => row.status || row.order_status || "—" },
     {
@@ -73,10 +86,10 @@ export default function RoutesList() {
       key: "actions",
       header: "",
       render: (row) => {
-        const rid = row.uuid || row.id || row.public_id;
+        const rid = routeId(row);
         return (
           <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate(`/fleet-ops/operations/routes/${rid}`)}>
+            <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => openDetail(rid)}>
               View
             </Button>
             {(ability.canUpdateOrder || ability.isDispatcher) && (
@@ -152,6 +165,7 @@ export default function RoutesList() {
           loading={loading}
           testid="routes-table"
           pageSize={pageSize}
+          onRowClick={(row) => openDetail(routeId(row))}
           serverPagination={{
             page,
             lastPage,
