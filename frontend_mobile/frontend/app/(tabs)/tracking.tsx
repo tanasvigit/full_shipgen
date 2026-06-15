@@ -6,6 +6,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
 import TripMap, { type TripMapHandle } from "@/src/maps/tripMap";
 import { tripMarkersFromOrder, listTripMapMarkers } from "@/src/maps/coordinates";
+import type { MapCoordinate } from "@/src/maps/markers";
+
+const EMPTY_ROUTE: MapCoordinate[] = [];
 import { hasGoogleMapsApiKey, mapsProviderLabel, needsNativeMapsRebuild } from "@/src/maps/provider";
 import { SyncBanner } from "@/src/sync/indicators";
 import { useSyncStatus } from "@/src/hooks/useSyncStatus";
@@ -85,9 +88,15 @@ function DriverTripTracking({
     };
   }, [engineState.lastPoint, selectedOrder, trackerQuery.data]);
 
-  const mapModel = mapOrder ? tripMarkersFromOrder(mapOrder) : null;
-  const mapMarkers = mapModel ? listTripMapMarkers(mapModel) : [];
-  const mapRoute = mapModel?.route ?? [];
+  const mapModel = useMemo(
+    () => (mapOrder ? tripMarkersFromOrder(mapOrder) : null),
+    [mapOrder]
+  );
+  const mapMarkers = useMemo(
+    () => (mapModel ? listTripMapMarkers(mapModel) : []),
+    [mapModel]
+  );
+  const mapRoute = useMemo(() => mapModel?.route ?? EMPTY_ROUTE, [mapModel]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>

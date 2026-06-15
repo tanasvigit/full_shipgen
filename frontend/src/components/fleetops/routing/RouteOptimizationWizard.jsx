@@ -79,7 +79,12 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
     [result, stops],
   );
 
-  const polyline = result?.polyline?.length >= 2 ? result.polyline : stops.map((s) => [s.lat, s.lng]).filter((p) => p[0] != null);
+  const routePoints = useMemo(() => {
+    const activeStops = result?.sequencedStops?.length ? result.sequencedStops : stops;
+    return activeStops
+      .filter((stop) => stop.lat != null && stop.lng != null)
+      .map((stop) => [Number(stop.lat), Number(stop.lng)]);
+  }, [result, stops]);
 
   const handleOptimize = async () => {
     setBusy(true);
@@ -235,7 +240,7 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
         </div>
 
         <div className="h-[320px] border border-black/[0.08] rounded-md overflow-hidden bg-white">
-          <MapView markers={mapMarkers} routePoints={polyline.length >= 2 ? polyline : undefined} testid="route-wizard-map" />
+          <MapView markers={mapMarkers} routePoints={routePoints.length >= 2 ? routePoints : undefined} testid="route-wizard-map" />
         </div>
       </div>
 

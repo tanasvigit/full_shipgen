@@ -22,6 +22,11 @@ export async function isLocationTrackingEnabled() {
   return cachedLocationTracking;
 }
 
+/** Best-effort sync read for status banners; defaults to enabled until prefs load. */
+export function isLocationTrackingEnabledSync() {
+  return cachedLocationTracking !== false;
+}
+
 export function setLocationTrackingEnabledCache(enabled: boolean) {
   cachedLocationTracking = enabled;
 }

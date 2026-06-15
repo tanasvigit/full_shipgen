@@ -1,6 +1,8 @@
 import { getNetworkOnline } from "@/src/offline/network";
 import { realtimeClient } from "@/src/realtime/client";
+import { getRuntimeSession } from "@/src/runtime/session";
 import { trackingEngine } from "@/src/tracking/engine";
+import { isLocationTrackingEnabledSync } from "@/src/utils/preferences";
 
 export type SyncConnectivity = "online" | "offline";
 export type SyncRealtime = "connected" | "degraded" | "idle";
@@ -17,11 +19,20 @@ export type SyncSnapshot = {
   severity: "ok" | "warn" | "error";
 };
 
+export function shouldExpectTrackingRunning() {
+  const session = getRuntimeSession();
+  if (!session?.activeOrderId) return false;
+  const driverId = session.driverTrackId || session.driverPublicId;
+  if (!driverId) return false;
+  return isLocationTrackingEnabledSync();
+}
+
 export function deriveSyncSnapshot(input: {
   pendingCount: number;
   deadLetterCount: number;
   syncing: boolean;
   trackingRunning: boolean;
+  trackingExpected?: boolean;
 }) {
   const online = getNetworkOnline();
   const socket = realtimeClient.getStatus().state;
@@ -35,7 +46,8 @@ export function deriveSyncSnapshot(input: {
   else if (input.deadLetterCount > 0) queue = "failed";
   else if (input.pendingCount > 0) queue = "pending";
 
-  const trackingPaused = !input.trackingRunning;
+  const trackingExpected = input.trackingExpected ?? shouldExpectTrackingRunning();
+  const trackingPaused = trackingExpected && !input.trackingRunning;
 
   let label = "All changes synced";
   let severity: SyncSnapshot["severity"] = "ok";

@@ -51,13 +51,16 @@ export function tripMarkersFromOrder(order: OrderMapInput) {
   const dropoff = markers.find((m) => m.kind === "dropoff");
   const driver = markers.find((m) => m.kind === "driver");
 
-  const route = markers.map((m) => m.coordinate);
+  const routeWaypoints = markers
+    .filter((marker) => marker.kind !== "driver")
+    .map((marker) => marker.coordinate);
 
   return {
     pickup: pickup || markers[0],
     dropoff: dropoff || markers[markers.length - 1],
     driver,
-    route,
+    route: routeWaypoints,
+    routeWaypoints,
     /** Unique markers safe to pass directly to TripMap. */
     markers,
   };
@@ -104,6 +107,7 @@ export function tripMarkersFromRoute(route: RouteMapInput) {
     dropoff: markers[markers.length - 1],
     driver: undefined,
     route: markers.map((marker) => marker.coordinate),
+    routeWaypoints: markers.map((marker) => marker.coordinate),
     markers,
   };
 }

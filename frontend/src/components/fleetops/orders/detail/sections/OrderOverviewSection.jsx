@@ -12,7 +12,7 @@ export default function OrderOverviewSection({
 }) {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4">
-      <OrderRoutePanel order={order} etaLabel={etaLabel} loading={loading} />
+      <OrderRoutePanel order={order} rawOrder={rawOrder} etaLabel={etaLabel} loading={loading} />
       <aside className="space-y-4">
         <CollapsibleSection title="Customer" testId="order-customer">
           <div className="font-display font-semibold">{order.customer.name}</div>

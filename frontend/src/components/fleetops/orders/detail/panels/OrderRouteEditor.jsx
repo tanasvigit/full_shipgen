@@ -17,7 +17,6 @@ export default function OrderRouteEditor({
 }) {
   const [busy, setBusy] = useState(false);
   const [waypoints, setWaypoints] = useState([]);
-  const [optimizedPolyline, setOptimizedPolyline] = useState(null);
 
   const initialWaypoints = useMemo(() => {
     const fromPayload = extractStopsFromOrder(rawOrder || order);
@@ -41,12 +40,13 @@ export default function OrderRouteEditor({
 
   const displayWaypoints = waypoints.length ? waypoints : initialWaypoints;
 
-  const polylinePoints = useMemo(() => {
-    if (optimizedPolyline?.length >= 2) return optimizedPolyline;
-    return displayWaypoints
-      .filter((wp) => wp.lat != null && wp.lng != null)
-      .map((wp) => [Number(wp.lat), Number(wp.lng)]);
-  }, [displayWaypoints, optimizedPolyline]);
+  const routePoints = useMemo(
+    () =>
+      displayWaypoints
+        .filter((wp) => wp.lat != null && wp.lng != null)
+        .map((wp) => [Number(wp.lat), Number(wp.lng)]),
+    [displayWaypoints],
+  );
 
   const waypointMarkers = useMemo(
     () =>
@@ -69,7 +69,6 @@ export default function OrderRouteEditor({
     if (j < 0 || j >= next.length) return;
     [next[index], next[j]] = [next[j], next[index]];
     setWaypoints(next);
-    setOptimizedPolyline(null);
   };
 
   const handleRefreshRoute = async () => {
@@ -105,7 +104,19 @@ export default function OrderRouteEditor({
         await fleetopsService.optimizeOrderRoute(order.id);
         result = normalizeOptimizationResult({}, [rawOrder || order]);
       }
-      if (result?.polyline?.length >= 2) setOptimizedPolyline(result.polyline);
+
+      if (result?.sequencedStops?.length) {
+        setWaypoints(
+          result.sequencedStops.map((stop) => ({
+            id: stop.id,
+            name: stop.name,
+            type: stop.type,
+            lat: stop.lat,
+            lng: stop.lng,
+          })),
+        );
+      }
+
       toast.success("Route optimized");
       onSaved?.();
     } catch (err) {
@@ -138,9 +149,10 @@ export default function OrderRouteEditor({
     <div className="p-4 space-y-4" data-testid="order-route-editor">
       <OrderRoutePanel
         order={order}
+        rawOrder={rawOrder}
         etaLabel={etaLabel}
         loading={loading}
-        polyline={polylinePoints}
+        polyline={routePoints}
         waypointMarkers={waypointMarkers}
       />
       <div className="bg-white border border-black/[0.08] rounded-md p-4">

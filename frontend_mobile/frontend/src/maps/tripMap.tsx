@@ -3,7 +3,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import StylizedMap from "@/src/components/StylizedMap";
 import { defaultRegion, type TripMapMarker } from "@/src/maps/markers";
-import { buildRoutePolyline, snapRoutePreview } from "@/src/maps/polylines";
+import { useGoogleRoutePolyline } from "@/src/maps/useGoogleRoutePolyline";
 import {
   isNativeMapsSupported,
   mapsProviderLabel,
@@ -11,9 +11,15 @@ import {
   shouldUseGoogleMapProvider,
 } from "@/src/maps/provider";
 
+const EMPTY_ROUTE: TripMapMarker["coordinate"][] = [];
+const EMPTY_GPS_TRAIL: TripMapMarker["coordinate"][] = [];
+
 type TripMapProps = {
   markers: TripMapMarker[];
+  /** Ordered stop waypoints (pickup → dropoff) — rendered via Google Routes/Directions. */
   route?: TripMapMarker["coordinate"][];
+  /** Live GPS trail points — drawn as-is, not re-routed. */
+  gpsTrail?: TripMapMarker["coordinate"][];
   height?: number;
   activeMarkerId?: string;
 };
@@ -61,35 +67,48 @@ function stylizedMarkersFromTrip(markers: TripMapMarker[]) {
   });
 }
 
-function fitMapToMarkers(mapRef: MapView | null, markers: TripMapMarker[]) {
-  if (!mapRef || markers.length === 0) return;
-  mapRef.fitToCoordinates(
-    markers.map((marker) => marker.coordinate),
-    {
-      edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
-      animated: true,
-    }
-  );
+function fitMapToMarkers(
+  mapRef: MapView | null,
+  markers: TripMapMarker[],
+  routePath: TripMapMarker["coordinate"][],
+  gpsTrail: TripMapMarker["coordinate"][] = [],
+) {
+  if (!mapRef) return;
+  const coordinates = [
+    ...markers.map((marker) => marker.coordinate),
+    ...routePath,
+    ...gpsTrail,
+  ];
+  if (coordinates.length === 0) return;
+  mapRef.fitToCoordinates(coordinates, {
+    edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
+    animated: true,
+  });
 }
 
 const TripMap = forwardRef<TripMapHandle, TripMapProps>(function TripMap(
-  { markers, route = [], height = 320, activeMarkerId },
+  { markers, route, gpsTrail, height = 320, activeMarkerId },
   ref
 ) {
   const mapRef = useRef<MapView | null>(null);
   const normalizedMarkers = useMemo(() => dedupeTripMarkers(markers), [markers]);
+  const routeWaypoints = route ?? EMPTY_ROUTE;
+  const gpsTrailPoints = gpsTrail ?? EMPTY_GPS_TRAIL;
+  const { path: routePath, status: routeStatus } = useGoogleRoutePolyline(routeWaypoints, {
+    enabled: routeWaypoints.length >= 2,
+  });
 
   const region = useMemo(() => {
-    const points = [...normalizedMarkers.map((m) => m.coordinate), ...route];
+    const points = [...normalizedMarkers.map((m) => m.coordinate), ...routePath, ...gpsTrailPoints];
     return defaultRegion(points);
-  }, [normalizedMarkers, route]);
+  }, [gpsTrailPoints, normalizedMarkers, routePath]);
 
-  const polyline = useMemo(() => snapRoutePreview(buildRoutePolyline(route)), [route]);
   const stylizedMarkers = useMemo(() => stylizedMarkersFromTrip(normalizedMarkers), [normalizedMarkers]);
   const useGoogleProvider = shouldUseGoogleMapProvider();
+  const isFallbackRoute = routeStatus === "fallback" || routeStatus === "straight";
 
   useImperativeHandle(ref, () => ({
-    recenter: () => fitMapToMarkers(mapRef.current, normalizedMarkers),
+    recenter: () => fitMapToMarkers(mapRef.current, normalizedMarkers, routePath, gpsTrailPoints),
   }));
 
   if (!isNativeMapsSupported()) {
@@ -111,13 +130,22 @@ const TripMap = forwardRef<TripMapHandle, TripMapProps>(function TripMap(
         initialRegion={region}
         showsUserLocation={Platform.OS === "ios" && !useGoogleProvider}
         showsMyLocationButton={false}
-        onMapReady={() => fitMapToMarkers(mapRef.current, normalizedMarkers)}
+        onMapReady={() => fitMapToMarkers(mapRef.current, normalizedMarkers, routePath, gpsTrailPoints)}
       >
-        {polyline.length > 1 ? (
+        {routePath.length > 1 ? (
           <Polyline
-            coordinates={polyline}
-            strokeColor={activeMarkerId ? "#2563EB" : "#111827"}
+            coordinates={routePath}
+            strokeColor={isFallbackRoute ? "#64748B" : activeMarkerId ? "#2563EB" : "#0066FF"}
             strokeWidth={4}
+            lineDashPattern={isFallbackRoute ? [8, 8] : undefined}
+          />
+        ) : null}
+        {gpsTrailPoints.length > 1 ? (
+          <Polyline
+            coordinates={gpsTrailPoints}
+            strokeColor="#059669"
+            strokeWidth={3}
+            lineDashPattern={[4, 6]}
           />
         ) : null}
         {normalizedMarkers.map((marker) => (

@@ -36,7 +36,9 @@ class TrackingEngine {
     const policy = resolveTrackingPolicy(mode);
     if (policy.intervalMs <= 0) return;
 
-    await ensureForegroundLocationPermission();
+    const granted = await ensureForegroundLocationPermission();
+    if (!granted) return;
+
     await this.#tick();
     this.timer = setInterval(() => {
       void this.#tick();

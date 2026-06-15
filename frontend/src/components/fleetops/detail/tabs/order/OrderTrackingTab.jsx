@@ -5,6 +5,8 @@ import { useDetailTabData } from "@/hooks/fleetops/useDetailTabData";
 import { fleetopsService } from "@/services/fleetops";
 import { positionToLatLng } from "@/lib/fleetops/detailApi";
 import { statusLabel } from "@/lib/mappers";
+import { isLiveGpsTrail } from "@/lib/maps/googleRoute";
+import { stopWaypointsFromMappedOrder } from "@/lib/maps/stopWaypoints";
 
 export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
   const { data: tracker, loading } = useDetailTabData(
@@ -13,22 +15,34 @@ export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
     { enabled: enabled && Boolean(orderId) },
   );
 
-  const routePoints = useMemo(() => {
-    const pts =
-      tracker?.route ||
-      tracker?.positions ||
-      tracker?.polyline ||
-      [];
+  const routeTrails = useMemo(() => {
+    const pts = tracker?.route || tracker?.positions || tracker?.polyline || [];
+    let points = [];
+
     if (Array.isArray(pts) && pts.length && Array.isArray(pts[0])) {
-      return pts.map((p) => [Number(p[0]), Number(p[1])]);
+      points = pts.map((p) => [Number(p[0]), Number(p[1])]);
+    } else {
+      points = (pts || [])
+        .map((p) => {
+          const ll = positionToLatLng(p);
+          return ll.lat ? [ll.lat, ll.lng] : null;
+        })
+        .filter(Boolean);
     }
-    return (pts || [])
-      .map((p) => {
-        const ll = positionToLatLng(p);
-        return ll.lat ? [ll.lat, ll.lng] : null;
-      })
-      .filter(Boolean);
+
+    if (!isLiveGpsTrail(points)) return [];
+
+    return [
+      {
+        id: "driver-gps-trail",
+        points,
+        color: "#059669",
+        highlighted: true,
+      },
+    ];
   }, [tracker]);
+
+  const routePoints = useMemo(() => stopWaypointsFromMappedOrder(order), [order]);
 
   const markers = useMemo(() => {
     const list = [];
@@ -58,6 +72,7 @@ export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
         lng: Number(live.lng || live.longitude),
         label: driver?.name || "Driver",
         color: "#0066FF",
+        live: true,
       });
     }
     return list;
@@ -80,6 +95,7 @@ export default function OrderTrackingTab({ orderId, order, driver, enabled }) {
           <MapView
             markers={markers}
             routePoints={routePoints.length > 1 ? routePoints : undefined}
+            routeTrails={routeTrails}
             loading={loading}
             testid="order-tracking-map"
           />

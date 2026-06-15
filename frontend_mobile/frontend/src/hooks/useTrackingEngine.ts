@@ -23,7 +23,6 @@ export function useTrackingEngine(orderId?: string, mode: TrackingMode = "active
 
     return () => {
       clearInterval(timer);
-      void unbindTracking();
     };
   }, [mode, orderId, sync]);
 

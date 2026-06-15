@@ -26,19 +26,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-function polylineFromRoute(route) {
-  const details = route?.details || route?.payload?.details;
-  if (Array.isArray(details?.polyline) && details.polyline.length >= 2) return details.polyline;
-  if (Array.isArray(details?.stops) && details.stops.length >= 2) {
-    return details.stops
-      .filter((s) => s.lat != null && s.lng != null)
-      .map((s) => [Number(s.lat), Number(s.lng)]);
-  }
-  if (Array.isArray(details?.polyline)) return details.polyline;
-  if (Array.isArray(details?.coordinates)) {
-    return details.coordinates.map((c) => (Array.isArray(c) ? [c[1] ?? c[0], c[0] ?? c[1]] : c));
-  }
-  return [];
+function stopWaypointsFromRoute(route) {
+  const details = route?.details || route?.payload?.details || {};
+  const stops = details?.stops?.length ? details.stops : details?.assignments || [];
+  if (!Array.isArray(stops)) return [];
+  return stops
+    .filter((stop) => stop.lat != null && stop.lng != null)
+    .map((stop) => [Number(stop.lat ?? stop.latitude), Number(stop.lng ?? stop.longitude)]);
 }
 
 function markersFromRoute(route) {
@@ -95,7 +89,7 @@ export default function RouteDetail({
     load();
   }, [load]);
 
-  const polyline = useMemo(() => polylineFromRoute(route), [route]);
+  const routePoints = useMemo(() => stopWaypointsFromRoute(route), [route]);
   const markers = useMemo(() => markersFromRoute(route), [route]);
 
   const optimize = async () => {
@@ -233,7 +227,7 @@ export default function RouteDetail({
       <MapView
         loading={loading}
         markers={markers}
-        routePoints={polyline.length >= 2 ? polyline : undefined}
+        routePoints={routePoints.length >= 2 ? routePoints : undefined}
         testid="route-detail-map"
       />
     </div>

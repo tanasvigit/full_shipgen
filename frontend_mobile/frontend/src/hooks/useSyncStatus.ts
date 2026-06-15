@@ -3,7 +3,14 @@ import { useCompanyScope } from "@/src/hooks/useCompanyScope";
 import { offlineQueue } from "@/src/offline/queue";
 import { subscribeNetwork } from "@/src/offline/network";
 import { recoverSyncFailures } from "@/src/offline/processor";
-import { deriveSyncSnapshot, getTrackingRunning, type SyncSnapshot } from "@/src/sync/statusMachine";
+import { bindTrackingOrder } from "@/src/runtime/lifecycle";
+import { getRuntimeSession } from "@/src/runtime/session";
+import {
+  deriveSyncSnapshot,
+  getTrackingRunning,
+  shouldExpectTrackingRunning,
+  type SyncSnapshot,
+} from "@/src/sync/statusMachine";
 
 export function useSyncStatus() {
   const { companyUuid } = useCompanyScope();
@@ -24,6 +31,7 @@ export function useSyncStatus() {
         deadLetterCount,
         syncing,
         trackingRunning: getTrackingRunning(),
+        trackingExpected: shouldExpectTrackingRunning(),
       })
     );
   }, [companyUuid, syncing]);
@@ -63,6 +71,10 @@ export function useSyncStatus() {
     setSyncing(true);
     try {
       await recoverSyncFailures(companyUuid);
+      const session = getRuntimeSession();
+      if (session?.activeOrderId && shouldExpectTrackingRunning() && !getTrackingRunning()) {
+        await bindTrackingOrder(session.activeOrderId);
+      }
     } finally {
       setSyncing(false);
       await refresh();

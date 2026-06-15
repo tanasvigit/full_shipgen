@@ -3,6 +3,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapLoader } from "@/components/loaders/indicators/LoadingIndicators";
 import { leafletTileLayerOptions } from "@/lib/maps/tiles";
+import { useRoutePath } from "@/hooks/useRoutePath";
+import { isGoogleMapsEnabled } from "@/lib/maps/googleConfig";
 
 /** Leaflet fallback when Google Maps API key is not configured. */
 export default function LeafletMapView({
@@ -20,11 +22,16 @@ export default function LeafletMapView({
   onMarkerClick,
   onMarkerContextMenu,
   selectedMarkerId = null,
+  snapToRoad = true,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const hasFitRef = useRef(false);
+  const googleRouting = isGoogleMapsEnabled() && snapToRoad;
+  const { path: resolvedPath, status: routeStatus } = useRoutePath(routePoints, {
+    snapToRoad: googleRouting,
+  });
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -81,16 +88,25 @@ export default function LeafletMapView({
         marker.bindPopup(
           `<div style="font-family:'IBM Plex Sans',sans-serif;color:#0A0E1A;font-size:12px;">
                         <div style="font-weight:600;margin-bottom:2px;">${m.label || ""}</div>
-                        ${m.popup ? `<div style="color:#6B7280;">${m.popup}</div>` : ""}
-                    </div>`,
+                        ${m.popup ? `<div style="color:#6B7280;">${m.popup}</div>` : ""}</div>`,
         );
       }
       bounds.push([m.lat, m.lng]);
     });
 
-    if (routePoints && routePoints.length > 1) {
+    if (resolvedPath.length >= 2) {
+      const isFallback = !googleRouting || routeStatus === "fallback" || routeStatus === "straight";
+      const latLngs = resolvedPath.map((p) => [p.lat, p.lng]);
+      L.polyline(latLngs, {
+        color: isFallback ? "#64748B" : "#0066FF",
+        weight: 4,
+        opacity: isFallback ? 0.75 : 0.9,
+        dashArray: isFallback ? "6, 6" : undefined,
+      }).addTo(layer);
+      latLngs.forEach((p) => bounds.push(p));
+    } else if (!googleRouting && routePoints && routePoints.length > 1) {
       L.polyline(routePoints, {
-        color: "#0066FF",
+        color: "#64748B",
         weight: 3,
         opacity: 0.9,
         dashArray: "6, 6",
@@ -131,7 +147,20 @@ export default function LeafletMapView({
       }
     }
     setTimeout(() => map.invalidateSize(), 50);
-  }, [markers, routePoints, routeTrails, geofence, zoom, fitOnce, onMarkerClick, onMarkerContextMenu, selectedMarkerId]);
+  }, [
+    markers,
+    routePoints,
+    routeTrails,
+    geofence,
+    zoom,
+    fitOnce,
+    googleRouting,
+    onMarkerClick,
+    onMarkerContextMenu,
+    resolvedPath,
+    routeStatus,
+    selectedMarkerId,
+  ]);
 
   return (
     <div

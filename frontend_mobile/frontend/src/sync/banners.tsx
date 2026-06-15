@@ -33,7 +33,7 @@ export function SyncBanner({ snapshot, onRetry, compact = false }: SyncBannerPro
           onPress={onRetry}
           style={styles.retryBtn}
           accessibilityRole="button"
-          accessibilityLabel="Retry sync"
+          accessibilityLabel={snapshot.trackingPaused ? "Retry tracking" : "Retry sync"}
         >
           <Text style={styles.retryText}>Retry</Text>
         </TouchableOpacity>

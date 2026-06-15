@@ -1,19 +1,23 @@
 import { Map, Polyline, Circle } from "@vis.gl/react-google-maps";
 import { MapLoader } from "@/components/loaders/indicators/LoadingIndicators";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/lib/maps/googleConfig";
-import { useGoogleDirections } from "@/hooks/useGoogleDirections";
+import { useRoutePath } from "@/hooks/useRoutePath";
 import GoogleMapMarker from "@/components/maps/GoogleMapMarker";
 import GoogleMapBounds from "@/components/maps/GoogleMapBounds";
 
-function DirectionsLayer({ routePoints, useDirections }) {
-  const path = useGoogleDirections(routePoints, { enabled: useDirections });
+function RouteLayer({ routePoints, snapToRoad }) {
+  const { path, status } = useRoutePath(routePoints, { snapToRoad });
+  const isFallback = status === "fallback";
+
   if (!path || path.length < 2) return null;
+
   return (
     <Polyline
       path={path}
-      strokeColor="#0066FF"
-      strokeOpacity={0.9}
+      strokeColor={isFallback ? "#64748B" : "#0066FF"}
+      strokeOpacity={isFallback ? 0.75 : 0.9}
       strokeWeight={4}
+      geodesic={isFallback}
     />
   );
 }
@@ -33,8 +37,10 @@ export default function GoogleMapView({
   onMarkerClick,
   onMarkerContextMenu,
   selectedMarkerId = null,
-  useDirections = true,
+  snapToRoad = true,
 }) {
+  const { path: fitPath } = useRoutePath(routePoints, { snapToRoad });
+
   const defaultCenter = center
     ? { lat: Array.isArray(center) ? center[0] : center.lat, lng: Array.isArray(center) ? center[1] : center.lng }
     : markers[0]
@@ -61,7 +67,7 @@ export default function GoogleMapView({
       >
         <GoogleMapBounds
           markers={markers}
-          routePoints={routePoints}
+          routePoints={fitPath?.length >= 2 ? fitPath : routePoints}
           routeTrails={routeTrails}
           geofence={geofence}
           zoom={zoom}
@@ -79,7 +85,7 @@ export default function GoogleMapView({
         ))}
 
         {routePoints && routePoints.length > 1 ? (
-          <DirectionsLayer routePoints={routePoints} useDirections={useDirections} />
+          <RouteLayer routePoints={routePoints} snapToRoad={snapToRoad} />
         ) : null}
 
         {(routeTrails || []).map((trail, idx) => {

@@ -26,6 +26,21 @@ describe("trip map coordinates", () => {
     expect(model?.markers.map((marker) => marker.id)).toEqual(["pickup", "dropoff"]);
   });
 
+  it("excludes driver position from route waypoints", () => {
+    const model = tripMarkersFromOrder({
+      id: "order-1",
+      code: "ORD-1",
+      pickup: "Warehouse A",
+      dropoff: "Customer B",
+      pickupCoordinate: { latitude: 40.7, longitude: -74.0 },
+      dropoffCoordinate: { latitude: 40.72, longitude: -73.98 },
+      driverCoordinate: { latitude: 40.71, longitude: -73.99 },
+    });
+    expect(model?.route).toHaveLength(2);
+    expect(model?.routeWaypoints).toHaveLength(2);
+    expect(model?.markers).toHaveLength(3);
+  });
+
   it("does not duplicate pickup when driver location is missing", () => {
     const model = tripMarkersFromOrder({
       id: "order-1",

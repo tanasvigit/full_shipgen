@@ -11,6 +11,14 @@ vi.mock("@/src/realtime/client", () => ({
   },
 }));
 
+vi.mock("@/src/runtime/session", () => ({
+  getRuntimeSession: () => null,
+}));
+
+vi.mock("@/src/utils/preferences", () => ({
+  isLocationTrackingEnabledSync: () => true,
+}));
+
 vi.mock("@/src/tracking/engine", () => ({
   trackingEngine: {
     getState: () => ({ running: true, mode: "active_trip", orderId: "x" }),
@@ -29,14 +37,26 @@ describe("sync status machine", () => {
     expect(snapshot.label).toContain("Sync pending (3)");
   });
 
-  it("reports tracking paused when engine is not running", () => {
-    const snapshot = deriveSyncSnapshot({
+  it("reports tracking paused only when tracking is expected", () => {
+    const paused = deriveSyncSnapshot({
       pendingCount: 0,
       deadLetterCount: 0,
       syncing: false,
       trackingRunning: false,
+      trackingExpected: true,
     });
-    expect(snapshot.trackingPaused).toBe(true);
-    expect(snapshot.label).toContain("Tracking paused");
+    expect(paused.trackingPaused).toBe(true);
+    expect(paused.label).toContain("Tracking paused");
+
+    const idle = deriveSyncSnapshot({
+      pendingCount: 0,
+      deadLetterCount: 0,
+      syncing: false,
+      trackingRunning: false,
+      trackingExpected: false,
+    });
+    expect(idle.trackingPaused).toBe(false);
+    expect(idle.label).toBe("All changes synced");
+    expect(idle.severity).toBe("ok");
   });
 });
