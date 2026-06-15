@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, mapOrder } from "@/lib/mappers";
+import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
+import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import { bestFitDriversToOrders } from "@/lib/fleetops/allocation";
 import {
   buildFleetScheduleOrderMap,
@@ -52,7 +54,7 @@ function OrderChip({ order, selectedOrderIds, setSelectedOrderIds, selectable = 
   );
 }
 
-export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
+export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0, fleetFilter = "" }) {
   const { openDetail: openOrderDetail } = useFleetopsDetailDrawer("order");
   const [drivers, setDrivers] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -74,14 +76,17 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
+      const fleetParams = appendFleetFilterParams({}, fleetFilter);
       const [rawDrivers, weekOrders, unassignedOrders] = await Promise.all([
-        fleetopsService.listDrivers(),
+        fleetopsService.listDrivers(fleetParams),
         fleetopsService.listOrders({
+          ...fleetParams,
           scheduled_at: weekRange,
           "filter[scheduled_at]": weekRange,
           limit: 200,
         }),
         fleetopsService.listOrders({
+          ...fleetParams,
           without_driver: 1,
           "filter[without_driver]": 1,
           limit: 100,
@@ -105,7 +110,7 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0 }) {
     } finally {
       setLoading(false);
     }
-  }, [weekRange]);
+  }, [weekRange, fleetFilter]);
 
   useEffect(() => {
     reload();

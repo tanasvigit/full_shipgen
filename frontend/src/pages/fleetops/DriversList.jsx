@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Phone, Mail, Star } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, statusLabel } from "@/lib/mappers";
+import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
+import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import {
   markPendingSync,
   mergeListWithPending,
@@ -25,6 +27,7 @@ export default function DriversList() {
   const formRef = useFormRef();
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fleetFilter, setFleetFilter] = useState("");
   const lookups = useFleetopsLookups();
   const dialog = useFleetopsFormDialog({
     formRef,
@@ -48,7 +51,8 @@ export default function DriversList() {
   const loadDrivers = useCallback(async () => {
     setLoading(true);
     try {
-      const raw = await fleetopsService.listDrivers();
+      const params = appendFleetFilterParams({}, fleetFilter);
+      const raw = await fleetopsService.listDrivers(params);
       const fromApi = raw.map(mapDriverRow);
       setDrivers((prev) => mergeListWithPending(fromApi, prev));
     } catch (err) {
@@ -57,7 +61,7 @@ export default function DriversList() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fleetFilter]);
 
   useEffect(() => {
     loadDrivers();
@@ -156,7 +160,15 @@ export default function DriversList() {
           </Button>
         }
       />
-      <div className="p-6">
+      <div className="px-6 pb-2">
+        <FleetScopeFilter
+          value={fleetFilter || "all"}
+          onChange={setFleetFilter}
+          testId="drivers-fleet-filter"
+          placeholder="All fleets"
+        />
+      </div>
+      <div className="p-6 pt-2">
         {!loading && drivers.length === 0 && (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid="drivers-empty">
             No drivers returned for this company. Try onboarding a driver above.

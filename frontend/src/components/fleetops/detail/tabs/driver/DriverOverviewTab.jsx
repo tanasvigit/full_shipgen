@@ -1,6 +1,23 @@
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
+import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { statusLabel } from "@/lib/mappers";
+
+function FleetLinks({ fleets = [], raw }) {
+  if (fleets.length > 0) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {fleets.map((f) => (
+          <DetailEntityLink key={f.id} entityKey="fleet" entityId={f.id}>
+            {f.name}
+          </DetailEntityLink>
+        ))}
+      </div>
+    );
+  }
+  const legacy = raw.fleet?.name || raw.fleet_name;
+  return legacy || "—";
+}
 
 export default function DriverOverviewTab({ driver, driverApi }) {
   const d = driver;
@@ -47,7 +64,7 @@ export default function DriverOverviewTab({ driver, driverApi }) {
       label: "Max payload",
       value: raw.max_load_weight || raw.max_payload || "—",
     },
-    { label: "Fleet", value: raw.fleet?.name || raw.fleet_name || "—" },
+    { label: "Fleets", value: <FleetLinks fleets={driver?.fleets} raw={raw} /> },
     { label: "Facilitator / vendor", value: raw.vendor?.name || raw.facilitator?.name || "—" },
     {
       label: "Skills",

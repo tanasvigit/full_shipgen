@@ -23,6 +23,20 @@ class VehicleController extends FleetOpsController
     public $resource = 'vehicle';
 
     /**
+     * Eager-load relationships requested via ?with= / ?expand= on single-record reads.
+     */
+    public static function onFindRecord($query, $request): void
+    {
+        $with = $request->or(['with', 'expand']);
+        if (!$with) {
+            return;
+        }
+
+        $relations = is_array($with) ? $with : explode(',', $with);
+        $query->with(array_map(fn ($relation) => Str::camel(trim($relation)), $relations));
+    }
+
+    /**
      * Handle post save transactions.
      */
     public function afterSave(Request $request, Vehicle $vehicle)

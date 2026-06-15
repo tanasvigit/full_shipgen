@@ -5,9 +5,31 @@ namespace Fleetbase\FleetOps\Http\Resources\v1;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Http;
+use Illuminate\Support\Str;
 
 class Vehicle extends FleetbaseResource
 {
+    /**
+     * Relationships that may be eager-loaded on a vehicle record.
+     *
+     * @var list<string>
+     */
+    private const LOADABLE_RELATIONS = [
+        'photo',
+        'driver',
+        'category',
+        'telematic',
+        'warranty',
+        'vendor',
+        'fleets',
+        'devices',
+        'positions',
+        'equipments',
+        'maintenances',
+        'sensors',
+        'parts',
+    ];
+
     /**
      * Transform the resource into an array.
      *
@@ -17,6 +39,18 @@ class Vehicle extends FleetbaseResource
      */
     public function toArray($request)
     {
+        $with = $request->or(['with', 'expand']);
+        $withRelations = [];
+        if ($with) {
+            $withRelations = is_array($with) ? $with : explode(',', $with);
+            $withRelations = array_map(fn ($relation) => Str::camel(trim($relation)), $withRelations);
+            $withRelations = array_values(array_intersect($withRelations, self::LOADABLE_RELATIONS));
+            if ($withRelations) {
+                $this->loadMissing($withRelations);
+            }
+        }
+        $includeFleets = in_array('fleets', $withRelations, true) || $this->relationLoaded('fleets');
+
         return $this->withCustomFields([
             // Identity
             'id'                     => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
@@ -42,6 +76,7 @@ class Vehicle extends FleetbaseResource
             // Relationships
             'driver'                 => $this->whenLoaded('driver', fn () => new Driver($this->driver)),
             'devices'                => $this->whenLoaded('devices', fn () => $this->devices),
+            'fleets'                 => $this->when($includeFleets, fn () => Fleet::collection($this->fleets()->get())),
             // Vehicle identification
             'make'                   => $this->make,
             'model'                  => $this->model,

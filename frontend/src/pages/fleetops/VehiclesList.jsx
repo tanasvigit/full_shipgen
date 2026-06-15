@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapVehicleRow, mapDriverRow, statusLabel } from "@/lib/mappers";
+import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
+import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import {
   markPendingSync,
   mergeListWithPending,
@@ -25,6 +27,7 @@ export default function VehiclesList() {
   const [vehicles, setVehicles] = useState([]);
   const [driverNames, setDriverNames] = useState({});
   const [loading, setLoading] = useState(true);
+  const [fleetFilter, setFleetFilter] = useState("");
   const formRef = useFormRef();
   const lookups = useFleetopsLookups();
   const dialog = useFleetopsFormDialog({
@@ -48,12 +51,13 @@ export default function VehiclesList() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const rawVehicles = await fleetopsService.listVehicles();
+      const params = appendFleetFilterParams({}, fleetFilter);
+      const rawVehicles = await fleetopsService.listVehicles(params);
       const fromApi = rawVehicles.map(mapVehicleRow);
       setVehicles((prev) => mergeListWithPending(fromApi, prev));
 
       try {
-        const driversRaw = await fleetopsService.listDrivers();
+        const driversRaw = await fleetopsService.listDrivers(appendFleetFilterParams({}, fleetFilter));
         const nameMap = {};
         driversRaw.forEach((d) => {
           const row = mapDriverRow(d);
@@ -69,7 +73,7 @@ export default function VehiclesList() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fleetFilter]);
 
   useEffect(() => {
     loadAll();
@@ -166,7 +170,15 @@ export default function VehiclesList() {
           </Button>
         }
       />
-      <div className="p-6">
+      <div className="px-6 pb-2">
+        <FleetScopeFilter
+          value={fleetFilter || "all"}
+          onChange={setFleetFilter}
+          testId="vehicles-fleet-filter"
+          placeholder="All fleets"
+        />
+      </div>
+      <div className="p-6 pt-2">
         {!loading && vehicles.length === 0 && (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid="vehicles-empty">
             No vehicles returned. Register one to get started.

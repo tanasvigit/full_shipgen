@@ -29,9 +29,17 @@ export default function CrudImportExportBar({
   const handleExport = async () => {
     setBusy(true);
     try {
-      const blob = await fleetopsService.exportResource(entityKey);
+      const params =
+        selectedIds.length > 0
+          ? { selections: selectedIds, ids: selectedIds }
+          : {};
+      const blob = await fleetopsService.exportResource(entityKey, params);
       fleetopsService.downloadExportBlob(blob, `${entityKey}-export.csv`);
-      toast.success("Export downloaded");
+      toast.success(
+        selectedIds.length > 0
+          ? `Exported ${selectedIds.length} selected record(s)`
+          : "Export downloaded",
+      );
     } catch (err) {
       toast.error(err?.friendlyMessage || "Export failed");
     } finally {
@@ -77,7 +85,8 @@ export default function CrudImportExportBar({
     <div className="flex flex-wrap gap-2 mb-4" data-testid={`${testPrefix}-import-export-bar`}>
       {canExport && (
         <Button variant="outline" size="sm" disabled={busy} onClick={handleExport} data-testid={`${testPrefix}-export`}>
-          <Download className="h-3.5 w-3.5 mr-1" /> Export
+          <Download className="h-3.5 w-3.5 mr-1" />
+          {selectedIds.length > 0 ? `Export selected (${selectedIds.length})` : "Export"}
         </Button>
       )}
       {canImport && (

@@ -32,6 +32,7 @@ import OrchestratorImportModal from "@/components/fleetops/orchestrator/Orchestr
 import OrdersBulkToolbar from "@/components/fleetops/orders/bulk/OrdersBulkToolbar";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutList, Map as MapIcon, Columns3, RefreshCw, Upload, Download, AlertTriangle } from "lucide-react";
+import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -423,6 +424,13 @@ export default function OrdersList() {
               </SelectContent>
             </Select>
           ) : null}
+          <FleetScopeFilter
+            value={queryState.fleet || "all"}
+            onChange={(v) => patchQuery({ fleet: v, page: 1 })}
+            className="h-8 w-[160px] text-xs"
+            testId="orders-fleet-filter"
+            placeholder="All fleets"
+          />
           <div className="flex-1" />
           <OrdersColumnPicker hiddenColumns={hiddenColumns} onHiddenColumnsChange={setHiddenColumnsPersist} />
         </div>

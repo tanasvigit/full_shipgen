@@ -781,12 +781,17 @@ export const fleetopsService = {
     throw lastError;
   },
 
-  async listDrivers(params) {
-    const payload = await tryCandidates(RESOURCES.drivers, "get", "", undefined);
-    return unwrapList(payload, ["drivers"]);
+  async listDrivers(params = {}) {
+    try {
+      const response = await apiClient.get("/drivers", { params, loading: false });
+      return unwrapList(response.data, ["drivers"]);
+    } catch {
+      const payload = await tryCandidatesQuery(RESOURCES.drivers, "get", "", undefined, params);
+      return unwrapList(payload, ["drivers"]);
+    }
   },
-  async getDriver(driverId) {
-    const payload = await tryCandidates(RESOURCES.drivers, "get", `/${driverId}`);
+  async getDriver(driverId, params = {}) {
+    const payload = await tryCandidatesQuery(RESOURCES.drivers, "get", `/${driverId}`, undefined, params);
     return unwrapEntity(payload, ["driver"]);
   },
   async createDriver(formValues) {
@@ -928,12 +933,17 @@ export const fleetopsService = {
     return this.updatePlace(placeId, { meta });
   },
 
-  async listVehicles(params) {
-    const payload = await tryCandidates(RESOURCES.vehicles, "get", "", undefined);
-    return unwrapList(payload, ["vehicles"]);
+  async listVehicles(params = {}) {
+    try {
+      const response = await apiClient.get("/vehicles", { params, loading: false });
+      return unwrapList(response.data, ["vehicles"]);
+    } catch {
+      const payload = await tryCandidatesQuery(RESOURCES.vehicles, "get", "", undefined, params);
+      return unwrapList(payload, ["vehicles"]);
+    }
   },
-  async getVehicle(vehicleId) {
-    const payload = await tryCandidates(RESOURCES.vehicles, "get", `/${vehicleId}`);
+  async getVehicle(vehicleId, params = {}) {
+    const payload = await tryCandidatesQuery(RESOURCES.vehicles, "get", `/${vehicleId}`, undefined, params);
     return unwrapEntity(payload, ["vehicle"]);
   },
   async createVehicle(formValues) {
@@ -986,6 +996,21 @@ export const fleetopsService = {
   },
   async deleteFleet(fleetId) {
     await tryCandidates(RESOURCES.fleets, "delete", `/${fleetId}`);
+  },
+
+  async duplicateFleet(fleetApi) {
+    const source = fleetApi || {};
+    const mapped = {
+      name: `${source.name || "Fleet"} (copy)`,
+      task: source.task,
+      color: source.color,
+      status: source.status || "active",
+      serviceAreaId: source.service_area_uuid || source.service_area?.uuid,
+      zoneId: source.zone_uuid || source.zone?.uuid,
+      vendorId: source.vendor_uuid || source.vendor?.uuid,
+      parentFleetId: source.parent_fleet_uuid || source.parent_fleet?.uuid,
+    };
+    return this.createFleet(mapped);
   },
 
   async listContacts(params = {}) {

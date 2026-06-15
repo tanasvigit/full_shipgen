@@ -17,12 +17,11 @@ class Fleet extends FleetbaseResource
      */
     public function toArray($request)
     {
-        if ($request->isArray('with')) {
-            $with = array_map(function ($relation) {
-                return Str::camel($relation);
-            }, $request->array('with'));
-
-            $this->load($with);
+        $with = $request->or(['with', 'expand']);
+        if ($with) {
+            $withRelations = is_array($with) ? $with : explode(',', $with);
+            $withRelations = array_map(fn ($relation) => Str::camel(trim($relation)), $withRelations);
+            $this->loadMissing($withRelations);
         }
 
         return $this->withCustomFields([

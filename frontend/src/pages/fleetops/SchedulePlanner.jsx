@@ -12,6 +12,8 @@ import { schedulesService } from "@/services/schedules";
 import { mapDriverRow } from "@/lib/mappers";
 import { detectScheduleConflicts } from "@/lib/fleetops/scheduleConflicts";
 import FleetScheduleView from "@/components/fleetops/schedule/FleetScheduleView";
+import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
+import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 import {
   driverIdFromScheduleItem,
   hourWindowFromScheduleItem,
@@ -43,6 +45,7 @@ export default function SchedulePlanner() {
   const [driverRows, setDriverRows] = useState([]);
   const [items, setItems] = useState([]);
   const [fleetRefreshKey, setFleetRefreshKey] = useState(0);
+  const [fleetFilter, setFleetFilter] = useState("");
   const formRef = useFormRef();
   const driverOptions = useMemo(
     () => driverRows.map((d) => ({ id: String(d.id), label: d.name })),
@@ -64,8 +67,9 @@ export default function SchedulePlanner() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
+      const fleetParams = appendFleetFilterParams({}, fleetFilter);
       const [rawDrivers, rawItems] = await Promise.all([
-        fleetopsService.listDrivers(),
+        fleetopsService.listDrivers(fleetParams),
         schedulesService.listScheduleItems().catch(() => []),
       ]);
       const drivers = rawDrivers.map(mapDriverRow);
@@ -78,7 +82,7 @@ export default function SchedulePlanner() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fleetFilter]);
 
   useEffect(() => {
     reload();
@@ -178,9 +182,17 @@ export default function SchedulePlanner() {
           </>
         }
       />
-      <div className="p-6">
+      <div className="px-6 pb-2">
+        <FleetScopeFilter
+          value={fleetFilter || "all"}
+          onChange={setFleetFilter}
+          testId="schedule-fleet-filter"
+          placeholder="All fleets"
+        />
+      </div>
+      <div className="p-6 pt-2">
         {tab === "fleet" ? (
-          <FleetScheduleView weekOffset={weekOffset} refreshKey={fleetRefreshKey} />
+          <FleetScheduleView weekOffset={weekOffset} refreshKey={fleetRefreshKey} fleetFilter={fleetFilter} />
         ) : (
           <>
         {!loading && schedule.drivers.length === 0 && (

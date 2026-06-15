@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Filter\Filter;
+use Illuminate\Support\Str;
 
 class FleetFilter extends Filter
 {
@@ -76,6 +77,36 @@ class FleetFilter extends Filter
                 $query->where('uuid', $vendor);
             }
         );
+    }
+
+    public function vehicle(?string $vehicle)
+    {
+        $this->builder->whereHas('vehicles', function ($q) use ($vehicle) {
+            $uuidColumn = $q->getModel()->qualifyColumn('uuid');
+            $publicIdColumn = $q->getModel()->qualifyColumn('public_id');
+            if (Str::isUuid($vehicle)) {
+                $q->where($uuidColumn, $vehicle);
+            } elseif (Utils::isPublicId($vehicle)) {
+                $q->where($publicIdColumn, $vehicle);
+            } else {
+                $q->search($vehicle);
+            }
+        });
+    }
+
+    public function driver(?string $driver)
+    {
+        $this->builder->whereHas('drivers', function ($q) use ($driver) {
+            $uuidColumn = $q->getModel()->qualifyColumn('uuid');
+            $publicIdColumn = $q->getModel()->qualifyColumn('public_id');
+            if (Str::isUuid($driver)) {
+                $q->where($uuidColumn, $driver);
+            } elseif (Utils::isPublicId($driver)) {
+                $q->where($publicIdColumn, $driver);
+            } else {
+                $q->search($driver);
+            }
+        });
     }
 
     public function publicId(?string $publicId)

@@ -35,6 +35,12 @@ import HealthBanner from "@/components/fleetops/health/HealthBanner";
 import { useFleetopsWarnings } from "@/hooks/fleetops/useFleetopsWarnings";
 import FleetMembersPanel from "@/components/fleetops/fleet/FleetMembersPanel";
 import FleetOrdersTab from "@/components/fleetops/detail/tabs/fleet/FleetOrdersTab";
+import FleetActivityTab from "@/components/fleetops/detail/tabs/fleet/FleetActivityTab";
+import FleetDocumentsTab from "@/components/fleetops/detail/tabs/fleet/FleetDocumentsTab";
+import FleetMapTab from "@/components/fleetops/detail/tabs/fleet/FleetMapTab";
+import FleetPhotoUpload from "@/components/fleetops/fleet/FleetPhotoUpload";
+import EntityCustomFieldsReadOnly from "@/components/fleetops/custom-fields/EntityCustomFieldsReadOnly";
+import { Copy, Plus } from "lucide-react";
 
 const FLEET_DETAIL_WITH =
   "drivers,vehicles,service_area,zone,vendor,parent_fleet,subfleets";
@@ -52,9 +58,10 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
   const { id: routeId } = useParams();
   const id = resolveDetailEntityId(entityIdProp, routeId);
   const navigate = useNavigate();
-  const { closeDetail } = useFleetopsDetailDrawer("fleet");
+  const { closeDetail, openDetail } = useFleetopsDetailDrawer("fleet");
   const { can } = useFleetopsPermission();
   const canDelete = can("delete", "fleet");
+  const canCreate = can("create", "fleet");
   const [loading, setLoading] = useState(true);
   const [fleet, setFleet] = useState(null);
   const [fleetApi, setFleetApi] = useState(null);
@@ -63,8 +70,10 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-  const formRef = useFormRef();
+  const [duplicateBusy, setDuplicateBusy] = useState(false);
+  const subfleetFormRef = useFormRef();
   const lookups = useFleetopsLookups();
+  const formRef = useFormRef();
   const editDialog = useFleetopsFormDialog({
     formRef,
     suspendDrawer: embedded,
@@ -83,6 +92,36 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
       return updated;
     },
   });
+
+  const subfleetDialog = useFleetopsFormDialog({
+    formRef: subfleetFormRef,
+    suspendDrawer: embedded,
+    successMessage: "Subfleet created",
+    onSubmit: async (values) => {
+      const created = await fleetopsService.createFleet({ ...values, parentFleetId: id });
+      fleetopsCache.invalidateFleet(id);
+      await load();
+      setActiveTab("subfleets");
+      return created;
+    },
+  });
+
+  const handleDuplicate = useCallback(async () => {
+    if (!fleetApi) return;
+    setDuplicateBusy(true);
+    try {
+      const created = await fleetopsService.duplicateFleet(fleetApi);
+      const newId = created?.uuid || created?.id;
+      toast.success("Fleet duplicated");
+      fleetopsCache.invalidateFleet(newId);
+      if (embedded && newId) openDetail(newId);
+      else if (newId) navigate(`/fleet-ops/management/fleets/${newId}`);
+    } catch (err) {
+      toast.error(err?.friendlyMessage || "Could not duplicate fleet.");
+    } finally {
+      setDuplicateBusy(false);
+    }
+  }, [fleetApi, embedded, navigate, openDetail]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -213,17 +252,23 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
           onEdit={embedded ? editDialog.openEdit : () => editDialog.setOpen(true)}
           editTestId="fleet-edit"
           actions={
-            canDelete
-              ? [
-                  {
-                    id: "delete",
-                    label: "Delete",
-                    testId: "fleet-delete",
-                    onClick: () => setDeleteOpen(true),
-                    icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
-                  },
-                ]
-              : []
+            [
+              canCreate && {
+                id: "duplicate",
+                label: "Duplicate",
+                testId: "fleet-duplicate",
+                onClick: () => void handleDuplicate(),
+                icon: <Copy className="h-3.5 w-3.5 mr-1" />,
+                disabled: duplicateBusy,
+              },
+              canDelete && {
+                id: "delete",
+                label: "Delete",
+                testId: "fleet-delete",
+                onClick: () => setDeleteOpen(true),
+                icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+              },
+            ].filter(Boolean)
           }
         />
       )}
@@ -251,18 +296,27 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
             <TabsTrigger value="vehicles" data-testid="fleet-tab-vehicles">
               Vehicles ({fleetVehicles.length})
             </TabsTrigger>
-            {subfleets.length > 0 && (
-              <TabsTrigger value="subfleets" data-testid="fleet-tab-subfleets">
-                Subfleets ({subfleets.length})
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="subfleets" data-testid="fleet-tab-subfleets">
+              Subfleets ({subfleets.length})
+            </TabsTrigger>
+            <TabsTrigger value="map" data-testid="fleet-tab-map">
+              Map
+            </TabsTrigger>
+            <TabsTrigger value="activity" data-testid="fleet-tab-activity">
+              Activity
+            </TabsTrigger>
+            <TabsTrigger value="documents" data-testid="fleet-tab-documents">
+              Documents
+            </TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-4 space-y-4">
-            <div className="bg-white border border-black/[0.08] rounded-md p-5">
+            <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4">
+              <FleetPhotoUpload fleetId={id} photoUrl={f.photoUrl} onUpdated={load} />
               <DetailFieldGrid fields={overviewFields} />
             </div>
+            <EntityCustomFieldsReadOnly entityType="fleet" entityApi={fleetApi} />
             {f.task && (
               <div className="bg-white border border-black/[0.08] rounded-md p-5 text-sm text-[#374151]">
                 {f.task}
@@ -278,10 +332,19 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
           <TabsContent value="vehicles" className="mt-4">
             <FleetMembersPanel fleetId={id} drivers={[]} vehicles={fleetVehicles} onChanged={load} mode="vehicles" />
           </TabsContent>
-          {subfleets.length > 0 && (
-            <TabsContent value="subfleets" className="mt-4">
-              <div className="bg-white border border-black/[0.08] rounded-md divide-y divide-black/[0.08]">
-                {subfleets.map((sub) => (
+          <TabsContent value="subfleets" className="mt-4 space-y-3">
+            {canCreate && (
+              <div className="flex justify-end">
+                <Button size="sm" onClick={() => subfleetDialog.setOpen(true)} data-testid="fleet-create-subfleet">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Create subfleet
+                </Button>
+              </div>
+            )}
+            <div className="bg-white border border-black/[0.08] rounded-md divide-y divide-black/[0.08]">
+              {subfleets.length === 0 ? (
+                <div className="p-6 text-sm text-[#4B5563] text-center">No subfleets under this fleet.</div>
+              ) : (
+                subfleets.map((sub) => (
                   <div key={sub.id} className="flex items-center justify-between px-4 py-3">
                     <DetailEntityLink entityKey="fleet" entityId={sub.id}>
                       <div className="font-medium text-sm">{sub.name}</div>
@@ -289,10 +352,19 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
                     </DetailEntityLink>
                     <StatusBadge status={sub.status} label={statusLabel(sub.status)} />
                   </div>
-                ))}
-              </div>
-            </TabsContent>
-          )}
+                ))
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="map" className="mt-4">
+            <FleetMapTab fleetApi={fleetApi} fleetDrivers={fleetDrivers} enabled={activeTab === "map"} />
+          </TabsContent>
+          <TabsContent value="activity" className="mt-4">
+            <FleetActivityTab fleetId={id} enabled={activeTab === "activity"} />
+          </TabsContent>
+          <TabsContent value="documents" className="mt-4">
+            <FleetDocumentsTab fleetId={id} enabled={activeTab === "documents"} />
+          </TabsContent>
           <TabsContent value="analytics" className="mt-4">
             <div className="bg-white border border-black/[0.08] rounded-md p-5">
               <DetailFieldGrid
@@ -301,7 +373,14 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
                   { label: "Drivers online", value: f.driversOnlineCount ?? 0 },
                   { label: "Vehicles assigned", value: f.vehiclesCount ?? fleetVehicles.length },
                   { label: "Vehicles online", value: f.vehiclesOnlineCount ?? 0 },
-                  { label: "Utilization", value: f.driversCount ? `${Math.round(((f.driversOnlineCount ?? 0) / f.driversCount) * 100)}% drivers online` : "—" },
+                  {
+                    label: "Vehicle utilization",
+                    value:
+                      f.vehiclesCount && f.vehiclesOnlineCount != null
+                        ? `${Math.round((f.vehiclesOnlineCount / f.vehiclesCount) * 100)}% vehicles online`
+                        : "—",
+                  },
+                  { label: "Subfleets", value: subfleets.length },
                   { label: "Fleet status", value: statusLabel(f.status) },
                 ]}
               />
@@ -336,6 +415,35 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
               ref={formRef}
               formId="fleet-edit-form"
               initialValues={fleetValuesFromApi(fleetApi)}
+              serviceAreaOptions={lookups.serviceAreas}
+              vendorOptions={lookups.facilitators}
+              fleetOptions={lookups.fleets}
+              excludeFleetId={id}
+            />
+          )}
+        </FleetOpsFormDialog>,
+      )}
+      {wrapDetailEditDialog(
+        embedded,
+        subfleetDialog.open,
+        <FleetOpsFormDialog
+          detached={embedded}
+          open={subfleetDialog.open}
+          onOpenChange={subfleetDialog.setOpen}
+          title="Create subfleet"
+          description="Create a child fleet under this parent."
+          submitLabel="Create subfleet"
+          busy={subfleetDialog.busy}
+          error={subfleetDialog.error}
+          onSubmit={subfleetDialog.handleSubmit}
+          testId="create-subfleet-dialog"
+          size="lg"
+        >
+          {subfleetDialog.open && (
+            <FleetForm
+              ref={subfleetFormRef}
+              formId="subfleet-create-form"
+              initialValues={{ parentFleetId: id, status: "active" }}
               serviceAreaOptions={lookups.serviceAreas}
               vendorOptions={lookups.facilitators}
               fleetOptions={lookups.fleets}

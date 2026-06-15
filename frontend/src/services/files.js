@@ -1,11 +1,40 @@
 import { apiClient, unwrapEntity, unwrapList } from "@/lib/api";
 
+const FLEET_SUBJECT_TYPES = {
+  fleet: "fleet-ops:fleet",
+  driver: "fleet-ops:driver",
+  vehicle: "fleet-ops:vehicle",
+};
+
 export const filesService = {
+  subjectTypeFor(entityKey) {
+    return FLEET_SUBJECT_TYPES[entityKey] || entityKey;
+  },
+
+  async listForSubject(subjectUuid, subjectType) {
+    if (!subjectUuid) return [];
+    try {
+      const response = await apiClient.get("/files", {
+        params: {
+          subject_uuid: subjectUuid,
+          subject_type: subjectType,
+          limit: 100,
+        },
+        loading: false,
+      });
+      return unwrapList(response.data, ["files"]);
+    } catch {
+      return [];
+    }
+  },
+
   async upload(file, options = {}) {
     const form = new FormData();
     form.append("file", file);
     if (options.type) form.append("type", options.type);
     if (options.path) form.append("path", options.path);
+    if (options.subjectUuid) form.append("subject_uuid", options.subjectUuid);
+    if (options.subjectType) form.append("subject_type", options.subjectType);
 
     const response = await apiClient.post("/files/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },

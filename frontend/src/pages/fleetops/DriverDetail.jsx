@@ -26,6 +26,7 @@ import DriverDocumentsTab from "@/components/fleetops/detail/tabs/driver/DriverD
 import DriverActivityTab from "@/components/fleetops/detail/tabs/driver/DriverActivityTab";
 import DriverFinancialsTab from "@/components/fleetops/detail/tabs/driver/DriverFinancialsTab";
 import DriverAssignmentActions from "@/components/fleetops/driver/DriverAssignmentActions";
+import EntityFleetsPanel from "@/components/fleetops/fleet/EntityFleetsPanel";
 import { getExtensionTabs } from "@/domain/fleetops/detail/registry";
 import { useFormDirtyBridge } from "@/hooks/fleetops/useFormDirtyBridge";
 import { PageLoader } from "@/components/loaders";
@@ -33,6 +34,7 @@ import { wrapDetailEditDialog } from "@/lib/fleetops/detailEmbedded";
 
 const DRIVER_TABS = [
   { id: "overview", label: "Overview" },
+  { id: "fleets", label: "Fleets" },
   { id: "positions", label: "Live Map" },
   { id: "orders", label: "Orders" },
   { id: "schedule", label: "Schedule" },
@@ -77,7 +79,7 @@ export default function DriverDetail({
     if (!id) return;
     setLoading(true);
     try {
-      const rawDriver = await fleetopsService.getDriver(id);
+      const rawDriver = await fleetopsService.getDriver(id, { with: "fleets,vehicle", nocache: 1 });
       setDriverApi(rawDriver || null);
 
       let v = null;
@@ -215,6 +217,18 @@ export default function DriverDetail({
       switch (t.id) {
         case "overview":
           content = <DetailDrawerLayout main={overviewMain} sidebar={overviewSidebar} />;
+          break;
+        case "fleets":
+          content = (
+            <div className="p-4">
+              <EntityFleetsPanel
+                entityType="driver"
+                entityId={id}
+                fleets={d?.fleets || []}
+                onChanged={loadAll}
+              />
+            </div>
+          );
           break;
         case "positions":
           content = (

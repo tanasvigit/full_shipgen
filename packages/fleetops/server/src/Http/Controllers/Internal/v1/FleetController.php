@@ -28,6 +28,20 @@ class FleetController extends FleetOpsController
     public $resource = 'fleet';
 
     /**
+     * Eager-load relationships requested via ?with= / ?expand= on single-record reads.
+     */
+    public static function onFindRecord($query, $request): void
+    {
+        $with = $request->or(['with', 'expand']);
+        if (!$with) {
+            return;
+        }
+
+        $relations = is_array($with) ? $with : explode(',', $with);
+        $query->with(array_map(fn ($relation) => Str::camel(trim($relation)), $relations));
+    }
+
+    /**
      * Handle post save transactions.
      */
     public function afterSave(Request $request, Fleet $fleet)
@@ -178,6 +192,8 @@ class FleetController extends FleetOpsController
             'vehicle_uuid' => $vehicle->uuid,
         ])->delete();
 
+        $vehicle->invalidateApiCache();
+
         return response()->json([
             'status'  => 'ok',
             'deleted' => $deleted,
@@ -209,6 +225,8 @@ class FleetController extends FleetOpsController
                 'vehicle_uuid' => $vehicle->uuid,
             ]);
         }
+
+        $vehicle->invalidateApiCache();
 
         return response()->json([
             'status' => 'ok',

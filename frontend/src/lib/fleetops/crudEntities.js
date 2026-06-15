@@ -440,4 +440,19 @@ export const CRUD_ENTITIES = {
       { name: "description", label: "Description", type: "textarea" },
     ],
   },
+  fleet: {
+    key: "fleet",
+    pluralLabel: "Fleets",
+    singularLabel: "Fleet",
+    section: "Management",
+    listPath: "/fleet-ops/management/fleets",
+    permissionResource: "fleet",
+    searchKeys: ["name", "publicId", "task", "status"],
+    fields: [
+      { name: "name", label: "Name", required: true },
+      { name: "task", label: "Task / notes", type: "textarea" },
+      { name: "status", label: "Status" },
+      { name: "color", label: "Color" },
+    ],
+  },
 };

@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import PageHeader from "@/components/common/PageHeader";
+import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import FleetForm from "@/components/fleetops/forms/FleetForm";
 import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
+import FleetListFilters from "@/components/fleetops/fleet/FleetListFilters";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { Button } from "@/components/ui/button";
@@ -21,9 +23,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Users, Truck, Search } from "lucide-react";
+import { Plus, Users, Truck, Search, LayoutGrid, LayoutList } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapFleet, statusLabel } from "@/lib/mappers";
+import { buildFleetListApiParams, FLEET_LIST_DEFAULTS } from "@/lib/fleetops/fleetListQuery";
 import {
   ensureRowId,
   FLEET_LAST_CREATED_ID_KEY,
@@ -41,10 +44,13 @@ import { toast } from "sonner";
 export default function FleetsList() {
   const { openDetail } = useFleetopsDetailDrawer("fleet");
   const { can } = useFleetopsPermission();
+  const canCreate = can("create", "fleet");
   const canDelete = can("delete", "fleet");
   const [fleets, setFleets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ ...FLEET_LIST_DEFAULTS });
   const [search, setSearch] = useState("");
+  const [layout, setLayout] = useState("cards");
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
@@ -82,7 +88,8 @@ export default function FleetsList() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await fleetopsService.listFleets({ limit: 500 });
+      const apiParams = buildFleetListApiParams({ ...filters, search });
+      const rows = await fleetopsService.listFleets(apiParams);
       const hydrateId = sessionStorage.getItem(FLEET_LAST_CREATED_ID_KEY);
       const fromApi = await hydrateFleetListRows(rows, hydrateId);
       setFleets((prev) => mergeListWithPending(fromApi, prev));
@@ -92,7 +99,7 @@ export default function FleetsList() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters, search]);
 
   useEffect(() => {
     load();
@@ -107,17 +114,29 @@ export default function FleetsList() {
     });
   }, [load]);
 
-  const filteredFleets = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return fleets;
-    return fleets.filter((f) => {
-      const haystack = [f.name, f.publicId, f.task, f.serviceAreaName, f.zoneName, f.vendorName]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [fleets, search]);
+  const filteredFleets = useMemo(() => fleets, [fleets]);
+
+  const tableColumns = useMemo(
+    () => [
+      {
+        key: "name",
+        header: "Fleet",
+        sortable: true,
+        render: (f) => (
+          <button type="button" className="text-left" onClick={() => openDetail(f.id)}>
+            <div className="font-medium">{f.name}</div>
+            <div className="text-[10px] font-mono text-[#4B5563]">{f.publicId}</div>
+          </button>
+        ),
+      },
+      { key: "status", header: "Status", render: (f) => <StatusBadge status={f.status} label={statusLabel(f.status)} /> },
+      { key: "serviceAreaName", header: "Service area", render: (f) => f.serviceAreaName || "—" },
+      { key: "zoneName", header: "Zone", render: (f) => f.zoneName || "—" },
+      { key: "driversCount", header: "Drivers", render: (f) => f.driversCount ?? f.driverIds?.length ?? 0 },
+      { key: "vehiclesCount", header: "Vehicles", render: (f) => f.vehiclesCount ?? f.vehicleIds?.length ?? 0 },
+    ],
+    [openDetail],
+  );
 
   const selectedIds = useMemo(() => Array.from(selectedKeys), [selectedKeys]);
 
@@ -162,13 +181,15 @@ export default function FleetsList() {
         title="Fleets"
         description={loading ? "Loading fleets…" : `${fleets.length} fleets grouping drivers and vehicles`}
         actions={
-          <Button
-            onClick={() => dialog.setOpen(true)}
-            className="bg-[#0066FF] hover:bg-[#0040CC] text-white h-10 rounded-lg shadow-[0_10px_28px_-8px_rgba(0,102,255,0.45)]"
-            data-testid="fleets-new-button"
-          >
-            <Plus className="h-4 w-4 mr-1.5" /> Create fleet
-          </Button>
+          canCreate ? (
+            <Button
+              onClick={() => dialog.setOpen(true)}
+              className="bg-[#0066FF] hover:bg-[#0040CC] text-white h-10 rounded-lg shadow-[0_10px_28px_-8px_rgba(0,102,255,0.45)]"
+              data-testid="fleets-new-button"
+            >
+              <Plus className="h-4 w-4 mr-1.5" /> Create fleet
+            </Button>
+          ) : null
         }
       />
       <div className="px-6 pb-2">
@@ -178,16 +199,44 @@ export default function FleetsList() {
           onComplete={load}
           testPrefix="fleets"
         />
+        <FleetListFilters
+          filters={filters}
+          onChange={setFilters}
+          serviceAreaOptions={lookups.serviceAreas}
+          vendorOptions={lookups.facilitators}
+        />
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <div className="relative max-w-md flex-1 min-w-[220px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B5563]" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && load()}
               placeholder="Search fleets…"
               className="pl-9 bg-[#F5F6F8] border-black/[0.08]"
               data-testid="fleets-search"
             />
+          </div>
+          <Button variant="outline" size="sm" onClick={load} data-testid="fleets-apply-search">
+            Apply
+          </Button>
+          <div className="flex gap-1 border border-black/[0.08] rounded-md p-0.5">
+            <Button
+              variant={layout === "cards" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setLayout("cards")}
+              data-testid="fleets-layout-cards"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={layout === "table" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setLayout("table")}
+              data-testid="fleets-layout-table"
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+            </Button>
           </div>
           {filteredFleets.length > 0 && (
             <Button variant="outline" size="sm" onClick={selectAllFiltered} data-testid="fleets-select-all">
@@ -217,6 +266,21 @@ export default function FleetsList() {
           )}
         </div>
       </div>
+      {layout === "table" ? (
+        <div className="px-6 pb-6">
+          <DataTable
+            columns={tableColumns}
+            data={filteredFleets}
+            loading={loading}
+            rowKey="id"
+            onRowClick={(r) => openDetail(r.id)}
+            selectable
+            selectedKeys={selectedKeys}
+            onSelectedKeysChange={setSelectedKeys}
+            testid="fleets-table"
+          />
+        </div>
+      ) : (
       <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {!loading && filteredFleets.length === 0 && (
           <div className="col-span-full text-sm text-[#4B5563]" data-testid="fleets-empty">
@@ -285,6 +349,7 @@ export default function FleetsList() {
           );
         })}
       </div>
+      )}
       <FleetOpsFormDialog
         open={dialog.open}
         onOpenChange={dialog.setOpen}

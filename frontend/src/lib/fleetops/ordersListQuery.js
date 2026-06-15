@@ -1,4 +1,5 @@
 import { EN_ROUTE_API_STATUS_VALUES } from "@/domain/fleetops/status";
+import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 
 /** URL + API query helpers for orders list (Day 1 — G001, G034, G055). */
 
@@ -12,6 +13,7 @@ export const ORDERS_LIST_DEFAULTS = {
   sort_dir: "desc",
   without_driver: false,
   order_config: "",
+  fleet: "",
 };
 
 export function parseOrdersListSearchParams(searchParams) {
@@ -26,7 +28,8 @@ export function parseOrdersListSearchParams(searchParams) {
   const order_config = searchParams.get("order_config") || "";
   const bulk_query = searchParams.get("bulk_query") || "";
   const hidden_cols = searchParams.get("hidden_cols") || "";
-  return { page, limit, layout, status, search, sort, sort_dir, without_driver, order_config, bulk_query, hidden_cols };
+  const fleet = searchParams.get("fleet") || "";
+  return { page, limit, layout, status, search, sort, sort_dir, without_driver, order_config, bulk_query, hidden_cols, fleet };
 }
 
 export function buildOrdersListApiParams(state) {
@@ -72,7 +75,7 @@ export function buildOrdersListApiParams(state) {
   if (state.bulk_query?.trim()) {
     params.bulk_query = state.bulk_query.trim();
   }
-  return params;
+  return appendFleetFilterParams(params, state.fleet);
 }
 
 export function ordersListSearchParamsFromState(state, overrides = {}) {
@@ -89,5 +92,6 @@ export function ordersListSearchParamsFromState(state, overrides = {}) {
   if (next.order_config) sp.set("order_config", next.order_config);
   if (next.bulk_query) sp.set("bulk_query", next.bulk_query);
   if (next.hidden_cols) sp.set("hidden_cols", next.hidden_cols);
+  if (next.fleet) sp.set("fleet", next.fleet);
   return sp;
 }

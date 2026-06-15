@@ -114,6 +114,7 @@ export function buildFleetPayload(values) {
     zone: values.zoneId,
     vendor: values.vendorId,
     parent_fleet: values.parentFleetId,
+    image: values.imageId || values.imageUuid,
     custom_field_values: values.customFieldValues,
   });
   return { fleet: body };

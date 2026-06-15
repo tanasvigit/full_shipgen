@@ -366,6 +366,7 @@ export const mapVehicleRow = (vehicle) => {
     type: String(vehicle?.vehicle_type || vehicle?.type || "cargo_van").replace(/-/g, "_"),
     mileage: Number(vehicle?.mileage || vehicle?.odometer || 0),
     driverId: vehicle?.driver_uuid || vehicle?.driver_id || vehicle?.driver?.id || null,
+    fleets: Array.isArray(vehicle?.fleets) ? vehicle.fleets.map((f) => mapFleet(f)) : [],
     vin: vehicle?.vin || vehicle?.vehicle_identification_number || "—",
     fuel: Number(vehicle?.fuel_level ?? vehicle?.fuel ?? 0),
     lastService:
@@ -390,6 +391,7 @@ export const mapDriverRow = (driver) => ({
   ...mapDriver(driver),
   internalId: driver?.internal_id || driver?.internalId || driver?.public_id || "",
   licenseNumber: driver?.drivers_license_number || driver?.license_number || "",
+  fleets: Array.isArray(driver?.fleets) ? driver.fleets.map((f) => mapFleet(f)) : [],
 });
 
 const formatApiDate = (v) => {
