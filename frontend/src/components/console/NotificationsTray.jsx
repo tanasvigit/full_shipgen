@@ -1,5 +1,6 @@
 import { Bell, Package, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { parseApiError } from "@/lib/errors";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,7 +34,7 @@ export default function NotificationsTray() {
       const notifications = await consoleService.listNotifications();
       setItems(notifications.map(mapNotification));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load notifications.");
+      toast.error(parseApiError(err, "Could not load notifications."));
       setItems([]);
     }
   }, []);
@@ -49,7 +50,7 @@ export default function NotificationsTray() {
       await consoleService.markAllNotificationsRead();
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not mark all read.");
+      toast.error(parseApiError(err, "Could not mark all read."));
     }
   }
 

@@ -8,6 +8,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ReportsList() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function ReportsList() {
       toast.success("Deleted");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Delete failed");
+      toast.error(parseApiError(err, "Delete failed"));
     }
   };
 

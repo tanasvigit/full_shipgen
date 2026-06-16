@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -105,7 +106,7 @@ export default function UserFormDialog({
           setAvatarPreview(mapped.avatarUrl || null);
         }
       } catch (err) {
-        setError(err?.friendlyMessage || "Could not load user form.");
+        setError(parseApiError(err, "Could not load user form."));
       } finally {
         setLoading(false);
       }
@@ -133,7 +134,7 @@ export default function UserFormDialog({
       setAvatarPreview(normalized?.url || raw?.url);
       toast.success("Photo uploaded");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Upload failed.");
+      toast.error(parseApiError(err, "Upload failed."));
     } finally {
       setUploadingAvatar(false);
       e.target.value = "";
@@ -199,11 +200,7 @@ export default function UserFormDialog({
       onOpenChange(false);
       toast.success(isCreate ? `User ${form.email} created` : "User saved");
     } catch (err) {
-      const msg =
-        err?.friendlyMessage ||
-        err?.response?.data?.errors?.[0] ||
-        err?.message ||
-        "Save failed.";
+      const msg = parseApiError(err, "Save failed.");
       setError(msg);
       toast.error(msg);
     } finally {

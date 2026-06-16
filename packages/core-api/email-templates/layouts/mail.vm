@@ -1,0 +1,2 @@
+## Deprecated: use layouts/shipgen.vm
+#parse('layouts/shipgen')

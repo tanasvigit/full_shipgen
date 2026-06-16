@@ -13,6 +13,7 @@ import { mapPermission, mapPolicy } from "@/lib/mappers";
 import { usePoliciesListPage } from "@/hooks/iam/usePoliciesListPage";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
 import { IAM_SCHEME_TYPES, schemeTypeLabel } from "@/lib/iam/schemeTypes";
+import { parseApiError } from "@/lib/errors";
 import {
   buildPermissionMatrixActions,
   buildPermissionMatrixModules,
@@ -84,7 +85,7 @@ export default function PoliciesList() {
         setDirty(false);
       } catch (err) {
         if (err?.response?.status === 403) toast.error("You cannot view this policy.");
-        else toast.error(err?.friendlyMessage || "Could not load policy.");
+        else toast.error(parseApiError(err, "Could not load policy."));
         setGrantIds(new Set());
       } finally {
         setPolicyLoading(false);
@@ -119,7 +120,7 @@ export default function PoliciesList() {
       toast.success("Policy permissions updated");
     } catch (err) {
       if (err?.response?.status === 403) toast.error("You cannot edit this policy.");
-      else toast.error(err?.friendlyMessage || "Could not save policy.");
+      else toast.error(parseApiError(err, "Could not save policy."));
     }
   }
 
@@ -135,7 +136,7 @@ export default function PoliciesList() {
       if (activePolicy === policy.id) setActivePolicy(null);
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete policy.");
+      toast.error(parseApiError(err, "Could not delete policy."));
     }
   }
 
@@ -150,7 +151,7 @@ export default function PoliciesList() {
       if ([...selectedPolicyIds].includes(activePolicy)) setActivePolicy(null);
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Bulk delete failed.");
+      toast.error(parseApiError(err, "Bulk delete failed."));
     } finally {
       setBulkBusy(false);
     }
@@ -162,7 +163,7 @@ export default function PoliciesList() {
       await iamService.exportPolicies({ selections });
       toast.success("Export started");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export is not available on this API build.");
+      toast.error(parseApiError(err, "Export is not available on this API build."));
     }
   }
 
@@ -171,7 +172,7 @@ export default function PoliciesList() {
       const raw = await iamService.getPolicy(policy.id);
       setViewPermsPolicy(mapPolicy(raw));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load policy.");
+      toast.error(parseApiError(err, "Could not load policy."));
     }
   }
 

@@ -10,6 +10,7 @@ import { mapStoreCustomer, statusLabelExt } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function CustomerDetail() {
   const { id } = useParams();
@@ -26,7 +27,7 @@ export default function CustomerDetail() {
       const raw = await storefrontService.getCustomer(id);
       setC(mapStoreCustomer(raw));
     } catch (err) {
-      setLoadErr(err?.friendlyMessage || "Failed to load customer.");
+      setLoadErr(parseApiError(err, "Failed to load customer."));
       setC(null);
     } finally {
       setLoading(false);

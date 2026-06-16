@@ -15,11 +15,11 @@ require __DIR__ . '/../vendor/autoload.php';
 $app = require __DIR__ . '/../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-$email = getenv('ADMIN_EMAIL') ?: 'admin@shipgen-fleet.com';
+$email = getenv('ADMIN_EMAIL') ?: 'admin@shipgen.net';
 $password = getenv('ADMIN_PASSWORD') ?: 'Shipgen@Fleet2026!';
 $name = getenv('ADMIN_NAME') ?: 'Shipgen Admin';
 $phone = getenv('ADMIN_PHONE') ?: '+919876543210';
-$org = getenv('ADMIN_ORG') ?: 'shipgen-fleet';
+$org = getenv('ADMIN_ORG') ?: 'shipgen';
 
 if (User::exists()) {
     $existing = User::where('email', $email)->first();

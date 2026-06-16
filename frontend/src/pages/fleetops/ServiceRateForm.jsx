@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ServiceRateForm() {
   const { id } = useParams();
@@ -44,7 +45,7 @@ export default function ServiceRateForm() {
         setCurrency(row?.currency || "USD");
         setZones(typeof row?.zones === "string" ? row.zones : JSON.stringify(row?.zones || {}, null, 2));
       } catch (err) {
-        toast.error(parseFleetopsApiError(err));
+        toast.error(parseApiError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -84,7 +85,7 @@ export default function ServiceRateForm() {
         toast.success("Service rate updated");
       }
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

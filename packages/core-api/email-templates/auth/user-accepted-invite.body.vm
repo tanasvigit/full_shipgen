@@ -1,0 +1,5 @@
+﻿<h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:800;color:#0A0E1A;">Welcome to the team</h1>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;"><strong>$userName</strong> accepted your invitation and joined <strong>$companyName</strong>.</p>
+#set($actionUrl = $teamUrl)
+#set($actionLabel = "View Team")
+#parse('partials/cta')

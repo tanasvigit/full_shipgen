@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api";
 import { env } from "@/lib/env";
 import { fleetopsRealtimeManager } from "@/domain/fleetops/realtime/registry";
+import { parseApiError } from "@/lib/errors";
 
 /** Paths that exist on Fleetbase API — avoid bare `/` or `/settings` (404/500 noise). */
 const HEALTH_PROBE_PATHS = ["/settings/branding", "/users/me"];
@@ -54,7 +55,7 @@ export async function checkApiHealth() {
         continue;
       }
     } catch (err) {
-      lastError = err?.friendlyMessage || err?.message || "API unreachable";
+      lastError = parseApiError(err, "API unreachable");
     }
   }
 

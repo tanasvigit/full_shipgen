@@ -313,7 +313,7 @@ class SettingController extends Controller
             'from',
             [
                 'address' => Utils::getDefaultMailFromAddress(),
-                'name'    => 'Fleetbase',
+                'name'    => 'Shipgen',
             ]
         );
         $smtp           = $request->input('smtp', []);

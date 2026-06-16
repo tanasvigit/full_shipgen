@@ -12,6 +12,7 @@ import { iamService } from "@/services/iam";
 import { parseTwoFaSettings, resolveTwoFaAfterSave } from "@/lib/iam/twoFa";
 import TwoFaConfirmDialog from "@/components/iam/TwoFaConfirmDialog";
 import { features } from "@/lib/features";
+import { parseApiError } from "@/lib/errors";
 
 export default function Account() {
     const { user, organizations, activeOrganization, switchOrganization } = useAuth();
@@ -41,7 +42,7 @@ export default function Account() {
             const fallback = parseTwoFaSettings(user);
             setTwoFa(fallback.enabled);
             setTwoFaMethod(fallback.method);
-            toast.error(err?.friendlyMessage || "Could not load two-factor settings.");
+            toast.error(parseApiError(err, "Could not load two-factor settings."));
         } finally {
             setTwoFaLoading(false);
         }
@@ -67,7 +68,7 @@ export default function Account() {
             setPendingTwoFa(null);
         } catch (err) {
             setTwoFa(prev);
-            toast.error(err?.friendlyMessage || "Failed to update two-factor authentication.");
+            toast.error(parseApiError(err, "Failed to update two-factor authentication."));
         } finally {
             setTwoFaSaving(false);
         }

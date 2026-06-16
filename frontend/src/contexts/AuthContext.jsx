@@ -6,6 +6,7 @@ import { resolveIamPermissionCandidates } from "@/lib/iam/permissions";
 import { loadingManager, MESSAGES } from "@/services/loading-manager";
 import { onboardingContextStorage } from "@/lib/onboarding/contextStorage";
 import { logOnboardingDebug } from "@/lib/onboarding/debug";
+import { env } from "@/lib/env";
 
 const AuthContext = createContext(null);
 
@@ -102,8 +103,8 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         if (!active) return;
-        // Fail open to installer when status cannot be loaded (e.g. DB missing).
-        setShouldInstall(true);
+        // SaaS-safe fallback: do not route users to installer unless explicitly enabled.
+        setShouldInstall(Boolean(env.INSTALLER_UI_ENABLED));
         setShouldOnboard(false);
       })
       .finally(() => {

@@ -1,0 +1,15 @@
+﻿<h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:800;color:#0A0E1A;">New order received</h1>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;"><strong>$storeName</strong> received a new <strong>$orderMethod</strong> order.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(180deg,#F8FAFF 0%,#F5F6F8 100%);border:1px solid rgba(0,102,255,0.12);border-radius:12px;">
+  <tr>
+    <td style="padding:20px 22px;font-size:14px;line-height:1.8;color:#4B5563;">
+      <p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Customer:</strong> $customerName ($customerPhone)</p>
+      <p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Items:</strong> $items</p>
+#if($deliveryAddress && $deliveryAddress != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Address:</strong> $deliveryAddress</p><p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Delivery fee:</strong> $deliveryFee</p>#end
+#if($deliveryTip && $deliveryTip != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Delivery tip:</strong> $deliveryTip</p>#end
+#if($tip && $tip != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Tip:</strong> $tip</p>#end
+      <p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Subtotal:</strong> $subtotal</p>
+      <p style="margin:0;"><strong style="color:#0A0E1A;">Total:</strong> $total</p>
+    </td>
+  </tr>
+</table>

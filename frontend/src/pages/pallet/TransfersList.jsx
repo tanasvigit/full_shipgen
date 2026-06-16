@@ -8,6 +8,7 @@ import { palletService } from "@/services/pallet";
 import { mapAuditTransfer, mapPalletWarehouse, statusLabelPallet } from "@/lib/mappers";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const STATUSES = ["all", "draft", "in_transit", "received", "canceled"];
 
@@ -32,7 +33,7 @@ export default function TransfersList() {
         .filter(Boolean);
       setTransfers(xfer);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load transfer activity.");
+      toast.error(parseApiError(err, "Failed to load transfer activity."));
       setTransfers([]);
       setWarehouses([]);
     } finally {

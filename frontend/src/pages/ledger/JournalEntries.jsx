@@ -7,6 +7,7 @@ import { ledgerService } from "@/services/ledger";
 import { mapAccount, mapJournalEntry, statusLabelExt } from "@/lib/mappers";
 import { formatMoney, majorToMinor } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -27,7 +28,7 @@ export default function JournalEntries() {
       setEntries((jeRaw || []).map(mapJournalEntry));
       setAccounts((accRaw || []).map(mapAccount));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load journal entries.");
+      toast.error(parseApiError(err, "Failed to load journal entries."));
       setEntries([]);
       setAccounts([]);
     } finally {
@@ -61,7 +62,7 @@ export default function JournalEntries() {
       await load();
       return { toast: "Journal entry created" };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create journal entry.");
+      toast.error(parseApiError(err, "Failed to create journal entry."));
       return { error: true };
     } finally {
       setSubmitting(false);

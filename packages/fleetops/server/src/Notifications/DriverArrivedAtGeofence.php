@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Notifications;
 
 use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -18,6 +19,7 @@ use Illuminate\Notifications\Notification;
 class DriverArrivedAtGeofence extends Notification
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order associated with the arrival.
@@ -51,18 +53,15 @@ class DriverArrivedAtGeofence extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail($notifiable): MailMessage
+    public function toMail($notifiable)
     {
-        $geofenceName = $this->geofence->name ?? 'your location';
-        $orderId      = $this->order->public_id ?? $this->order->uuid;
+        $orderId = $this->order->public_id ?? $this->order->uuid;
 
-        return (new MailMessage())
-            ->subject("Your driver has arrived — Order #{$orderId}")
-            ->greeting('Good news!')
-            ->line("Your driver has arrived at {$geofenceName} for order #{$orderId}.")
-            ->line('Please be ready to receive your delivery.')
-            ->action('Track Your Order', url("/tracking/{$this->order->tracking_number}"))
-            ->line('Thank you for using our service.');
+        return $this->velocityMail('fleetops.driver-arrived-geofence', [
+            'orderId' => $orderId,
+            'geofenceName' => $this->geofence->name ?? 'your location',
+            'trackUrl' => url('/tracking/' . $this->order->tracking_number),
+        ]);
     }
 
     /**

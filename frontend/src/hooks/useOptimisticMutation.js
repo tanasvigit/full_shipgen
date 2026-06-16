@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
+import { parseApiError } from "@/lib/errors";
 
 /**
  * Optimistic update with rollback on failure.
@@ -18,7 +18,7 @@ export function useOptimisticMutation() {
       return result;
     } catch (err) {
       if (rollback && snapshot !== undefined) rollback(snapshot);
-      toast.error(errorMessage || parseFleetopsApiError(err));
+      toast.error(errorMessage || parseApiError(err));
       throw err;
     } finally {
       setPending(false);

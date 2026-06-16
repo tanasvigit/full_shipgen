@@ -14,6 +14,7 @@ import { mapPermission, mapRole } from "@/lib/mappers";
 import { useRolesListPage } from "@/hooks/iam/useRolesListPage";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
 import { IAM_SCHEME_TYPES, schemeTypeLabel } from "@/lib/iam/schemeTypes";
+import { parseApiError } from "@/lib/errors";
 
 const STD_ACTIONS = ["view", "create", "update", "delete", "dispatch", "cancel", "impersonate", "manage"];
 
@@ -134,7 +135,7 @@ export default function RolesList() {
         setPoliciesDirty(false);
       } catch (err) {
         if (err?.response?.status === 403) toast.error("You cannot view this role’s permissions.");
-        else toast.error(err?.friendlyMessage || "Could not load role details.");
+        else toast.error(parseApiError(err, "Could not load role details."));
         setGrantIds(new Set());
         setRolePolicies([]);
       } finally {
@@ -175,7 +176,7 @@ export default function RolesList() {
       toast.success("Role updated");
     } catch (err) {
       if (err?.response?.status === 403) toast.error("You cannot edit this role.");
-      else toast.error(err?.friendlyMessage || "Could not save role.");
+      else toast.error(parseApiError(err, "Could not save role."));
     }
   }
 
@@ -191,7 +192,7 @@ export default function RolesList() {
       if (activeRole === role.id) setActiveRole(null);
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete role.");
+      toast.error(parseApiError(err, "Could not delete role."));
     }
   }
 
@@ -206,7 +207,7 @@ export default function RolesList() {
       if ([...selectedRoleIds].includes(activeRole)) setActiveRole(null);
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Bulk delete failed.");
+      toast.error(parseApiError(err, "Bulk delete failed."));
     } finally {
       setBulkBusy(false);
     }
@@ -218,7 +219,7 @@ export default function RolesList() {
       await iamService.exportRoles({ selections });
       toast.success("Export started");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed.");
+      toast.error(parseApiError(err, "Export failed."));
     }
   }
 
@@ -227,7 +228,7 @@ export default function RolesList() {
       const raw = await iamService.getRole(role.id);
       setViewPermsRole(mapRole(raw));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load role.");
+      toast.error(parseApiError(err, "Could not load role."));
     }
   }
 

@@ -10,6 +10,7 @@ import { ledgerService } from "@/services/ledger";
 import { mapInvoiceRow, statusLabelExt } from "@/lib/mappers";
 import { formatMoney, majorToMinor } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const STATUSES = ["all", "draft", "sent", "paid", "overdue", "partial", "viewed"];
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -28,7 +29,7 @@ export default function InvoicesList() {
       const raw = await ledgerService.listInvoices({ limit: 500, sort: "-created_at" });
       setInvoices((raw || []).map(mapInvoiceRow));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load invoices.");
+      toast.error(parseApiError(err, "Failed to load invoices."));
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export default function InvoicesList() {
       const row = mapInvoiceRow(created);
       return { toast: `Invoice ${row.number} created` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create invoice.");
+      toast.error(parseApiError(err, "Failed to create invoice."));
       return { error: true };
     } finally {
       setSubmitting(false);

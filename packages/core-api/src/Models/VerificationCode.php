@@ -138,7 +138,16 @@ class VerificationCode extends Model
             }
 
             // Initialize the mailable definition
-            $mail = new VerificationMail($verificationCode, $content);
+            $subjectOverride = data_get($options, 'subject');
+            if (is_callable($subjectOverride)) {
+                $subjectOverride = $subjectOverride($verificationCode);
+            }
+
+            $mail = new VerificationMail(
+                $verificationCode,
+                is_string($content) ? $content : null,
+                is_string($subjectOverride) ? $subjectOverride : null
+            );
 
             // Apply any additional Mail facade parameters
             $mailer = Mail::to($subject);

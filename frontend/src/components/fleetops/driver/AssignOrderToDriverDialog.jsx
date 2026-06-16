@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function AssignOrderToDriverDialog({ open, onOpenChange, driverId, driverName }) {
   const [orders, setOrders] = useState([]);
@@ -50,7 +51,7 @@ export default function AssignOrderToDriverDialog({ open, onOpenChange, driverId
       toast.success(`Order assigned to ${driverName || "driver"}`);
       onOpenChange(false);
     } catch (err) {
-      setError(err?.friendlyMessage || "Assignment failed");
+      setError(parseApiError(err, "Assignment failed"));
     } finally {
       setBusy(false);
     }

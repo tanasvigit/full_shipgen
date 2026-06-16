@@ -8,6 +8,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapCart, mapProduct } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function CheckoutPreview() {
   const [products, setProducts] = useState([]);
@@ -36,7 +37,7 @@ export default function CheckoutPreview() {
         if (!alive) return;
         setProducts((raw || []).map(mapProduct).filter((p) => p.isAvailable !== false));
       } catch (err) {
-        if (alive) toast.error(err?.friendlyMessage || "Failed to load products for checkout.");
+        if (alive) toast.error(parseApiError(err, "Failed to load products for checkout."));
       }
     })();
     return () => {
@@ -52,7 +53,7 @@ export default function CheckoutPreview() {
       setCart(mapCart(raw, productLookup));
       setCartError(null);
     } catch (err) {
-      setCartError(err?.friendlyMessage || "Cart API unavailable. Ensure storefront v1 routes are reachable.");
+      setCartError(parseApiError(err, "Cart API unavailable. Ensure storefront v1 routes are reachable."));
       setCartId(null);
       setCart(null);
     }
@@ -80,7 +81,7 @@ export default function CheckoutPreview() {
         setCartError(null);
       } catch (err) {
         if (token === syncRef.current) {
-          setCartError(err?.friendlyMessage || "Failed to sync cart with server.");
+          setCartError(parseApiError(err, "Failed to sync cart with server."));
         }
       } finally {
         if (token === syncRef.current) setSyncing(false);

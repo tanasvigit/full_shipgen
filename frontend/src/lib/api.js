@@ -1,5 +1,6 @@
 import axios from "axios";
 import { env } from "@/lib/env";
+import { parseApiError } from "@/lib/errors";
 import { authStorage, orgStorage } from "@/lib/storage";
 import { loadingManager } from "@/services/loading-manager";
 
@@ -18,14 +19,8 @@ function releaseLoading(config) {
   config?.__releaseLoading?.();
 }
 
-const getErrorMessage = (error) => {
-  const payload = error?.response?.data;
-  if (Array.isArray(payload?.errors) && payload.errors.length > 0) return payload.errors[0];
-  if (typeof payload?.error === "string") return payload.error;
-  if (typeof payload?.message === "string") return payload.message;
-  if (typeof error?.message === "string") return error.message;
-  return "Unexpected API error";
-};
+const getErrorMessage = (error, fallback = "Something went wrong. Please try again.") =>
+  parseApiError(error, fallback);
 
 export const apiClient = axios.create({
   baseURL: env.API_BASE_URL,
@@ -142,8 +137,10 @@ export const authorizedHostRequest = async (method, absolutePathSuffix, axiosCon
   }
 };
 
-export const toApiError = (error) => ({
+export const toApiError = (error, fallback = "Something went wrong. Please try again.") => ({
   status: error?.response?.status || 500,
-  message: error?.friendlyMessage || "Unexpected API error",
+  message: parseApiError(error, fallback),
   raw: error,
 });
+
+export { parseApiError, parseApiFieldErrors, showApiError } from "@/lib/errors";

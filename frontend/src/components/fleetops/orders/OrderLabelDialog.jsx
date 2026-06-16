@@ -4,6 +4,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 export default function OrderLabelDialog({ open, onOpenChange, orderId, orderPublicId }) {
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function OrderLabelDialog({ open, onOpenChange, orderId, orderPub
         if (!b64) throw new Error("No label data returned.");
         if (active) setPdfSrc(`data:application/pdf;base64,${b64}`);
       } catch (err) {
-        if (active) setError(parseFleetopsApiError(err));
+        if (active) setError(parseApiError(err));
       } finally {
         if (active) setLoading(false);
       }

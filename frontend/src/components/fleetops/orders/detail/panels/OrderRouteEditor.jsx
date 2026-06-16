@@ -6,6 +6,7 @@ import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { extractStopsFromOrder, normalizeOptimizationResult, runRouteOptimization } from "@/lib/fleetops/routing";
 import { toast } from "sonner";
 import { RefreshCw, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 export default function OrderRouteEditor({
   order,
@@ -86,7 +87,7 @@ export default function OrderRouteEditor({
       toast.success("Route updated");
       onSaved?.();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }
@@ -120,7 +121,7 @@ export default function OrderRouteEditor({
       toast.success("Route optimized");
       onSaved?.();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }
@@ -139,7 +140,7 @@ export default function OrderRouteEditor({
       setWaypoints([]);
       onSaved?.();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

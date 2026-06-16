@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useFleetopsSettings } from "@/hooks/fleetops/useFleetopsSettings";
+import { parseApiError } from "@/lib/errors";
 
 export default function SettingsSectionForm({ section, title, fields, testIdPrefix }) {
   const { value, loading, save } = useFleetopsSettings(section);
@@ -21,7 +22,7 @@ export default function SettingsSectionForm({ section, title, fields, testIdPref
       await save(form);
       toast.success(`${title} settings saved`);
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Could not save settings.");
+      toast.error(parseApiError(error, "Could not save settings."));
     } finally {
       setSaving(false);
     }

@@ -10,6 +10,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapStoreCustomer } from "@/lib/mappers";
 import { toast } from "sonner";
 import { PORTAL_NAME } from "@/lib/branding";
+import { parseApiError } from "@/lib/errors";
 
 export default function PromotionsList() {
   const [title, setTitle] = useState("");
@@ -94,7 +95,7 @@ export default function PromotionsList() {
       setTitle("");
       setBody("");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to send push notification.");
+      toast.error(parseApiError(err, "Failed to send push notification."));
     } finally {
       setLoading(false);
     }

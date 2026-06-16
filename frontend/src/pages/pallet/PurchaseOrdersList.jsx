@@ -9,6 +9,7 @@ import { palletService } from "@/services/pallet";
 import { mapPurchaseOrderRow, mapPalletSupplier, mapPalletWarehouse, statusLabelPallet } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const STATUSES = ["all", "draft", "approved", "in_transit", "received", "canceled"];
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -34,7 +35,7 @@ export default function PurchaseOrdersList() {
       setSuppliers((supRaw || []).map((s) => mapPalletSupplier(s)));
       setWarehouses((whRaw || []).map((w) => mapPalletWarehouse(w)));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load purchase orders.");
+      toast.error(parseApiError(err, "Failed to load purchase orders."));
       setPos([]);
       setSuppliers([]);
       setWarehouses([]);
@@ -104,7 +105,7 @@ export default function PurchaseOrdersList() {
       await load();
       return { toast: "Purchase order created" };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create purchase order.");
+      toast.error(parseApiError(err, "Failed to create purchase order."));
       return { error: true };
     } finally {
       setSubmitting(false);

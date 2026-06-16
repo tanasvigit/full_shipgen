@@ -10,6 +10,7 @@ import { mapWebhook, mapWebhookRequestLog } from "@/lib/mappers";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { maskSecret } from "@/lib/maskSecret";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 function statusColor(s) {
   if (s >= 500) return "bg-red-500/10 border-red-500/20 text-[#B91C1C]";
@@ -59,7 +60,7 @@ export default function WebhookDetail() {
       }
       setDeliveries(logs.map(mapWebhookRequestLog));
     } catch (err) {
-      setLoadErr(err?.friendlyMessage || "Failed to load webhook.");
+      setLoadErr(parseApiError(err, "Failed to load webhook."));
       setW(null);
     } finally {
       setLoading(false);
@@ -84,7 +85,7 @@ export default function WebhookDetail() {
       }
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not update webhook status.");
+      toast.error(parseApiError(err, "Could not update webhook status."));
     }
   }
 

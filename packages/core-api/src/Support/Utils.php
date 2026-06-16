@@ -2405,10 +2405,10 @@ class Utils
      */
     public static function getDefaultMailFromAddress(?string $default = null): string
     {
-        $from = env('MAIL_FROM_ADDRESS', $default);
+        $from = env('MAIL_NOREPLY_ADDRESS', env('MAIL_FROM_ADDRESS', $default));
 
         if (!$from && env('CONSOLE_HOST')) {
-            $from = 'hello@' . Str::domain(env('CONSOLE_HOST'));
+            $from = 'noreply@' . Str::domain(env('CONSOLE_HOST'));
         }
 
         if (!$from && is_string($default)) {
@@ -2416,7 +2416,7 @@ class Utils
         }
 
         if (!$from) {
-            $from = 'hello@' . \Illuminate\Support\Facades\Request::server('SERVER_ADDR');
+            $from = 'noreply@' . \Illuminate\Support\Facades\Request::server('SERVER_ADDR');
         }
 
         return $from;

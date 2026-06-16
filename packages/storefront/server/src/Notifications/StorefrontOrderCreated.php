@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Storefront\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Storefront\Models\Network;
 use Fleetbase\Storefront\Models\Store;
@@ -16,6 +17,7 @@ use NotificationChannels\Twilio\TwilioSmsMessage;
 class StorefrontOrderCreated extends Notification
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -113,47 +115,22 @@ class StorefrontOrderCreated extends Notification
      */
     public function toMail($notifiable)
     {
-        $storeName  = $this->storefront->name;
-        $isPickup   = $this->order->getMeta('is_pickup');
-        $isDelivery = !$isPickup;
-        $method     = $isPickup ? 'pickup' : 'delivery';
-        $items      = $this->order->payload->entities->map(function ($entity) {
-            return $entity->name;
-        })->join(',');
-        $customerName    = $this->order->customer->name;
-        $customerPhone   = $this->order->customer->phone;
-        $deliveryAddress = $this->order->payload->dropoff->address;
-        $subtotal        = $this->order->getMeta('subtotal');
-        $deliveryFee     = $this->order->getMeta('delivery_fee');
-        $tip             = $this->order->getMeta('tip');
-        $deliveryTip     = $this->order->getMeta('delivery_tip');
-        $total           = $this->order->getMeta('total');
-        $currency        = $this->order->getMeta('currency');
+        $isPickup = $this->order->getMeta('is_pickup');
+        $currency = $this->order->getMeta('currency');
 
-        $message = (new MailMessage())
-            ->subject('🚨 ' . $storeName . ' has received new order!')
-            ->greeting('Hello!')
-            ->line('A new ' . $method . ' order was just created!')
-            ->line('Customer: ' . $customerName . ' (' . $customerPhone . ')')
-            ->line('Items: ' . $items);
-
-        if ($isDelivery) {
-            $message->line('Address: ' . $deliveryAddress);
-            $message->line('Delivery Fee: ' . Utils::moneyFormat($deliveryFee, $currency));
-
-            if ($deliveryTip) {
-                $message->line('Delivery Tip: ' . Utils::moneyFormat($deliveryTip, $currency));
-            }
-        }
-
-        if ($tip) {
-            $message->line('Tip: ' . Utils::moneyFormat($tip, $currency));
-        }
-
-        $message->line('Subtotal: ' . Utils::moneyFormat($subtotal, $currency));
-        $message->line('Total: ' . Utils::moneyFormat($total, $currency));
-
-        return $message;
+        return $this->velocityMail('storefront.order-created', [
+            'storeName' => $this->storefront->name,
+            'orderMethod' => $isPickup ? 'pickup' : 'delivery',
+            'customerName' => $this->order->customer->name,
+            'customerPhone' => $this->order->customer->phone,
+            'items' => $this->order->payload->entities->map(fn ($entity) => $entity->name)->join(','),
+            'deliveryAddress' => !$isPickup ? $this->order->payload->dropoff->address : null,
+            'deliveryFee' => !$isPickup ? Utils::moneyFormat($this->order->getMeta('delivery_fee'), $currency) : null,
+            'deliveryTip' => !$isPickup && $this->order->getMeta('delivery_tip') ? Utils::moneyFormat($this->order->getMeta('delivery_tip'), $currency) : null,
+            'tip' => $this->order->getMeta('tip') ? Utils::moneyFormat($this->order->getMeta('tip'), $currency) : null,
+            'subtotal' => Utils::moneyFormat($this->order->getMeta('subtotal'), $currency),
+            'total' => Utils::moneyFormat($this->order->getMeta('total'), $currency),
+        ], session('company') ?? data_get($this->order, 'company.uuid'));
     }
 
     /**

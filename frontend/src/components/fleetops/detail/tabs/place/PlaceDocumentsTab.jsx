@@ -6,6 +6,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 export default function PlaceDocumentsTab({ placeId, enabled = true }) {
   const ability = useFleetopsAbility();
@@ -44,7 +45,7 @@ export default function PlaceDocumentsTab({ placeId, enabled = true }) {
       setDocuments(next);
       toast.success("Document uploaded");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Upload failed");
+      toast.error(parseApiError(err, "Upload failed"));
     } finally {
       setBusy(false);
     }

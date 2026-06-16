@@ -9,6 +9,7 @@ import { ArrowLeft, Ban, RefreshCw, Trash2 } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ManifestDetail() {
   const { id } = useParams();
@@ -26,7 +27,7 @@ export default function ManifestDetail() {
       const stopRows = raw?.stops || raw?.manifest_stops || raw?.manifestStops || [];
       setStops((stopRows || []).map((s) => mapCrudRow(s, "manifest-stop")));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load manifest");
+      toast.error(parseApiError(err, "Failed to load manifest"));
       setManifest(null);
       setStops([]);
     } finally {
@@ -46,7 +47,7 @@ export default function ManifestDetail() {
       toast.success("Manifest cancelled");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Cancel failed");
+      toast.error(parseApiError(err, "Cancel failed"));
     } finally {
       setBusy(false);
     }
@@ -60,7 +61,7 @@ export default function ManifestDetail() {
       toast.success("Manifest deleted");
       navigate("/fleet-ops/admin/manifests");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Delete failed");
+      toast.error(parseApiError(err, "Delete failed"));
     } finally {
       setBusy(false);
     }

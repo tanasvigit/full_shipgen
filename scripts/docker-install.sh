@@ -187,7 +187,7 @@ if $CONFIG_MAIL; then
     *) MAIL_MAILER="smtp" ;;
   esac
 
-  DEFAULT_FROM="hello@$( $IS_LOCALHOST && echo 'example.com' || echo "$HOST" )"
+  DEFAULT_FROM="noreply@$( $IS_LOCALHOST && echo 'example.com' || echo "$HOST" )"
   read -rp  "  From address [$DEFAULT_FROM]: " MAIL_FROM_INPUT
   MAIL_FROM_ADDRESS="${MAIL_FROM_INPUT:-$DEFAULT_FROM}"
   read -rp  "  From name [$APP_NAME]: " MAIL_FROM_NAME_INPUT

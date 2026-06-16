@@ -7,6 +7,7 @@ import { mapDriverRow, mapOrder } from "@/lib/mappers";
 import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import { bestFitDriversToOrders } from "@/lib/fleetops/allocation";
+import { parseApiError } from "@/lib/errors";
 import {
   buildFleetScheduleOrderMap,
   fleetScheduleWeekRange,
@@ -104,7 +105,7 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0, flee
         return next;
       });
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load fleet schedule.");
+      toast.error(parseApiError(err, "Could not load fleet schedule."));
       setDrivers([]);
       setOrders([]);
     } finally {
@@ -192,7 +193,7 @@ export default function FleetScheduleView({ weekOffset = 0, refreshKey = 0, flee
       setSelectedOrderIds(new Set());
       await reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || err?.message || "Best-fit assignment failed");
+      toast.error(parseApiError(err, "Best-fit assignment failed"));
     } finally {
       setAssigning(false);
     }

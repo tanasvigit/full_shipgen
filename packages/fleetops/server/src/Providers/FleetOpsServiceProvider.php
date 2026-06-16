@@ -134,6 +134,7 @@ class FleetOpsServiceProvider extends CoreServiceProvider
             $schedule->command('fleetops:send-maintenance-reminders')->daily()->withoutOverlapping()->storeOutputInDb();
         });
         $this->registerNotifications();
+        \Fleetbase\FleetOps\Mail\FleetOpsEmailTemplateRegistry::register();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
 
         // Register built-in orchestration engines.

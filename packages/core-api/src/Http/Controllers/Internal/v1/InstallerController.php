@@ -3,6 +3,7 @@
 namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
+use Fleetbase\Models\Company;
 use Fleetbase\Models\Setting;
 use Fleetbase\Support\InstallerMigrationPaths;
 use Fleetbase\Support\InstallerSchemaReset;
@@ -14,6 +15,16 @@ use Illuminate\Support\Facades\Schema;
 
 class InstallerController extends Controller
 {
+    protected function installerUiEnabled(): bool
+    {
+        return (bool) config('fleetbase.installer.ui_enabled', false);
+    }
+
+    protected function runtimeSetupEnabled(): bool
+    {
+        return (bool) config('fleetbase.installer.runtime_setup_enabled', false);
+    }
+
     /**
      * Checks installation status with aggressive caching.
      *
@@ -21,6 +32,16 @@ class InstallerController extends Controller
      */
     public function initialize()
     {
+        if (!$this->installerUiEnabled()) {
+            return response()->json([
+                'shouldInstall'     => false,
+                'shouldOnboard'     => Company::doesntExist(),
+                'defaultTheme'      => Setting::lookup('branding.default_theme', 'dark'),
+                'installerEnabled'  => false,
+                'runtimeSetupReady' => false,
+            ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        }
+
         $cacheKey = 'installer_status';
         $cacheTTL = now()->addHour(); // Cache for 1 hour
 
@@ -30,7 +51,10 @@ class InstallerController extends Controller
         });
 
         // Do not cache in the browser — stale shouldInstall=false sends users to /auth.
-        return response()->json($status)
+        return response()->json($status + [
+            'installerEnabled'  => true,
+            'runtimeSetupReady' => $this->runtimeSetupEnabled(),
+        ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
             ->header('X-Cache-Status', Cache::has($cacheKey) ? 'HIT' : 'MISS');
     }
@@ -124,6 +148,13 @@ class InstallerController extends Controller
 
     public function createDatabase()
     {
+        if (!$this->runtimeSetupEnabled()) {
+            return response()->json([
+                'status' => 'error',
+                'error'  => 'Runtime database setup from the UI is disabled. Run database provisioning during deployment.',
+            ], 403);
+        }
+
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 0);
 
@@ -143,6 +174,13 @@ class InstallerController extends Controller
 
     public function migrate()
     {
+        if (!$this->runtimeSetupEnabled()) {
+            return response()->json([
+                'status' => 'error',
+                'error'  => 'Runtime migrations from the UI are disabled. Run migrations during deployment.',
+            ], 403);
+        }
+
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 0);
 
@@ -177,6 +215,13 @@ class InstallerController extends Controller
 
     public function seed()
     {
+        if (!$this->runtimeSetupEnabled()) {
+            return response()->json([
+                'status' => 'error',
+                'error'  => 'Runtime seeding from the UI is disabled. Run seeders during deployment.',
+            ], 403);
+        }
+
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 0);
 

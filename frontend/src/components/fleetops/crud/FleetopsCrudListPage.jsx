@@ -16,6 +16,7 @@ import { getEntityConfig } from "@/domain/fleetops/detail/registry";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
 import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
+import { parseApiError } from "@/lib/errors";
 
 export default function FleetopsCrudListPage({ config }) {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function FleetopsCrudListPage({ config }) {
       const raw = await api.list();
       setRows(raw.map((r) => mapCrudRow(r, config.key)));
     } catch (err) {
-      toast.error(err?.friendlyMessage || `Could not load ${config.pluralLabel.toLowerCase()}.`);
+      toast.error(parseApiError(err, `Could not load ${config.pluralLabel.toLowerCase()}.`));
       setRows([]);
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ export default function FleetopsCrudListPage({ config }) {
       toast.success("Deleted");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Delete failed");
+      toast.error(parseApiError(err, "Delete failed"));
     }
   };
 

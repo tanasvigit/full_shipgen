@@ -11,6 +11,7 @@ import { mapStoreCustomer, statusLabelExt } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function CustomersList() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function CustomersList() {
       const raw = await storefrontService.listCustomers({ limit: 500 });
       setCustomers((raw || []).map(mapStoreCustomer));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load customers.");
+      toast.error(parseApiError(err, "Failed to load customers."));
       setCustomers([]);
     } finally {
       setLoading(false);
@@ -110,7 +111,7 @@ export default function CustomersList() {
       setCustomers((p) => [mapped, ...p.filter((c) => String(c.id) !== String(mapped.id))]);
       return { toast: `Customer ${v.name} added` };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create customer.");
+      throw new Error(parseApiError(err, "Failed to create customer."));
     }
   }
 

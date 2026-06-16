@@ -1,0 +1,5 @@
+#parse('partials/heading')
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;">$message</p>
+#parse('partials/cta')
+#set($footerNoteBody = "No further action is necessary.")
+#parse('partials/muted-note')

@@ -4,6 +4,7 @@ import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import QuickCreateDialog from "@/components/common/QuickCreateDialog";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -37,7 +38,7 @@ export default function ApiKeysList() {
       const raw = await developersService.listApiCredentials();
       setKeys(raw.map(mapApiCredential));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load API keys.");
+      toast.error(parseApiError(err, "Failed to load API keys."));
       setKeys([]);
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export default function ApiKeysList() {
       if (plain) setOnceSecret(plain);
       toast.success("Key rotated · previous key is invalid");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to rotate key.");
+      toast.error(parseApiError(err, "Failed to rotate key."));
     }
   }
 
@@ -94,7 +95,7 @@ export default function ApiKeysList() {
       await reload();
       toast.success("Key revoked");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to revoke key.");
+      toast.error(parseApiError(err, "Failed to revoke key."));
     }
   }
 
@@ -117,7 +118,7 @@ export default function ApiKeysList() {
       setRevealed((r) => ({ ...r, [mapped.id]: Boolean(plain) }));
       return { toast: plain ? "API key created · copy the secret from the dialog" : "API key created" };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create API key.");
+      throw new Error(parseApiError(err, "Failed to create API key."));
     }
   }
 

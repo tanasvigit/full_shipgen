@@ -9,6 +9,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapCatalog, mapProduct, statusLabelExt } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -30,7 +31,7 @@ export default function ProductDetail() {
       setP(mapProduct(raw));
       setCatalogs((catRaw || []).map(mapCatalog));
     } catch (err) {
-      setLoadErr(err?.friendlyMessage || "Failed to load product.");
+      setLoadErr(parseApiError(err, "Failed to load product."));
       setP(null);
     } finally {
       setLoading(false);

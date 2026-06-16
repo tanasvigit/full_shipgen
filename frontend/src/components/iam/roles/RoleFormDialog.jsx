@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -62,7 +63,7 @@ export default function RoleFormDialog({
         setPolicies(Array.isArray(raw.policies) ? raw.policies : mapped.policies || []);
       })
       .catch((err) => {
-        toast.error(err?.friendlyMessage || "Could not load role.");
+        toast.error(parseApiError(err, "Could not load role."));
         onOpenChange(false);
       })
       .finally(() => setLoading(false));
@@ -98,7 +99,7 @@ export default function RoleFormDialog({
       }
       onOpenChange(false);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not save role.");
+      toast.error(parseApiError(err, "Could not save role."));
     } finally {
       setBusy(false);
     }

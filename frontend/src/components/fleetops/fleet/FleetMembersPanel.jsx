@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import StatusBadge from "@/components/common/StatusBadge";
 import { statusLabel } from "@/lib/mappers";
+import { parseApiError } from "@/lib/errors";
 
 export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = [], onChanged, mode = "all" }) {
   const { can } = useFleetopsPermission();
@@ -48,7 +49,7 @@ export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = []
       setDriverPick("");
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to assign driver");
+      toast.error(parseApiError(err, "Failed to assign driver"));
     } finally {
       setBusy(false);
     }
@@ -61,7 +62,7 @@ export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = []
       toast.success("Driver removed");
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to remove driver");
+      toast.error(parseApiError(err, "Failed to remove driver"));
     } finally {
       setBusy(false);
     }
@@ -76,7 +77,7 @@ export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = []
       setVehiclePick("");
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to assign vehicle");
+      toast.error(parseApiError(err, "Failed to assign vehicle"));
     } finally {
       setBusy(false);
     }
@@ -89,7 +90,7 @@ export default function FleetMembersPanel({ fleetId, drivers = [], vehicles = []
       toast.success("Vehicle removed");
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to remove vehicle");
+      toast.error(parseApiError(err, "Failed to remove vehicle"));
     } finally {
       setBusy(false);
     }

@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\User;
 use Illuminate\Bus\Queueable;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
 class UserCreated extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The user that has been created.
@@ -83,12 +85,11 @@ class UserCreated extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject('New User Added to Your Organization')
-            ->line('A new user has been added to your organization.')
-            ->line('Name: ' . $this->user->name)
-            ->line('Email: ' . $this->user->email)
-            ->line('Phone: ' . $this->user->phone);
+        return $this->velocityMail('auth.user-created', [
+            'userName' => $this->user->name,
+            'userEmail' => $this->user->email,
+            'userPhone' => $this->user->phone,
+        ], $this->company->uuid);
     }
 
     /**

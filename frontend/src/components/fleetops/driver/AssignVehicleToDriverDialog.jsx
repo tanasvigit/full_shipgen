@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fleetopsService } from "@/services/fleetops";
 import { mapVehicleRow } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function AssignVehicleToDriverDialog({ open, onOpenChange, driverId }) {
   const [vehicles, setVehicles] = useState([]);
@@ -28,7 +29,7 @@ export default function AssignVehicleToDriverDialog({ open, onOpenChange, driver
       toast.success("Vehicle assigned");
       onOpenChange(false);
     } catch (err) {
-      setError(err?.friendlyMessage || "Assignment failed");
+      setError(parseApiError(err, "Assignment failed"));
     } finally {
       setBusy(false);
     }

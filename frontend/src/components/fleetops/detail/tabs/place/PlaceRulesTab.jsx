@@ -5,6 +5,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 export default function PlaceRulesTab({ placeId, enabled = true }) {
   const ability = useFleetopsAbility();
@@ -35,7 +36,7 @@ export default function PlaceRulesTab({ placeId, enabled = true }) {
       await fleetopsService.updatePlaceMeta(placeId, { rules: next });
       setRules(next);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not save rules");
+      toast.error(parseApiError(err, "Could not save rules"));
     } finally {
       setBusy(false);
     }

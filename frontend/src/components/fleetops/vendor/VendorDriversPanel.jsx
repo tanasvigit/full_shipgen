@@ -7,6 +7,7 @@ import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
+import { parseApiError } from "@/lib/errors";
 
 export default function VendorDriversPanel({ vendorId }) {
   const ability = useFleetopsAbility();
@@ -47,7 +48,7 @@ export default function VendorDriversPanel({ vendorId }) {
       setSelected("");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Assign failed");
+      toast.error(parseApiError(err, "Assign failed"));
     } finally {
       setBusy(false);
     }
@@ -60,7 +61,7 @@ export default function VendorDriversPanel({ vendorId }) {
       toast.success("Driver removed");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Remove failed");
+      toast.error(parseApiError(err, "Remove failed"));
     } finally {
       setBusy(false);
     }

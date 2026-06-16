@@ -4,6 +4,7 @@ import { Radio, Activity } from "lucide-react";
 import { developersService } from "@/services/developers";
 import { mapChatChannel } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function SocketsList() {
   const [channels, setChannels] = useState([]);
@@ -15,7 +16,7 @@ export default function SocketsList() {
       const raw = await developersService.listChatChannels({ limit: 200 });
       setChannels((raw || []).map(mapChatChannel));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load chat channels.");
+      toast.error(parseApiError(err, "Failed to load chat channels."));
       setChannels([]);
     } finally {
       setLoading(false);

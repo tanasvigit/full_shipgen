@@ -6,6 +6,7 @@ import { Plus, BookOpen, Package } from "lucide-react";
 import { storefrontService } from "@/services/storefront";
 import { mapCatalog, mapProduct } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function CatalogsList() {
   const [catalogs, setCatalogs] = useState([]);
@@ -23,7 +24,7 @@ export default function CatalogsList() {
       setCatalogs((catRaw || []).map(mapCatalog));
       setProducts((prodRaw || []).map(mapProduct));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load catalogs.");
+      toast.error(parseApiError(err, "Failed to load catalogs."));
       setCatalogs([]);
       setProducts([]);
     } finally {
@@ -45,7 +46,7 @@ export default function CatalogsList() {
       setCatalogs((p) => [mapped, ...p]);
       return { toast: `Catalog "${v.name}" created` };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create catalog.");
+      throw new Error(parseApiError(err, "Failed to create catalog."));
     }
   }
 

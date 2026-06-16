@@ -15,6 +15,7 @@ import { DetailLoadingState, resolveDetailEntityId } from "@/lib/fleetops/detail
 import ServiceRatesForRoutePicker from "@/components/fleetops/service-rates/ServiceRatesForRoutePicker";
 import { ArrowLeft, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,7 +79,7 @@ export default function RouteDetail({
     try {
       setRoute(await fleetopsService.getRoute(id));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Route not found");
+      toast.error(parseApiError(err, "Route not found"));
       setRoute(null);
     } finally {
       setLoading(false);
@@ -127,7 +128,7 @@ export default function RouteDetail({
       toast.success("Route optimized");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Optimize failed");
+      toast.error(parseApiError(err, "Optimize failed"));
     } finally {
       setBusy(false);
     }
@@ -145,7 +146,7 @@ export default function RouteDetail({
         navigate("/fleet-ops/operations/routes");
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Delete failed");
+      toast.error(parseApiError(err, "Delete failed"));
     }
   };
 

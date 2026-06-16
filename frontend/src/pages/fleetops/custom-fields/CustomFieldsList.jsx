@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import DataTable from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 function CustomFieldGroupsPanel() {
   const [groups, setGroups] = useState([]);
@@ -24,7 +25,7 @@ function CustomFieldGroupsPanel() {
       const rows = await fleetopsService.listCustomFieldGroups();
       setGroups(rows || []);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load groups");
+      toast.error(parseApiError(err, "Failed to load groups"));
       setGroups([]);
     } finally {
       setLoading(false);
@@ -48,7 +49,7 @@ function CustomFieldGroupsPanel() {
       setName("");
       await loadGroups();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not create group");
+      toast.error(parseApiError(err, "Could not create group"));
     } finally {
       setBusy(false);
     }

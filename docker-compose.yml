@@ -3,6 +3,7 @@ x-fleetbase-api-common: &fleetbase-api-common
   image: fleetbase-api-onprem:local
   volumes:
     - ./api/.env:/fleetbase/api/.env
+    - ./api/public:/fleetbase/api/public
     - ./api/storage/app:/fleetbase/api/storage/app
     - ./packages:/fleetbase/packages
 
@@ -164,7 +165,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet-iam
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"
@@ -200,7 +205,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet-ops
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"
@@ -241,7 +250,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet-pallet
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"
@@ -277,7 +290,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet-ledger
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"
@@ -313,7 +330,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet-storefront
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"
@@ -352,7 +373,11 @@ services:
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
       BROADCAST_DRIVER: socketcluster
-      MAIL_FROM_NAME: shipgen-fleet
+      MAIL_FROM_NAME: Shipgen
+      MAIL_SALES_ADDRESS: sales@shipgen.net
+      MAIL_SUPPORT_ADDRESS: support@shipgen.net
+      MAIL_NOREPLY_ADDRESS: noreply@shipgen.net
+      MAIL_BILLING_ADDRESS: billing@shipgen.net
       APP_NAME: shipgen-fleet
       LOG_CHANNEL: daily
       TELEMETRY_DISABLED: "true"

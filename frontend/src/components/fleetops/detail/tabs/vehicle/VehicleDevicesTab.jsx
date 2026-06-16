@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 
@@ -51,7 +52,7 @@ export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
       setSelected("");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Attach failed");
+      toast.error(parseApiError(err, "Attach failed"));
     }
   };
 
@@ -61,7 +62,7 @@ export default function VehicleDevicesTab({ vehicleId, enabled = true }) {
       toast.success("Device detached");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Detach failed");
+      toast.error(parseApiError(err, "Detach failed"));
     }
   };
 

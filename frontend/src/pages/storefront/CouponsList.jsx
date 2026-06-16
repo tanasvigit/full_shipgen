@@ -9,6 +9,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapCoupon, statusLabelExt } from "@/lib/mappers";
 import { safeCopyToClipboard } from "@/lib/clipboard";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function CouponsList() {
   const [coupons, setCoupons] = useState([]);
@@ -26,7 +27,7 @@ export default function CouponsList() {
       setCoupons([]);
       setApiAvailable(false);
       if (err?.response?.status !== 404) {
-        toast.error(err?.friendlyMessage || "Failed to load coupons.");
+        toast.error(parseApiError(err, "Failed to load coupons."));
       }
     } finally {
       setLoading(false);
@@ -94,7 +95,7 @@ export default function CouponsList() {
       setCoupons((p) => [mapped, ...p]);
       return { toast: `Coupon ${mapped.code} created` };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create coupon.");
+      throw new Error(parseApiError(err, "Failed to create coupon."));
     }
   }
 

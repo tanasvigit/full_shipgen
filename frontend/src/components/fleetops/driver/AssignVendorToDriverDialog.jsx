@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function AssignVendorToDriverDialog({ open, onOpenChange, driverId }) {
   const [vendors, setVendors] = useState([]);
@@ -28,7 +29,7 @@ export default function AssignVendorToDriverDialog({ open, onOpenChange, driverI
       toast.success("Vendor assigned");
       onOpenChange(false);
     } catch (err) {
-      setError(err?.friendlyMessage || "Assignment failed");
+      setError(parseApiError(err, "Assignment failed"));
     } finally {
       setBusy(false);
     }

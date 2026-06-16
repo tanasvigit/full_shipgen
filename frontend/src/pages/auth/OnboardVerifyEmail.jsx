@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function OnboardVerifyEmail() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function OnboardVerifyEmail() {
     } catch (err) {
       const code = err?.raw?.code || err?.code;
       if (code === "ONBOARDING_UNRECOVERABLE") {
-        toast.error(err?.message || "Verification could not continue.");
+        toast.error(parseApiError(err, "Verification could not continue."));
         navigate("/auth", { replace: true });
         return;
       }

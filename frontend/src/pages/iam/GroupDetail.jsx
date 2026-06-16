@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { iamService } from "@/services/iam";
 import { mapGroup, mapRole } from "@/lib/mappers";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
+import { parseApiError } from "@/lib/errors";
 
 export default function GroupDetail() {
   const { id } = useParams();
@@ -37,7 +38,7 @@ export default function GroupDetail() {
     } catch (err) {
       setGroup(null);
       if (err?.response?.status === 404) toast.error("Group not found.");
-      else toast.error(err?.friendlyMessage || "Could not load group.");
+      else toast.error(parseApiError(err, "Could not load group."));
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function GroupDetail() {
                     await load();
                     toast.success("Group saved");
                   } catch (err) {
-                    toast.error(err?.friendlyMessage || "Could not save group.");
+                    toast.error(parseApiError(err, "Could not save group."));
                   }
                 }}
                 data-testid="group-save"
@@ -188,7 +189,7 @@ export default function GroupDetail() {
                               await load();
                               toast.success("Member removed");
                             } catch (err) {
-                              toast.error(err?.friendlyMessage || "Could not remove member.");
+                              toast.error(parseApiError(err, "Could not remove member."));
                             }
                           }}
                           data-testid={`group-remove-member-${m.id}`}
@@ -216,7 +217,7 @@ export default function GroupDetail() {
                   toast.success("Group deleted");
                   navigate("/iam/groups");
                 } catch (err) {
-                  toast.error(err?.friendlyMessage || "Could not delete group.");
+                  toast.error(parseApiError(err, "Could not delete group."));
                 }
               }}
               data-testid="group-delete"

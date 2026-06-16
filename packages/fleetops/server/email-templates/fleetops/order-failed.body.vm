@@ -1,0 +1,8 @@
+#parse('partials/heading')
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;">$message</p>
+#if($reason && $reason != '')
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px;background:linear-gradient(180deg,#F8FAFF 0%,#F5F6F8 100%);border:1px solid rgba(0,102,255,0.12);border-radius:12px;">
+  <tr><td style="padding:16px 20px;font-size:14px;line-height:1.6;color:#4B5563;"><strong style="color:#0A0E1A;">Reason:</strong> $reason</td></tr>
+</table>
+#end
+#parse('partials/cta')

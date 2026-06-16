@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import StatusBadge from "@/components/common/StatusBadge";
+import { parseApiError } from "@/lib/errors";
 
 /** Load fleet memberships via fleets list filter (reliable; does not depend on vehicle/driver ?with=fleets). */
 async function loadEntityFleets(entityType, entityId) {
@@ -91,7 +92,7 @@ export default function EntityFleetsPanel({ entityType, entityId, fleets = [], o
       await refreshMembership();
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to assign fleet");
+      toast.error(parseApiError(err, "Failed to assign fleet"));
     } finally {
       setBusy(false);
     }
@@ -109,7 +110,7 @@ export default function EntityFleetsPanel({ entityType, entityId, fleets = [], o
       await refreshMembership();
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to remove fleet");
+      toast.error(parseApiError(err, "Failed to remove fleet"));
     } finally {
       setBusy(false);
     }

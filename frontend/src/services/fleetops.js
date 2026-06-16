@@ -1,4 +1,5 @@
 import { apiClient, unwrapEntity, unwrapList, unwrapListPage } from "@/lib/api";
+import { parseApiError } from "@/lib/errors";
 import {
   buildDriverPayload,
   buildFleetPayload,
@@ -120,15 +121,7 @@ const shouldTryNextCandidate = (error) => {
 };
 
 /** Pull human-readable messages from Fleetbase error envelopes. */
-const getApiErrorText = (error) => {
-  const data = error?.response?.data;
-  if (Array.isArray(data?.errors)) {
-    return data.errors.map((e) => (typeof e === "string" ? e : e?.message || "")).join(" ");
-  }
-  if (typeof data?.message === "string") return data.message;
-  if (typeof data?.error === "string") return data.error;
-  return error?.message || "";
-};
+const getApiErrorText = (error) => parseApiError(error, "");
 
 const ORDER_TRANSITION_IDEMPOTENT = {
   dispatch: ["order has already been dispatched"],
@@ -516,11 +509,8 @@ export const fleetopsService = {
 
   _wrapOrderConfigBody(values) {
     const payload = buildOrderConfigPayload(values);
-    return [
-      { orderconfig: payload },
-      { order_config: payload },
-      payload,
-    ];
+    // FleetOps OrderConfigController validates $request->input('orderConfig').
+    return { orderConfig: payload };
   },
 
   async getOrderConfig(configId) {
@@ -530,30 +520,16 @@ export const fleetopsService = {
   },
 
   async createOrderConfig(values) {
-    let lastError;
-    for (const body of this._wrapOrderConfigBody(values)) {
-      try {
-        const payload = await tryCandidates(RESOURCES.orderConfigs, "post", "", body);
-        return unwrapEntity(payload, ["order_config", "orderConfig", "orderconfig"]);
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError;
+    const body = this._wrapOrderConfigBody(values);
+    const payload = await tryCandidates(RESOURCES.orderConfigs, "post", "", body);
+    return unwrapEntity(payload, ["order_config", "orderConfig", "orderconfig"]);
   },
 
   async updateOrderConfig(configId, values) {
     const id = String(configId);
-    let lastError;
-    for (const body of this._wrapOrderConfigBody(values)) {
-      try {
-        const payload = await tryCandidatesMutate(RESOURCES.orderConfigs, `/${id}`, body);
-        return unwrapEntity(payload, ["order_config", "orderConfig", "orderconfig"]);
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError;
+    const body = this._wrapOrderConfigBody(values);
+    const payload = await tryCandidatesMutate(RESOURCES.orderConfigs, `/${id}`, body);
+    return unwrapEntity(payload, ["order_config", "orderConfig", "orderconfig"]);
   },
 
   async deleteOrderConfig(configId) {

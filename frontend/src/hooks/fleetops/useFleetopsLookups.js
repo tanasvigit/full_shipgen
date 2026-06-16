@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fleetopsService } from "@/services/fleetops";
 import { fleetopsCache } from "@/domain/fleetops/cache/store";
+import { parseApiError } from "@/lib/errors";
 
 function toOption(row, labelKeys = ["name", "public_id"]) {
   const id = row?.uuid || row?.id || row?.public_id;
@@ -66,7 +67,7 @@ export function useFleetopsLookups(enabled = true) {
       setFacilitators(facilitatorRows.map((v) => toOption(v, ["name", "public_id"])).filter(Boolean));
       setServiceAreas(areaRows.map((a) => toOption(a)).filter(Boolean));
     } catch (err) {
-      setError(err?.friendlyMessage || err?.message || "Failed to load FleetOps lookups");
+      setError(parseApiError(err, "Failed to load FleetOps lookups"));
     } finally {
       setLoading(false);
     }

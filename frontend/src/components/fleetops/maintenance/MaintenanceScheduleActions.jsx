@@ -4,6 +4,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Pause, Play, Zap, Calendar } from "lucide-react";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { parseApiError } from "@/lib/errors";
 
 export default function MaintenanceScheduleActions({ scheduleId, onChanged }) {
   const [busy, setBusy] = useState(false);
@@ -26,7 +27,7 @@ export default function MaintenanceScheduleActions({ scheduleId, onChanged }) {
       toast.success(label);
       onChanged?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || `${label} failed`);
+      toast.error(parseApiError(err, `${label} failed`));
     } finally {
       setBusy(false);
     }

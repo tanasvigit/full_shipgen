@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Notifications;
 
+use Fleetbase\Mail\Support\MailboxPolicy;
 use Fleetbase\Models\VerificationCode;
 use Fleetbase\Support\Utils;
 use Illuminate\Bus\Queueable;
@@ -66,12 +67,21 @@ class PasswordReset extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject('Your password reset link for Fleetbase')
+        $policy = MailboxPolicy::forTemplate('auth.password-reset');
+
+        $mail = (new MailMessage())
+            ->subject('Your password reset link for Shipgen')
             ->greeting('Hello, ' . $notifiable->name)
             ->line('Looks like you (or someone phishy) has requested to reset your password. If you did not request a password reset link, ignore this email. If you have indeed forgot your password click the button below to reset your password using the code provided below.')
             ->line('Your password reset code: ' . $this->verificationCode->code)
             ->action('Reset Password', $this->url);
+
+        $mail->from($policy['from']->address, $policy['from']->name);
+        if ($policy['replyTo']) {
+            $mail->replyTo($policy['replyTo']->address, $policy['replyTo']->name);
+        }
+
+        return $mail;
     }
 
     /**

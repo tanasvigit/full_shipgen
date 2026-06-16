@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 const STEPS = ["provider", "credentials", "test", "link"];
 
@@ -51,7 +52,7 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
       toast.success("Credentials verified");
       setStep(2);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Credential test failed");
+      toast.error(parseApiError(err, "Credential test failed"));
     } finally {
       setBusy(false);
     }
@@ -68,7 +69,7 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
       toast.success("Connection OK");
       setStep(3);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Connection test failed");
+      toast.error(parseApiError(err, "Connection test failed"));
     } finally {
       setBusy(false);
     }
@@ -87,7 +88,7 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
       onComplete?.();
       handleClose(false);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Link failed");
+      toast.error(parseApiError(err, "Link failed"));
     } finally {
       setBusy(false);
     }
@@ -100,7 +101,7 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
       toast.success(`Discovered ${result?.devices?.length || 0} device(s)`);
       setStep(2);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Discover failed");
+      toast.error(parseApiError(err, "Discover failed"));
     } finally {
       setBusy(false);
     }

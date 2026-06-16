@@ -11,6 +11,7 @@ import { mapInvoiceRow, mapLedgerTxn, statusLabelExt } from "@/lib/mappers";
 import { formatMoney, formatMoneyMinor, minorToMajor } from "@/lib/formatMoney";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const accents = { lg_revenue: "emerald", lg_outstanding: "amber", lg_paid: "blue", lg_overdue: "red" };
 
@@ -43,7 +44,7 @@ export default function LedgerHome() {
       setInvoices((invRaw || []).map(mapInvoiceRow));
       setTransactions((txnRaw || []).map(mapLedgerTxn));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load ledger overview.");
+      toast.error(parseApiError(err, "Failed to load ledger overview."));
       setDashboard(null);
       setInvoices([]);
       setTransactions([]);

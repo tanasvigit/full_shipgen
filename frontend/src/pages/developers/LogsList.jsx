@@ -7,6 +7,7 @@ import { developersService } from "@/services/developers";
 import { mapApiLog } from "@/lib/mappers";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const METHODS = ["all", "GET", "POST", "PATCH", "DELETE"];
 
@@ -53,7 +54,7 @@ export default function LogsList() {
       });
       setLogs(mapped);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load request logs.");
+      toast.error(parseApiError(err, "Failed to load request logs."));
       setLogs([]);
     } finally {
       setLoading(false);

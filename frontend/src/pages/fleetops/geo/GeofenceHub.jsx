@@ -7,6 +7,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 
 export default function GeofenceHub() {
   const [draftGeometry, setDraftGeometry] = useState(null);
@@ -30,7 +31,7 @@ export default function GeofenceHub() {
       const dwellRows = Array.isArray(dw?.rows) ? dw.rows : Array.isArray(dw) ? dw : [];
       setDwell(dwellRows);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load geofence data");
+      toast.error(parseApiError(err, "Failed to load geofence data"));
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export default function GeofenceHub() {
       const rows = await fleetopsService.getGeofenceDriverHistory(driverUuid.trim());
       setDriverHistory(rows);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Driver history failed");
+      toast.error(parseApiError(err, "Driver history failed"));
       setDriverHistory([]);
     }
   };

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +70,7 @@ export default function AddGroupMembersDialog({ open, onOpenChange, groupId, exi
       onAdded?.();
       onOpenChange(false);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not add members.");
+      toast.error(parseApiError(err, "Could not add members."));
     } finally {
       setBusy(false);
     }

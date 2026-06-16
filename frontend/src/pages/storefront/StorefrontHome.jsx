@@ -9,6 +9,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapCatalog, mapProduct } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function StorefrontHome() {
   const [products, setProducts] = useState([]);
@@ -40,7 +41,7 @@ export default function StorefrontHome() {
         setMetrics(null);
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load storefront overview.");
+      toast.error(parseApiError(err, "Failed to load storefront overview."));
       setProducts([]);
       setCatalogs([]);
       setMetrics(null);

@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function OrderNotesTab({ order, rawOrder, editable = false, onSaved }) {
   const initialNotes = order?.notes || rawOrder?.notes || rawOrder?.dispatch_notes || "";
@@ -23,7 +24,7 @@ export default function OrderNotesTab({ order, rawOrder, editable = false, onSav
       toast.success("Notes saved");
       onSaved?.();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

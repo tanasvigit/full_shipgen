@@ -6,6 +6,7 @@ import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import PlaceForm from "@/components/fleetops/forms/PlaceForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +65,7 @@ export default function PlacesList() {
       const fromApi = rows.map(mapPlaceRow);
       setPlaces((prev) => mergeListWithPending(fromApi, prev));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load places.");
+      toast.error(parseApiError(err, "Could not load places."));
       setPlaces([]);
     } finally {
       setLoading(false);
@@ -93,7 +94,7 @@ export default function PlacesList() {
       toast.success(ids.length === 1 ? "Place deleted" : `${ids.length} places deleted`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete place.");
+      toast.error(parseApiError(err, "Could not delete place."));
     } finally {
       setDeleteBusy(false);
     }

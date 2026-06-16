@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ReportBuilder() {
   const { id } = useParams();
@@ -66,7 +67,7 @@ export default function ReportBuilder() {
         toast.success("Report saved");
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Save failed");
+      toast.error(parseApiError(err, "Save failed"));
     } finally {
       setBusy(false);
     }

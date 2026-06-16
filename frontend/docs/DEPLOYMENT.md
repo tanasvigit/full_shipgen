@@ -339,6 +339,10 @@ Never use `VITE_FLEETOPS_PERMISSIVE` in production.
 | `OSRM_HOST` | For routing | Public or self-hosted OSRM |
 | `VROOM_HOST` | For VRP | Self-hosted VROOM (503 if down) |
 | `GOOGLE_MAPS_API_KEY` | Optional | Maps |
+| `INSTALLER_UI_ENABLED` | SaaS: `false` | Disables UI `/install` flow |
+| `INSTALLER_RUNTIME_SETUP_ENABLED` | SaaS: `false` | Blocks runtime create DB/migrate/seed endpoints |
+| `DEPLOY_CREATE_DB` | Optional | `true` to run `php artisan mysql:createdb` in deploy job |
+| `DEPLOY_RUN_SEED` | Optional | `never` (default) or `always` in deploy job |
 
 CORS is configured in `api/config/cors.php` using `CONSOLE_HOST` + `FRONTEND_HOSTS`.
 
@@ -358,12 +362,12 @@ CORS is configured in `api/config/cors.php` using `CONSOLE_HOST` + `FRONTEND_HOS
 - [ ] HTTPS on public URLs; `VITE_SOCKETCLUSTER_SECURE=true` when using WSS
 - [ ] `VITE_FLEETOPS_PERMISSIVE` **unset** in production build
 
-### First-account onboarding smoke
+### First-account onboarding smoke (SaaS mode)
 
-- [ ] Fresh DB routes logged-out app to `/install`
-- [ ] Installer steps complete in order: `createdb` -> `migrate` -> `seed`
-- [ ] Post-install routes to onboarding/auth gate correctly
-- [ ] Mock/fresh install path: `should_onboard=true` routes logged-out `/` and `/auth` to `/auth/onboard`
+- [ ] Fresh DB does **not** route logged-out app to `/install`
+- [ ] Runtime installer endpoints are disabled (`INSTALLER_UI_ENABLED=false`, `INSTALLER_RUNTIME_SETUP_ENABLED=false`)
+- [ ] Deployment pipeline runs schema setup (`php artisan migrate --force` + `php artisan sandbox:migrate --force`)
+- [ ] Mock/fresh tenant path: `should_onboard=true` routes logged-out `/` and `/auth` to `/auth/onboard`
 - [ ] Create-account submits once and branches correctly (`skipVerification=true` -> dashboard, otherwise -> verify page)
 - [ ] Verify code success authenticates and enters console
 - [ ] Resend email + resend SMS show success/error states and retry works

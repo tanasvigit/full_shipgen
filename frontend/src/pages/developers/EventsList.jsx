@@ -5,6 +5,7 @@ import { Search, Zap, Copy } from "lucide-react";
 import { developersService } from "@/services/developers";
 import { mapDeveloperEventType } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function EventsList() {
   const [q, setQ] = useState("");
@@ -27,7 +28,7 @@ export default function EventsList() {
         if (mapped.length) setActive((prev) => (prev && mapped.some((e) => e.id === prev) ? prev : mapped[0].id));
       } catch (err) {
         if (!alive) return;
-        toast.error(err?.friendlyMessage || "Failed to load event catalog.");
+        toast.error(parseApiError(err, "Failed to load event catalog."));
         setEventTypes([]);
       } finally {
         if (alive) setLoading(false);

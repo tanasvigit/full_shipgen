@@ -1,0 +1,18 @@
+<h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:800;color:#0A0E1A;">Work order dispatched</h1>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;">Work order <strong>$workOrderPublicId</strong> has been assigned#if($assigneeName && $assigneeName != '') to <strong>$assigneeName</strong>#end.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(180deg,#F8FAFF 0%,#F5F6F8 100%);border:1px solid rgba(0,102,255,0.12);border-radius:12px;">
+  <tr>
+    <td style="padding:20px 22px;font-size:14px;line-height:1.8;color:#4B5563;">
+#if($workOrderSubjectLine && $workOrderSubjectLine != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Subject:</strong> $workOrderSubjectLine</p>#end
+      <p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Status:</strong> $workOrderStatus</p>
+      <p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Priority:</strong> $workOrderPriority</p>
+#if($targetName && $targetName != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Asset:</strong> $targetName</p>#end
+#if($dueAt && $dueAt != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Due:</strong> $dueAt</p>#end
+#if($estimatedCost && $estimatedCost != '')<p style="margin:0 0 8px;"><strong style="color:#0A0E1A;">Estimated cost:</strong> $estimatedCost</p>#end
+#if($approvedBudget && $approvedBudget != '')<p style="margin:0;"><strong style="color:#0A0E1A;">Approved budget:</strong> $approvedBudget</p>#end
+    </td>
+  </tr>
+</table>
+#if($instructions && $instructions != '')
+<p style="margin:16px 0 0;font-size:14px;line-height:1.6;color:#4B5563;"><strong style="color:#0A0E1A;">Instructions:</strong><br/>$instructions</p>
+#end

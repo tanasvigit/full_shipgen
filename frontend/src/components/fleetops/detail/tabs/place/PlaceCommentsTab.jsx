@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fleetopsService } from "@/services/fleetops";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function PlaceCommentsTab({ placeId, enabled = true }) {
   const ability = useFleetopsAbility();
@@ -42,7 +43,7 @@ export default function PlaceCommentsTab({ placeId, enabled = true }) {
       setDraft("");
       toast.success("Comment saved");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not save comment");
+      toast.error(parseApiError(err, "Could not save comment"));
     } finally {
       setBusy(false);
     }

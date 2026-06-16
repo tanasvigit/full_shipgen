@@ -8,6 +8,7 @@ import { ledgerService } from "@/services/ledger";
 import { mapAccount } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const TYPES = ["All", "Asset", "Liability", "Equity", "Revenue", "Expense"];
 
@@ -40,7 +41,7 @@ export default function ChartOfAccounts() {
       const raw = await ledgerService.listAccounts({ limit: 500, sort: "code" });
       setAccounts((raw || []).map(mapAccount));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load accounts.");
+      toast.error(parseApiError(err, "Failed to load accounts."));
       setAccounts([]);
     } finally {
       setLoading(false);
@@ -111,7 +112,7 @@ export default function ChartOfAccounts() {
       await load();
       return { toast: `Account ${v.code} ${v.name} created` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create account.");
+      toast.error(parseApiError(err, "Failed to create account."));
       return { error: true };
     } finally {
       setSubmitting(false);

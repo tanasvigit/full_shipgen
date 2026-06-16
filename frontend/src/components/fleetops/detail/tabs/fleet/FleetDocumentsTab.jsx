@@ -5,6 +5,7 @@ import { filesService } from "@/services/files";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 const FLEET_SUBJECT_TYPE = "fleet-ops:fleet";
 
@@ -41,7 +42,7 @@ export default function FleetDocumentsTab({ fleetId, enabled = true }) {
       await load();
       toast.success("Document uploaded");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Upload failed");
+      toast.error(parseApiError(err, "Upload failed"));
     } finally {
       setBusy(false);
     }

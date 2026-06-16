@@ -6,6 +6,7 @@ import QuickCreateDialog from "@/components/common/QuickCreateDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle, Download, PackageOpen } from "lucide-react";
 import { palletService } from "@/services/pallet";
+import { parseApiError } from "@/lib/errors";
 import {
   aggregateInventoryBySku,
   mapInventoryRecord,
@@ -37,7 +38,7 @@ export default function InventoryList() {
       setItems(aggregateInventoryBySku(invRaw || []));
       setWarehouses((whRaw || []).map((w) => mapPalletWarehouse(w)));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load inventory.");
+      toast.error(parseApiError(err, "Failed to load inventory."));
       setItems([]);
       setRecords([]);
       setWarehouses([]);
@@ -73,7 +74,7 @@ export default function InventoryList() {
       await load();
       return { toast: `Stock ${delta >= 0 ? "+" : ""}${delta} for ${record.name} at ${whById[v.warehouse]?.name || "warehouse"}` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to adjust stock.");
+      toast.error(parseApiError(err, "Failed to adjust stock."));
       return { error: true };
     } finally {
       setSubmitting(false);

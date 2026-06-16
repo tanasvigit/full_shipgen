@@ -4,6 +4,7 @@ import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import OrderConfigEditorDialog from "@/components/fleetops/order-config/OrderConfigEditorDialog";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,7 +41,7 @@ export default function OrderConfigManager() {
       const raw = await fleetopsService.listOrderConfigs();
       setRows((raw || []).map(mapOrderConfigRow).filter((r) => r.id));
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
       setRows([]);
     } finally {
       setLoading(false);
@@ -71,7 +72,7 @@ export default function OrderConfigManager() {
       await load();
       fleetopsCache.invalidate([fleetopsCacheKeys.lookups()]);
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }
@@ -87,7 +88,7 @@ export default function OrderConfigManager() {
       await load();
       fleetopsCache.invalidate([fleetopsCacheKeys.lookups()]);
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

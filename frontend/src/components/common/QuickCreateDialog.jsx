@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 /**
  * Reusable create-record dialog driven by a `fields` schema.
@@ -92,18 +93,14 @@ export default function QuickCreateDialog({
                     })
                     .catch((err) => {
                         setBusy(false);
-                        const msg =
-                            err?.friendlyMessage ||
-                            err?.response?.data?.errors?.[0] ||
-                            err?.message ||
-                            "Something went wrong";
+                        const msg = parseApiError(err, "Something went wrong");
                         setError(msg);
                         toast.error(msg);
                     });
             });
         } catch (err) {
             setBusy(false);
-            setError(err?.message || "Something went wrong");
+            setError(parseApiError(err, "Something went wrong"));
         }
     }
 

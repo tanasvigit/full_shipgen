@@ -5,6 +5,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
 import { Camera, Loader2 } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 export default function FleetPhotoUpload({ fleetId, photoUrl, onUpdated }) {
   const inputRef = useRef(null);
@@ -22,7 +23,7 @@ export default function FleetPhotoUpload({ fleetId, photoUrl, onUpdated }) {
       toast.success("Fleet photo updated");
       onUpdated?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Photo upload failed");
+      toast.error(parseApiError(err, "Photo upload failed"));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

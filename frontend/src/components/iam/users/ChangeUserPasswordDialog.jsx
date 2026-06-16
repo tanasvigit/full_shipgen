@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -91,7 +92,7 @@ export default function ChangeUserPasswordDialog({ open, onOpenChange, user, onS
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
-      const message = err?.friendlyMessage || "Failed to change password.";
+      const message = parseApiError(err, "Failed to change password.");
       setFormError(message);
       toast.error(message);
     } finally {

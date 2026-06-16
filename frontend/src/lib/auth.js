@@ -39,9 +39,11 @@ export const authService = {
     const response = await apiClient.get("/installer/initialize", { loading: false });
     const data = response?.data || {};
     return {
-      shouldInstall: Boolean(data?.shouldInstall),
+      shouldInstall: Boolean(data?.installerEnabled) && Boolean(data?.shouldInstall),
       shouldOnboard: Boolean(data?.shouldOnboard),
       defaultTheme: data?.defaultTheme || "dark",
+      installerEnabled: Boolean(data?.installerEnabled),
+      runtimeSetupReady: Boolean(data?.runtimeSetupReady),
     };
   },
 

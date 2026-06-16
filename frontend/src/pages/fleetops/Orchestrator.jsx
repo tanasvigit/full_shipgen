@@ -3,6 +3,7 @@ import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { parseApiError } from "@/lib/errors";
 import {
   Select,
   SelectContent,
@@ -111,7 +112,7 @@ export default function Orchestrator() {
       setPreview(data);
       toast.success("Preview ready");
     } catch (err) {
-      toast.error(err?.friendlyMessage || err?.message || "Orchestrator preview failed");
+      toast.error(parseApiError(err, "Orchestrator preview failed"));
     } finally {
       setBusy(false);
     }
@@ -130,7 +131,7 @@ export default function Orchestrator() {
       setSelectedKeys(new Set());
       await reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Commit failed");
+      toast.error(parseApiError(err, "Commit failed"));
     } finally {
       setBusy(false);
       setCommitOpen(false);

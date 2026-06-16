@@ -3,16 +3,20 @@
 namespace Fleetbase\Storefront\Mail;
 
 use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Mail\Concerns\RendersVelocityMailable;
 use Fleetbase\Models\Invite;
 use Fleetbase\Models\User;
 use Fleetbase\Storefront\Models\Network;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class StorefrontNetworkInvite extends Mailable
 {
     use Queueable;
+    use RendersVelocityMailable;
     use SerializesModels;
 
     public Invite $invite;
@@ -20,11 +24,6 @@ class StorefrontNetworkInvite extends Mailable
     public User $sender;
     public string $url;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct(Invite $invite)
     {
         $this->invite  = $invite;
@@ -33,17 +32,25 @@ class StorefrontNetworkInvite extends Mailable
         $this->url     = Utils::consoleUrl('join/network/' . $this->invite->uri);
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
-    public function build()
+    public function envelope(): Envelope
     {
-        return $this
-            ->subject('You have been invited to join ' . $this->invite->subject->name . '!')
-            ->from(config('mail.from.address', \Fleetbase\Support\Utils::getDefaultMailFromAddress()), $this->invite->subject->name)
-            ->to($this->invite->recipients ?? [])
-            ->markdown('emails.storefront-network-invite');
+        return $this->velocityEnvelope('storefront.network-invite', $this->templateVariables());
+    }
+
+    public function content(): Content
+    {
+        return $this->velocityContent('storefront.network-invite', $this->templateVariables());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function templateVariables(): array
+    {
+        return [
+            'networkName' => $this->network->name,
+            'senderName' => $this->sender->name,
+            'inviteUrl' => $this->url,
+        ];
     }
 }

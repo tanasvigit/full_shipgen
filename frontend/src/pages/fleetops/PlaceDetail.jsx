@@ -17,6 +17,7 @@ import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import PlaceForm, { placeValuesFromApi } from "@/components/fleetops/forms/PlaceForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,7 +76,7 @@ export default function PlaceDetail({
       setPlace(raw ? mapPlaceRow(raw) : null);
     } catch (err) {
       if (err?.response?.status === 404) toast.error("Place not found.");
-      else toast.error(err?.friendlyMessage || "Could not load place.");
+      else toast.error(parseApiError(err, "Could not load place."));
       setPlace(null);
     } finally {
       setLoading(false);
@@ -97,7 +98,7 @@ export default function PlaceDetail({
       if (embedded) closeDetail();
       else navigate("/fleet-ops/management/places");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete place.");
+      toast.error(parseApiError(err, "Could not delete place."));
     } finally {
       setDeleteBusy(false);
     }

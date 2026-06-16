@@ -17,6 +17,7 @@ import { getCrudApi } from "@/lib/fleetops/crudApi";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { fleetopsService } from "@/services/fleetops";
+import { parseApiError } from "@/lib/errors";
 import {
   DetailLoadingState,
   resolveDetailEntityId,
@@ -62,7 +63,7 @@ export default function FleetopsCrudDetailPage({
       setRaw(entity);
       setRow(mapCrudRow(entity, config.key));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load record.");
+      toast.error(parseApiError(err, "Could not load record."));
       setRaw(null);
       setRow(null);
     } finally {
@@ -104,7 +105,7 @@ export default function FleetopsCrudDetailPage({
       toast.success("Deleted");
       leaveDetail();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Delete failed");
+      toast.error(parseApiError(err, "Delete failed"));
     }
   };
 
@@ -117,7 +118,7 @@ export default function FleetopsCrudDetailPage({
       toast.success("Status updated");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Status update failed");
+      toast.error(parseApiError(err, "Status update failed"));
     }
   };
 

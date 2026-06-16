@@ -5,6 +5,7 @@ import { statusLabel } from "@/lib/mappers";
 import { normalizeStatus } from "@/domain/fleetops/status";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,7 @@ export default function OrderKanban({
       toast.success(`Advanced to ${statusLabel(targetStatus)}`);
       await onOrdersChange?.();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
       setDragOrderId(null);

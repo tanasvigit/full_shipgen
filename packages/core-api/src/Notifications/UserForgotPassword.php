@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Models\VerificationCode;
 use Fleetbase\Support\Utils;
 use Illuminate\Bus\Queueable;
@@ -12,6 +13,7 @@ use Illuminate\Notifications\Notification;
 class UserForgotPassword extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * Instance of the verification code for the password reset.
@@ -51,12 +53,11 @@ class UserForgotPassword extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject('Your password reset link for ' . config('app.name'))
-            ->greeting('Hello, ' . $notifiable->name)
-            ->line('Looks like you (or someone phishy) has requested to reset your password. If you did not request a password reset link, ignore this email. If you have indeed forgot your password click the button below to reset your password using the code provided below.')
-            ->line('Your password reset code:  ' . $this->verificationCode->code)
-            ->action('Reset Password', $this->url);
+        return $this->velocityMail('auth.password-reset', [
+            'notifiableName' => $notifiable->name,
+            'code' => $this->verificationCode->code,
+            'resetUrl' => $this->url,
+        ]);
     }
 
     /**

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,7 @@ export default function UserRowActions({ user, onRefresh, onPermissionsLoad, onC
       toast.success("Done");
       onRefresh?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Action failed.");
+      toast.error(parseApiError(err, "Action failed."));
     }
   };
 
@@ -42,7 +43,7 @@ export default function UserRowActions({ user, onRefresh, onPermissionsLoad, onC
       onPermissionsLoad?.(mapped);
       setPermissionsOpen(true);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load permissions.");
+      toast.error(parseApiError(err, "Could not load permissions."));
     }
   };
 

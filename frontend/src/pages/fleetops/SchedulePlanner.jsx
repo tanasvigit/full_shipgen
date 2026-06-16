@@ -14,6 +14,7 @@ import { detectScheduleConflicts } from "@/lib/fleetops/scheduleConflicts";
 import FleetScheduleView from "@/components/fleetops/schedule/FleetScheduleView";
 import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
 import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
+import { parseApiError } from "@/lib/errors";
 import {
   driverIdFromScheduleItem,
   hourWindowFromScheduleItem,
@@ -76,7 +77,7 @@ export default function SchedulePlanner() {
       setDriverRows(drivers);
       setItems(Array.isArray(rawItems) ? rawItems : []);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load schedule data.");
+      toast.error(parseApiError(err, "Could not load schedule data."));
       setDriverRows([]);
       setItems([]);
     } finally {

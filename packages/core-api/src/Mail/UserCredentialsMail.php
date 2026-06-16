@@ -2,63 +2,58 @@
 
 namespace Fleetbase\Mail;
 
+use Fleetbase\Mail\Concerns\RendersVelocityMailable;
+use Fleetbase\Mail\Support\CredentialEmailBranding;
 use Fleetbase\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Fleetbase\Support\Utils;
 
 class UserCredentialsMail extends Mailable
 {
     use Queueable;
+    use RendersVelocityMailable;
     use SerializesModels;
 
-    /**
-     * The plaintext password being sent.
-     */
     private string $plaintextPassword;
 
-    /**
-     * The user record the password belongs to.
-     */
     private User $user;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct(string $plaintextPassword, User $user)
     {
         $this->plaintextPassword = $plaintextPassword;
         $this->user              = $user;
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function envelope(): Envelope
     {
         $this->user->loadMissing('company');
 
-        return new Envelope(
-            subject: 'Your login credentials for ' . $this->user->company_name . ' on ' . config('app.name'),
-        );
+        return $this->velocityCredentialEnvelope('auth.user-credentials', $this->templateVariables());
+    }
+
+    public function content(): Content
+    {
+        return $this->velocityContent('auth.user-credentials', $this->templateVariables());
     }
 
     /**
-     * Get the message content definition.
+     * @return array<string, mixed>
      */
-    public function content(): Content
+    protected function templateVariables(): array
     {
-        return new Content(
-            markdown: 'fleetbase::mail.user-credentials',
-            with: [
-                'user'              => $this->user,
-                'plaintextPassword' => $this->plaintextPassword,
-                'currentHour'       => now()->hour,
-            ]
-        );
+        return [
+            'brandName' => CredentialEmailBranding::BRAND_NAME,
+            'headerTagline' => 'Command Center · Secure Access',
+            'logoUrl' => CredentialEmailBranding::emailLogoUrl(),
+            'headline' => CredentialEmailBranding::greetingHeadlineForUser($this->user),
+            'userName' => Utils::delinkify($this->user->name),
+            'userEmail' => $this->user->email,
+            'plaintextPassword' => $this->plaintextPassword,
+            'companyName' => $this->user->company_name,
+        ];
     }
 }

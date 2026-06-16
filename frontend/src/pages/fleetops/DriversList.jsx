@@ -13,6 +13,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, statusLabel } from "@/lib/mappers";
 import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
+import { parseApiError } from "@/lib/errors";
 import {
   markPendingSync,
   mergeListWithPending,
@@ -56,7 +57,7 @@ export default function DriversList() {
       const fromApi = raw.map(mapDriverRow);
       setDrivers((prev) => mergeListWithPending(fromApi, prev));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load drivers.");
+      toast.error(parseApiError(err, "Could not load drivers."));
       setDrivers([]);
     } finally {
       setLoading(false);

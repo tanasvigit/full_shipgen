@@ -7,6 +7,7 @@ import { Search, Star, Check, Sparkles, ShieldCheck, Blocks, Loader2 } from "luc
 import { registryService } from "@/services/registry";
 import { mapRegistryExtension } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const DEFAULT_CATEGORIES = ["All", "FleetOps", "Storefront", "Ledger", "Notifications", "Developers"];
 
@@ -49,7 +50,7 @@ export default function RegistryHome() {
         setCategories(["All", ...catNames.filter((n) => n !== "All")]);
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load extension registry.");
+      toast.error(parseApiError(err, "Failed to load extension registry."));
       setExtensions([]);
       setInstalledIds(new Set());
     } finally {
@@ -87,7 +88,7 @@ export default function RegistryHome() {
       }
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Install action failed.");
+      toast.error(parseApiError(err, "Install action failed."));
     } finally {
       setActionId(null);
     }
@@ -114,7 +115,7 @@ export default function RegistryHome() {
       await load();
       return { toast: `Extension "${v.name}" submitted for review` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to publish extension.");
+      toast.error(parseApiError(err, "Failed to publish extension."));
       return { error: true };
     } finally {
       setSubmitting(false);

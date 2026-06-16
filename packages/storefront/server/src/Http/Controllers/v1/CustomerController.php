@@ -145,7 +145,7 @@ class CustomerController extends Controller
                     'messageCallback' => function ($verification) use ($about) {
                         return "Your {$about->name} verification code is {$verification->code}";
                     },
-                    'meta' => $meta,
+                    'meta' => array_merge($meta, ['storefront_name' => $about->name]),
                 ]);
             } else {
                 VerificationCode::generateSmsVerificationFor($customer, 'storefront_create_customer', [
@@ -895,7 +895,7 @@ class CustomerController extends Controller
                     'messageCallback' => function ($verification) use ($about) {
                         return "Your {$about->name} account closure verification code is {$verification->code}";
                     },
-                    'meta' => ['identity' => $user->email],
+                    'meta' => array_merge(['identity' => $user->email], ['storefront_name' => $about->name]),
                 ]);
             }
 

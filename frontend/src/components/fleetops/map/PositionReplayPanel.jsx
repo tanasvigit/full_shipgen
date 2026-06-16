@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Play, Route } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 /**
  * Position history trail + replay trigger (G077).
@@ -37,7 +38,7 @@ export default function PositionReplayPanel({
         .filter(Boolean);
       onTrailChange?.(trail.length > 1 ? [{ points: trail, color: "#6366F1", highlighted: true }] : []);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load positions");
+      toast.error(parseApiError(err, "Could not load positions"));
       setPositions([]);
       onTrailChange?.([]);
     } finally {
@@ -69,7 +70,7 @@ export default function PositionReplayPanel({
       });
       toast.success(`Replay started (${ids.length} positions)`);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Replay failed");
+      toast.error(parseApiError(err, "Replay failed"));
     } finally {
       setBusy(false);
     }

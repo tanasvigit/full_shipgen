@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\User;
 use Fleetbase\Support\Utils;
@@ -18,6 +19,7 @@ use Illuminate\Notifications\Notification;
 class UserAcceptedCompanyInvite extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The company that the user has joined.
@@ -77,13 +79,11 @@ class UserAcceptedCompanyInvite extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject($this->user->name . ' has joined ' . $this->company->name . ' on Fleetbase!')
-            ->greeting('Hello, Team!')
-            ->line($this->user->name . ' has accepted the invitation and has joined ' . $this->company->name . ' on Fleetbase.')
-            ->line('Please welcome them to the team.')
-            ->action('View Team Members', Utils::consoleUrl('iam/users'))
-            ->line('Thank you for using Fleetbase!');
+        return $this->velocityMail('auth.user-accepted-invite', [
+            'userName' => $this->user->name,
+            'companyName' => $this->company->name,
+            'teamUrl' => Utils::consoleUrl('iam/users'),
+        ], $this->company->uuid);
     }
 
     /**

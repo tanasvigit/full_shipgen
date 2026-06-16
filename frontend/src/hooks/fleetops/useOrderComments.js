@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fleetopsService } from "@/services/fleetops";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 function normalizeComment(row) {
   return {
@@ -25,7 +26,7 @@ export function useOrderComments(orderId, { enabled = true, onRealtimeRefresh } 
       const rows = await fleetopsService.listOrderComments(orderId);
       setComments((rows || []).map(normalizeComment));
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export function useOrderComments(orderId, { enabled = true, onRealtimeRefresh } 
         return true;
       } catch (err) {
         setComments((prev) => prev.filter((c) => c.id !== tempId));
-        toast.error(parseFleetopsApiError(err));
+        toast.error(parseApiError(err));
         return false;
       } finally {
         setSending(false);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +70,7 @@ export default function OrderScheduleDialog({
       }
       onOpenChange(false);
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

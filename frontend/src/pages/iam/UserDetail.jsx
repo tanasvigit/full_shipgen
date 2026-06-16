@@ -5,6 +5,7 @@ import UserPermissionsDialog from "@/components/iam/users/UserPermissionsDialog"
 import ChangeUserPasswordDialog from "@/components/iam/users/ChangeUserPasswordDialog";
 import UserAccessSection from "@/components/iam/users/UserAccessSection";
 import { normalizeIamPhone } from "@/lib/iam/phone";
+import { parseApiError } from "@/lib/errors";
 import {
   directPermissionIdsFromUser,
   policiesFromUserRaw,
@@ -95,7 +96,7 @@ export default function UserDetail() {
       const status = err?.response?.status;
       if (status === 404) toast.error("User not found.");
       else if (status === 403) toast.error("You cannot view this user.");
-      else toast.error(err?.friendlyMessage || "Could not load user.");
+      else toast.error(parseApiError(err, "Could not load user."));
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ export default function UserDetail() {
       if (after) after();
       else await loadUser();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Action failed.");
+      toast.error(parseApiError(err, "Action failed."));
     }
   };
 
@@ -369,7 +370,7 @@ export default function UserDetail() {
                   await loadUser();
                   toast.success("Changes saved");
                 } catch (err) {
-                  toast.error(err?.friendlyMessage || "Failed to save changes.");
+                  toast.error(parseApiError(err, "Failed to save changes."));
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700"
@@ -414,7 +415,7 @@ export default function UserDetail() {
               setPendingTwoFa(null);
             } catch (err) {
               setTwoFa(prev);
-              toast.error(err?.friendlyMessage || "Failed to update 2FA.");
+              toast.error(parseApiError(err, "Failed to update 2FA."));
             } finally {
               setTwoFaSaving(false);
             }

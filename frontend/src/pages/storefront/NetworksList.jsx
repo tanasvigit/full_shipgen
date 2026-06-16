@@ -7,6 +7,7 @@ import { Plus, Network as NetworkIcon, Users, Store, ShoppingBag } from "lucide-
 import { storefrontService } from "@/services/storefront";
 import { mapNetwork, statusLabelExt } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function NetworksList() {
   const [networks, setNetworks] = useState([]);
@@ -19,7 +20,7 @@ export default function NetworksList() {
       const raw = await storefrontService.listNetworks({ limit: 100 });
       setNetworks((raw || []).map(mapNetwork));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load networks.");
+      toast.error(parseApiError(err, "Failed to load networks."));
       setNetworks([]);
     } finally {
       setLoading(false);
@@ -40,7 +41,7 @@ export default function NetworksList() {
       setNetworks((p) => [mapped, ...p]);
       return { toast: `Network "${v.name}" created` };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create network.");
+      throw new Error(parseApiError(err, "Failed to create network."));
     }
   }
 

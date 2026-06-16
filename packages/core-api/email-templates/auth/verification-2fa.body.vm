@@ -1,0 +1,5 @@
+﻿<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;">Your two-factor authentication code is below. Enter it to continue signing in.</p>
+#set($codeLabel = "Authentication code")
+#parse('partials/verification-code')
+#set($footerNoteBody = "If you did not attempt to sign in, secure your account immediately.")
+#parse('partials/muted-note')

@@ -6,6 +6,7 @@ use Fleetbase\FleetOps\Flow\Activity;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Support\PushNotification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
@@ -18,6 +19,7 @@ use NotificationChannels\Fcm\FcmChannel;
 class WaypointCompleted extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -128,11 +130,12 @@ class WaypointCompleted extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject($this->title)
-            ->line($this->message)
-            ->line('No further action is necessary.')
-            ->action('Track Order', Utils::consoleUrl('track-order', ['order' => $this->waypoint->trackingNumber->tracking_number]));
+        return $this->velocityMail('fleetops.waypoint-completed', [
+            'title' => $this->title,
+            'message' => $this->message,
+            'actionUrl' => Utils::consoleUrl('track-order', ['order' => $this->waypoint->trackingNumber->tracking_number]),
+            'actionLabel' => 'Track Order',
+        ]);
     }
 
     /**

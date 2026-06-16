@@ -18,6 +18,7 @@ import PlacesAutocompleteInput from "@/components/maps/PlacesAutocompleteInput";
 import { parseGooglePlace } from "@/lib/maps/parseGooglePlace";
 import { geocodeAddressWithGoogle } from "@/lib/maps/googleGeocoder";
 import { isGoogleMapsEnabled } from "@/lib/maps/googleConfig";
+import { parseApiError } from "@/lib/errors";
 
 const defaultValues = {
   name: "",
@@ -117,7 +118,7 @@ const PlaceForm = forwardRef(function PlaceForm({ formId, initialValues }, ref) 
         toast.error("No coordinates returned for this address");
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Geocode failed");
+      toast.error(parseApiError(err, "Geocode failed"));
     } finally {
       setGeocoding(false);
     }

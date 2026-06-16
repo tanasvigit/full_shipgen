@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { parseApiError } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +47,7 @@ export default function PolicyFormDialog({
         setDescription(mapped.description || "");
       })
       .catch((err) => {
-        toast.error(err?.friendlyMessage || "Could not load policy.");
+        toast.error(parseApiError(err, "Could not load policy."));
         onOpenChange(false);
       })
       .finally(() => setLoading(false));
@@ -76,7 +77,7 @@ export default function PolicyFormDialog({
       }
       onOpenChange(false);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not save policy.");
+      toast.error(parseApiError(err, "Could not save policy."));
     } finally {
       setBusy(false);
     }

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useFleetopsSettings } from "@/hooks/fleetops/useFleetopsSettings";
 import { fleetopsService } from "@/services/fleetops";
+import { parseApiError } from "@/lib/errors";
 
 export default function PaymentsSettingsPage() {
   const { value, loading, save } = useFleetopsSettings("payments");
@@ -28,7 +29,7 @@ export default function PaymentsSettingsPage() {
       await save(form);
       toast.success("Payment settings saved");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Save failed");
+      toast.error(parseApiError(err, "Save failed"));
     } finally {
       setSaving(false);
     }
@@ -43,7 +44,7 @@ export default function PaymentsSettingsPage() {
       else toast.message("Stripe session created — check admin email for link");
       setStripeConnected(await fleetopsService.hasStripeConnectAccount().catch(() => false));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Stripe onboarding unavailable");
+      toast.error(parseApiError(err, "Stripe onboarding unavailable"));
     } finally {
       setOnboarding(false);
     }

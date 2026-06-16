@@ -2,6 +2,8 @@
 
 namespace Fleetbase\FleetOps\Notifications;
 
+use Fleetbase\FleetOps\Mail\FleetOpsEmailTemplateVariables;
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Support\Utils;
@@ -17,6 +19,7 @@ use NotificationChannels\Fcm\FcmChannel;
 class OrderAssigned extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -120,17 +123,17 @@ class OrderAssigned extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $message = (new MailMessage())
-            ->subject($this->title)
-            ->line($this->message);
-
-        if ($this->order->isScheduled) {
-            $message->line('Dispatch is scheduled for ' . $this->order->scheduled_at);
-        }
-
-        $message->action('Track Order', Utils::consoleUrl('track-order', ['order' => $this->order->trackingNumber->tracking_number]));
-
-        return $message;
+        return $this->velocityMail(
+            'fleetops.order-assigned',
+            array_merge(
+                FleetOpsEmailTemplateVariables::orderMailVariables($this->order, $this->title, $this->message),
+                [
+                    'isScheduled' => (bool) $this->order->isScheduled,
+                    'scheduledAt' => $this->order->scheduled_at,
+                ]
+            ),
+            FleetOpsEmailTemplateVariables::companyUuidForOrder($this->order)
+        );
     }
 
     /**

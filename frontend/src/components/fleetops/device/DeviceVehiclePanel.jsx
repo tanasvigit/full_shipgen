@@ -6,6 +6,7 @@ import { mapVehicleRow } from "@/lib/mappers";
 import { toast } from "sonner";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
+import { parseApiError } from "@/lib/errors";
 
 export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
   const ability = useFleetopsAbility();
@@ -47,7 +48,7 @@ export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
       setPick("");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Attach failed");
+      toast.error(parseApiError(err, "Attach failed"));
     } finally {
       setBusy(false);
     }
@@ -61,7 +62,7 @@ export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
       toast.success("Device detached");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Detach failed");
+      toast.error(parseApiError(err, "Detach failed"));
     } finally {
       setBusy(false);
     }

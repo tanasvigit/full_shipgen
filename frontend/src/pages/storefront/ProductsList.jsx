@@ -9,6 +9,7 @@ import { storefrontService } from "@/services/storefront";
 import { mapCatalog, mapProduct, statusLabelExt } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ProductsList() {
   const [view, setView] = useState("grid");
@@ -28,7 +29,7 @@ export default function ProductsList() {
       setProducts((prodRaw || []).map(mapProduct));
       setCatalogs((catRaw || []).map(mapCatalog));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load products.");
+      toast.error(parseApiError(err, "Failed to load products."));
       setProducts([]);
       setCatalogs([]);
     } finally {

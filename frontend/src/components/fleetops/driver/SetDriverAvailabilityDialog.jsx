@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function SetDriverAvailabilityDialog({ open, onOpenChange, driverId, onSaved }) {
   const [busy, setBusy] = useState(false);
@@ -28,7 +29,7 @@ export default function SetDriverAvailabilityDialog({ open, onOpenChange, driver
       onSaved?.();
       onOpenChange(false);
     } catch (err) {
-      setError(err?.friendlyMessage || "Could not save availability");
+      setError(parseApiError(err, "Could not save availability"));
     } finally {
       setBusy(false);
     }

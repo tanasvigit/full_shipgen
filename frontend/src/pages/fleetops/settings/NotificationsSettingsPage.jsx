@@ -5,6 +5,7 @@ import { useFleetopsSettings } from "@/hooks/fleetops/useFleetopsSettings";
 import { fleetopsService } from "@/services/fleetops";
 import { createNotificationKey } from "@/lib/fleetops/createNotificationKey";
 import NotificationNotifiableMultiSelect from "@/components/fleetops/settings/NotificationNotifiableMultiSelect";
+import { parseApiError } from "@/lib/errors";
 
 const NOTIFICATION_TRANSPORT_METHODS = ["email", "sms"];
 
@@ -42,7 +43,7 @@ export default function NotificationsSettingsPage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setLoadError(err?.friendlyMessage || "Failed to load notification registry");
+          setLoadError(parseApiError(err, "Failed to load notification registry"));
           setRegistry([]);
           setNotifiables([]);
         }
@@ -79,7 +80,7 @@ export default function NotificationsSettingsPage() {
       await reload();
       toast.success("Notification settings saved");
     } catch (err) {
-      toast.error(err?.friendlyMessage || err?.message || "Save failed");
+      toast.error(parseApiError(err, "Save failed"));
     } finally {
       setSaving(false);
     }

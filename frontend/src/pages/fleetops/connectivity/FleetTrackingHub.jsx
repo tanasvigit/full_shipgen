@@ -11,6 +11,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtimeChannel";
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
+import { parseApiError } from "@/lib/errors";
 
 const MAX_MARKERS = 500;
 
@@ -62,7 +63,7 @@ export default function FleetTrackingHub() {
       setOrders(o);
       setFleets(f);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load live fleet data");
+      toast.error(parseApiError(err, "Could not load live fleet data"));
     } finally {
       setLoading(false);
     }

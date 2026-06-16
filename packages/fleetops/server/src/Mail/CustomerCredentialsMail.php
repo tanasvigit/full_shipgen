@@ -4,6 +4,8 @@ namespace Fleetbase\FleetOps\Mail;
 
 use Fleetbase\FleetOps\Models\Contact;
 use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Mail\Concerns\RendersVelocityMailable;
+use Fleetbase\Mail\Support\CredentialEmailBranding;
 use Fleetbase\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -14,63 +16,55 @@ use Illuminate\Queue\SerializesModels;
 class CustomerCredentialsMail extends Mailable
 {
     use Queueable;
+    use RendersVelocityMailable;
     use SerializesModels;
 
-    /**
-     * The plaintext password being sent.
-     */
     private string $plaintextPassword;
 
-    /**
-     * The customer record the password belongs to.
-     */
     private Contact $customer;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct(string $plaintextPassword, Contact $customer)
     {
         $this->plaintextPassword = $plaintextPassword;
         $this->customer          = $customer;
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function envelope(): Envelope
     {
         $this->customer->loadMissing('company');
 
-        return new Envelope(
-            subject: 'Your login credentials for ' . $this->customer->company->name . ' on ' . config('app.name'),
-        );
+        return $this->velocityCredentialEnvelope('fleetops.customer-credentials', $this->templateVariables());
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
-        $user = $this->customer->getUser();
-        $this->customer->setRelation('user', $user);
-
-        return new Content(
-            markdown: 'fleetops::mail.customer-credentials',
-            with: [
-                'customer'          => $this->customer,
-                'plaintextPassword' => $this->plaintextPassword,
-                'customerPortalUrl' => $this->getCustomerPortalAccessUrl(),
-                'currentHour'       => now()->hour,
-            ]
-        );
+        return $this->velocityContent('fleetops.customer-credentials', $this->templateVariables());
     }
 
     /**
-     * Get the customer portal URL if available.
+     * @return array<string, mixed>
      */
+    protected function templateVariables(): array
+    {
+        $user = $this->customer->getUser();
+        $timezone = CredentialEmailBranding::resolveTimezone(
+            data_get($user, 'timezone'),
+            data_get($this->customer, 'timezone') ?? data_get($this->customer->company, 'timezone')
+        );
+
+        return [
+            'brandName' => CredentialEmailBranding::BRAND_NAME,
+            'headerTagline' => 'Command Center · Customer Portal',
+            'logoUrl' => CredentialEmailBranding::emailLogoUrl(),
+            'headline' => CredentialEmailBranding::greetingHeadline($this->customer->name, $timezone),
+            'customerName' => $this->customer->name,
+            'userEmail' => data_get($user, 'email'),
+            'plaintextPassword' => $this->plaintextPassword,
+            'companyName' => data_get($this->customer->company, 'name'),
+            'customerPortalUrl' => $this->getCustomerPortalAccessUrl(),
+        ];
+    }
+
     private function getCustomerPortalAccessUrl(): ?string
     {
         $customerPortalConfig = Setting::lookupFromCompany('customer-portal-config');

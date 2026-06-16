@@ -6,6 +6,7 @@ import { Plus, Factory, Mail, Phone, Star, Clock } from "lucide-react";
 import { palletService } from "@/services/pallet";
 import { mapPalletSupplier, mapPurchaseOrderRow } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function SuppliersList() {
   const [suppliers, setSuppliers] = useState([]);
@@ -30,7 +31,7 @@ export default function SuppliersList() {
       }
       setSuppliers((supRaw || []).map((s) => mapPalletSupplier(s, openBySupplier[s.uuid || s.id] || 0)));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load suppliers.");
+      toast.error(parseApiError(err, "Failed to load suppliers."));
       setSuppliers([]);
     } finally {
       setLoading(false);
@@ -59,7 +60,7 @@ export default function SuppliersList() {
       await load();
       return { toast: `Supplier "${v.name}" added` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create supplier.");
+      toast.error(parseApiError(err, "Failed to create supplier."));
       return { error: true };
     } finally {
       setSubmitting(false);

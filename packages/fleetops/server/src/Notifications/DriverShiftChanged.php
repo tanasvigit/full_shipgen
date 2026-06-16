@@ -2,6 +2,7 @@
 
 namespace Fleetbase\FleetOps\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Models\ScheduleItem;
 use Fleetbase\Support\Utils;
 use Illuminate\Bus\Queueable;
@@ -12,6 +13,7 @@ use Illuminate\Notifications\Notification;
 class DriverShiftChanged extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The schedule item that was created or updated.
@@ -79,19 +81,14 @@ class DriverShiftChanged extends Notification implements ShouldQueue
     /**
      * Build the mail representation of the notification.
      */
-    public function toMail($notifiable): MailMessage
+    public function toMail($notifiable)
     {
-        $message = (new MailMessage())
-            ->subject($this->title)
-            ->line($this->message);
-
-        if ($this->scheduleItem->notes) {
-            $message->line('Notes: ' . $this->scheduleItem->notes);
-        }
-
-        $message->action('View Schedule', Utils::consoleUrl('fleet-ops/operations/scheduler'));
-
-        return $message;
+        return $this->velocityMail('fleetops.driver-shift-changed', [
+            'title' => $this->title,
+            'message' => $this->message,
+            'notes' => $this->scheduleItem->notes,
+            'scheduleUrl' => Utils::consoleUrl('fleet-ops/operations/scheduler'),
+        ]);
     }
 
     /**

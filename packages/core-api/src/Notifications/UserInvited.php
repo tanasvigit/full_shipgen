@@ -2,6 +2,7 @@
 
 namespace Fleetbase\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\Invite;
 use Fleetbase\Models\User;
@@ -19,6 +20,7 @@ use Illuminate\Notifications\Notification;
 class UserInvited extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The invite related to this notification.
@@ -70,12 +72,13 @@ class UserInvited extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject('You\'ve been invited to join ' . $this->company->name . ' on Fleetbase!')
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line($this->sender->name . ' has invited you to join their organization on Fleetbase. Click the button below to accept this invitation and enable access to ' . $this->company->name . ' on Fleetbase.')
-            ->line('Your invitiation code: ' . $this->invite->code)
-            ->action('Accept Invitation', $this->url);
+        return $this->velocityMail('auth.user-invited', [
+            'notifiableName' => $notifiable->name,
+            'companyName' => $this->company->name,
+            'senderName' => $this->sender->name,
+            'inviteCode' => $this->invite->code,
+            'inviteUrl' => $this->url,
+        ], $this->company->uuid);
     }
 
     /**

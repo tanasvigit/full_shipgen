@@ -26,6 +26,7 @@ import HealthBanner from "@/components/fleetops/health/HealthBanner";
 import { evaluateVehicleCompliance } from "@/domain/fleetops/compliance/evaluateCompliance";
 import { useFleetopsWarnings } from "@/hooks/fleetops/useFleetopsWarnings";
 import EntityFleetsPanel from "@/components/fleetops/fleet/EntityFleetsPanel";
+import { parseApiError } from "@/lib/errors";
 
 export default function VehicleDetail({
   embedded = false,
@@ -82,7 +83,7 @@ export default function VehicleDetail({
       }
     } catch (err) {
       if (err?.response?.status === 404) toast.error("Vehicle not found.");
-      else toast.error(err?.friendlyMessage || "Could not load vehicle.");
+      else toast.error(parseApiError(err, "Could not load vehicle."));
       setVehicle(null);
       setDriver(null);
     } finally {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ResetCustomerCredentialsDialog({ open, onOpenChange, customerId, customerName }) {
   const [busy, setBusy] = useState(false);
@@ -15,7 +16,7 @@ export default function ResetCustomerCredentialsDialog({ open, onOpenChange, cus
       toast.success(`Credentials reset for ${customerName || "customer"}`);
       onOpenChange(false);
     } catch (err) {
-      setError(err?.friendlyMessage || "Reset failed");
+      setError(parseApiError(err, "Reset failed"));
     } finally {
       setBusy(false);
     }

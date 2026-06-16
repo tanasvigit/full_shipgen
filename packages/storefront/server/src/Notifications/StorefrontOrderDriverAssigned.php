@@ -2,6 +2,8 @@
 
 namespace Fleetbase\Storefront\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
+use Fleetbase\Storefront\Mail\StorefrontEmailTemplateVariables;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Storefront\Models\Network;
@@ -17,6 +19,7 @@ use NotificationChannels\Fcm\FcmChannel;
 class StorefrontOrderDriverAssigned extends Notification
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -101,13 +104,11 @@ class StorefrontOrderDriverAssigned extends Notification
      */
     public function toMail($notifiable)
     {
-        $message = (new MailMessage())
-            ->subject($this->subject)
-            ->line($this->body);
-
-        // $message->action('View Details', Utils::consoleUrl('', ['shift' => 'fleet-ops/orders/view/' . $this->order->public_id]));
-
-        return $message;
+        return $this->velocityMail(
+            'storefront.order-driver-assigned',
+            StorefrontEmailTemplateVariables::storefrontOrderVariables($this->storefront, $this->order),
+            StorefrontEmailTemplateVariables::companyUuidForOrder($this->order)
+        );
     }
 
     /**

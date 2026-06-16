@@ -17,6 +17,7 @@ import { useIamListPage } from "@/hooks/iam/useIamListPage";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
 import { usersSortFromTable } from "@/lib/iam/usersListQuery";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 function listKindFromPath(pathname) {
   if (pathname.includes("/iam/users/drivers")) return "drivers";
@@ -87,7 +88,7 @@ export default function UsersList() {
       setSelectedKeys(new Set());
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Bulk delete failed.");
+      toast.error(parseApiError(err, "Bulk delete failed."));
     } finally {
       setBulkBusy(false);
     }
@@ -99,7 +100,7 @@ export default function UsersList() {
       await iamService.exportUsers({ selections });
       toast.success("Export started.");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed.");
+      toast.error(parseApiError(err, "Export failed."));
     }
   };
 

@@ -8,6 +8,7 @@ import { RefreshCw } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ManifestsList() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function ManifestsList() {
       const list = await fleetopsService.listManifests();
       setRows((list || []).map((r) => mapCrudRow(r, "manifest")));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load manifests");
+      toast.error(parseApiError(err, "Failed to load manifests"));
       setRows([]);
     } finally {
       setLoading(false);

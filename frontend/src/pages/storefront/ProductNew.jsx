@@ -10,6 +10,7 @@ import { ArrowLeft, Plus, Upload } from "lucide-react";
 import { storefrontService } from "@/services/storefront";
 import { mapCatalog } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ProductNew() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function ProductNew() {
       toast.success("Product created");
       navigate(id ? `/storefront/products/${id}` : "/storefront/products");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create product.");
+      toast.error(parseApiError(err, "Failed to create product."));
     } finally {
       setLoading(false);
     }

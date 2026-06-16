@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
+import { parseApiError } from "@/lib/errors";
 import { useFleetopsDetailDirty } from "@/hooks/fleetops/useFleetopsDetailDirty";
-
 /**
  * Shared submit handler for FleetOps entity modals.
  * @param {{ formRef: React.RefObject, onSubmit: (values: object) => Promise<unknown>, onSuccess?: (result: unknown) => void, successMessage?: string, suspendDrawer?: boolean }} config
@@ -55,8 +54,8 @@ export function useFleetopsFormDialog({
       if (err && typeof err === "object" && !err.message && Object.keys(err).length) {
         setError("Please fix validation errors highlighted in the form.");
       } else {
-        setError(parseFleetopsApiError(err));
-        toast.error(parseFleetopsApiError(err));
+        setError(parseApiError(err));
+        toast.error(parseApiError(err));
       }
     } finally {
       setBusy(false);

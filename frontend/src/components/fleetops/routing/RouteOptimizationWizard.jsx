@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import MapView from "@/components/common/MapView";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { parseApiError } from "@/lib/errors";
 import {
   Select,
   SelectContent,
@@ -98,7 +99,7 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
       setStep(2);
       toast.success(`Optimized ${normalized.assignments.length} assignment(s)`);
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }
@@ -154,7 +155,7 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
         navigate("/fleet-ops/operations/routes");
       }
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBusy(false);
     }

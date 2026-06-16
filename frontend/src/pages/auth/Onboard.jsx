@@ -7,6 +7,7 @@ import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { PORTAL_CONSOLE_LABEL, PORTAL_NAME } from "@/lib/branding";
+import { parseApiError } from "@/lib/errors";
 
 const PASSWORD_HINT =
   "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
@@ -98,14 +99,14 @@ export default function Onboard() {
     } catch (error) {
       const code = error?.raw?.code || error?.code;
       if (code === "ONBOARDING_UNRECOVERABLE") {
-        toast.error(error?.message || "Onboarding could not continue.");
+        toast.error(parseApiError(error, "Onboarding could not continue."));
         navigate("/auth", { replace: true });
         return;
       }
       const mapped = toFieldErrorMap(error?.message, "Unable to create account.");
       setErrors(mapped);
       setRetryable(Boolean(mapped?.form));
-      toast.error(error?.message || "Create account failed.");
+      toast.error(parseApiError(error, "Create account failed."));
     } finally {
       setBusy(false);
     }

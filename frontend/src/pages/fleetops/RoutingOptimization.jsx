@@ -8,6 +8,7 @@ import { Route as RouteIcon, TrendingDown, Clock, Package } from "lucide-react";
 import { toast } from "sonner";
 import { fleetopsService } from "@/services/fleetops";
 import { mapOrder, statusLabel } from "@/lib/mappers";
+import { parseApiError } from "@/lib/errors";
 
 function planFromOrder(orderRaw) {
   const o = mapOrder(orderRaw);
@@ -49,7 +50,7 @@ export default function RoutingOptimization() {
         return mapped[0]?.id || null;
       });
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load orders for routing view.");
+      toast.error(parseApiError(err, "Could not load orders for routing view."));
       setPlans([]);
       setActiveId(null);
     } finally {

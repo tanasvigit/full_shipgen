@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit3, RefreshCw, UserPlus, UserMinus, Tag, Calendar, Trash2 } from "lucide-react";
 import OrderScheduleDialog from "@/components/fleetops/orders/modals/OrderScheduleDialog";
 import OrderMetadataDialog from "@/components/fleetops/orders/modals/OrderMetadataDialog";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,7 +134,7 @@ export default function OrderDetail({
       toast.success("Driver unassigned");
       await refetch();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     }
   }, [id, refetch]);
 
@@ -143,7 +144,7 @@ export default function OrderDetail({
       toast.success("Order deleted");
       navigate("/fleet-ops/operations/orders");
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     }
   }, [id, navigate]);
 

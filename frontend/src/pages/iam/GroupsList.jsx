@@ -11,6 +11,7 @@ import { iamService } from "@/services/iam";
 import { mapRole } from "@/lib/mappers";
 import { useGroupsListPage } from "@/hooks/iam/useGroupsListPage";
 import { useIamAbility } from "@/hooks/iam/useIamAbility";
+import { parseApiError } from "@/lib/errors";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +57,7 @@ export default function GroupsList() {
       await iamService.exportGroups({ selections: [...selectedKeys] });
       toast.success("Export started");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed.");
+      toast.error(parseApiError(err, "Export failed."));
     }
   }
 
@@ -70,7 +71,7 @@ export default function GroupsList() {
       setSelectedKeys(new Set());
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Bulk delete failed.");
+      toast.error(parseApiError(err, "Bulk delete failed."));
     } finally {
       setBulkBusy(false);
     }
@@ -87,7 +88,7 @@ export default function GroupsList() {
       toast.success("Group deleted");
       reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete group.");
+      toast.error(parseApiError(err, "Could not delete group."));
     }
   }
 

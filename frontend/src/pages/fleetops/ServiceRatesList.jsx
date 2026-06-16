@@ -8,6 +8,7 @@ import { Plus, Download } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { parseApiError } from "@/lib/errors";
 
 export default function ServiceRatesList() {
   const { can } = useFleetopsPermission();
@@ -21,7 +22,7 @@ export default function ServiceRatesList() {
     try {
       setRows(await fleetopsService.listServiceRates());
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load service rates");
+      toast.error(parseApiError(err, "Failed to load service rates"));
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,7 @@ export default function ServiceRatesList() {
       fleetopsService.downloadExportBlob(blob, "service-rates.csv");
       toast.success("Export downloaded");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed");
+      toast.error(parseApiError(err, "Export failed"));
     }
   };
 

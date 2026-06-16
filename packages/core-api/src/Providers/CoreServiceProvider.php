@@ -155,6 +155,15 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(\Fleetbase\Services\TemplateRenderService::class, function ($app) {
             return new \Fleetbase\Services\TemplateRenderService();
         });
+
+        $this->app->singleton(\Fleetbase\Mail\EmailTemplateRenderer::class, function ($app) {
+            return new \Fleetbase\Mail\EmailTemplateRenderer();
+        });
+    }
+
+    protected function registerEmailTemplates(): void
+    {
+        \Fleetbase\Mail\EmailTemplateRegistry::bootDefaults();
     }
 
     /**
@@ -190,6 +199,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
         $this->loadViewsFrom(__DIR__ . '/../../views', 'fleetbase');
+        $this->registerEmailTemplates();
         $this->registerCustomBladeComponents();
         $this->mergeConfigFromSettings();
         $this->pingTelemetry();

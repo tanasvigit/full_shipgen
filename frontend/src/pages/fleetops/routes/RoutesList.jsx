@@ -9,6 +9,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function RoutesList() {
   const { openDetail } = useFleetopsDetailDrawer("route");
@@ -23,7 +24,7 @@ export default function RoutesList() {
     try {
       setRows(await fleetopsService.listRoutes({ page, limit: pageSize }));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load routes");
+      toast.error(parseApiError(err, "Failed to load routes"));
       setRows([]);
     } finally {
       setLoading(false);
@@ -109,7 +110,7 @@ export default function RoutesList() {
                     toast.success("Optimized");
                     load();
                   } catch (err) {
-                    toast.error(err?.friendlyMessage || "Optimize failed");
+                    toast.error(parseApiError(err, "Optimize failed"));
                   }
                 }}
               >
@@ -129,7 +130,7 @@ export default function RoutesList() {
                     toast.success("Deleted");
                     load();
                   } catch (err) {
-                    toast.error(err?.friendlyMessage || "Delete failed");
+                    toast.error(parseApiError(err, "Delete failed"));
                   }
                 }}
               >

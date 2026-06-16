@@ -6,6 +6,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { parseApiError } from "@/lib/errors";
 
 export default function MaintenanceLineItemsPanel({ maintenanceId, maintenanceApi }) {
   const [items, setItems] = useState([]);
@@ -42,7 +43,7 @@ export default function MaintenanceLineItemsPanel({ maintenanceId, maintenanceAp
       setDraft({ description: "", quantity: "1", cost: "" });
       await reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Add failed");
+      toast.error(parseApiError(err, "Add failed"));
     } finally {
       setBusy(false);
     }
@@ -55,7 +56,7 @@ export default function MaintenanceLineItemsPanel({ maintenanceId, maintenanceAp
       toast.success("Removed");
       await reload();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Remove failed");
+      toast.error(parseApiError(err, "Remove failed"));
     } finally {
       setBusy(false);
     }

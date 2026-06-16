@@ -14,6 +14,7 @@ import FleetForm, { fleetValuesFromApi } from "@/components/fleetops/forms/Fleet
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { Button } from "@/components/ui/button";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,7 +118,7 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
       if (embedded && newId) openDetail(newId);
       else if (newId) navigate(`/fleet-ops/management/fleets/${newId}`);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not duplicate fleet.");
+      toast.error(parseApiError(err, "Could not duplicate fleet."));
     } finally {
       setDuplicateBusy(false);
     }
@@ -142,7 +143,7 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
       setFleetVehicles(Array.isArray(raw?.vehicles) ? raw.vehicles.map(mapVehicleRow) : []);
     } catch (err) {
       if (err?.response?.status === 404) toast.error("Fleet not found.");
-      else toast.error(err?.friendlyMessage || "Could not load fleet.");
+      else toast.error(parseApiError(err, "Could not load fleet."));
       setFleet(null);
       setFleetDrivers([]);
       setFleetVehicles([]);
@@ -168,7 +169,7 @@ export default function FleetDetail({ embedded = false, entityId: entityIdProp }
       if (embedded) closeDetail();
       else navigate("/fleet-ops/management/fleets");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete fleet.");
+      toast.error(parseApiError(err, "Could not delete fleet."));
     } finally {
       setDeleteBusy(false);
     }

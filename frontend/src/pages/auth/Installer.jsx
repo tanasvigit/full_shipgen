@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/lib/auth";
 import { toast } from "sonner";
 import { PORTAL_NAME } from "@/lib/branding";
+import { parseApiError } from "@/lib/errors";
 
 const STEPS = [
   { key: "createdb", label: "Create Database", action: () => authService.installerCreateDb() },
@@ -57,7 +58,7 @@ export default function Installer() {
           const isTimeout = err?.code === "ECONNABORTED" || /timeout/i.test(String(err?.message || ""));
           const message = isTimeout
             ? `${step.label} is still running on the server or took too long. Wait a minute, then click Retry install.`
-            : err?.friendlyMessage || err?.message || `Failed at ${step.label}.`;
+            : parseApiError(err, `Failed at ${step.label}.`);
           updateStep(step.key, { status: "failed", message });
           setError(message);
           toast.error(message);

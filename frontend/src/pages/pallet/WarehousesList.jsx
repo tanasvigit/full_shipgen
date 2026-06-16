@@ -8,6 +8,7 @@ import { Plus, Warehouse as WarehouseIcon, MapPin, User } from "lucide-react";
 import { palletService } from "@/services/pallet";
 import { mapPalletWarehouse, statusLabelPallet, warehouseUsageFromInventory } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function WarehousesList() {
   const [warehouses, setWarehouses] = useState([]);
@@ -26,7 +27,7 @@ export default function WarehousesList() {
       const usage = warehouseUsageFromInventory(invRaw || [], stub);
       setWarehouses((whRaw || []).map((w) => mapPalletWarehouse(w, usage[w.uuid || w.public_id || w.id])));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load warehouses.");
+      toast.error(parseApiError(err, "Failed to load warehouses."));
       setWarehouses([]);
     } finally {
       setLoading(false);
@@ -54,7 +55,7 @@ export default function WarehousesList() {
       await load();
       return { toast: `Warehouse "${v.name}" added` };
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to create warehouse.");
+      toast.error(parseApiError(err, "Failed to create warehouse."));
       return { error: true };
     } finally {
       setSubmitting(false);

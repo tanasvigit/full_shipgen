@@ -7,6 +7,7 @@ import DataTable from "@/components/common/DataTable";
 import { fleetopsService } from "@/services/fleetops";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function ReportResult() {
   const { id } = useParams();
@@ -36,7 +37,7 @@ export default function ReportResult() {
       fleetopsService.downloadExportBlob(blob, `${report?.name || "report"}.csv`);
       toast.success("Export downloaded");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed");
+      toast.error(parseApiError(err, "Export failed"));
     }
   };
 

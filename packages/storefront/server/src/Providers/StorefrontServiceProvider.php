@@ -75,6 +75,7 @@ class StorefrontServiceProvider extends CoreServiceProvider
             $schedule->command('storefront:purge-carts')->daily()->storeOutputInDb();
         });
         $this->registerObservers();
+        \Fleetbase\Storefront\Mail\StorefrontEmailTemplateRegistry::register();
         $this->registerMiddleware();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
 

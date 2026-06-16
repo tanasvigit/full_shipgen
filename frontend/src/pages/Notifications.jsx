@@ -8,6 +8,7 @@ import EmptyState from "@/components/common/EmptyState";
 import { consoleService } from "@/services/console";
 import { mapNotification } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 function iconFor(level) {
   if (level === "warning") return AlertTriangle;
@@ -34,7 +35,7 @@ export default function Notifications() {
       const notifications = await consoleService.listNotifications();
       setItems(notifications.map(mapNotification));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load notifications.");
+      toast.error(parseApiError(err, "Could not load notifications."));
       setItems([]);
     } finally {
       setLoading(false);
@@ -65,7 +66,7 @@ export default function Notifications() {
       setSelected([]);
       toast.success("Marked as read");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not mark notifications.");
+      toast.error(parseApiError(err, "Could not mark notifications."));
     }
   }
   async function markAllRead() {
@@ -73,7 +74,7 @@ export default function Notifications() {
       await consoleService.markAllNotificationsRead();
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not mark all as read.");
+      toast.error(parseApiError(err, "Could not mark all as read."));
     }
   }
 

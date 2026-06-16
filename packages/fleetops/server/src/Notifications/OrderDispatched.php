@@ -2,6 +2,8 @@
 
 namespace Fleetbase\FleetOps\Notifications;
 
+use Fleetbase\FleetOps\Mail\FleetOpsEmailTemplateVariables;
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\Events\ResourceLifecycleEvent;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;
@@ -20,6 +22,7 @@ use NotificationChannels\Fcm\FcmChannel;
 class OrderDispatched extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -173,10 +176,11 @@ class OrderDispatched extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject($this->title)
-            ->line($this->message)
-            ->action('Track Order', Utils::consoleUrl('track-order', ['order' => $this->getTrackingNumber()]));
+        return $this->velocityMail(
+            'fleetops.order-dispatched',
+            FleetOpsEmailTemplateVariables::orderMailVariables($this->order, $this->title, $this->message),
+            FleetOpsEmailTemplateVariables::companyUuidForOrder($this->order)
+        );
     }
 
     /**

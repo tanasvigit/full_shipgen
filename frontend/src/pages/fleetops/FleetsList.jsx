@@ -13,6 +13,7 @@ import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { parseApiError } from "@/lib/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,7 +95,7 @@ export default function FleetsList() {
       const fromApi = await hydrateFleetListRows(rows, hydrateId);
       setFleets((prev) => mergeListWithPending(fromApi, prev));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load fleets.");
+      toast.error(parseApiError(err, "Could not load fleets."));
       setFleets([]);
     } finally {
       setLoading(false);
@@ -167,7 +168,7 @@ export default function FleetsList() {
       setBulkDeleteOpen(false);
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not delete selected fleets.");
+      toast.error(parseApiError(err, "Could not delete selected fleets."));
     } finally {
       setBulkDeleteBusy(false);
     }

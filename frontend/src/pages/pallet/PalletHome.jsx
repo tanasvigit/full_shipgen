@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowUpRight, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, ArrowRightLeft, Settings2 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { palletService } from "@/services/pallet";
+import { parseApiError } from "@/lib/errors";
 import {
   aggregateInventoryBySku,
   mapPalletWarehouse,
@@ -50,7 +51,7 @@ export default function PalletHome() {
       setMovements((adjRaw || []).map((a) => mapStockMovement(a, whLookup)));
       setPurchaseOrders((poRaw || []).map(mapPurchaseOrderRow));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load pallet overview.");
+      toast.error(parseApiError(err, "Failed to load pallet overview."));
       setSkus([]);
       setWarehouses([]);
       setMovements([]);

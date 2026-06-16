@@ -7,6 +7,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
+import { parseApiError } from "@/lib/errors";
 
 export default function VehicleDevicesAdmin() {
   const ability = useFleetopsAbility();
@@ -44,7 +45,7 @@ export default function VehicleDevicesAdmin() {
       toast.success("Detached");
       await load();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Detach failed");
+      toast.error(parseApiError(err, "Detach failed"));
     }
   };
 

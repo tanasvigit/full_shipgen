@@ -13,6 +13,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { mapVehicleRow, mapDriverRow, statusLabel } from "@/lib/mappers";
 import { appendFleetFilterParams } from "@/lib/fleetops/fleetFilterParams";
 import FleetScopeFilter from "@/components/fleetops/fleet/FleetScopeFilter";
+import { parseApiError } from "@/lib/errors";
 import {
   markPendingSync,
   mergeListWithPending,
@@ -68,7 +69,7 @@ export default function VehiclesList() {
         setDriverNames({});
       }
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Could not load vehicles.");
+      toast.error(parseApiError(err, "Could not load vehicles."));
       setVehicles([]);
     } finally {
       setLoading(false);

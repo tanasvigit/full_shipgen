@@ -7,6 +7,7 @@ import { mapLedgerTxn, statusLabelExt } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const TYPES = ["all", "charge", "refund", "payout"];
 
@@ -21,7 +22,7 @@ export default function TransactionsList() {
       const raw = await ledgerService.listTransactions({ limit: 500, sort: "-created_at" });
       setTransactions((raw || []).map(mapLedgerTxn));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load transactions.");
+      toast.error(parseApiError(err, "Failed to load transactions."));
       setTransactions([]);
     } finally {
       setLoading(false);

@@ -6,6 +6,7 @@ import { mapWallet } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const ICONS = { driver: Users, network: Building, internal: Briefcase };
 
@@ -19,7 +20,7 @@ export default function WalletsList() {
       const raw = await ledgerService.listWallets({ limit: 200 });
       setWallets((raw || []).map(mapWallet));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load wallets.");
+      toast.error(parseApiError(err, "Failed to load wallets."));
       setWallets([]);
     } finally {
       setLoading(false);

@@ -1,0 +1,13 @@
+﻿#parse('partials/heading')
+#if($contentOverride)
+$contentOverride
+#else
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;">Welcome to <strong style="color:#0066FF;">$brandName</strong>. Use the code below to verify your email address and complete registration.</p>
+#set($codeLabel = "Verification code")
+#parse('partials/verification-code')
+#end
+#if($showVerifyButton)
+#set($actionUrl = $verifyUrl)
+#set($actionLabel = "Verify Email")
+#parse('partials/cta')
+#end

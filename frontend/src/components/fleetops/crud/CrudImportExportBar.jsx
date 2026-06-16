@@ -5,6 +5,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 /**
  * Export / import / bulk-delete toolbar for CRUD list pages (G094).
@@ -41,7 +42,7 @@ export default function CrudImportExportBar({
           : "Export downloaded",
       );
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Export failed");
+      toast.error(parseApiError(err, "Export failed"));
     } finally {
       setBusy(false);
     }
@@ -56,7 +57,7 @@ export default function CrudImportExportBar({
       toast.success("Import submitted");
       onComplete?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Import failed");
+      toast.error(parseApiError(err, "Import failed"));
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -75,7 +76,7 @@ export default function CrudImportExportBar({
       toast.success("Deleted");
       onComplete?.();
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Bulk delete failed");
+      toast.error(parseApiError(err, "Bulk delete failed"));
     } finally {
       setBusy(false);
     }

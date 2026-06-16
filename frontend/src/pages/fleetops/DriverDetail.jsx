@@ -31,6 +31,7 @@ import { getExtensionTabs } from "@/domain/fleetops/detail/registry";
 import { useFormDirtyBridge } from "@/hooks/fleetops/useFormDirtyBridge";
 import { PageLoader } from "@/components/loaders";
 import { wrapDetailEditDialog } from "@/lib/fleetops/detailEmbedded";
+import { parseApiError } from "@/lib/errors";
 
 const DRIVER_TABS = [
   { id: "overview", label: "Overview" },
@@ -110,7 +111,7 @@ export default function DriverDetail({
         toast.error("Driver not found.");
         setDriverApi(null);
       } else {
-        toast.error(err?.friendlyMessage || "Could not load driver.");
+        toast.error(parseApiError(err, "Could not load driver."));
         setDriverApi(null);
       }
     } finally {

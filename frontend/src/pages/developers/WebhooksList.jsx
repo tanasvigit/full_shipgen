@@ -9,6 +9,7 @@ import { Plus, Webhook } from "lucide-react";
 import { developersService } from "@/services/developers";
 import { mapWebhook } from "@/lib/mappers";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 const ALL_EVENTS =
   "order.created,order.delivered,order.canceled,driver.online,vehicle.maintenance,invoice.paid,customer.created";
@@ -25,7 +26,7 @@ export default function WebhooksList() {
       const raw = await developersService.listWebhooks();
       setWebhooks(raw.map(mapWebhook));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load webhooks.");
+      toast.error(parseApiError(err, "Failed to load webhooks."));
       setWebhooks([]);
     } finally {
       setLoading(false);
@@ -142,7 +143,7 @@ export default function WebhooksList() {
       setWebhooks((p) => [mapped, ...p]);
       return { toast: `Endpoint registered (${events.length} events)` };
     } catch (err) {
-      throw new Error(err?.friendlyMessage || "Failed to create webhook.");
+      throw new Error(parseApiError(err, "Failed to create webhook."));
     }
   }
 

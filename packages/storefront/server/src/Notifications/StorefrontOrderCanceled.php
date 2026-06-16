@@ -2,6 +2,8 @@
 
 namespace Fleetbase\Storefront\Notifications;
 
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
+use Fleetbase\Storefront\Mail\StorefrontEmailTemplateVariables;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Storefront\Models\Network;
 use Fleetbase\Storefront\Models\Store;
@@ -16,6 +18,7 @@ use NotificationChannels\Fcm\FcmChannel;
 class StorefrontOrderCanceled extends Notification
 {
     use Queueable;
+    use RendersVelocityEmail;
 
     /**
      * The order instance this notification is for.
@@ -94,12 +97,11 @@ class StorefrontOrderCanceled extends Notification
      */
     public function toMail($notifiable)
     {
-        $message = (new MailMessage())
-            ->subject($this->subject)
-            ->line($this->body)
-            ->line('No further action is necessary.');
-
-        return $message;
+        return $this->velocityMail(
+            'storefront.order-canceled',
+            StorefrontEmailTemplateVariables::storefrontOrderVariables($this->storefront, $this->order),
+            StorefrontEmailTemplateVariables::companyUuidForOrder($this->order)
+        );
     }
 
     /**

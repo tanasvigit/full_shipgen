@@ -1,0 +1,13 @@
+﻿<h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:800;color:#0A0E1A;">Hello, $notifiableName!</h1>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4B5563;"><strong>$senderName</strong> invited you to join <strong>$companyName</strong> on <strong style="color:#0066FF;">$brandName</strong>.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(180deg,#F8FAFF 0%,#F5F6F8 100%);border:1px solid rgba(0,102,255,0.12);border-radius:12px;">
+  <tr>
+    <td style="padding:20px 22px;">
+      <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#7C3AED;font-weight:700;">Invitation details</p>
+      <p style="margin:0;font-size:14px;line-height:1.6;color:#4B5563;">Invitation code: <code style="font-size:14px;background:#FFFFFF;border:1px solid rgba(10,14,26,0.08);border-radius:6px;padding:4px 8px;color:#0A0E1A;">$inviteCode</code></p>
+    </td>
+  </tr>
+</table>
+#set($actionUrl = $inviteUrl)
+#set($actionLabel = "Accept Invitation")
+#parse('partials/cta')

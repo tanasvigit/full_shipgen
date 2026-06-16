@@ -20,6 +20,7 @@ import OrderImportDialog from "@/components/fleetops/orders/OrderImportDialog";
 import OrderListMapOverlay from "@/components/fleetops/orders/OrderListMapOverlay";
 import OrdersColumnPicker from "@/components/fleetops/orders/OrdersColumnPicker";
 import MapMarkerContextMenu from "@/components/fleetops/map/MapMarkerContextMenu";
+import { parseApiError } from "@/lib/errors";
 import {
   ORDERS_TABLE_COLUMNS,
   loadOrdersColumnLayout,
@@ -198,7 +199,7 @@ export default function OrdersList() {
       setSelectedKeys(new Set());
       await reload();
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBulkBusy(false);
     }
@@ -216,7 +217,7 @@ export default function OrdersList() {
       URL.revokeObjectURL(url);
       toast.success("Export started");
     } catch (err) {
-      toast.error(parseFleetopsApiError(err));
+      toast.error(parseApiError(err));
     } finally {
       setBulkBusy(false);
     }

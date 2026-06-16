@@ -11,6 +11,7 @@ import ZoneFormDialog from "@/components/fleetops/service-areas/ZoneFormDialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { parseApiError } from "@/lib/errors";
 
 function ServiceAreaRelations({ serviceAreaId }) {
   const [zones, setZones] = useState([]);
@@ -31,7 +32,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
       setZones((zonesList || []).map((row) => mapCrudRow(row, "service-area-zone")));
       setGeometry(shape || null);
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Failed to load service area relations.");
+      toast.error(parseApiError(error, "Failed to load service area relations."));
       setZones([]);
       setGeometry(null);
     } finally {
@@ -50,7 +51,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
       toast.success("Polygon saved");
       await load();
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Could not save polygon.");
+      toast.error(parseApiError(error, "Could not save polygon."));
     } finally {
       setSaving(false);
     }
@@ -63,7 +64,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
       toast.success("Polygon deleted");
       await load();
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Could not delete polygon.");
+      toast.error(parseApiError(error, "Could not delete polygon."));
     } finally {
       setSaving(false);
     }
@@ -82,7 +83,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
       setZoneDialog({ open: false, row: null });
       await load();
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Zone save failed");
+      toast.error(parseApiError(error, "Zone save failed"));
     } finally {
       setZoneBusy(false);
     }
@@ -95,7 +96,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
       toast.success("Zone deleted");
       await load();
     } catch (error) {
-      toast.error(error?.friendlyMessage || "Could not delete zone");
+      toast.error(parseApiError(error, "Could not delete zone"));
     }
   };
 

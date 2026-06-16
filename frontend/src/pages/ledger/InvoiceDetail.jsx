@@ -8,6 +8,7 @@ import { ledgerService } from "@/services/ledger";
 import { mapInvoiceDetail, statusLabelExt } from "@/lib/mappers";
 import { formatMoney, majorToMinor } from "@/lib/formatMoney";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function InvoiceDetail() {
         setNotFound(true);
         setInv(null);
       } else {
-        toast.error(err?.friendlyMessage || "Failed to load invoice.");
+        toast.error(parseApiError(err, "Failed to load invoice."));
         setInv(null);
       }
     } finally {
@@ -52,7 +53,7 @@ export default function InvoiceDetail() {
       setInv(mapInvoiceDetail(updated));
       toast.success("Payment recorded.");
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to record payment.");
+      toast.error(parseApiError(err, "Failed to record payment."));
     } finally {
       setActionLoading(false);
     }
@@ -71,10 +72,10 @@ export default function InvoiceDetail() {
           await load();
           toast.success("Invoice marked as sent.");
         } catch (inner) {
-          toast.error(inner?.friendlyMessage || "Could not mark invoice as sent.");
+          toast.error(parseApiError(inner, "Could not mark invoice as sent."));
         }
       } else {
-        toast.error(err?.friendlyMessage || "Failed to send invoice.");
+        toast.error(parseApiError(err, "Failed to send invoice."));
       }
     } finally {
       setActionLoading(false);

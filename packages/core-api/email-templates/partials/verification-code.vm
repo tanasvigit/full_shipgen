@@ -1,0 +1,8 @@
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:20px 0;background:linear-gradient(180deg,#F8FAFF 0%,#F5F6F8 100%);border:1px solid rgba(0,102,255,0.12);border-radius:12px;">
+  <tr>
+    <td style="padding:20px 22px;">
+      <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#7C3AED;font-weight:700;">$!codeLabel</p>
+      <code style="font-size:18px;background:#FFFFFF;border:1px solid rgba(10,14,26,0.08);border-radius:6px;padding:8px 12px;color:#0A0E1A;letter-spacing:0.08em;">$code</code>
+    </td>
+  </tr>
+</table>

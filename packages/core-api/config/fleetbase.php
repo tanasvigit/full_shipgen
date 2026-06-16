@@ -25,6 +25,47 @@ return [
             'api_key' => env('IPINFO_API_KEY')
         ]
     ],
+    'installer' => [
+        // SaaS default: installer UI and runtime schema changes are disabled.
+        'ui_enabled' => env('INSTALLER_UI_ENABLED', app()->environment(['local', 'development'])),
+        'runtime_setup_enabled' => env('INSTALLER_RUNTIME_SETUP_ENABLED', false),
+    ],
+    'mailboxes' => [
+        'default' => env('MAIL_DEFAULT_MAILBOX', 'support'),
+        'addresses' => [
+            'sales' => env('MAIL_SALES_ADDRESS', 'sales@shipgen.net'),
+            'support' => env('MAIL_SUPPORT_ADDRESS', 'support@shipgen.net'),
+            'noreply' => env('MAIL_NOREPLY_ADDRESS', 'noreply@shipgen.net'),
+            'billing' => env('MAIL_BILLING_ADDRESS', 'billing@shipgen.net'),
+        ],
+        'reply_enabled_mailboxes' => ['sales', 'support', 'billing'],
+        'no_reply_exact' => [
+            'auth.verification',
+            'auth.verification-2fa',
+            'auth.password-reset',
+            'auth.user-credentials',
+            'registry.developer-verification',
+            'storefront.verification-create-customer',
+            'storefront.verification-account-closure',
+            'fleetops.customer-credentials',
+        ],
+        'mapping' => [
+            'exact' => [
+                'auth.user-invited' => 'sales',
+                'storefront.network-invite' => 'sales',
+            ],
+            'prefix' => [
+                'auth.' => 'support',
+                'fleetops.' => 'support',
+                'storefront.order-' => 'support',
+                'storefront.verification-' => 'noreply',
+                'registry.' => 'noreply',
+                'ledger.' => 'billing',
+                'billing.' => 'billing',
+                'invoice.' => 'billing',
+            ],
+        ],
+    ],
     'connection' => [
         'db' => env('DB_CONNECTION', 'mysql'),
         'sandbox' => env('SANDBOX_DB_CONNECTION', 'sandbox')
@@ -35,6 +76,7 @@ return [
     ],
 
     'branding' => [
+        // Use a full https:// URL in production so Gmail/Outlook can load the logo.
         'logo_url' => env('BRANDING_LOGO_URL', '/images/logo_logistic.png'),
         'icon_url' => env('BRANDING_ICON_URL', '/images/logo_logistic.png'),
     ],

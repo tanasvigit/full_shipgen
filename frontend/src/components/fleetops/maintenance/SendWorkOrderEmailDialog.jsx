@@ -7,6 +7,7 @@ import { fleetopsService } from "@/services/fleetops";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { parseApiError } from "@/lib/errors";
 
 export default function SendWorkOrderEmailDialog({ workOrderId, trigger }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +25,7 @@ export default function SendWorkOrderEmailDialog({ workOrderId, trigger }) {
       toast.success("Work order email sent");
       setOpen(false);
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Send failed");
+      toast.error(parseApiError(err, "Send failed"));
     } finally {
       setBusy(false);
     }

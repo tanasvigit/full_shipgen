@@ -2,6 +2,8 @@
 
 namespace Fleetbase\FleetOps\Notifications;
 
+use Fleetbase\FleetOps\Mail\FleetOpsEmailTemplateVariables;
+use Fleetbase\Mail\Concerns\RendersVelocityEmail;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Waypoint;
@@ -18,6 +20,8 @@ use NotificationChannels\Fcm\FcmChannel;
 class OrderCanceled extends Notification implements ShouldQueue
 {
     use Queueable;
+    use RendersVelocityEmail;
+
 
     /**
      * The order instance this notification is for.
@@ -133,12 +137,11 @@ class OrderCanceled extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage())
-            ->subject($this->title)
-            ->line($this->message)
-            ->line($this->reason)
-            ->line('No further action is necessary.')
-            ->action('Track Order', Utils::consoleUrl('track-order', ['order' => $this->getTrackingNumber()]));
+        return $this->velocityMail(
+            'fleetops.order-canceled',
+            FleetOpsEmailTemplateVariables::orderMailVariables($this->order, $this->title, $this->message, $this->reason),
+            FleetOpsEmailTemplateVariables::companyUuidForOrder($this->order)
+        );
     }
 
     /**

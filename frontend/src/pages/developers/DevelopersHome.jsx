@@ -10,6 +10,7 @@ import { developersService } from "@/services/developers";
 import { mapApiLog, mapWebhook, mapDeveloperEventType } from "@/lib/mappers";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 function statusColor(s) {
   if (s >= 500) return "text-[#B91C1C]";
@@ -82,7 +83,7 @@ export default function DevelopersHome() {
       }
       setTopEvents([...events].sort((a, b) => b.volume24h - a.volume24h).slice(0, 5));
     } catch (err) {
-      toast.error(err?.friendlyMessage || "Failed to load developer overview.");
+      toast.error(parseApiError(err, "Failed to load developer overview."));
       setKeysCount(0);
       setActiveKeys(0);
       setWhCount(0);
