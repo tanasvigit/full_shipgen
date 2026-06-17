@@ -179,6 +179,23 @@ class UserController extends FleetbaseController
                 }
             });
 
+            $company = Auth::getCompany();
+            if ($company) {
+                $invitation = Invite::create([
+                    'company_uuid'    => $company->uuid,
+                    'created_by_uuid' => session('user'),
+                    'subject_uuid'    => $company->uuid,
+                    'subject_type'    => Utils::getMutationType($company),
+                    'protocol'        => 'email',
+                    'recipients'      => [$record->email],
+                    'reason'          => 'join_company',
+                    'meta'            => array_filter(['role_uuid' => $request->input('user.role_uuid') ?? $request->input('user.role')]),
+                    'expires_at'      => now()->addHours(48),
+                ]);
+
+                $record->notifyNow(new UserInvited($invitation));
+            }
+
             return ['user' => new $this->resource($record)];
         } catch (\Exception $e) {
             return response()->error($e->getMessage());
@@ -470,7 +487,22 @@ class UserController extends FleetbaseController
                 'expires_at'      => now()->addHours(48),
             ]);
 
-            $user->notify(new UserInvited($invitation));
+            $user->notifyNow(new UserInvited($invitation));
+        } else {
+            // If an invite already exists, resend using the latest invite code.
+            // This prevents silent "success with no email" when users retry invite.
+            $existingInvite = Invite::query()
+                ->where('company_uuid', $company->uuid)
+                ->where('subject_uuid', $company->uuid)
+                ->where('protocol', 'email')
+                ->where('reason', 'join_company')
+                ->whereJsonContains('recipients', $user->email)
+                ->latest()
+                ->first();
+
+            if ($existingInvite) {
+                $user->notifyNow(new UserInvited($existingInvite));
+            }
         }
 
         return response()->json(['user' => new $this->resource($user)]);
@@ -496,9 +528,26 @@ class UserController extends FleetbaseController
             return response()->error('Unable to determine the current organisation.');
         }
 
-        // Guard: prevent duplicate invitations using the model helper.
+        // If invite already exists, resend it instead of failing.
         if (Invite::isAlreadySentToJoinCompany($user, $company)) {
-            return response()->error('This user has already been invited to join your organisation.');
+            $existingInvite = Invite::query()
+                ->where('company_uuid', $company->uuid)
+                ->where('subject_uuid', $company->uuid)
+                ->where('protocol', 'email')
+                ->where('reason', 'join_company')
+                ->whereJsonContains('recipients', $user->email)
+                ->latest()
+                ->first();
+
+            if ($existingInvite) {
+                $user->notifyNow(new UserInvited($existingInvite));
+            }
+
+            return response()->json([
+                'user' => new $this->resource($user),
+                'invited' => true,
+                'resent' => true,
+            ]);
         }
 
         $invitation = Invite::create([
@@ -513,7 +562,7 @@ class UserController extends FleetbaseController
             'expires_at'      => now()->addHours(48),
         ]);
 
-        $user->notify(new UserInvited($invitation));
+        $user->notifyNow(new UserInvited($invitation));
 
         // Return `invited: true` so the frontend can distinguish between
         // a newly created user and a cross-organisation invite.
@@ -547,7 +596,7 @@ class UserController extends FleetbaseController
         ]);
 
         // notify user
-        $user->notify(new UserInvited($invitation));
+        $user->notifyNow(new UserInvited($invitation));
 
         return response()->json(['status' => 'ok']);
     }

@@ -24,6 +24,7 @@ act.sh
 composer-auth.json
 docker/database/*
 docker/database/mysql/*
+errors/*.har
 .talismanrc
 verdaccio/minio
 verdaccio/config/htpasswd

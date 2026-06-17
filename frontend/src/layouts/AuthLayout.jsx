@@ -3,12 +3,14 @@ import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
 import { features } from "@/lib/features";
+import { env } from "@/lib/env";
 
 export default function AuthLayout() {
     const location = useLocation();
     const { authReady, onboardingGateReady, shouldInstall, shouldOnboard, isAuthenticated, requiresTwoFactor } = useAuth();
     const installSessionRef = useRef(false);
-    if (location.pathname === "/install" && shouldInstall) {
+    const wantsInstall = env.INSTALLER_UI_ENABLED && shouldInstall;
+    if (location.pathname === "/install" && wantsInstall) {
         installSessionRef.current = true;
     }
     if (!authReady || !onboardingGateReady) {
@@ -18,12 +20,12 @@ export default function AuthLayout() {
     if (features.twoFaEnabled && requiresTwoFactor && location.pathname !== "/auth/two-fa") {
         return <Navigate to="/auth/two-fa" replace />;
     }
-    if (shouldInstall && location.pathname !== "/install") {
+    if (wantsInstall && location.pathname !== "/install") {
         return <Navigate to="/install" replace />;
     }
     // Cold visit to /install when already set up — bypass installer UI.
     // Stay on /install after completing steps so user can choose Continue / Login.
-    if (!shouldInstall && location.pathname === "/install" && !installSessionRef.current) {
+    if (!wantsInstall && location.pathname === "/install" && !installSessionRef.current) {
         return <Navigate to={shouldOnboard ? "/auth/onboard" : "/auth"} replace />;
     }
     if (shouldOnboard && location.pathname === "/auth") {

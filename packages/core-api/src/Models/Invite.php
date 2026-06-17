@@ -134,7 +134,7 @@ class Invite extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by_uuid', 'uuid');
     }
 
     /**
@@ -142,7 +142,7 @@ class Invite extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Company::class, 'company_uuid', 'uuid');
     }
 
     /**

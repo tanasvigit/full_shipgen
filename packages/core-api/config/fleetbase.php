@@ -26,8 +26,8 @@ return [
         ]
     ],
     'installer' => [
-        // SaaS default: installer UI and runtime schema changes are disabled.
-        'ui_enabled' => env('INSTALLER_UI_ENABLED', app()->environment(['local', 'development'])),
+        // SaaS default: installer UI and runtime schema changes are disabled unless explicitly enabled.
+        'ui_enabled' => env('INSTALLER_UI_ENABLED', false),
         'runtime_setup_enabled' => env('INSTALLER_RUNTIME_SETUP_ENABLED', false),
     ],
     'mailboxes' => [

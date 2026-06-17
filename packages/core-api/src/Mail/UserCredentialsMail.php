@@ -32,7 +32,7 @@ class UserCredentialsMail extends Mailable
     {
         $this->user->loadMissing('company');
 
-        return $this->velocityCredentialEnvelope('auth.user-credentials', $this->templateVariables());
+        return $this->velocityEnvelope('auth.user-credentials', $this->templateVariables());
     }
 
     public function content(): Content

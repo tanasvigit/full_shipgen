@@ -6,6 +6,7 @@ use Fleetbase\Mail\Support\CredentialEmailBranding;
 use Fleetbase\Mail\Velocity\VelocityEngine;
 use Fleetbase\Models\EmailTemplate;
 use Fleetbase\Support\Utils;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -106,17 +107,31 @@ class EmailTemplateRenderer
         ?string $locale
     ): string {
         if ($companyUuid) {
-            $override = EmailTemplate::query()
-                ->where('template_key', $key)
-                ->where('part', $part)
-                ->where('company_uuid', $companyUuid)
-                ->when($locale, fn ($query) => $query->where('locale', $locale))
-                ->where('is_active', true)
-                ->orderByDesc('version')
-                ->first();
+            try {
+                $override = EmailTemplate::query()
+                    ->where('template_key', $key)
+                    ->where('part', $part)
+                    ->where('company_uuid', $companyUuid)
+                    ->when($locale, fn ($query) => $query->where('locale', $locale))
+                    ->where('is_active', true)
+                    ->orderByDesc('version')
+                    ->first();
 
-            if ($override?->content) {
-                return $override->content;
+                if ($override?->content) {
+                    return $override->content;
+                }
+            } catch (QueryException $e) {
+                // SaaS/on-prem deployments may not run the optional email_templates migration.
+                // Fall back to packaged .vm templates when company overrides storage is unavailable.
+                if (str_contains($e->getMessage(), 'email_templates')) {
+                    Log::warning('mail_template_override_unavailable', [
+                        'template' => $key,
+                        'part' => $part,
+                        'company_uuid' => $companyUuid,
+                    ]);
+                } else {
+                    throw $e;
+                }
             }
         }
 

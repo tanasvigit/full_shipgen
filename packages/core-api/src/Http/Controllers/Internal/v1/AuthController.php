@@ -311,8 +311,9 @@ class AuthController extends Controller
                 ->distinct()
                 ->get();
 
-            // Get installer status (cached separately)
-            $installer = Cache::remember('installer_status', now()->addHour(), function () {
+            // Get installer status (cached separately). Never surface shouldInstall when UI installer is disabled.
+            $installerUiEnabled = (bool) config('fleetbase.installer.ui_enabled', false);
+            $installer = Cache::remember('installer_status', now()->addHour(), function () use ($installerUiEnabled) {
                 $shouldInstall = false;
                 $shouldOnboard = false;
 
@@ -321,14 +322,16 @@ class AuthController extends Controller
                     if (DB::connection()->getDatabaseName()) {
                         if (\Illuminate\Support\Facades\Schema::hasTable('companies')) {
                             $shouldOnboard = !DB::table('companies')->exists();
-                        } else {
+                        } elseif ($installerUiEnabled) {
                             $shouldInstall = true;
                         }
-                    } else {
+                    } elseif ($installerUiEnabled) {
                         $shouldInstall = true;
                     }
                 } catch (\Exception $e) {
-                    $shouldInstall = true;
+                    if ($installerUiEnabled) {
+                        $shouldInstall = true;
+                    }
                 }
 
                 return [

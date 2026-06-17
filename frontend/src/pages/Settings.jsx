@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import BillingPlansTab from "@/components/settings/BillingPlansTab";
+import { apiClient } from "@/lib/api";
+import { parseApiError } from "@/lib/errors";
 
 const NOTIFICATION_ITEMS = [
   { key: "orderCreated", title: "Order created", desc: "When a new order is placed in any network" },
@@ -25,6 +27,7 @@ export default function Settings() {
   const [orgName, setOrgName] = useState(activeOrganization?.name || "");
   const [contact, setContact] = useState("");
   const [description, setDescription] = useState("");
+  const [mailboxTestBusy, setMailboxTestBusy] = useState("");
 
   const saveOrg = () => {
     toast.success("Organization profile saved");
@@ -53,6 +56,18 @@ export default function Settings() {
         [key]: { ...current, [channel]: !current[channel] },
       },
     });
+  };
+
+  const sendMailboxTest = async (mailbox) => {
+    setMailboxTestBusy(mailbox);
+    try {
+      const { data } = await apiClient.post("/settings/test-mailbox-email", { mailbox });
+      toast.success(data?.message || `${mailbox} test email sent.`);
+    } catch (error) {
+      toast.error(parseApiError(error, `Failed to send ${mailbox} test email.`));
+    } finally {
+      setMailboxTestBusy("");
+    }
   };
 
   return (
@@ -295,6 +310,30 @@ export default function Settings() {
 
           <TabsContent value="billing">
             <BillingPlansTab />
+            <div className="mt-4 bg-white border border-black/[0.08] rounded-md p-5 space-y-3" data-testid="settings-mailbox-tests">
+              <div className="overline mb-1">Mailbox test emails</div>
+              <p className="text-sm text-[#4B5563]">
+                Send one-click test emails to your own account using specific mailbox routing.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => sendMailboxTest("support")}
+                  disabled={mailboxTestBusy.length > 0}
+                  data-testid="settings-test-support-mail"
+                >
+                  {mailboxTestBusy === "support" ? "Sending support test..." : "Send support test mail"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => sendMailboxTest("billing")}
+                  disabled={mailboxTestBusy.length > 0}
+                  data-testid="settings-test-billing-mail"
+                >
+                  {mailboxTestBusy === "billing" ? "Sending billing test..." : "Send billing test mail"}
+                </Button>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="api" className="space-y-3">

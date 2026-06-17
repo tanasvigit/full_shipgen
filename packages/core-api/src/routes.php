@@ -200,6 +200,7 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                                     $router->get('mail-config', $controller('getMailConfig'));
                                     $router->post('mail-config', $controller('saveMailConfig'));
                                     $router->post('test-mail-config', $controller('testMailConfig'));
+                                    $router->post('test-mailbox-email', $controller('testMailboxEmail'));
                                     $router->get('queue-config', $controller('getQueueConfig'));
                                     $router->post('queue-config', $controller('saveQueueConfig'));
                                     $router->post('test-queue-config', $controller('testQueueConfig'));

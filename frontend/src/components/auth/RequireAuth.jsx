@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
 
 export default function RequireAuth({ children }) {
     const location = useLocation();
@@ -10,7 +11,8 @@ export default function RequireAuth({ children }) {
     }
 
     if (!isAuthenticated) {
-        const nextPath = shouldInstall ? "/install" : shouldOnboard ? "/auth/onboard" : "/auth";
+        const installPath = env.INSTALLER_UI_ENABLED && shouldInstall;
+        const nextPath = installPath ? "/install" : shouldOnboard ? "/auth/onboard" : "/auth";
         return <Navigate to={nextPath} state={{ from: location.pathname }} replace />;
     }
 

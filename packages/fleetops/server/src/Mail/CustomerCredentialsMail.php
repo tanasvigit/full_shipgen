@@ -33,7 +33,7 @@ class CustomerCredentialsMail extends Mailable
     {
         $this->customer->loadMissing('company');
 
-        return $this->velocityCredentialEnvelope('fleetops.customer-credentials', $this->templateVariables());
+        return $this->velocityEnvelope('fleetops.customer-credentials', $this->templateVariables());
     }
 
     public function content(): Content

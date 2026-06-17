@@ -12,7 +12,6 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import TwoFA from "@/pages/auth/TwoFA";
 import Onboard from "@/pages/auth/Onboard";
 import OnboardVerifyEmail from "@/pages/auth/OnboardVerifyEmail";
-import Installer from "@/pages/auth/Installer";
 
 import Dashboard from "@/pages/Dashboard";
 import Notifications from "@/pages/Notifications";
@@ -153,7 +152,7 @@ function App() {
         <div className="App">
                 <Routes>
                     <Route element={<AuthLayout />}>
-                        <Route path="/install" element={<Installer />} />
+                        <Route path="/install" element={<Navigate to="/auth" replace />} />
                         <Route path="/auth" element={<Login />} />
                         <Route path="/auth/onboard" element={<Onboard />} />
                         <Route path="/auth/onboard/verify-email" element={<OnboardVerifyEmail />} />

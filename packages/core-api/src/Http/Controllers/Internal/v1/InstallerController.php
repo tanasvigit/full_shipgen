@@ -33,6 +33,8 @@ class InstallerController extends Controller
     public function initialize()
     {
         if (!$this->installerUiEnabled()) {
+            static::clearCache();
+
             return response()->json([
                 'shouldInstall'     => false,
                 'shouldOnboard'     => Company::doesntExist(),

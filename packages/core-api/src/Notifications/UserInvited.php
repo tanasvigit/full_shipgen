@@ -49,10 +49,41 @@ class UserInvited extends Notification implements ShouldQueue
      */
     public function __construct(Invite $invite)
     {
-        $this->invite  = $invite;
+        $this->invite  = $invite->loadMissing(['subject', 'createdBy']);
         $this->company = $this->invite->subject;
-        $this->sender  = $this->invite->createdBy;
+        $this->sender  = $this->resolveSender($this->invite);
         $this->url     = Utils::consoleUrl('join/org/' . $invite->uri);
+    }
+
+    protected function resolveSender(Invite $invite): User
+    {
+        if ($invite->createdBy) {
+            return $invite->createdBy;
+        }
+
+        if ($invite->created_by_uuid) {
+            $user = User::where('uuid', $invite->created_by_uuid)->whereNull('deleted_at')->first();
+            if ($user) {
+                return $user;
+            }
+        }
+
+        $authenticated = auth()->user();
+        if ($authenticated instanceof User) {
+            return $authenticated;
+        }
+
+        if (session('user')) {
+            $user = User::where('uuid', session('user'))->whereNull('deleted_at')->first();
+            if ($user) {
+                return $user;
+            }
+        }
+
+        $fallback       = new User();
+        $fallback->name = config('app.name', 'Shipgen');
+
+        return $fallback;
     }
 
     /**

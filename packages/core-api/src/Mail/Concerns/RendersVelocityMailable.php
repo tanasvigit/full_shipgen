@@ -43,14 +43,6 @@ trait RendersVelocityMailable
     /**
      * @param array<string, mixed> $variables
      */
-    protected function velocityCredentialEnvelope(string $templateKey, array $variables, ?string $companyUuid = null): Envelope
-    {
-        return $this->velocityEnvelope($templateKey, $variables, $companyUuid);
-    }
-
-    /**
-     * @param array<string, mixed> $variables
-     */
     protected function velocityContent(string $templateKey, array $variables, ?string $companyUuid = null): Content
     {
         $rendered = $this->renderVelocityMail($templateKey, $variables, $companyUuid);

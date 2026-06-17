@@ -4,6 +4,8 @@ namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Http\Requests\AdminRequest;
+use Fleetbase\Http\Requests\TestMailboxEmailRequest;
+use Fleetbase\Mail\Support\MailboxPolicy;
 use Fleetbase\Models\File;
 use Fleetbase\Models\Setting;
 use Fleetbase\Notifications\TestPushNotification;
@@ -322,7 +324,6 @@ class SettingController extends Controller
         $postmark       = $request->array('postmark');
         $sendgrid       = $request->array('sendgrid');
         $resend         = $request->array('resend');
-        $user           = $request->user();
         $message        = 'Mail configuration is successful, check your inbox for the test email to confirm.';
         $status         = 'success';
 
@@ -351,13 +352,57 @@ class SettingController extends Controller
         }
 
         try {
-            Mail::send(new \Fleetbase\Mail\TestMail($user, $mailer));
+            Mail::send(new \Fleetbase\Mail\TestMail());
         } catch (\Aws\Ses\Exception\SesException|\Exception $e) {
             $message = $e->getMessage();
             $status  = 'error';
         }
 
         return response()->json(['status' => $status, 'message' => $message]);
+    }
+
+    /**
+     * Sends a mailbox-routed test email to the authenticated user.
+     */
+    public function testMailboxEmail(TestMailboxEmailRequest $request)
+    {
+        $mailbox = strtolower((string) $request->validated('mailbox'));
+        $user = $request->user();
+        if (!$user?->email) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unable to resolve authenticated user email.',
+            ], 422);
+        }
+
+        $from = MailboxPolicy::address($mailbox);
+        $subject = sprintf('Shipgen %s mailbox test', ucfirst($mailbox));
+        $body = sprintf(
+            "Hello %s,\n\nThis is a test email from Shipgen %s mailbox routing.\n\nMailbox: %s\nFrom: %s\n\nIf you received this, the mailbox route is configured correctly.",
+            $user->name ?: 'User',
+            $mailbox,
+            $mailbox,
+            $from->address
+        );
+
+        try {
+            Mail::raw($body, function ($message) use ($user, $from, $subject) {
+                $message->to($user->email, $user->name ?: null)
+                    ->subject($subject)
+                    ->from($from->address, $from->name ?: 'Shipgen')
+                    ->replyTo($from->address, $from->name ?: 'Shipgen');
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => sprintf('Test email sent from %s mailbox to %s.', $mailbox, $user->email),
+        ]);
     }
 
     /**
