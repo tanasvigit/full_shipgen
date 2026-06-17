@@ -400,7 +400,8 @@ class VelocityEngine
 
                 if (is_scalar($value)) {
                     $root = explode('.', $matches[2])[0];
-                    if (in_array($root, $this->rawVariables, true)) {
+                    // Pre-rendered HTML slot used by email layouts.
+                    if (in_array($root, $this->rawVariables, true) || $root === 'bodyContent') {
                         return (string) $value;
                     }
 

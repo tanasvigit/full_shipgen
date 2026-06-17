@@ -6,6 +6,7 @@ use Fleetbase\Mail\EmailTemplateRenderer;
 use Fleetbase\Mail\Support\MailboxPolicy;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Support\Facades\Log;
 
 trait RendersVelocityMailable
 {
@@ -53,6 +54,16 @@ trait RendersVelocityMailable
     protected function velocityContent(string $templateKey, array $variables, ?string $companyUuid = null): Content
     {
         $rendered = $this->renderVelocityMail($templateKey, $variables, $companyUuid);
+        if (filter_var(env('MAIL_TEMPLATE_DEBUG', false), FILTER_VALIDATE_BOOLEAN)) {
+            Log::info('mail_template_debug_payload', [
+                'template' => $templateKey,
+                'service' => env('FLEETBASE_SERVICE'),
+                'host' => gethostname(),
+                'has_literal_h1' => str_contains($rendered['html'], '<h1'),
+                'has_escaped_h1' => str_contains($rendered['html'], '&lt;h1'),
+                'preview' => substr($rendered['html'], 0, 500),
+            ]);
+        }
 
         return new Content(htmlString: $rendered['html']);
     }

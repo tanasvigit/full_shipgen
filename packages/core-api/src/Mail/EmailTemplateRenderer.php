@@ -7,6 +7,7 @@ use Fleetbase\Mail\Velocity\VelocityEngine;
 use Fleetbase\Models\EmailTemplate;
 use Fleetbase\Support\Utils;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class EmailTemplateRenderer
 {
@@ -33,12 +34,16 @@ class EmailTemplateRenderer
         $rawVariables = $definition['raw_variables'] ?? [];
         $subject = trim($this->engine->renderString($subjectTemplate, $context, $rawVariables));
         $body = trim($this->engine->renderString($bodyTemplate, $context, $rawVariables));
+        $this->logRenderDiagnostics($key, 'body_rendered', $body);
 
         if (($definition['layout'] ?? true) !== false) {
             $layout = is_string($definition['layout'] ?? null) ? $definition['layout'] : 'layouts/shipgen';
-            $body = $this->engine->render($layout, array_merge($context, [
-                'bodyContent' => $body,
-            ]));
+            $layoutSource = $this->engine->source($layout);
+            // Inject pre-rendered HTML directly into the layout source so the body slot
+            // never passes through Velocity scalar escaping.
+            $layoutSource = str_replace('$bodyContent', $body, $layoutSource);
+            $body = $this->engine->renderString($layoutSource, $context, $rawVariables);
+            $this->logRenderDiagnostics($key, 'layout_merged', $body);
         }
 
         if (!empty($context['subjectOverride'])) {
@@ -49,6 +54,21 @@ class EmailTemplateRenderer
             'subject' => $subject,
             'html' => $body,
         ];
+    }
+
+    protected function logRenderDiagnostics(string $key, string $stage, string $html): void
+    {
+        if (!filter_var(env('MAIL_TEMPLATE_DEBUG', false), FILTER_VALIDATE_BOOLEAN)) {
+            return;
+        }
+
+        Log::info('mail_template_debug', [
+            'template' => $key,
+            'stage' => $stage,
+            'has_literal_h1' => str_contains($html, '<h1'),
+            'has_escaped_h1' => str_contains($html, '&lt;h1'),
+            'preview' => substr($html, 0, 500),
+        ]);
     }
 
     /**

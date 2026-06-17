@@ -52,6 +52,14 @@ docker exec -w /fleetbase/api fleetbase-application-1 sh -c "rm -rf vendor/fleet
 docker compose restart application iam-service fleetops-service gateway
 ```
 
+Or refresh vendor and reload Octane workers (required — FrankenPHP keeps old PHP in memory):
+
+```bash
+for svc in application iam-service fleetops-service storefront-service ledger-service pallet-service; do
+  docker exec -w /fleetbase/api "fleetbase-${svc}-1" sh -c "composer reinstall fleetbase/core-api --no-interaction && php artisan config:clear && php artisan config:cache && php artisan octane:reload"
+done
+```
+
 For production images, rebuild `fleetbase-api-onprem:local` (`docker compose build application`).
 
 ## Split a service

@@ -55,11 +55,15 @@ return [
                 'storefront.network-invite' => 'sales',
             ],
             'prefix' => [
-                'auth.' => 'support',
-                'fleetops.' => 'support',
-                'storefront.order-' => 'support',
+                // Customer-facing support communications.
+                'support.' => 'support',
+                // System-generated authentication and operational notifications.
+                'auth.' => 'noreply',
+                'fleetops.' => 'noreply',
+                'storefront.order-' => 'noreply',
                 'storefront.verification-' => 'noreply',
                 'registry.' => 'noreply',
+                // Finance and payment communications.
                 'ledger.' => 'billing',
                 'billing.' => 'billing',
                 'invoice.' => 'billing',

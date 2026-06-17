@@ -54,6 +54,14 @@ else
   echo "[deploy] Skipping permissions sync."
 fi
 
+# Sync local path packages into vendor (composer uses mirror, not symlink)
+echo "[deploy] Refreshing local path packages in vendor..."
+composer reinstall fleetbase/core-api fleetbase/fleetops-api fleetbase/storefront-api fleetbase/registry-bridge fleetbase/ledger-api fleetbase/pallet-api --no-interaction
+
+# Octane keeps PHP workers in memory; reload after vendor/package updates.
+echo "[deploy] Reloading Octane workers..."
+php artisan octane:reload || true
+
 # Restart queue
 echo "[deploy] Restarting queue workers..."
 php artisan queue:restart
@@ -80,5 +88,5 @@ else
 fi
 
 # Restart octane
-# php artisan octane:reload
+php artisan octane:reload || true
 echo "[deploy] Deployment tasks completed."

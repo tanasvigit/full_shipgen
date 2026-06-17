@@ -34,7 +34,8 @@ class MailboxPolicy
 
     protected static function mailboxForTemplate(string $templateKey): string
     {
-        $exact = config("fleetbase.mailboxes.mapping.exact.{$templateKey}");
+        $exactMappings = (array) config('fleetbase.mailboxes.mapping.exact', []);
+        $exact = $exactMappings[$templateKey] ?? null;
         if (is_string($exact) && $exact !== '') {
             return $exact;
         }

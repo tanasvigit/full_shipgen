@@ -1,0 +1,14 @@
+[
+    {
+        "file": "/fleetbase/api/vendor/fleetbase/core-api/src/Support/Reporting/ReportQueryExporter.php",
+        "needle": "htmlspecialchars("
+    },
+    {
+        "file": "/fleetbase/api/vendor/fleetbase/core-api/src/Mail/Velocity/VelocityEngine.php",
+        "needle": "htmlspecialchars("
+    },
+    {
+        "file": "/fleetbase/api/vendor/fleetbase/core-api/views/mail/velocity.blade.php",
+        "needle": "{!! $html !!}"
+    }
+]
