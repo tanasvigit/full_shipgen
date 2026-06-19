@@ -1,0 +1,1 @@
+function n(r={}){const i=(r?.details?.assignments||[]).map(e=>e?.order_id||e?.orderId).filter(Boolean);return i.length?[...new Set(i.map(String))]:r?.order_public_id?[String(r.order_public_id)]:r?.order?.public_id?[String(r.order.public_id)]:[]}export{n as resolveOrderIdsFromRoute};

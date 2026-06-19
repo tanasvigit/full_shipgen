@@ -1,0 +1,12 @@
+node_modules/
+test-results/
+playwright-report/
+playwright-report-*/
+playwright-manual-audit/
+playwright-manual-visual-audit/
+playwright-rbac-audit/
+playwright-bug-fix/
+audit-results.json
+responsive-audit-results.json
+screenshots/
+*.webm

@@ -54,6 +54,12 @@ import {
     BadgeCheck,
     Hash,
     ListChecks,
+    ShieldCheck,
+    ListOrdered,
+    PackageCheck,
+    HardHat,
+    Sparkles,
+    AlertTriangle,
 } from "lucide-react";
 
 const sections = {
@@ -268,6 +274,51 @@ const sections = {
             ],
         },
     ],
+    "/yard": [
+        {
+            label: "Control",
+            items: [
+                { to: "/yard", label: "Control Tower", icon: LayoutDashboard },
+                { to: "/yard/queue", label: "Virtual Queue", icon: ListOrdered },
+                { to: "/yard/yard", label: "Yard Map", icon: MapPin },
+                { to: "/yard/ai", label: "Recommendations", icon: Sparkles },
+            ],
+        },
+        {
+            label: "Operations",
+            items: [
+                { to: "/yard/appointments", label: "Appointments", icon: CalendarClock },
+                { to: "/yard/gate", label: "Gate", icon: ShieldCheck },
+                { to: "/yard/docks", label: "Docks", icon: Warehouse },
+                { to: "/yard/loading", label: "Loading Ops", icon: PackageCheck },
+            ],
+        },
+        {
+            label: "Resources",
+            items: [
+                { to: "/yard/vehicles", label: "Vehicles", icon: Car },
+                { to: "/yard/equipment", label: "Equipment", icon: Wrench },
+                { to: "/yard/labor", label: "Labor", icon: HardHat },
+            ],
+        },
+        {
+            label: "Reports",
+            items: [
+                { to: "/yard/operations-dashboard", label: "Operations Dashboard", icon: LayoutDashboard },
+                { to: "/yard/reports/delay-analysis", label: "Delay Analysis", icon: AlertTriangle },
+                { to: "/yard/detention", label: "Detention", icon: Receipt },
+                { to: "/yard/kpis", label: "Executive KPIs", icon: LineChart },
+            ],
+        },
+        {
+            label: "Administration",
+            items: [
+                { to: "/yard/admin/users", label: "Users", icon: UserCog },
+                { to: "/yard/admin/roles", label: "Roles", icon: KeyRound },
+                { to: "/yard/settings", label: "Yard Settings", icon: SettingsIcon },
+            ],
+        },
+    ],
 };
 
 function pickSection(pathname) {
@@ -278,6 +329,7 @@ function pickSection(pathname) {
     if (pathname.startsWith("/registry")) return { key: "/registry", title: "Registry", subtitle: "Extensions marketplace", accent: "from-[#7C4DFF] to-cyan-accent" };
     if (pathname.startsWith("/developers")) return { key: "/developers", title: "Developers", subtitle: "API & integrations", accent: "from-cyan-accent to-[#7C4DFF]" };
     if (pathname.startsWith("/iam")) return { key: "/iam", title: "IAM", subtitle: "Identity & access", accent: "from-[#FF1744] to-[#FFEA00]" };
+    if (pathname.startsWith("/yard")) return { key: "/yard", title: "Yard", subtitle: "Yard management", accent: "from-amber-400 to-[#FF6D00]" };
     if (pathname.startsWith("/settings")) return { key: "/settings", title: "Settings", subtitle: "Workspace config", accent: "from-white/40 to-white/10" };
     return { key: "/", title: "Console", subtitle: "Overview", accent: "from-cyan-accent to-[#2979FF]" };
 }

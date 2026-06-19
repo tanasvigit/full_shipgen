@@ -145,6 +145,8 @@ services:
         condition: service_started
       storefront-service:
         condition: service_started
+      yms-service:
+        condition: service_started
       application:
         condition: service_started
 
@@ -402,6 +404,56 @@ services:
       osrm-backend:
         condition: service_started
 
+  # YMS (Yard Management) — FastAPI + PostgreSQL; proxied at /api/yms via gateway.
+  yms-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: smart_yard
+      POSTGRES_USER: smart_yard_user
+      POSTGRES_PASSWORD: postgress
+    volumes:
+      - yms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smart_yard_user -d smart_yard"]
+      interval: 5s
+      timeout: 3s
+      retries: 8
+      start_period: 5s
+
+  yms-service:
+    build:
+      context: ./yms/backend
+    restart: unless-stopped
+    env_file:
+      - ./yms/.env
+    environment:
+      DATABASE_URL: postgresql://smart_yard_user:postgress@yms-postgres:5432/smart_yard
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000,http://localhost:3001
+      JWT_SECRET_KEY: ${YMS_JWT_SECRET_KEY:-gQLNBbn3YuZZloUuSx_W6h0g5GJeUKk8Kgi6qKwbvgY_-MF0-LmnqNH70WwswdcV}
+      ENABLE_DEV_ROLE_OVERRIDE: ${YMS_ENABLE_DEV_ROLE_OVERRIDE:-false}
+      PLATFORM_USERINFO_URL: http://iam-service:8000/int/v1/users/me
+      NODE_ENV: development
+    expose:
+      - "8000"
+    depends_on:
+      yms-postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+
   # Direct nginx → app (bypass gateway). Use for debugging only.
   httpd:
     restart: unless-stopped
@@ -412,3 +464,6 @@ services:
       - "8001:80"
     depends_on:
       - application
+
+volumes:
+  yms_postgres_data:

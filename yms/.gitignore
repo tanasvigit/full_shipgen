@@ -1,0 +1,103 @@
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── Environment & secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# ─── Python / backend ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+*.egg
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+dist/
+build/
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Node / frontend_1 (React) ────────────────────────────────────────────────
+node_modules/
+frontend_1/node_modules/
+frontend_1/build/
+frontend_1/.cache/
+frontend_1/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.eslintcache
+*.tsbuildinfo
+
+# ─── Playwright / e2e ─────────────────────────────────────────────────────────
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/playwright-report-*/
+e2e/playwright-manual-audit/
+e2e/playwright-manual-visual-audit/
+e2e/playwright-rbac-audit/
+e2e/playwright-bug-fix/
+e2e/audit-results.json
+e2e/responsive-audit-results.json
+e2e/screenshots/
+e2e/**/*.webm
+e2e/**/trace.zip
+e2e/blob-report/
+
+# ─── IDE & editors ────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ─── Docker (local overrides) ─────────────────────────────────────────────────
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# ─── Logs & temp ──────────────────────────────────────────────────────────────
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ─── Misc build / cache ───────────────────────────────────────────────────────
+dist/
+out/
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/

@@ -1,0 +1,81 @@
+{
+  "project": "Yard Management System (YMS)",
+  "context": "Indian Logistics, Operations-Grade SaaS Dashboard",
+  "theme_and_archetype": {
+    "theme": "light",
+    "archetype": "Archetype 4 (Swiss & High-Contrast) - Industrial & Operations Grade",
+    "reasoning": "A control tower needs absolute clarity. The industrial variation uses Slate and high-contrast status colors to guide immediate action without decorative fluff. It avoids AI-slop gradients in favor of sharp, data-dense aesthetics similar to ShipGen/Fleetbase."
+  },
+  "typography": {
+    "primary_font": "Chivo",
+    "primary_font_usage": "Headings, Dashboard big numbers, Main navigation",
+    "secondary_font": "IBM Plex Sans",
+    "secondary_font_usage": "Body text, dense UI components, forms",
+    "mono_font": "IBM Plex Mono",
+    "mono_font_usage": "Vehicle Plates (MH12AB1234), Rupee Values (₹), Time/Turnaround stats, IDs",
+    "rules": [
+      "Use tracking-tight for all numbers above 24px",
+      "H1 maximum text-4xl",
+      "Body default text-sm for density",
+      "Never center-align table data unless it's an icon"
+    ]
+  },
+  "color_palette": {
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "primary": "#0F172A",
+    "primary_hover": "#1E293B",
+    "border": "#E2E8F0",
+    "text_main": "#0F172A",
+    "text_muted": "#64748B",
+    "status": {
+      "success": { "bg": "#DCFCE7", "text": "#16A34A", "border": "#16A34A", "label": "Available, Cleared" },
+      "warning": { "bg": "#FEF3C7", "text": "#D97706", "border": "#D97706", "label": "Waiting, Maintenance" },
+      "danger": { "bg": "#FEE2E2", "text": "#DC2626", "border": "#DC2626", "label": "Occupied, Delayed, Hazardous" },
+      "info": { "bg": "#DBEAFE", "text": "#2563EB", "border": "#2563EB", "label": "In Transit, Scheduled" }
+    }
+  },
+  "layout_and_spacing": {
+    "grid_strategy": "MODE B: The Control Room Grid",
+    "spacing_scale": "Dense. Use p-4 for cards, p-2 for table cells. gap-4 for grids.",
+    "border_radius": "rounded-md (max 6px)",
+    "navigation": "Dark left sidebar (bg-slate-900) with white text. High contrast to content area."
+  },
+  "components": {
+    "cards": "Flat white background, 1px solid border (border-slate-200), no shadow. On hover, shadow-sm.",
+    "tables": "Dense rows. Header text-xs uppercase tracking-wider text-slate-500. Borders between rows.",
+    "badges": "Flat color backgrounds (status.bg) with bold text (status.text) and optional 1px border. rounded-sm.",
+    "buttons": "Primary: bg-slate-900 text-white. Secondary: bg-white text-slate-700 border border-slate-300.",
+    "tabs": "Underline style or solid sharp toggles. Avoid bubbly pill tabs."
+  },
+  "icons_and_assets": {
+    "icon_library": "@phosphor-icons/react",
+    "icon_style": "Duotone for Sidebar Nav and Dashboard hero stats. Regular weight for dense tables and standard UI.",
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1670121180530-cfcba4438038?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzZ8MHwxfHNlYXJjaHwxfHxjb250YWluZXIlMjB0ZXJtaW5hbCUyMGNhcmdvJTIwbG9naXN0aWNzfGVufDB8fHx8MTc4MDM2MDY3N3ww&ixlib=rb-4.1.0&q=85",
+        "category": "auth_background",
+        "description": "Large cargo ship at a dock. Use as a half-screen background image for the login/auth page with a heavy black/slate overlay (bg-slate-900/60)."
+      }
+    ]
+  },
+  "module_specific_guidelines": {
+    "control_tower": "Use Bento grid (grid-cols-4). Top row for executive KPIs. Use Recharts for occupancy trends. Emphasize Detention Cost in red.",
+    "yard_map": "Must use SVG or pure CSS grid for Zones A-F. Overlays for vehicle dots. Color-coded based on status.",
+    "gate_management": "Split screen: QR scan placeholder on left, real-time incoming vehicle table on right.",
+    "virtual_queue": "Prioritized table with 'Priority Score' column. High scores highlighted in Warning/Danger colors."
+  },
+  "accessibility_and_testing": {
+    "data_testid": "MANDATORY on all buttons, tabs, form inputs, and interactive map zones. Use kebab-case.",
+    "contrast": "Ensure text meets 4.5:1 minimum on all status badges."
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette. No purple/teal defaults.",
+    "Use static JSON data structured for an Indian logistics context (₹ currency, MH14/DL01 plate numbers, local transporter names).",
+    "Implement the layout with Shadcn UI but customize borders to 1px solid slate-200 and radii to md (6px).",
+    "For the Yard Map, build a responsive 2D overhead view using grid or absolute positioning with clearly labeled zones (A-F).",
+    "Ensure the sidebar is dark (bg-slate-900) while the main app area is light (bg-slate-50).",
+    "Use Phosphor icons. Install using `yarn add @phosphor-icons/react`.",
+    "Import and use Chivo for headings and IBM Plex Sans for body, and IBM Plex Mono for numbers."
+  ]
+}

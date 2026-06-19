@@ -22,6 +22,10 @@ const MODULE_ROOT_PALLET = trimTrailingSlash(
 const MODULE_ROOT_REGISTRY = trimTrailingSlash(
   import.meta.env.VITE_REGISTRY_MODULE_ROOT || "~registry/v1",
 );
+const YARD_BASE_PATH = (import.meta.env.VITE_YARD_BASE_PATH || "/yard").replace(/\/$/, "");
+const YMS_API_BASE_URL = trimTrailingSlash(
+  import.meta.env.VITE_YMS_API_BASE_URL || "/api/yms",
+);
 
 export const env = {
   API_HOST,
@@ -34,4 +38,6 @@ export const env = {
   MODULE_ROOT_STOREFRONT,
   MODULE_ROOT_PALLET,
   MODULE_ROOT_REGISTRY,
+  YARD_BASE_PATH,
+  YMS_API_BASE_URL,
 };

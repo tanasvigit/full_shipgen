@@ -1,0 +1,27 @@
+{
+  "name": "smart-yard-playwright-audit",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Comprehensive YMS / Smart Yard Playwright audit suite",
+  "scripts": {
+    "audit": "playwright test",
+    "audit:headed": "playwright test --headed",
+    "audit:ui": "playwright test --ui",
+    "visual-audit": "playwright test -c playwright.visual-audit.config.ts",
+    "visual-audit:headed": "playwright test -c playwright.visual-audit.config.ts --headed",
+    "responsive-audit": "playwright test -c playwright.responsive.config.ts",
+    "responsive-audit:headed": "playwright test -c playwright.responsive.config.ts --headed",
+    "layout-stabilization": "playwright test tests/layout-stabilization.spec.ts",
+    "report": "node scripts/generate-report.mjs",
+    "visual-report": "node scripts/generate-visual-audit-report.mjs",
+    "manual-audit": "playwright test -c playwright.manual-audit.config.ts",
+    "manual-audit:headed": "playwright test -c playwright.manual-audit.config.ts --headed",
+    "manual-audit:report": "node scripts/generate-manual-audit-report.mjs",
+    "manual-visual-audit": "playwright test -c playwright.manual-visual-audit.config.ts",
+    "manual-visual-audit:headed": "playwright test tests/manual-visual-audit.spec.ts --headed -c playwright.manual-visual-audit.config.ts",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

@@ -105,6 +105,7 @@ import EquipmentDetail from "@/pages/fleetops/maintenance/EquipmentDetail";
 import PartsList from "@/pages/fleetops/maintenance/PartsList";
 import PartDetail from "@/pages/fleetops/maintenance/PartDetail";
 import RegistryHome from "@/pages/registry/RegistryHome";
+import YardModuleLayout from "@/layouts/YardModuleLayout";
 import ChartOfAccounts from "@/pages/ledger/ChartOfAccounts";
 import JournalEntries from "@/pages/ledger/JournalEntries";
 import CheckoutPreview from "@/pages/storefront/CheckoutPreview";
@@ -340,6 +341,8 @@ function App() {
                         <Route path="/pallet/purchase-orders" element={<PurchaseOrdersList />} />
 
                         <Route path="/registry" element={<RegistryHome />} />
+
+                        <Route path="/yard/*" element={<YardModuleLayout />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

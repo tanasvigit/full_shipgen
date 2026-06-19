@@ -1,4 +1,5 @@
 export { default as ArcSpinner } from "./Spinner/ArcSpinner";
+export { default as LogoLoader } from "./Spinner/LogoLoader";
 export { default as GlobalLoaderOverlay } from "./overlays/GlobalLoaderOverlay";
 export { default as FullscreenOverlay } from "./overlays/FullscreenOverlay";
 export { default as PageLoaderOverlay } from "./overlays/PageLoaderOverlay";

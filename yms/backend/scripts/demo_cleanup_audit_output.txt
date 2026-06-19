@@ -1,0 +1,1722 @@
+﻿=== DEMO DATA CLEANUP AUDIT ===
+
+{
+  "audit_timestamp": "2026-06-11T03:58:56.639991+00:00",
+  "phase1_inventory": {
+    "appointments": {
+      "total": 49,
+      "active": 33,
+      "demo": 20,
+      "test_suspected": 7,
+      "other": 22,
+      "test_samples": [
+        {
+          "id": "7525bc6d-a9cd-4fdd-9aa4-2ef9ee90a9a7",
+          "booking_reference": "FIXBK-20260602153138",
+          "status": "CHECKED_IN"
+        },
+        {
+          "id": "17cd4272-dcd3-4c0e-ad99-2d152e64d3aa",
+          "booking_reference": "FLOWBK-20260602153603",
+          "status": "EXITED"
+        },
+        {
+          "id": "f7b751f0-ce33-4f63-b780-09debd6f6e11",
+          "booking_reference": "TXFAILBK-20260602154057",
+          "status": "RESOURCE_PENDING"
+        },
+        {
+          "id": "cbdbb8a7-5c2c-4fc3-ac6d-b19c40a92d4b",
+          "booking_reference": "BK-LC-A66AAA",
+          "status": "READY_FOR_LOADING"
+        },
+        {
+          "id": "d9dc1089-97f0-4755-8a56-a67560cfe8ec",
+          "booking_reference": "BK-LC-EC6AC4",
+          "status": "EXITED"
+        }
+      ],
+      "other_samples": [
+        {
+          "id": "a9cc4a41-67fe-4294-bb9c-d5b35c3b4289",
+          "booking_reference": "BK-20260602152409",
+          "status": "CHECKED_IN"
+        },
+        {
+          "id": "29b05321-a307-4906-be44-89ab73a8e4e2",
+          "booking_reference": "BK2-20260602152523",
+          "status": "CHECKED_IN"
+        },
+        {
+          "id": "30f3c942-a5bc-4bb0-a1b4-b9734823c2b7",
+          "booking_reference": "TXBK-20260602154036",
+          "status": "EXITED"
+        },
+        {
+          "id": "1db60d19-387f-407b-8223-de2ca6c4de4f",
+          "booking_reference": "APT-MPXLK5AY",
+          "status": "SCHEDULED"
+        },
+        {
+          "id": "f3423de5-044b-4884-b474-7641f34d8e9b",
+          "booking_reference": "APT-AUD-1964366327",
+          "status": "CHECKED_IN"
+        }
+      ]
+    },
+    "vehicles": {
+      "total": 52,
+      "active": 36,
+      "demo": 20,
+      "test_suspected": 20,
+      "other": 12,
+      "test_samples": [
+        {
+          "id": "637378e1-cf1f-4286-8461-833e468d1c05",
+          "vehicle_number": "TEST-20260602152240",
+          "status": "SCHEDULED"
+        },
+        {
+          "id": "f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+          "vehicle_number": "FIX-20260602153138",
+          "status": "WAITING"
+        },
+        {
+          "id": "2b077d9f-edc4-4d3e-9a2c-694c3e07905f",
+          "vehicle_number": "FLOW-20260602153603",
+          "status": "EXITED"
+        },
+        {
+          "id": "958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+          "vehicle_number": "TXFAIL-20260602154057",
+          "status": "RESOURCE_PENDING"
+        },
+        {
+          "id": "f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+          "vehicle_number": "TBD-4UJ59R",
+          "status": "RESOURCE_PENDING"
+        }
+      ],
+      "other_samples": [
+        {
+          "id": "97663dd3-cb59-4129-8843-766045ca4b76",
+          "vehicle_number": "VF-20260602152409",
+          "status": "SCHEDULED"
+        },
+        {
+          "id": "21671c5f-62e2-444f-ba3d-431817176ef7",
+          "vehicle_number": "TXFLOW-20260602154036",
+          "status": "EXITED"
+        },
+        {
+          "id": "045f6a1e-521f-4ecb-99bf-1023b10f7285",
+          "vehicle_number": "UI-CHECK-001",
+          "status": "SCHEDULED"
+        },
+        {
+          "id": "c1e1342d-5db8-480f-8b6b-b7477dfaa436",
+          "vehicle_number": "MH04-AB-1232",
+          "status": "SCHEDULED"
+        },
+        {
+          "id": "2b240b5e-9af6-4f44-9be1-d1b1403dabcd",
+          "vehicle_number": "AUD79387",
+          "status": "CHECKED_IN"
+        }
+      ]
+    },
+    "queue_entries": {
+      "total": 41,
+      "active": 29,
+      "cancelled": 0,
+      "test_suspected": 17
+    },
+    "docks": {
+      "total": 18,
+      "demo_seed": 10,
+      "legacy_demo": 1,
+      "production": 7,
+      "occupied": 16
+    },
+    "labor_teams": {
+      "total": 8,
+      "demo": 5,
+      "assigned": 7
+    },
+    "equipment": {
+      "total": 13,
+      "demo": 8,
+      "in_use": 6
+    },
+    "yard_events": {
+      "total": 2000,
+      "note": "last 500 from DB if available"
+    },
+    "gate_verifications": {
+      "total": 40
+    },
+    "loading_operation_exceptions": {
+      "total": 6,
+      "open": 6
+    },
+    "detention_records": {
+      "total": 29
+    },
+    "yard_zones": {
+      "total": 11,
+      "mandatory": 4
+    }
+  },
+  "phase2_orphans": {
+    "dock_refs_inactive_vehicle": {
+      "count": 3,
+      "records": [
+        {
+          "dock": "Dock",
+          "vehicle": "VF-20260602152409",
+          "status": "SCHEDULED"
+        },
+        {
+          "dock": "Dock",
+          "vehicle": "APT-20260608-001",
+          "status": "CANCELLED"
+        },
+        {
+          "dock": "Dock M",
+          "vehicle": "PXX1276",
+          "status": "CANCELLED"
+        }
+      ]
+    }
+  },
+  "phase3_demo_validation": {
+    "demo_vehicle_count": 20,
+    "expected": 20,
+    "status_distribution": {
+      "ARRIVED": 2,
+      "WAITING": 3,
+      "CALLED": 3,
+      "RESOURCE_PENDING": 4,
+      "READY_FOR_LOADING": 2,
+      "LOADING": 3,
+      "EXIT_HOLDING": 2,
+      "EXIT_VERIFIED": 1
+    },
+    "expected_distribution": {
+      "ARRIVED": 2,
+      "WAITING": 3,
+      "CALLED": 3,
+      "RESOURCE_PENDING": 4,
+      "READY_FOR_LOADING": 2,
+      "LOADING": 3,
+      "EXIT_HOLDING": 2,
+      "EXIT_VERIFIED": 1
+    },
+    "gaps": {
+      "ARRIVED": 0,
+      "CALLED": 0,
+      "LOADING": 0,
+      "WAITING": 0,
+      "EXIT_VERIFIED": 0,
+      "READY_FOR_LOADING": 0,
+      "RESOURCE_PENDING": 0,
+      "EXIT_HOLDING": 0
+    }
+  },
+  "phase4_kpi_pollution": {
+    "operations_dashboard_current": {
+      "appointmentsToday": 0,
+      "vehiclesEnteredToday": 0,
+      "vehiclesExitedToday": 0,
+      "vehiclesInYard": 36,
+      "vehiclesWaiting": 4,
+      "vehiclesLoading": 6,
+      "vehiclesInExitHolding": 5,
+      "avgTurnaroundMinutes": 0.0,
+      "avgWaitingMinutes": 0.0,
+      "avgLoadingMinutes": 0.0,
+      "slaCompliancePct": 0.0
+    },
+    "yard_dashboard_current": {
+      "totalZones": 11,
+      "activeZones": 10,
+      "blockedZones": 0,
+      "fullZones": 1,
+      "maintenanceZones": 0,
+      "totalCapacity": 210,
+      "currentOccupancy": 38,
+      "availableSlots": 172,
+      "yardUtilizationPct": 18.1
+    },
+    "pollution_summary": {
+      "total_in_yard_api": 36,
+      "demo_in_yard": 20,
+      "non_demo_in_yard": 8,
+      "yard_zone_occupancy": 38,
+      "non_demo_zone_assignments": 18,
+      "waiting_pollution_count": 2,
+      "loading_pollution_count": 1,
+      "exit_pollution_count": 2
+    },
+    "polluting_vehicle_ids": {
+      "inflated_in_yard_count": [
+        {
+          "id": "f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+          "plate": "FIX-20260602153138",
+          "status": "WAITING"
+        },
+        {
+          "id": "958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+          "plate": "TXFAIL-20260602154057",
+          "status": "RESOURCE_PENDING"
+        },
+        {
+          "id": "f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+          "plate": "TBD-4UJ59R",
+          "status": "RESOURCE_PENDING"
+        },
+        {
+          "id": "4c697056-1a34-41f9-b26d-eecab6a0129a",
+          "plate": "APXI5000",
+          "status": "RESOURCE_PENDING"
+        },
+        {
+          "id": "88415019-75e0-432f-a29b-bc4dd39a86d6",
+          "plate": "LC-A66AAA",
+          "status": "READY_FOR_LOADING"
+        },
+        {
+          "id": "13a64143-bc53-4aca-8817-3898e4220d1c",
+          "plate": "LC-C0C680",
+          "status": "EXIT_HOLDING"
+        },
+        {
+          "id": "64328cac-fdce-402a-8b6d-8edce0fffc82",
+          "plate": "LC-73435C",
+          "status": "EXIT_HOLDING"
+        },
+        {
+          "id": "2b240b5e-9af6-4f44-9be1-d1b1403dabcd",
+          "plate": "AUD79387",
+          "status": "CHECKED_IN"
+        }
+      ],
+      "demo_only_in_yard": 20,
+      "pollution_in_yard": 8
+    },
+    "waiting_pollution": [
+      {
+        "id": "f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+        "plate": "FIX-20260602153138",
+        "status": "WAITING"
+      },
+      {
+        "id": "2b240b5e-9af6-4f44-9be1-d1b1403dabcd",
+        "plate": "AUD79387",
+        "status": "CHECKED_IN"
+      }
+    ],
+    "loading_pollution": [
+      {
+        "id": "88415019-75e0-432f-a29b-bc4dd39a86d6",
+        "plate": "LC-A66AAA",
+        "status": "READY_FOR_LOADING"
+      }
+    ],
+    "exit_pollution": [
+      {
+        "id": "13a64143-bc53-4aca-8817-3898e4220d1c",
+        "plate": "LC-C0C680",
+        "status": "EXIT_HOLDING"
+      },
+      {
+        "id": "64328cac-fdce-402a-8b6d-8edce0fffc82",
+        "plate": "LC-73435C",
+        "status": "EXIT_HOLDING"
+      }
+    ],
+    "non_demo_zone_vehicles": [
+      {
+        "id": "637378e1-cf1f-4286-8461-833e468d1c05",
+        "plate": "TEST-20260602152240",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "97663dd3-cb59-4129-8843-766045ca4b76",
+        "plate": "VF-20260602152409",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+        "plate": "FIX-20260602153138",
+        "status": "WAITING"
+      },
+      {
+        "id": "958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+        "plate": "TXFAIL-20260602154057",
+        "status": "RESOURCE_PENDING"
+      },
+      {
+        "id": "045f6a1e-521f-4ecb-99bf-1023b10f7285",
+        "plate": "UI-CHECK-001",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "c1e1342d-5db8-480f-8b6b-b7477dfaa436",
+        "plate": "MH04-AB-1232",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "2b240b5e-9af6-4f44-9be1-d1b1403dabcd",
+        "plate": "AUD79387",
+        "status": "CHECKED_IN"
+      },
+      {
+        "id": "f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+        "plate": "TBD-4UJ59R",
+        "status": "RESOURCE_PENDING"
+      },
+      {
+        "id": "5f5a8fe0-46d4-4135-89a3-c16ea3e59eda",
+        "plate": "TBD-4ULBID",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "93c5115f-8953-45e6-9225-acb430eebbaa",
+        "plate": "APT-20260608-001",
+        "status": "CANCELLED"
+      },
+      {
+        "id": "fcc4eff6-c0fb-4c77-b888-62643fd03d74",
+        "plate": "APTTEST002",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "44daf62c-3644-4ffd-9c60-c60dddbd68f1",
+        "plate": "PXX1276",
+        "status": "CANCELLED"
+      },
+      {
+        "id": "113cc0ad-6976-4794-9628-9321f617d663",
+        "plate": "APOP5584",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "bcb4542d-085a-4b38-ab5d-0f8c5b578dc2",
+        "plate": "APXI7166",
+        "status": "SCHEDULED"
+      },
+      {
+        "id": "4c697056-1a34-41f9-b26d-eecab6a0129a",
+        "plate": "APXI5000",
+        "status": "RESOURCE_PENDING"
+      },
+      {
+        "id": "88415019-75e0-432f-a29b-bc4dd39a86d6",
+        "plate": "LC-A66AAA",
+        "status": "READY_FOR_LOADING"
+      },
+      {
+        "id": "13a64143-bc53-4aca-8817-3898e4220d1c",
+        "plate": "LC-C0C680",
+        "status": "EXIT_HOLDING"
+      },
+      {
+        "id": "64328cac-fdce-402a-8b6d-8edce0fffc82",
+        "plate": "LC-73435C",
+        "status": "EXIT_HOLDING"
+      }
+    ],
+    "alert_pollution": [
+      {
+        "id": "loading-exception-10591a42-b6c8-4084-aa39-5a7d65ea5933",
+        "vehicle": "GJ11CC1017",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "CRITICAL",
+        "exceptionType": "EQUIPMENT_FAILURE",
+        "durationMin": 961,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-exception-807d09a5-ec92-47cb-8ca0-c969ef83b48b",
+        "vehicle": "GJ11CC1017",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "CRITICAL",
+        "exceptionType": "EQUIPMENT_FAILURE",
+        "durationMin": 960,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-delay-8ad2338a-0531-452e-bf8b-ded2deec4bea",
+        "vehicle": "GJ11CC1017",
+        "alertType": "LOADING_DELAY",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-delay-a35218cb-bf7a-4b8c-8a54-abcfb47fc94e",
+        "vehicle": "MH22BB1016",
+        "alertType": "LOADING_DELAY",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-delay-ba3a6cf0-d94c-4f92-97d0-e4fef2b1ce3d",
+        "vehicle": "TN07AA1015",
+        "alertType": "LOADING_DELAY",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "dock-blocked-397e8c61-2262-4fac-a97e-b1162434e955",
+        "vehicle": "TN07AA1015",
+        "alertType": "DOCK_BLOCKED",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "dock-blocked-80e5598e-b980-4932-a37b-58714c1330fc",
+        "vehicle": "MH22BB1016",
+        "alertType": "DOCK_BLOCKED",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "dock-blocked-cc601bc1-bbc2-42cc-8e59-1eb406fe4a76",
+        "vehicle": "GJ11CC1017",
+        "alertType": "DOCK_BLOCKED",
+        "severity": "CRITICAL",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "waiting-too-long-f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+        "vehicle": "FIX-20260602153138",
+        "alertType": "VEHICLE_WAITING_TOO_LONG",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 12597,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "labor-unavailable-958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+        "vehicle": "TXFAIL-20260602154057",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 3938,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "labor-unavailable-f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+        "vehicle": "TBD-4UJ59R",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 3838,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "equipment-unavailable-f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+        "vehicle": "TBD-4UJ59R",
+        "alertType": "EQUIPMENT_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 3838,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "equipment-unavailable-4c697056-1a34-41f9-b26d-eecab6a0129a",
+        "vehicle": "APXI5000",
+        "alertType": "EQUIPMENT_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 2752,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "waiting-too-long-802dd3ff-16f5-4c14-a8f3-02c9448805c2",
+        "vehicle": "TN09GH1005",
+        "alertType": "VEHICLE_WAITING_TOO_LONG",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 1125,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "waiting-too-long-880e2d31-40c9-4717-be76-7e4cb78a7d7a",
+        "vehicle": "DL01EF1004",
+        "alertType": "VEHICLE_WAITING_TOO_LONG",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 1125,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "waiting-too-long-eef893c2-d55b-4cc1-bcdb-820e28a95a33",
+        "vehicle": "KA05CD1003",
+        "alertType": "VEHICLE_WAITING_TOO_LONG",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 1125,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "exit-holding-delay-13a64143-bc53-4aca-8817-3898e4220d1c",
+        "vehicle": "LC-C0C680",
+        "alertType": "EXIT_HOLDING_DELAY",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 1020,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "exit-holding-delay-64328cac-fdce-402a-8b6d-8edce0fffc82",
+        "vehicle": "LC-73435C",
+        "alertType": "EXIT_HOLDING_DELAY",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 974,
+        "is_demo": false,
+        "should_remove": true,
+        "reason": "Legacy test/debug vehicle"
+      },
+      {
+        "id": "loading-exception-395e96a0-221a-4e45-845d-f69983111604",
+        "vehicle": "MH22BB1016",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "WARNING",
+        "exceptionType": "LABOR_DELAY",
+        "durationMin": 961,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-exception-4c259522-1275-489d-b1c0-cc381ad512e2",
+        "vehicle": "TN07AA1015",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "WARNING",
+        "exceptionType": "MATERIAL_SHORTAGE",
+        "durationMin": 961,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-exception-a6d7a546-e8d4-4e83-8fd2-7cf1958e6716",
+        "vehicle": "MH22BB1016",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "WARNING",
+        "exceptionType": "LABOR_DELAY",
+        "durationMin": 960,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "loading-exception-829ca1a9-d959-41da-b413-f27258595940",
+        "vehicle": "TN07AA1015",
+        "alertType": "LOADING_EXCEPTION",
+        "severity": "WARNING",
+        "exceptionType": "MATERIAL_SHORTAGE",
+        "durationMin": 960,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "labor-unavailable-99df070e-c6d9-42e1-856e-3bde312b4e97",
+        "vehicle": "GJ05UV1012",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "labor-unavailable-e508c8c7-3cdd-4a2c-9bf2-5f1c0377ec3e",
+        "vehicle": "MH14ST1011",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "labor-unavailable-02ca1c4c-a87f-4cba-b810-2af4b8129566",
+        "vehicle": "PB10QR1010",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "labor-unavailable-af115548-5c80-4ad8-aefe-3f062f85033a",
+        "vehicle": "WB19OP1009",
+        "alertType": "LABOR_UNAVAILABLE",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "exit-holding-delay-3829eebd-6c08-4409-84df-a1c4822b2b51",
+        "vehicle": "DL03EE1019",
+        "alertType": "EXIT_HOLDING_DELAY",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      },
+      {
+        "id": "exit-holding-delay-e13cde4b-8dce-49f2-8d62-b22ac7ee5d88",
+        "vehicle": "KA15DD1018",
+        "alertType": "EXIT_HOLDING_DELAY",
+        "severity": "WARNING",
+        "exceptionType": null,
+        "durationMin": 945,
+        "is_demo": true,
+        "should_remove": false,
+        "reason": "Valid demo scenario"
+      }
+    ]
+  },
+  "phase5_alert_pollution": [
+    {
+      "id": "loading-exception-10591a42-b6c8-4084-aa39-5a7d65ea5933",
+      "vehicle": "GJ11CC1017",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "CRITICAL",
+      "exceptionType": "EQUIPMENT_FAILURE",
+      "durationMin": 961,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-exception-807d09a5-ec92-47cb-8ca0-c969ef83b48b",
+      "vehicle": "GJ11CC1017",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "CRITICAL",
+      "exceptionType": "EQUIPMENT_FAILURE",
+      "durationMin": 960,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-delay-8ad2338a-0531-452e-bf8b-ded2deec4bea",
+      "vehicle": "GJ11CC1017",
+      "alertType": "LOADING_DELAY",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-delay-a35218cb-bf7a-4b8c-8a54-abcfb47fc94e",
+      "vehicle": "MH22BB1016",
+      "alertType": "LOADING_DELAY",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-delay-ba3a6cf0-d94c-4f92-97d0-e4fef2b1ce3d",
+      "vehicle": "TN07AA1015",
+      "alertType": "LOADING_DELAY",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "dock-blocked-397e8c61-2262-4fac-a97e-b1162434e955",
+      "vehicle": "TN07AA1015",
+      "alertType": "DOCK_BLOCKED",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "dock-blocked-80e5598e-b980-4932-a37b-58714c1330fc",
+      "vehicle": "MH22BB1016",
+      "alertType": "DOCK_BLOCKED",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "dock-blocked-cc601bc1-bbc2-42cc-8e59-1eb406fe4a76",
+      "vehicle": "GJ11CC1017",
+      "alertType": "DOCK_BLOCKED",
+      "severity": "CRITICAL",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "waiting-too-long-f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+      "vehicle": "FIX-20260602153138",
+      "alertType": "VEHICLE_WAITING_TOO_LONG",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 12597,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "labor-unavailable-958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+      "vehicle": "TXFAIL-20260602154057",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 3938,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "labor-unavailable-f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+      "vehicle": "TBD-4UJ59R",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 3838,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "equipment-unavailable-f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+      "vehicle": "TBD-4UJ59R",
+      "alertType": "EQUIPMENT_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 3838,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "equipment-unavailable-4c697056-1a34-41f9-b26d-eecab6a0129a",
+      "vehicle": "APXI5000",
+      "alertType": "EQUIPMENT_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 2752,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "waiting-too-long-802dd3ff-16f5-4c14-a8f3-02c9448805c2",
+      "vehicle": "TN09GH1005",
+      "alertType": "VEHICLE_WAITING_TOO_LONG",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 1125,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "waiting-too-long-880e2d31-40c9-4717-be76-7e4cb78a7d7a",
+      "vehicle": "DL01EF1004",
+      "alertType": "VEHICLE_WAITING_TOO_LONG",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 1125,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "waiting-too-long-eef893c2-d55b-4cc1-bcdb-820e28a95a33",
+      "vehicle": "KA05CD1003",
+      "alertType": "VEHICLE_WAITING_TOO_LONG",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 1125,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "exit-holding-delay-13a64143-bc53-4aca-8817-3898e4220d1c",
+      "vehicle": "LC-C0C680",
+      "alertType": "EXIT_HOLDING_DELAY",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 1020,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "exit-holding-delay-64328cac-fdce-402a-8b6d-8edce0fffc82",
+      "vehicle": "LC-73435C",
+      "alertType": "EXIT_HOLDING_DELAY",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 974,
+      "is_demo": false,
+      "should_remove": true,
+      "reason": "Legacy test/debug vehicle"
+    },
+    {
+      "id": "loading-exception-395e96a0-221a-4e45-845d-f69983111604",
+      "vehicle": "MH22BB1016",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "WARNING",
+      "exceptionType": "LABOR_DELAY",
+      "durationMin": 961,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-exception-4c259522-1275-489d-b1c0-cc381ad512e2",
+      "vehicle": "TN07AA1015",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "WARNING",
+      "exceptionType": "MATERIAL_SHORTAGE",
+      "durationMin": 961,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-exception-a6d7a546-e8d4-4e83-8fd2-7cf1958e6716",
+      "vehicle": "MH22BB1016",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "WARNING",
+      "exceptionType": "LABOR_DELAY",
+      "durationMin": 960,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "loading-exception-829ca1a9-d959-41da-b413-f27258595940",
+      "vehicle": "TN07AA1015",
+      "alertType": "LOADING_EXCEPTION",
+      "severity": "WARNING",
+      "exceptionType": "MATERIAL_SHORTAGE",
+      "durationMin": 960,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "labor-unavailable-99df070e-c6d9-42e1-856e-3bde312b4e97",
+      "vehicle": "GJ05UV1012",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "labor-unavailable-e508c8c7-3cdd-4a2c-9bf2-5f1c0377ec3e",
+      "vehicle": "MH14ST1011",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "labor-unavailable-02ca1c4c-a87f-4cba-b810-2af4b8129566",
+      "vehicle": "PB10QR1010",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "labor-unavailable-af115548-5c80-4ad8-aefe-3f062f85033a",
+      "vehicle": "WB19OP1009",
+      "alertType": "LABOR_UNAVAILABLE",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "exit-holding-delay-3829eebd-6c08-4409-84df-a1c4822b2b51",
+      "vehicle": "DL03EE1019",
+      "alertType": "EXIT_HOLDING_DELAY",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    },
+    {
+      "id": "exit-holding-delay-e13cde4b-8dce-49f2-8d62-b22ac7ee5d88",
+      "vehicle": "KA15DD1018",
+      "alertType": "EXIT_HOLDING_DELAY",
+      "severity": "WARNING",
+      "exceptionType": null,
+      "durationMin": 945,
+      "is_demo": true,
+      "should_remove": false,
+      "reason": "Valid demo scenario"
+    }
+  ],
+  "phase6_cleanup_plan": {
+    "SAFE_TO_DELETE": [
+      {
+        "entity": "vehicle",
+        "id": "97663dd3-cb59-4129-8843-766045ca4b76",
+        "label": "VF-20260602152409",
+        "status": "SCHEDULED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "2b077d9f-edc4-4d3e-9a2c-694c3e07905f",
+        "label": "FLOW-20260602153603",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "21671c5f-62e2-444f-ba3d-431817176ef7",
+        "label": "TXFLOW-20260602154036",
+        "status": "EXITED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "045f6a1e-521f-4ecb-99bf-1023b10f7285",
+        "label": "UI-CHECK-001",
+        "status": "SCHEDULED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "c1e1342d-5db8-480f-8b6b-b7477dfaa436",
+        "label": "MH04-AB-1232",
+        "status": "SCHEDULED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "f87ab249-f276-4b55-a601-be7d1e519032",
+        "label": "AUD37989",
+        "status": "EXITED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "93c5115f-8953-45e6-9225-acb430eebbaa",
+        "label": "APT-20260608-001",
+        "status": "CANCELLED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "fcc4eff6-c0fb-4c77-b888-62643fd03d74",
+        "label": "APTTEST002",
+        "status": "SCHEDULED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "0daf41eb-361f-46cc-ba89-df04f909bfa7",
+        "label": "APTTEST003",
+        "status": "CANCELLED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "44daf62c-3644-4ffd-9c60-c60dddbd68f1",
+        "label": "PXX1276",
+        "status": "CANCELLED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "113cc0ad-6976-4794-9628-9321f617d663",
+        "label": "APOP5584",
+        "status": "SCHEDULED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "61529a40-207d-46ae-9b94-eda620e36eb1",
+        "label": "APT-20260609-1001",
+        "status": "CANCELLED",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "eebe20d4-3cb4-41c1-a226-9253e350a281",
+        "label": "APXI4000",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "c7c16170-94b8-4358-94ba-bab48d004d96",
+        "label": "APXI3000",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "d8ba38db-704f-4a68-af75-74ddc5e55615",
+        "label": "APXI2000",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "a4a3850f-7787-421e-bcac-b595ed0b6791",
+        "label": "APXI5001",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "8c7b9ba6-ad94-4ff6-b5fb-ad9ad4c38816",
+        "label": "APXI1000",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "b3c6e4d2-64ce-4795-8ee1-73bfe72df82c",
+        "label": "APXI1001",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "880f2be0-82bc-4e4b-b501-0789df008f9b",
+        "label": "APXI2001",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "582250be-c3a7-455a-a518-5ed3cb9d27d6",
+        "label": "LC-EC6AC4",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "219d0020-6a33-4f19-adb8-be3a1e79352d",
+        "label": "APXI7000",
+        "status": "EXITED",
+        "reason": "Test/debug plate pattern",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "7525bc6d-a9cd-4fdd-9aa4-2ef9ee90a9a7",
+        "label": "FIXBK-20260602153138",
+        "status": "CHECKED_IN",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "17cd4272-dcd3-4c0e-ad99-2d152e64d3aa",
+        "label": "FLOWBK-20260602153603",
+        "status": "EXITED",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "f7b751f0-ce33-4f63-b780-09debd6f6e11",
+        "label": "TXFAILBK-20260602154057",
+        "status": "RESOURCE_PENDING",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "cbdbb8a7-5c2c-4fc3-ac6d-b19c40a92d4b",
+        "label": "BK-LC-A66AAA",
+        "status": "READY_FOR_LOADING",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "d9dc1089-97f0-4755-8a56-a67560cfe8ec",
+        "label": "BK-LC-EC6AC4",
+        "status": "EXITED",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "6c5eddca-8097-4cb1-9f4d-2cb78840ef63",
+        "label": "BK-LC-C0C680",
+        "status": "EXIT_HOLDING",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "a7e2f13a-c893-4b55-889f-055f61083aaa",
+        "label": "BK-LC-73435C",
+        "status": "EXIT_HOLDING",
+        "reason": "Test booking reference",
+        "modules_affected": [
+          "Appointments",
+          "Dashboard"
+        ]
+      },
+      {
+        "entity": "dock",
+        "id": "9c0eaa9f-124f-4d26-8dbc-c7802282ca9b",
+        "label": "Demo Dock",
+        "reason": "Legacy misconfigured demo dock (e.g. TEMPO-only)",
+        "modules_affected": [
+          "Docks"
+        ]
+      }
+    ],
+    "SAFE_TO_DELETE_total": 29,
+    "SAFE_TO_ARCHIVE": [
+      {
+        "entity": "vehicle",
+        "id": "637378e1-cf1f-4286-8461-833e468d1c05",
+        "label": "TEST-20260602152240",
+        "status": "SCHEDULED",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "f9481e34-5b36-4c60-9d32-b4ea3ce2670f",
+        "label": "FIX-20260602153138",
+        "status": "WAITING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "958cff96-36fc-4dc5-85de-8d2fae8ff30f",
+        "label": "TXFAIL-20260602154057",
+        "status": "RESOURCE_PENDING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "2b240b5e-9af6-4f44-9be1-d1b1403dabcd",
+        "label": "AUD79387",
+        "status": "CHECKED_IN",
+        "reason": "Non-demo operational residue (manual/APXI/APT-* etc.)",
+        "modules_affected": [
+          "KPI inflation",
+          "Yard occupancy"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "f8adb6ab-00db-47c8-b4b1-0868f4af1b71",
+        "label": "TBD-4UJ59R",
+        "status": "RESOURCE_PENDING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "5f5a8fe0-46d4-4135-89a3-c16ea3e59eda",
+        "label": "TBD-4ULBID",
+        "status": "SCHEDULED",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "bcb4542d-085a-4b38-ab5d-0f8c5b578dc2",
+        "label": "APXI7166",
+        "status": "SCHEDULED",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "4c697056-1a34-41f9-b26d-eecab6a0129a",
+        "label": "APXI5000",
+        "status": "RESOURCE_PENDING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "88415019-75e0-432f-a29b-bc4dd39a86d6",
+        "label": "LC-A66AAA",
+        "status": "READY_FOR_LOADING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "13a64143-bc53-4aca-8817-3898e4220d1c",
+        "label": "LC-C0C680",
+        "status": "EXIT_HOLDING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "vehicle",
+        "id": "64328cac-fdce-402a-8b6d-8edce0fffc82",
+        "label": "LC-73435C",
+        "status": "EXIT_HOLDING",
+        "reason": "Active test vehicle \u2014 archive or exit first",
+        "modules_affected": [
+          "Dashboards",
+          "Control Tower",
+          "Yard Map",
+          "Detention"
+        ]
+      },
+      {
+        "entity": "appointment",
+        "id": "30f3c942-a5bc-4bb0-a1b4-b9734823c2b7",
+        "label": "TXBK-20260602154036",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "bf53b166-6ca7-4b08-9062-7c9f8cdd5573",
+        "label": "APT-AUD37989",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "69904d68-bc00-4635-a49d-fc2bf754c38b",
+        "label": "APT-20260608-001",
+        "status": "CANCELLED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "e6390dab-edf1-488f-aec6-e9226c927d74",
+        "label": "APT-20260609-999",
+        "status": "CANCELLED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "d6bae445-818e-4686-b3fb-66e4822fa9c1",
+        "label": "APT-20260609-1000",
+        "status": "CANCELLED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "36ff6a9b-b8d3-4694-b540-4bda796ddf79",
+        "label": "APT-20260609-1001",
+        "status": "CANCELLED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "ead34fc9-2d34-4d75-8e3b-381506e3e952",
+        "label": "APT-20260609-1004",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "2666b906-ed6d-463a-b03c-667743a8210d",
+        "label": "APT-20260609-1005",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "35f97696-7ac6-4c97-993b-b642461ce991",
+        "label": "APT-20260609-1006",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "6aeebd30-f023-451d-a590-e8a39294ef54",
+        "label": "APT-20260609-1007",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "0de37ba5-6e81-4862-8f24-ada8167a6d6e",
+        "label": "APT-20260610-001",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "2fa27ad0-6a09-4246-8df0-40f85e50ba8b",
+        "label": "APT-20260610-002",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "1dd91c1b-0571-4256-9291-f05308ec8fed",
+        "label": "APT-20260610-003",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "appointment",
+        "id": "fc17da4b-4d82-4870-8ec7-9c28a5f8ee53",
+        "label": "APT-20260610-004",
+        "status": "EXITED",
+        "reason": "Historical non-demo appointment"
+      },
+      {
+        "entity": "dock",
+        "id": "1eeb8f57-6d3e-455c-b698-1a49b762f3f4",
+        "label": "Dock",
+        "reason": "Pre-seed production dock used by test vehicles",
+        "modules_affected": [
+          "Docks",
+          "Resource assignments"
+        ]
+      },
+      {
+        "entity": "dock",
+        "id": "45aa0fd1-c165-4e3f-a5e6-26890708e2b7",
+        "label": "Dock M",
+        "reason": "Pre-seed production dock used by test vehicles",
+        "modules_affected": [
+          "Docks",
+          "Resource assignments"
+        ]
+      },
+      {
+        "entity": "dock",
+        "id": "2042318e-d642-46e8-bd7b-291d80a24d63",
+        "label": "Dock Z",
+        "reason": "Pre-seed production dock used by test vehicles",
+        "modules_affected": [
+          "Docks",
+          "Resource assignments"
+        ]
+      },
+      {
+        "entity": "dock",
+        "id": "771f2ab9-4c8a-46ea-905b-f78aca2a60d9",
+        "label": "Dock test 2",
+        "reason": "Pre-seed production dock used by test vehicles",
+        "modules_affected": [
+          "Docks",
+          "Resource assignments"
+        ]
+      },
+      {
+        "entity": "dock",
+        "id": "16b1a017-86b0-4330-a262-8eca7bc96e21",
+        "label": "Dock 10",
+        "reason": "Pre-seed production dock used by test vehicles",
+        "modules_affected": [
+          "Docks",
+          "Resource assignments"
+        ]
+      }
+    ],
+    "SAFE_TO_ARCHIVE_total": 30,
+    "KEEP_total": 50
+  },
+  "phase7_post_cleanup_projection": {
+    "operations_dashboard_projected": {
+      "vehiclesInYard": 20,
+      "vehiclesWaiting": 3,
+      "vehiclesLoading": 5,
+      "vehiclesInExitHolding": 3,
+      "avgTurnaroundMinutes": "Recalculated from demo events only (~15\u201345 min realistic)",
+      "slaCompliancePct": "95\u2013100% (demo-only cohort)",
+      "note": "Removes ~8 non-demo in-yard vehicles from KPI denominator"
+    },
+    "yard_dashboard_projected": {
+      "currentOccupancy": 20,
+      "yardUtilizationPct": 9.5,
+      "note": "Occupancy drops when non-demo current_zone_id cleared"
+    },
+    "control_tower_projected": {
+      "activeAlerts": "3 demo exceptions + 4 LABOR_UNAVAILABLE (demo RESOURCE_PENDING)",
+      "legacy_alerts_removed": 7
+    }
+  },
+  "sql_cleanup_hints": [
+    "-- PHASE: Archive exited test vehicles (after workflow exit if still active)",
+    "-- DELETE FROM yard_events WHERE vehicle_id IN (SELECT id FROM vehicles WHERE vehicle_number ~* '^(FIX|TEST|TMP|TXFAIL|LC-|TBD-|APXI)');",
+    "-- DELETE FROM queue_entries WHERE status = 'CANCELLED';",
+    "-- DELETE FROM queue_entries WHERE vehicle_id IN (SELECT id FROM vehicles WHERE vehicle_number = ANY($test_plates));",
+    "-- DELETE FROM appointments WHERE booking_reference ~* '^(FIXBK|TXFAILBK|BK-LC)';",
+    "-- DELETE FROM vehicles WHERE vehicle_number ~* '^(FIX|TEST|TMP|TXFAIL|LC-|TBD-|APXI)';",
+    "-- UPDATE vehicles SET current_zone_id = NULL WHERE vehicle_number !~ '^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$' OR vehicle_number NOT IN (demo plates);",
+    "-- DELETE FROM docks WHERE dock_name = 'Demo Dock' AND notes IS NULL;",
+    "-- API alternative: no bulk delete endpoints \u2014 use admin DB migration script with FK order"
+  ],
+  "demo_readiness_score": 65
+}
+
+Report saved: F:\code\Smart Yard\yard_frontend\backend\scripts\demo_cleanup_audit_report.json
+
+Demo Readiness Score: 65/100

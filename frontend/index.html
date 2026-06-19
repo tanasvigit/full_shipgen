@@ -32,10 +32,22 @@
     <!-- Critical CSS only — Tailwind is not loaded yet; do not use utility classes here -->
     <div id="boot-loader" aria-busy="true" aria-label="Starting up">
       <div class="boot-loader-inner">
-        <span class="fleetbase-arc-spinner-host" style="width:40px;height:40px" aria-hidden="true">
-          <svg class="fleetbase-arc-spinner" width="40" height="40" viewBox="0 0 50 50" aria-hidden="true">
-            <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="4"></circle>
-            <circle cx="25" cy="25" r="20" fill="none" stroke="#0066FF" stroke-width="4" stroke-linecap="round" stroke-dasharray="94 125.66" transform="rotate(-90 25 25)"></circle>
+        <span class="fleetbase-logo-loader-host" style="width:84px;height:52px" aria-hidden="true">
+          <svg class="fleetbase-logo-loader" width="84" height="52" viewBox="0 0 512 320" aria-hidden="true">
+            <defs>
+              <clipPath id="boot-logo-streaks-clip"><rect x="4" y="68" width="228" height="132" rx="4"></rect></clipPath>
+              <clipPath id="boot-logo-swoosh-clip"><path d="M0 198 L512 198 L512 320 L0 320 Z"></path></clipPath>
+              <clipPath id="boot-logo-mark-clip"><path d="M188 8 L512 8 L512 210 L188 210 Z"></path></clipPath>
+            </defs>
+            <g clip-path="url(#boot-logo-swoosh-clip)" class="fleetbase-logo-loader__swoosh">
+              <image href="/logo.png" width="512" height="320" preserveAspectRatio="xMidYMid meet"></image>
+            </g>
+            <g clip-path="url(#boot-logo-streaks-clip)" class="fleetbase-logo-loader__streaks">
+              <image href="/logo.png" width="512" height="320" preserveAspectRatio="xMidYMid meet"></image>
+            </g>
+            <g clip-path="url(#boot-logo-mark-clip)" class="fleetbase-logo-loader__mark">
+              <image href="/logo.png" width="512" height="320" preserveAspectRatio="xMidYMid meet"></image>
+            </g>
           </svg>
         </span>
         <p class="boot-loader-message">Starting up…</p>
@@ -73,22 +85,47 @@
         color: #374151;
         font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
-      @keyframes fleetbase-arc-spin {
-        to {
-          transform: rotate(360deg);
+      @keyframes fleetbase-logo-streak-flow {
+        0%,
+        100% {
+          transform: translateX(-14px);
+          opacity: 0.45;
+        }
+        50% {
+          transform: translateX(16px);
+          opacity: 1;
         }
       }
-      #boot-loader .fleetbase-arc-spinner-host {
+      @keyframes fleetbase-logo-swoosh-flow {
+        0%,
+        100% {
+          transform: translateX(-10px) scaleX(0.98);
+          opacity: 0.82;
+        }
+        50% {
+          transform: translateX(18px) scaleX(1.02);
+          opacity: 1;
+        }
+      }
+      #boot-loader .fleetbase-logo-loader-host {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         line-height: 0;
       }
-      #boot-loader .fleetbase-arc-spinner {
+      #boot-loader .fleetbase-logo-loader {
         display: block;
-        animation: fleetbase-arc-spin 0.9s linear infinite;
-        transform-origin: 50% 50%;
-        will-change: transform;
+        overflow: visible;
+      }
+      #boot-loader .fleetbase-logo-loader__streaks {
+        transform-box: fill-box;
+        transform-origin: 28% 50%;
+        animation: fleetbase-logo-streak-flow 0.9s ease-in-out infinite;
+      }
+      #boot-loader .fleetbase-logo-loader__swoosh {
+        transform-box: fill-box;
+        transform-origin: 55% 65%;
+        animation: fleetbase-logo-swoosh-flow 1.05s ease-in-out infinite;
       }
     </style>
     <div id="root"></div>

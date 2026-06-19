@@ -1,6 +1,5 @@
 /**
- * Fleetbase arc spinner — transform-only rotation, GPU-friendly, seamless loop.
- * Spec: clockwise rotation, rounded cap, consistent arc length, fade-in, no scale/pulse.
+ * ShipGen logo loader — orange streaks + blue swoosh motion (replaces arc spinner).
  */
 
 :root {
@@ -29,18 +28,36 @@
   }
 }
 
-@keyframes fleetbase-arc-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes fleetbase-loader-fade-out {
   from {
     opacity: 1;
   }
   to {
     opacity: 0;
+  }
+}
+
+@keyframes fleetbase-logo-streak-flow {
+  0%,
+  100% {
+    transform: translateX(-14px);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateX(16px);
+    opacity: 1;
+  }
+}
+
+@keyframes fleetbase-logo-swoosh-flow {
+  0%,
+  100% {
+    transform: translateX(-10px) scaleX(0.98);
+    opacity: 0.82;
+  }
+  50% {
+    transform: translateX(18px) scaleX(1.02);
+    opacity: 1;
   }
 }
 
@@ -62,7 +79,7 @@
   animation: fleetbase-loader-fade-out 0.18s ease-in forwards;
 }
 
-/** Fixed box so flex centering and rotation never drift from viewport center */
+.fleetbase-logo-loader-host,
 .fleetbase-arc-spinner-host {
   display: inline-flex;
   align-items: center;
@@ -72,15 +89,27 @@
   vertical-align: middle;
 }
 
+.fleetbase-logo-loader,
 .fleetbase-arc-spinner {
   display: block;
   flex-shrink: 0;
-  transform-origin: 50% 50%;
-  animation: fleetbase-arc-spin 0.9s linear infinite;
-  will-change: transform;
+  overflow: visible;
 }
 
-/** Full-viewport centered overlay shell (bootstrap, tables, pages, refresh) */
+.fleetbase-logo-loader__streaks {
+  transform-box: fill-box;
+  transform-origin: 28% 50%;
+  animation: fleetbase-logo-streak-flow 0.9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.fleetbase-logo-loader__swoosh {
+  transform-box: fill-box;
+  transform-origin: 55% 65%;
+  animation: fleetbase-logo-swoosh-flow 1.05s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 .fleetbase-loader-viewport {
   position: fixed;
   top: 0;
@@ -100,26 +129,6 @@
 
 .fleetbase-loader-viewport--interactive {
   pointer-events: auto;
-}
-
-.fleetbase-arc-spinner__track {
-  stroke: var(--loader-track);
-}
-
-.fleetbase-arc-spinner__arc {
-  stroke: var(--loader-arc);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fleetbase-arc-spinner {
-    animation: none;
-  }
-
-  .fleetbase-route-progress__bar {
-    animation: none !important;
-    width: 35% !important;
-    transform: none !important;
-  }
 }
 
 .fleetbase-route-progress {
@@ -147,4 +156,19 @@
   transform: translateX(-100%);
   animation: fleetbase-progress-indeterminate 1.1s ease-in-out infinite;
   will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fleetbase-logo-loader__streaks,
+  .fleetbase-logo-loader__swoosh {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .fleetbase-route-progress__bar {
+    animation: none !important;
+    width: 35% !important;
+    transform: none !important;
+  }
 }

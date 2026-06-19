@@ -33,6 +33,11 @@ upstream storefront_upstream {
     server storefront-service:8000 resolve;
 }
 
+upstream yms_upstream {
+    zone gateway_yms 64k;
+    server yms-service:8000 resolve;
+}
+
 map $http_origin $cors_allow_origin {
     default "";
     "~^https?://localhost(:[0-9]+)?$" $http_origin;
@@ -126,6 +131,14 @@ server {
         proxy_pass http://storefront_upstream;
         include /etc/nginx/proxy_params.conf;
         include /etc/nginx/proxy_service_auth.conf;
+    }
+
+    # --- yms-service (Yard Management — JWT validated by FastAPI) ---
+    location ~ ^/api/yms/ {
+        include /etc/nginx/cors_preflight.conf;
+        rewrite ^/api/yms/(.*)$ /api/$1 break;
+        proxy_pass http://yms_upstream;
+        include /etc/nginx/proxy_params.conf;
     }
 
     # --- registry (monolith; Laravel prefix is ~registry — rewrite /registry/v1 → /~registry/v1) ---

@@ -15,6 +15,7 @@ Path-based gateway in front of the monolith. Public API URL: **http://localhost:
 | `/pallet/` | `pallet-service` |
 | `/ledger` | `ledger-service` |
 | `/storefront/` | `storefront-service` |
+| `/api/yms/` | `yms-service` (Yard Management — FastAPI JWT) |
 | `/registry/v1/*` (rewritten to `~registry/v1/*`), `~registry` | `application` (monolith) |
 
 ## Behaviour

@@ -16,6 +16,7 @@ import {
     Code2,
     Boxes,
     Blocks,
+    Warehouse,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { IAM_HEADER_SHORTCUTS } from "@/lib/iam/headerShortcuts";
@@ -37,6 +38,7 @@ const engines = [
     { id: "storefront", label: "Storefront", to: "/storefront", icon: ShoppingBag, prefix: "/storefront" },
     { id: "ledger", label: "Ledger", to: "/ledger", icon: Receipt, prefix: "/ledger" },
     { id: "pallet", label: "Pallet", to: "/pallet", icon: Boxes, prefix: "/pallet" },
+    { id: "yard", label: "Yard", to: "/yard", icon: Warehouse, prefix: "/yard" },
     { id: "developers", label: "Developers", to: "/developers", icon: Code2, prefix: "/developers" },
     { id: "registry", label: "Registry", to: "/registry", icon: Blocks, prefix: "/registry" },
     { id: "iam", label: "IAM", to: "/iam", icon: ShieldCheck, prefix: "/iam" },

@@ -1,0 +1,1 @@
+import{dC as e,cz as n}from"./index-CmfgjHuF.js";const o="p-4 sm:p-5 md:p-6 space-y-4";function c({children:t,className:s,testId:a="page-content"}){return e.jsx("div",{"data-testid":a,className:n(o,s),children:t})}export{c as P};
