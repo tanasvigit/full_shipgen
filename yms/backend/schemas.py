@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class StatusCheck(BaseModel):
@@ -568,8 +568,19 @@ class RolePermissionsOut(BaseModel):
 
 
 class LoginIn(BaseModel):
-    username: str = Field(min_length=1, max_length=64)
-    password: str = Field(min_length=1, max_length=128)
+    identity: str = Field(min_length=1, max_length=256)
+    password: str = Field(min_length=8, max_length=128)
+    remember: bool = False
+    username: Optional[str] = Field(default=None, max_length=64)
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_identity(cls, data):
+        if isinstance(data, dict) and not str(data.get("identity") or "").strip():
+            legacy = str(data.get("username") or "").strip()
+            if legacy:
+                data = {**data, "identity": legacy}
+        return data
 
 
 class TokenOut(BaseModel):
@@ -607,6 +618,14 @@ class AdminUserCreateIn(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     status: str = Field(default="active", pattern="^(active|inactive)$")
 
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: str) -> str:
+        from services.password_policy import validate_password
+
+        validate_password(value)
+        return value
+
 
 class AdminUserUpdateIn(BaseModel):
     full_name: Optional[str] = Field(default=None, min_length=1, max_length=128)
@@ -614,6 +633,16 @@ class AdminUserUpdateIn(BaseModel):
     role: Optional[str] = Field(default=None, min_length=1, max_length=64)
     status: Optional[str] = Field(default=None, pattern="^(active|inactive)$")
     password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        from services.password_policy import validate_password
+
+        validate_password(value)
+        return value
 
 
 class AdminRoleOut(BaseModel):

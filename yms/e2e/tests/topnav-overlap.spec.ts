@@ -2,12 +2,12 @@ import { test, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
+import { YMS_DEMO_USERS, fillYmsLoginForm } from "../helpers/demo-credentials";
+
 async function loginAsAdmin(page: import("@playwright/test").Page) {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await page.getByTestId("login-form").waitFor({ state: "visible", timeout: 20_000 });
-  await page.getByTestId("login-username").fill("admin");
-  await page.getByTestId("login-password").fill("admin123");
-  await page.getByTestId("login-submit").click();
+  await fillYmsLoginForm(page, YMS_DEMO_USERS.yard_admin.email, YMS_DEMO_USERS.yard_admin.password);
   await page.waitForURL((url) => !url.pathname.endsWith("/login"), { timeout: 30_000 });
   await page.locator('[data-testid="topnav"]').waitFor({ state: "visible", timeout: 20_000 });
 }

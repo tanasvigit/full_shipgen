@@ -41,9 +41,9 @@ IMPERSONATABLE_ROLES = {
 
 @router.post("/auth/login", response_model=TokenOut)
 async def login(body: LoginIn):
-    user = await authenticate_user(body.username, body.password)
+    user = await authenticate_user(body.identity, body.password)
     if user is None:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     refresh = create_refresh_token_value()
     await store_refresh_token(user["user_id"], refresh)
     access = create_access_token(

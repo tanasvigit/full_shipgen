@@ -5,18 +5,13 @@ import fs from "fs";
 const OUT_DIR = path.join(__dirname, "..", "playwright-bug-fix");
 const SHOTS_DIR = path.join(OUT_DIR, "screenshots");
 
-const ROLES = {
-  yard_admin: { username: "admin", password: "admin123" },
-  gate_operator: { username: "gate", password: "gate123" },
-  dock_supervisor: { username: "supervisor", password: "supervisor123" },
-  yard_coordinator: { username: "coordinator", password: "coordinator123" },
-} as const;
+import { YMS_DEMO_USERS, fillYmsLoginForm } from "../helpers/demo-credentials";
 
-async function login(page: Page, username: string, password: string) {
+const ROLES = YMS_DEMO_USERS;
+
+async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
-  await page.getByTestId("login-username").fill(username);
-  await page.getByTestId("login-password").fill(password);
-  await page.getByTestId("login-submit").click();
+  await fillYmsLoginForm(page, email, password);
   await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 30_000 });
 }
 
@@ -34,7 +29,7 @@ test.describe("Critical bug fix verification", () => {
     });
     page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-    await login(page, ROLES.dock_supervisor.username, ROLES.dock_supervisor.password);
+    await login(page, ROLES.dock_supervisor.email, ROLES.dock_supervisor.password);
     await page.goto("/yard");
     await expect(page.getByRole("heading", { name: /yard control/i })).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(2000);
@@ -57,7 +52,7 @@ test.describe("Critical bug fix verification", () => {
     });
     page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-    await login(page, ROLES.dock_supervisor.username, ROLES.dock_supervisor.password);
+    await login(page, ROLES.dock_supervisor.email, ROLES.dock_supervisor.password);
 
     const routes = [
       { path: "/docks", heading: /dock management/i, shot: "dock_supervisor-docks.png" },
@@ -87,7 +82,7 @@ test.describe("Critical bug fix verification", () => {
     });
     page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-    await login(page, ROLES.yard_coordinator.username, ROLES.yard_coordinator.password);
+    await login(page, ROLES.yard_coordinator.email, ROLES.yard_coordinator.password);
     await page.goto("/appointments");
     await expect(page.getByRole("heading", { name: /^appointments$/i })).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(2000);
@@ -108,7 +103,7 @@ test.describe("Critical bug fix verification", () => {
     });
     page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-    await login(page, ROLES.gate_operator.username, ROLES.gate_operator.password);
+    await login(page, ROLES.gate_operator.email, ROLES.gate_operator.password);
     await page.getByTestId("brand-home").click();
     await page.waitForTimeout(2000);
 
@@ -131,7 +126,7 @@ test.describe("Critical bug fix verification", () => {
     });
     page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-    await login(page, ROLES.gate_operator.username, ROLES.gate_operator.password);
+    await login(page, ROLES.gate_operator.email, ROLES.gate_operator.password);
     await page.goto("/yard");
     await expect(page.getByRole("heading", { name: /yard control/i })).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(2000);
@@ -147,7 +142,7 @@ test.describe("Critical bug fix verification", () => {
     const pageErrors: string[] = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
-    await login(page, ROLES.gate_operator.username, ROLES.gate_operator.password);
+    await login(page, ROLES.gate_operator.email, ROLES.gate_operator.password);
     await page.goto("/gate");
     await expect(page.getByRole("heading", { name: /gate management/i })).toBeVisible({ timeout: 30_000 });
 
@@ -189,7 +184,7 @@ test.describe("Critical bug fix verification", () => {
 
     await page.screenshot({ path: path.join(SHOTS_DIR, "login-logo.png"), fullPage: true });
 
-    await login(page, ROLES.yard_admin.username, ROLES.yard_admin.password);
+    await login(page, ROLES.yard_admin.email, ROLES.yard_admin.password);
     const topLogo = page.getByTestId("brand-home").locator('img[alt="ShipGen"]');
     await expect(topLogo).toBeVisible();
     const topDims = await topLogo.evaluate((img: HTMLImageElement) => ({

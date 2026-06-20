@@ -6,6 +6,7 @@ import { resolveIamPermissionCandidates } from "@/lib/iam/permissions";
 import { loadingManager, MESSAGES } from "@/services/loading-manager";
 import { onboardingContextStorage } from "@/lib/onboarding/contextStorage";
 import { logOnboardingDebug } from "@/lib/onboarding/debug";
+import { SESSION_SCOPE, sessionScopeStorage } from "@/lib/sessionScope";
 
 const AuthContext = createContext(null);
 
@@ -24,6 +25,38 @@ const toPermissionMap = (permissions = []) => {
   return map;
 };
 
+function mapYardOperatorUser(me, email) {
+  return {
+    id: me.user_id,
+    name: me.display_name || me.username,
+    email: email || me.username,
+    role: me.role,
+    isAdmin: false,
+    isYardOnly: true,
+    permissions: me.permissions || [],
+  };
+}
+
+async function bootstrapYardOnlySession() {
+  const { getAccessToken, getRefreshToken, clearTokens } = await import("@yard/services/authStorage");
+  if (!getAccessToken() && !getRefreshToken()) {
+    sessionScopeStorage.clear();
+    return null;
+  }
+  try {
+    const { fetchAuthMe } = await import("@yard/services/authApi");
+    const me = await fetchAuthMe({ silent: true });
+    return {
+      session: { yardOnly: true },
+      user: mapYardOperatorUser(me),
+    };
+  } catch {
+    clearTokens();
+    sessionScopeStorage.clear();
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
   const restoredOnboarding = onboardingContextStorage.load();
   const [authReady, setAuthReady] = useState(false);
@@ -31,6 +64,7 @@ export function AuthProvider({ children }) {
   const [shouldInstall, setShouldInstall] = useState(false);
   const [shouldOnboard, setShouldOnboard] = useState(false);
   const [session, setSession] = useState(null);
+  const [sessionScope, setSessionScope] = useState(() => sessionScopeStorage.get());
   const [user, setUser] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [activeOrganization, setActiveOrganization] = useState(null);
@@ -54,6 +88,8 @@ export function AuthProvider({ children }) {
 
   const resetSession = useCallback(() => {
     authService.clearSession();
+    sessionScopeStorage.clear();
+    setSessionScope(SESSION_SCOPE.PLATFORM);
     setSession(null);
     setUser(null);
     setOrganizations([]);
@@ -68,6 +104,26 @@ export function AuthProvider({ children }) {
   }, []);
 
   const bootstrap = useCallback(async () => {
+    const scope = sessionScopeStorage.get();
+    if (scope === SESSION_SCOPE.YARD_ONLY) {
+      loadingManager.setAuth(true, MESSAGES.auth);
+      try {
+        const yardSession = await bootstrapYardOnlySession();
+        if (yardSession) {
+          setSessionScope(SESSION_SCOPE.YARD_ONLY);
+          setSession(yardSession.session);
+          setUser(yardSession.user);
+        } else {
+          resetSession();
+        }
+      } finally {
+        loadingManager.setAuth(false);
+        loadingManager.setBootstrap(false);
+        setAuthReady(true);
+      }
+      return;
+    }
+
     const auth = authService.getAuth();
     if (!auth?.token) {
       loadingManager.setAuth(false);
@@ -135,6 +191,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     try {
+      sessionScopeStorage.set(SESSION_SCOPE.PLATFORM);
+      setSessionScope(SESSION_SCOPE.PLATFORM);
       const auth = await authService.login(credentials);
       if (auth.requiresTwoFactor) {
         setSession(auth);
@@ -348,8 +406,36 @@ export function AuthProvider({ children }) {
     setActiveOrganization(null);
   }, []);
 
+  const loginYardOperator = useCallback(async ({ email, password }) => {
+    try {
+      const { login: ymsLogin, fetchAuthMe } = await import("@yard/services/authApi");
+      await ymsLogin(email.trim(), password);
+      const me = await fetchAuthMe({ silent: true });
+      sessionScopeStorage.set(SESSION_SCOPE.YARD_ONLY);
+      setSessionScope(SESSION_SCOPE.YARD_ONLY);
+      setSession({ yardOnly: true });
+      setUser(mapYardOperatorUser(me, email.trim()));
+      setOrganizations([]);
+      setActiveOrganization(null);
+      return me;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
-    await authService.logout();
+    if (sessionScopeStorage.get() === SESSION_SCOPE.YARD_ONLY) {
+      try {
+        const { logoutApi } = await import("@yard/services/authApi");
+        await logoutApi();
+      } catch {
+        /* best-effort */
+      }
+      const { clearTokens } = await import("@yard/services/authStorage");
+      clearTokens();
+    } else {
+      await authService.logout();
+    }
     resetSession();
   }, [resetSession]);
 
@@ -373,6 +459,7 @@ export function AuthProvider({ children }) {
   const hasPermission = useCallback(
     (permission) => {
       if (!permission) return true;
+      if (user?.isYardOnly) return false;
       if (user?.isAdmin) return true;
       if (!permissionMap || permissionMap.size === 0) {
         return (
@@ -390,7 +477,15 @@ export function AuthProvider({ children }) {
       }
       return resolveIamPermissionCandidates(permission).some((p) => permissionMap.has(p));
     },
-    [permissionMap, fleetopsChecker, user?.isAdmin],
+    [permissionMap, fleetopsChecker, user?.isAdmin, user?.isYardOnly],
+  );
+
+  const canFleetops = useCallback(
+    (action, resource) => {
+      if (user?.isYardOnly) return false;
+      return fleetopsChecker.can(action, resource);
+    },
+    [fleetopsChecker, user?.isYardOnly],
   );
 
   const value = useMemo(
@@ -399,7 +494,9 @@ export function AuthProvider({ children }) {
       onboardingGateReady,
       shouldInstall,
       shouldOnboard,
-      isAuthenticated: Boolean(session?.token),
+      isAuthenticated: Boolean(session?.token) || Boolean(session?.yardOnly),
+      sessionScope,
+      isYardOnlySession: sessionScope === SESSION_SCOPE.YARD_ONLY && Boolean(session?.yardOnly),
       requiresTwoFactor: Boolean(session?.requiresTwoFactor),
       session,
       onboardingSession,
@@ -408,6 +505,7 @@ export function AuthProvider({ children }) {
       organizations,
       activeOrganization,
       login,
+      loginYardOperator,
       createOnboardingAccount,
       saveOnboardingDraft,
       clearOnboardingSession,
@@ -422,6 +520,7 @@ export function AuthProvider({ children }) {
       switchOrganization,
       refreshInstallStatus,
       hasPermission,
+      canFleetops,
       refresh: bootstrap,
     }),
     [
@@ -430,12 +529,14 @@ export function AuthProvider({ children }) {
       shouldInstall,
       shouldOnboard,
       session,
+      sessionScope,
       onboardingSession,
       onboardingDraft,
       user,
       organizations,
       activeOrganization,
       login,
+      loginYardOperator,
       createOnboardingAccount,
       saveOnboardingDraft,
       clearOnboardingSession,
@@ -450,6 +551,7 @@ export function AuthProvider({ children }) {
       switchOrganization,
       refreshInstallStatus,
       hasPermission,
+      canFleetops,
       bootstrap,
     ],
   );

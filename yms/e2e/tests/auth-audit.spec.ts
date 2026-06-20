@@ -30,7 +30,7 @@ for (const config of Object.values(ROLE_CONFIGS)) {
     const page = await context.newPage();
 
     try {
-      await login(page, config.username, config.password);
+      await login(page, config.email, config.password);
 
       const storage = await context.storageState();
       const hasToken =

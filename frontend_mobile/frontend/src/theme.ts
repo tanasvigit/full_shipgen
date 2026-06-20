@@ -9,6 +9,8 @@ export const colors = {
   brand: "#0A0A0A",
   brandHover: "#262626",
   accent: "#0033A0",
+  shipgenBlue: "#0066FF",
+  shipgenOrange: "#FF6600",
   success: "#10B981",
   successBg: "#ECFDF5",
   warning: "#F59E0B",

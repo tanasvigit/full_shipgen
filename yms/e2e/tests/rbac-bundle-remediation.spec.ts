@@ -4,22 +4,16 @@ import fs from "fs";
 
 const SHOTS_DIR = path.join(__dirname, "..", "playwright-rbac-remediation", "screenshots");
 
-const ROLES = {
-  yard_admin: { username: "admin", password: "admin123" },
-  yard_manager: { username: "manager", password: "manager123" },
-  gate_operator: { username: "gate", password: "gate123" },
-  yard_coordinator: { username: "coordinator", password: "coordinator123" },
-  dock_supervisor: { username: "supervisor", password: "supervisor123" },
-} as const;
+import { YMS_DEMO_USERS, fillYmsLoginForm } from "../helpers/demo-credentials";
+
+const ROLES = YMS_DEMO_USERS;
 
 type RoleKey = keyof typeof ROLES;
 
 async function login(page: Page, role: RoleKey) {
-  const { username, password } = ROLES[role];
+  const { email, password } = ROLES[role];
   await page.goto("/login");
-  await page.getByTestId("login-username").fill(username);
-  await page.getByTestId("login-password").fill(password);
-  await page.getByTestId("login-submit").click();
+  await fillYmsLoginForm(page, email, password);
   await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 30_000 });
 }
 

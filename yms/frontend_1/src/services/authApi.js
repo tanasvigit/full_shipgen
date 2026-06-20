@@ -19,7 +19,7 @@ async function authRequest(path, options = {}) {
   if (!res.ok) {
     let message = payload?.detail || `Request failed (${res.status})`;
     if (res.status === 401 && path === "/auth/login") {
-      message = "Invalid username or password";
+      message = "Invalid email or password";
     }
     const error = new Error(typeof message === "string" ? message : "Request failed");
     error.status = res.status;
@@ -29,10 +29,10 @@ async function authRequest(path, options = {}) {
   return payload;
 }
 
-export async function login(username, password) {
+export async function login(identity, password) {
   const data = await authRequest("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ identity: identity.trim(), password }),
   });
   setTokens({ accessToken: data.access_token, refreshToken: data.refresh_token });
   return data;
@@ -75,9 +75,23 @@ export async function logoutApi() {
   clearTokens();
 }
 
-export async function fetchAuthMe() {
+export async function fetchAuthMe(options = {}) {
+  const { getAccessToken, getRefreshToken } = await import("./authStorage");
   const { request } = await import("./ymsApi");
-  return request("/auth/me");
+
+  if (!getAccessToken() && getRefreshToken()) {
+    await refreshSession();
+  }
+
+  try {
+    return await request("/auth/me", options);
+  } catch (err) {
+    if (err.status === 401 && getRefreshToken()) {
+      await refreshSession();
+      return request("/auth/me", options);
+    }
+    throw err;
+  }
 }
 
 export async function fetchRolePermissions() {

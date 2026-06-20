@@ -131,21 +131,41 @@ async def get_user_permissions_for_role(role_name: str) -> list[str]:
         return list(row["permissions"] or [])
 
 
-async def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
+async def authenticate_user(identity: str, password: str) -> dict[str, Any] | None:
+    from services.password_policy import normalize_login_identity
+
+    normalized = normalize_login_identity(identity)
+    if not normalized:
+        return None
+
     pool = get_pool()
     async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            SELECT u.id, u.username, u.password_hash, u.display_name, u.is_active,
-                   COALESCE(array_agg(DISTINCT r.code) FILTER (WHERE r.code IS NOT NULL), '{}') AS roles
-            FROM users u
-            LEFT JOIN user_roles ur ON ur.user_id = u.id
-            LEFT JOIN roles r ON r.id = ur.role_id
-            WHERE u.username = $1
-            GROUP BY u.id
-            """,
-            username.strip().lower(),
-        )
+        if "@" in normalized:
+            row = await conn.fetchrow(
+                """
+                SELECT u.id, u.username, u.password_hash, u.display_name, u.is_active,
+                       COALESCE(array_agg(DISTINCT r.code) FILTER (WHERE r.code IS NOT NULL), '{}') AS roles
+                FROM users u
+                LEFT JOIN user_roles ur ON ur.user_id = u.id
+                LEFT JOIN roles r ON r.id = ur.role_id
+                WHERE LOWER(u.email) = $1
+                GROUP BY u.id
+                """,
+                normalized,
+            )
+        else:
+            row = await conn.fetchrow(
+                """
+                SELECT u.id, u.username, u.password_hash, u.display_name, u.is_active,
+                       COALESCE(array_agg(DISTINCT r.code) FILTER (WHERE r.code IS NOT NULL), '{}') AS roles
+                FROM users u
+                LEFT JOIN user_roles ur ON ur.user_id = u.id
+                LEFT JOIN roles r ON r.id = ur.role_id
+                WHERE u.username = $1
+                GROUP BY u.id
+                """,
+                normalized,
+            )
         if row is None or not row["is_active"]:
             return None
         if not verify_password(password, row["password_hash"]):

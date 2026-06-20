@@ -26,9 +26,19 @@ from services.auth_service import create_access_token, decode_access_token, hash
 
 
 def test_password_hash_roundtrip():
-    hashed = hash_password("secret123")
-    assert verify_password("secret123", hashed)
+    hashed = hash_password("Shipgen@Yms2026!")
+    assert verify_password("Shipgen@Yms2026!", hashed)
     assert not verify_password("wrong", hashed)
+
+
+def test_shipgen_password_policy():
+    from services.password_policy import validate_password
+
+    validate_password("Shipgen@Yms2026!")
+    with pytest.raises(ValueError):
+        validate_password("short1!")
+    with pytest.raises(ValueError):
+        validate_password("alllowercase1!")
 
 
 def test_jwt_encode_decode():
@@ -185,8 +195,8 @@ def test_authenticate_user_success():
         mock_conn.fetchrow = AsyncMock(
             return_value={
                 "id": uuid.uuid4(),
-                "username": "admin",
-                "password_hash": hash_password("admin123"),
+                "username": "yard_admin",
+                "password_hash": hash_password("Shipgen@Yms2026!"),
                 "display_name": "Admin",
                 "is_active": True,
                 "roles": ["yard_admin"],
@@ -201,7 +211,7 @@ def test_authenticate_user_success():
                 "services.auth_service.get_user_permissions_for_role",
                 new=AsyncMock(return_value=["*"]),
             ):
-                user = await authenticate_user("admin", "admin123")
+                user = await authenticate_user("yard.admin@shipgen.demo", "Shipgen@Yms2026!")
         assert user is not None
         assert user["role"] == "yard_admin"
 

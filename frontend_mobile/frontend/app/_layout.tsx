@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/react-native";
 
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { AuthProvider } from "@/src/contexts/AuthContext";
+import { YardAuthProvider } from "@/src/contexts/YardAuthContext";
 import { RuntimeProvider } from "@/src/contexts/RuntimeProvider";
 import { queryClient } from "@/src/query/client";
 import { initObservability } from "@/src/services/observability";
@@ -43,10 +44,12 @@ export default function RootLayout() {
         )}
       >
         <AuthProvider>
-          <RuntimeProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F8F9FA" } }} />
-          </RuntimeProvider>
+          <YardAuthProvider>
+            <RuntimeProvider>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F8F9FA" } }} />
+            </RuntimeProvider>
+          </YardAuthProvider>
         </AuthProvider>
       </Sentry.ErrorBoundary>
     </QueryClientProvider>

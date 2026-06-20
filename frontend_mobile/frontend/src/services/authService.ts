@@ -300,17 +300,26 @@ export const authService = {
     return authToken;
   },
 
-  async logout() {
-    try {
-      await apiRequest("/auth/logout", { method: "POST" });
-    } catch (error) {
-      captureError(error, { operation: "auth.logout" });
-    } finally {
-      await setStoredSession(null);
-      await setStoredOrganization(null);
-      clearObservabilityContext();
-      logEvent("auth.logout");
+  async clearLocalSession() {
+    await setStoredSession(null);
+    await setStoredOrganization(null);
+    clearObservabilityContext();
+  },
+
+  async logout(options: { notifyServer?: boolean } = {}) {
+    const notifyServer = options.notifyServer !== false;
+    const session = await getStoredSession();
+
+    if (notifyServer && session?.token) {
+      try {
+        await apiRequest("/auth/logout", { method: "POST" });
+      } catch (error) {
+        captureError(error, { operation: "auth.logout" });
+      }
     }
+
+    await authService.clearLocalSession();
+    logEvent("auth.logout", { notifyServer: notifyServer && Boolean(session?.token) });
   },
 };
 

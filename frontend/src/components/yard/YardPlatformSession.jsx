@@ -4,13 +4,18 @@ import { platformLogin } from "@yard/services/authApi";
 import { useAuth as useYardAuth } from "@yard/contexts/AuthContext";
 import { getAccessToken, getRefreshToken } from "@yard/services/authStorage";
 import { authStorage } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
+import { SESSION_SCOPE } from "@/lib/sessionScope";
+import { yardPath } from "@yard/constants/basePath";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
 
 /**
- * Silently exchanges the Shipgen session for a Yard JWT when the Yard module loads.
+ * Silently exchanges the Shipgen admin session for a Yard JWT when the Yard module loads.
+ * Yard-only operator sessions and non-admin Shipgen users use existing YMS tokens or are blocked.
  */
 export default function YardPlatformSession({ children }) {
   const navigate = useNavigate();
+  const { user, isYardOnlySession, sessionScope } = useAuth();
   const { refresh, ready, isAuthenticated } = useYardAuth();
   const [bridgeState, setBridgeState] = useState(() =>
     getAccessToken() || getRefreshToken() ? "ready" : "pending",
@@ -24,10 +29,22 @@ export default function YardPlatformSession({ children }) {
       return;
     }
 
+    if (isYardOnlySession || sessionScope === SESSION_SCOPE.YARD_ONLY) {
+      setBridgeState("failed");
+      navigate("/auth?redirect=/yard", { replace: true });
+      return;
+    }
+
     const shipgenAuth = authStorage.get();
     if (!shipgenAuth?.token) {
       setBridgeState("failed");
-      navigate("/auth/login?redirect=/yard", { replace: true });
+      navigate("/auth?redirect=/yard", { replace: true });
+      return;
+    }
+
+    if (!user?.isAdmin) {
+      setBridgeState("failed");
+      navigate(yardPath("/unauthorized"), { replace: true });
       return;
     }
 
@@ -48,7 +65,7 @@ export default function YardPlatformSession({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [bridgeState, navigate, refresh]);
+  }, [bridgeState, navigate, refresh, isYardOnlySession, sessionScope, user?.isAdmin]);
 
   useEffect(() => {
     if (isAuthenticated && bridgeState !== "ready") {
@@ -64,7 +81,10 @@ export default function YardPlatformSession({ children }) {
     return (
       <div className="mx-auto flex max-w-lg flex-col gap-3 px-6 py-10 text-sm text-[#4B5563]">
         <h1 className="font-display text-xl font-black tracking-tight text-[#0A0E1A]">Yard unavailable</h1>
-        <p>We could not open Yard with your Shipgen session. Sign in again or contact an administrator.</p>
+        <p>
+          Yard could not be opened with this session. Shipgen administrators are bridged automatically; yard operators
+          should sign in with a yard account from the login page.
+        </p>
       </div>
     );
   }

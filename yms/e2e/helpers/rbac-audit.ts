@@ -14,40 +14,42 @@ export const VIEWPORT = { w: 1920, h: 1080, label: "1920x1080" } as const;
 export type RoleConfig = {
   role: string;
   reportSlug: string;
-  username: string;
+  email: string;
   password: string;
 };
+
+export const YMS_DEMO_PASSWORD = "Shipgen@Yms2026!";
 
 export const ROLE_CONFIGS: Record<string, RoleConfig> = {
   yard_admin: {
     role: "yard_admin",
     reportSlug: "yard-admin",
-    username: "admin",
-    password: "admin123",
+    email: "yard.admin@shipgen.demo",
+    password: YMS_DEMO_PASSWORD,
   },
   yard_manager: {
     role: "yard_manager",
     reportSlug: "yard-manager",
-    username: "manager",
-    password: "manager123",
+    email: "yard.manager@shipgen.demo",
+    password: YMS_DEMO_PASSWORD,
   },
   gate_operator: {
     role: "gate_operator",
     reportSlug: "gate-operator",
-    username: "gate",
-    password: "gate123",
+    email: "yard.gate@shipgen.demo",
+    password: YMS_DEMO_PASSWORD,
   },
   yard_coordinator: {
     role: "yard_coordinator",
     reportSlug: "yard-coordinator",
-    username: "coordinator",
-    password: "coordinator123",
+    email: "yard.coordinator@shipgen.demo",
+    password: YMS_DEMO_PASSWORD,
   },
   dock_supervisor: {
     role: "dock_supervisor",
     reportSlug: "dock-supervisor",
-    username: "supervisor",
-    password: "supervisor123",
+    email: "yard.supervisor@shipgen.demo",
+    password: YMS_DEMO_PASSWORD,
   },
 };
 
@@ -205,10 +207,10 @@ function toCsv(rows: AuditRow[]): string {
   return [headers.join(","), ...rows.map((r) => headers.map((h) => esc(r[h])).join(","))].join("\n");
 }
 
-export async function login(page: Page, username: string, password: string): Promise<void> {
+export async function login(page: Page, email: string, password: string): Promise<void> {
   await page.goto(`${FRONTEND_URL}/login`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("login-form").waitFor({ state: "visible", timeout: 20_000 });
-  await page.getByTestId("login-username").fill(username);
+  await page.getByTestId("login-email").fill(email);
   await page.getByTestId("login-password").fill(password);
   await page.getByTestId("login-submit").click();
   await page.waitForURL((url) => !url.pathname.endsWith("/login"), { timeout: 30_000 });
@@ -379,7 +381,7 @@ export async function runRoleAudit(browser: Browser, config: RoleConfig): Promis
   attachListeners(page, config.role, VIEWPORT.label, result);
 
   try {
-    await login(page, config.username, config.password);
+    await login(page, config.email, config.password);
     const storage = await context.storageState();
     const hasToken =
       JSON.stringify(storage).includes("access") || JSON.stringify(storage).includes("token");

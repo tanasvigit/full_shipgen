@@ -40,10 +40,10 @@ export const MODULES = [
 ] as const;
 
 export const OPTIONAL_ROLES = [
-  { role: "yard_manager", username: "manager", password: "manager123" },
-  { role: "gate_operator", username: "gate", password: "gate123" },
-  { role: "yard_coordinator", username: "coordinator", password: "coordinator123" },
-  { role: "dock_supervisor", username: "supervisor", password: "supervisor123" },
+  { role: "yard_manager", email: "yard.manager@shipgen.demo", password: "Shipgen@Yms2026!" },
+  { role: "gate_operator", email: "yard.gate@shipgen.demo", password: "Shipgen@Yms2026!" },
+  { role: "yard_coordinator", email: "yard.coordinator@shipgen.demo", password: "Shipgen@Yms2026!" },
+  { role: "dock_supervisor", email: "yard.supervisor@shipgen.demo", password: "Shipgen@Yms2026!" },
 ] as const;
 
 export type ManualAuditResult = {
@@ -855,7 +855,7 @@ async function auditModule(
 export async function runManualAudit(
   browser: Browser,
   role: string,
-  username: string,
+  email: string,
   password: string
 ): Promise<ManualAuditResult> {
   ensureDirs();
@@ -896,7 +896,7 @@ export async function runManualAudit(
   attachListeners(page, role, result);
 
   try {
-    await jwtLogin(page, username, password);
+    await jwtLogin(page, email, password);
     result.passCount += 1;
 
     const menuBtn = page.locator('[data-testid="mobile-menu-btn"], [data-testid="topnav-menu"]').first();

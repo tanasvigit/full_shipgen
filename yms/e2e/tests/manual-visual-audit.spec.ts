@@ -13,6 +13,7 @@
  */
 import { test, expect, type Page, type Locator } from "@playwright/test";
 import fs from "fs";
+import { YMS_DEMO_USERS, fillYmsLoginForm } from "../helpers/demo-credentials";
 import path from "path";
 import { VISUAL_AUDIT_PATHS } from "../playwright.manual-visual-audit.config";
 
@@ -140,11 +141,8 @@ async function loginAsAdmin(page: Page) {
   await page.goto("/login");
   await pause(page);
   await snap(page, "login-page");
-  await page.getByTestId("login-username").fill("admin");
+  await fillYmsLoginForm(page, YMS_DEMO_USERS.yard_admin.email, YMS_DEMO_USERS.yard_admin.password);
   await pause(page, 800);
-  await page.getByTestId("login-password").fill("admin123");
-  await pause(page, 800);
-  await page.getByTestId("login-submit").click();
   await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 45_000 });
   await pause(page);
   await snap(page, "post-login-home");

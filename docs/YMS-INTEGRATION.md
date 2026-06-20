@@ -69,6 +69,18 @@ docker compose up -d --build
 
 Standalone UI: http://localhost:3001 (leave `VITE_YARD_BASE_PATH` unset / empty).
 
+### Demo YMS credentials (standalone / mobile)
+
+Same rules as Shipgen IAM: sign in with **email**, password must include upper, lower, number, and symbol (min 8 chars).
+
+| Email | Password | Role |
+|-------|----------|------|
+| yard.admin@shipgen.demo | Shipgen@Yms2026! | yard_admin |
+| yard.manager@shipgen.demo | Shipgen@Yms2026! | yard_manager |
+| yard.gate@shipgen.demo | Shipgen@Yms2026! | gate_operator |
+| yard.coordinator@shipgen.demo | Shipgen@Yms2026! | yard_coordinator |
+| yard.supervisor@shipgen.demo | Shipgen@Yms2026! | dock_supervisor |
+
 ## Next steps (not in this integration)
 
 - Keycloak OIDC (replace platform token exchange)

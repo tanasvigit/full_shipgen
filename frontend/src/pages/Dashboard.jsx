@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "@/components/common/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
+import { SESSION_SCOPE } from "@/lib/sessionScope";
 import KpiCard from "@/components/common/KpiCard";
 import MapView from "@/components/common/MapView";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -41,6 +43,7 @@ function buildHourly(orders) {
 }
 
 export default function Dashboard() {
+  const { sessionScope } = useAuth();
   const [ordersState, setOrdersState] = useState([]);
   const [driversState, setDriversState] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -180,6 +183,10 @@ export default function Dashboard() {
     })),
   ];
 
+  if (sessionScope === SESSION_SCOPE.YARD_ONLY) {
+    return <Navigate to="/yard" replace />;
+  }
+
   return (
     <PageLoaderOverlay loading={loading && ordersState.length === 0} message="Loading dashboard…" testId="dashboard-page-loader">
     <div data-testid="dashboard-page" className="bg-[#F5F6F8] min-h-full">
@@ -288,8 +295,8 @@ export default function Dashboard() {
                 <div className="font-display font-black text-[22px] tracking-[-0.035em] mt-1 text-[#0A0E1A]">Orders by bucket</div>
               </div>
             </div>
-            <div className="h-[440px] p-3 relative">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[440px] min-h-[440px] min-w-0 p-3 relative">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                 <BarChart data={ordersByHour} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="bar-cyan" x1="0" y1="0" x2="0" y2="1">

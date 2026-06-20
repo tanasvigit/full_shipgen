@@ -61,6 +61,7 @@ export function formatApiError(error, url = API_BASE) {
 }
 
 export async function request(path, options = {}, _retried = false) {
+  const { silent, ...fetchOptions } = options;
   const url = `${API_BASE}${path}`;
   let res;
   try {
@@ -68,9 +69,9 @@ export async function request(path, options = {}, _retried = false) {
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
-        ...(options.headers || {}),
+        ...(fetchOptions.headers || {}),
       },
-      ...options,
+      ...fetchOptions,
     });
   } catch (networkErr) {
     const error = new Error(networkErr.message || "Failed to fetch");
@@ -96,7 +97,7 @@ export async function request(path, options = {}, _retried = false) {
       try {
         const { refreshSession } = await import("./authApi");
         await refreshSession();
-        return request(path, options, true);
+        return request(path, { silent, ...fetchOptions }, true);
       } catch {
         const { clearTokens } = await import("./authStorage");
         clearTokens();
@@ -115,7 +116,9 @@ export async function request(path, options = {}, _retried = false) {
     error.status = res.status;
     error.payload = payload;
     error.url = url;
-    console.error("[ymsApi] request failed", { url, status: res.status, payload: text?.slice(0, 500) });
+    if (!silent) {
+      console.error("[ymsApi] request failed", { url, status: res.status, payload: text?.slice(0, 500) });
+    }
     throw error;
   }
   return payload;

@@ -6,11 +6,14 @@ import { resolvePostLoginPath } from "../utils/authRedirect";
 import BrandLogo from "../components/common/BrandLogo";
 import { Button } from "../components/ui/button";
 
+const PASSWORD_HINT =
+  "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
+
 export default function Login() {
   const { login, isAuthenticated, ready, permissions } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +28,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(username.trim(), password);
+      await login(email.trim(), password);
       const me = await fetchAuthMe();
       navigate(resolvePostLoginPath(me.permissions, location.state?.from), { replace: true });
     } catch (err) {
@@ -59,16 +62,16 @@ export default function Login() {
             </div>
           )}
           <div>
-            <label htmlFor="username" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-              Username
+            <label htmlFor="email" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+              Email
             </label>
             <input
-              id="username"
-              data-testid="login-username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              data-testid="login-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-slate-200 rounded-md px-3 py-3 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-amber-400"
               required
             />
@@ -87,6 +90,7 @@ export default function Login() {
               className="w-full border border-slate-200 rounded-md px-3 py-3 text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-amber-400"
               required
             />
+            <p className="text-[11px] text-slate-400 mt-1">{PASSWORD_HINT}</p>
           </div>
           <Button
             type="submit"
@@ -97,9 +101,9 @@ export default function Login() {
             {loading ? "Signing in…" : "Sign in"}
           </Button>
           <p className="text-[11px] text-slate-400 text-center pt-1 leading-relaxed">
-            Demo accounts (username / password):<br />
-            admin / admin123 · manager / manager123 · gate / gate123<br />
-            coordinator / coordinator123 · supervisor / supervisor123
+            Demo accounts (email / password):<br />
+            yard.admin@shipgen.demo · yard.gate@shipgen.demo<br />
+            Password for all demo roles: Shipgen@Yms2026!
           </p>
         </form>
       </div>

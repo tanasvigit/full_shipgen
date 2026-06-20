@@ -2,24 +2,19 @@
 
 Seeding is idempotent: existing role descriptions and role_permissions are
 never overwritten so Role Management edits remain the database source of truth.
+Demo user emails/passwords are synced to Shipgen-format credentials on startup.
 """
 
 from __future__ import annotations
 
+import os
 import uuid
 
 import asyncpg
 
 from auth_rbac import ALL_PERMISSIONS, ROLE_PERMISSIONS
 from services.auth_service import hash_password
-
-DEFAULT_USERS = [
-    ("admin", "admin123", "Yard Administrator", "yard_admin"),
-    ("manager", "manager123", "Yard Manager", "yard_manager"),
-    ("gate", "gate123", "Gate Operator", "gate_operator"),
-    ("coordinator", "coordinator123", "Yard Coordinator", "yard_coordinator"),
-    ("supervisor", "supervisor123", "Dock Supervisor", "dock_supervisor"),
-]
+from services.demo_credentials import DEFAULT_DEMO_USERS
 
 ROLE_META = {
     "yard_admin": ("Yard Administrator", "Full system access"),
@@ -28,6 +23,12 @@ ROLE_META = {
     "yard_coordinator": ("Yard Coordinator", "Queue and staging coordination"),
     "dock_supervisor": ("Dock Supervisor", "Dock, labor, equipment, and loading"),
 }
+
+_SYNC_DEMO_CREDENTIALS = os.environ.get("YMS_SYNC_DEMO_CREDENTIALS", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 async def _ensure_permissions(conn: asyncpg.Connection) -> dict[str, uuid.UUID]:
@@ -121,26 +122,60 @@ async def _ensure_default_users(
     conn: asyncpg.Connection,
     role_ids: dict[str, uuid.UUID],
 ) -> None:
-    """Create demo users when missing; never reset passwords or role links."""
-    for username, password, display_name, role_name in DEFAULT_USERS:
-        role_id = role_ids.get(role_name)
+    """Create or sync Shipgen-format demo users for each yard role."""
+    for spec in DEFAULT_DEMO_USERS:
+        role_id = role_ids.get(spec["role"])
         if role_id is None:
             continue
-        existing = await conn.fetchrow("SELECT id FROM users WHERE username = $1", username)
+
+        existing = await conn.fetchrow(
+            """
+            SELECT id FROM users
+            WHERE LOWER(email) = LOWER($1)
+               OR username = $2
+               OR username = $3
+            LIMIT 1
+            """,
+            spec["email"],
+            spec["username"],
+            spec["legacy_username"],
+        )
+
+        password_hash = hash_password(spec["password"])
+
         if existing:
             user_id = existing["id"]
+            if _SYNC_DEMO_CREDENTIALS:
+                await conn.execute(
+                    """
+                    UPDATE users
+                    SET username = $2,
+                        email = $3,
+                        password_hash = $4,
+                        display_name = $5,
+                        is_active = TRUE
+                    WHERE id = $1
+                    """,
+                    user_id,
+                    spec["username"],
+                    spec["email"].lower(),
+                    password_hash,
+                    spec["display_name"],
+                )
         else:
             user_id = uuid.uuid4()
             await conn.execute(
                 """
-                INSERT INTO users (id, username, password_hash, display_name, is_active)
-                VALUES ($1, $2, $3, $4, TRUE)
+                INSERT INTO users (id, username, email, password_hash, display_name, is_active)
+                VALUES ($1, $2, $3, $4, $5, TRUE)
                 """,
                 user_id,
-                username,
-                hash_password(password),
-                display_name,
+                spec["username"],
+                spec["email"].lower(),
+                password_hash,
+                spec["display_name"],
             )
+
         await conn.execute(
             """
             INSERT INTO user_roles (user_id, role_id)

@@ -1,4 +1,3 @@
-import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
     Package,
@@ -61,6 +60,11 @@ import {
     Sparkles,
     AlertTriangle,
 } from "lucide-react";
+import { useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useYardPermissions } from "@/hooks/useYardPermissions";
+import { filterSidebarGroups } from "@/lib/sidebarAccess";
 
 const sections = {
     "/": [
@@ -337,7 +341,18 @@ function pickSection(pathname) {
 export default function Sidebar() {
     const location = useLocation();
     const section = pickSection(location.pathname);
-    const groups = sections[section.key] || [];
+    const { user, hasPermission, canFleetops } = useAuth();
+    const { can: canYardModule } = useYardPermissions();
+
+    const groups = useMemo(() => {
+        const raw = sections[section.key] || [];
+        return filterSidebarGroups(raw, section.key, {
+            isAdmin: Boolean(user?.isAdmin),
+            hasPermission,
+            canFleetops,
+            canYardModule,
+        });
+    }, [section.key, user?.isAdmin, hasPermission, canFleetops, canYardModule]);
 
     return (
         <aside

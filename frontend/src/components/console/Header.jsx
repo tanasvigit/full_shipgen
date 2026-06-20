@@ -31,25 +31,41 @@ import {
 import NotificationsTray from "@/components/console/NotificationsTray";
 import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
+import { CONSOLE_ENGINES, getVisibleEngines } from "@/lib/engineAccess";
+import { useYardPermissions } from "@/hooks/useYardPermissions";
 
-const engines = [
-    { id: "console", label: "Console", to: "/", icon: LayoutGrid },
-    { id: "fleet-ops", label: "FleetOps", to: "/fleet-ops/operations/orders", icon: Truck, prefix: "/fleet-ops" },
-    { id: "storefront", label: "Storefront", to: "/storefront", icon: ShoppingBag, prefix: "/storefront" },
-    { id: "ledger", label: "Ledger", to: "/ledger", icon: Receipt, prefix: "/ledger" },
-    { id: "pallet", label: "Pallet", to: "/pallet", icon: Boxes, prefix: "/pallet" },
-    { id: "yard", label: "Yard", to: "/yard", icon: Warehouse, prefix: "/yard" },
-    { id: "developers", label: "Developers", to: "/developers", icon: Code2, prefix: "/developers" },
-    { id: "registry", label: "Registry", to: "/registry", icon: Blocks, prefix: "/registry" },
-    { id: "iam", label: "IAM", to: "/iam", icon: ShieldCheck, prefix: "/iam" },
-];
+const engineIcons = {
+    console: LayoutGrid,
+    "fleet-ops": Truck,
+    storefront: ShoppingBag,
+    ledger: Receipt,
+    pallet: Boxes,
+    yard: Warehouse,
+    developers: Code2,
+    registry: Blocks,
+    iam: ShieldCheck,
+};
 
 export default function Header({ onOpenPalette }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, hasPermission } = useAuth();
+    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, hasPermission, canFleetops, sessionScope } = useAuth();
+    const { can: canYardModule } = useYardPermissions();
     const [switchingOrg, setSwitchingOrg] = useState(false);
     const currentOrg = activeOrganization || organizations[0] || { name: "No Organization" };
+
+    const visibleEngines = useMemo(
+        () =>
+            getVisibleEngines({
+                isAdmin: Boolean(user?.isAdmin),
+                sessionScope,
+                hasPermission,
+                canFleetops,
+                canYardModule,
+                userPermissions: user?.permissions,
+            }),
+        [user?.isAdmin, user?.permissions, sessionScope, hasPermission, canFleetops, canYardModule],
+    );
 
     const isActive = (engine) => {
         if (engine.id === "console") return location.pathname === "/" || location.pathname === "/notifications";
@@ -100,8 +116,8 @@ export default function Header({ onOpenPalette }) {
                     className="engine-pill-nav flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto"
                     data-testid="smart-nav"
                 >
-                    {engines.map((e) => {
-                        const Icon = e.icon;
+                    {visibleEngines.map((e) => {
+                        const Icon = engineIcons[e.iconKey] || LayoutGrid;
                         const active = isActive(e);
                         return (
                             <Link

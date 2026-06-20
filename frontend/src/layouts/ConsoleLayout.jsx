@@ -4,6 +4,7 @@ import Sidebar from "@/components/console/Sidebar";
 import CommandPalette from "@/components/console/CommandPalette";
 import OfflineBanner from "@/components/platform/OfflineBanner";
 import DemoModeBanner from "@/components/platform/DemoModeBanner";
+import EngineScopeGuard from "@/components/auth/EngineScopeGuard";
 import { useState, useEffect } from "react";
 
 export default function ConsoleLayout() {
@@ -20,6 +21,7 @@ export default function ConsoleLayout() {
     }, []);
 
     return (
+        <EngineScopeGuard>
         <div className="min-h-screen flex flex-col bg-[#F5F6F8] text-[#0A0E1A]" data-testid="console-layout">
             <OfflineBanner />
             <DemoModeBanner />
@@ -32,5 +34,6 @@ export default function ConsoleLayout() {
             </div>
             <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
         </div>
+        </EngineScopeGuard>
     );
 }

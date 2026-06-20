@@ -6,17 +6,21 @@ Production auth uses **JWT Bearer tokens** with role-based permissions. The dev 
 
 ### Default accounts (seeded on first startup)
 
-| Username | Password | Role |
-|----------|----------|------|
-| admin | admin123 | yard_admin |
-| manager | manager123 | yard_manager |
-| gate | gate123 | gate_operator |
-| coordinator | coordinator123 | yard_coordinator |
-| supervisor | supervisor123 | dock_supervisor |
+Login uses **email + password** (same format as the Shipgen console). Password rules: at least 8 characters with uppercase, lowercase, number, and symbol.
+
+| Email | Password | Role |
+|-------|----------|------|
+| yard.admin@shipgen.demo | Shipgen@Yms2026! | yard_admin |
+| yard.manager@shipgen.demo | Shipgen@Yms2026! | yard_manager |
+| yard.gate@shipgen.demo | Shipgen@Yms2026! | gate_operator |
+| yard.coordinator@shipgen.demo | Shipgen@Yms2026! | yard_coordinator |
+| yard.supervisor@shipgen.demo | Shipgen@Yms2026! | dock_supervisor |
+
+Legacy short usernames (`admin`, `gate`, etc.) are migrated to these emails on service startup when `YMS_SYNC_DEMO_CREDENTIALS=true` (default).
 
 ### Auth endpoints
 
-- `POST /api/auth/login` — returns `access_token` + `refresh_token`
+- `POST /api/auth/login` — body `{ "identity": "<email>", "password": "..." }` — returns `access_token` + `refresh_token`
 - `POST /api/auth/refresh` — rotate tokens
 - `POST /api/auth/logout` — revoke refresh token
 - `GET /api/auth/me` — current user, role, permissions

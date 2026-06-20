@@ -17,6 +17,11 @@ from routers.admin import list_admin_roles, update_role
 from schemas import AdminRoleUpdateIn
 from services.auth_service import authenticate_user, create_access_token
 
+from services.demo_credentials import DEFAULT_DEMO_USERS, YMS_DEMO_PASSWORD
+
+ADMIN_EMAIL = DEFAULT_DEMO_USERS[0]["email"]
+GATE_EMAIL = next(u["email"] for u in DEFAULT_DEMO_USERS if u["role"] == "gate_operator")
+
 VALID_SECRET = "this-is-a-strong-test-jwt-secret-key-123"
 
 
@@ -32,7 +37,7 @@ def _admin_context(user: dict) -> AuthContext:
 def test_get_admin_roles_returns_seeded_roles():
     async def run() -> None:
         await init_db()
-        user = await authenticate_user("admin", "admin123")
+        user = await authenticate_user(ADMIN_EMAIL, YMS_DEMO_PASSWORD)
         assert user is not None
         roles = await list_admin_roles(_ctx=_admin_context(user))
         codes = {role.code for role in roles}
@@ -48,7 +53,7 @@ def test_get_admin_roles_returns_seeded_roles():
 def test_put_admin_role_updates_permissions_and_description():
     async def run() -> None:
         await init_db()
-        user = await authenticate_user("admin", "admin123")
+        user = await authenticate_user(ADMIN_EMAIL, YMS_DEMO_PASSWORD)
         assert user is not None
         ctx = _admin_context(user)
         roles = await list_admin_roles(_ctx=ctx)
@@ -102,7 +107,7 @@ def test_role_edits_survive_init_db_restart():
             original_description = row["description"]
             original_permissions = list(row["permissions"] or [])
 
-        user = await authenticate_user("admin", "admin123")
+        user = await authenticate_user(ADMIN_EMAIL, YMS_DEMO_PASSWORD)
         assert user is not None
         ctx = _admin_context(user)
         custom_description = f"Coordinator custom {uuid.uuid4().hex[:8]}"
@@ -145,7 +150,7 @@ def test_role_edits_survive_init_db_restart():
 def test_put_admin_role_rejects_unknown_permission():
     async def run() -> None:
         await init_db()
-        user = await authenticate_user("admin", "admin123")
+        user = await authenticate_user(ADMIN_EMAIL, YMS_DEMO_PASSWORD)
         assert user is not None
         ctx = _admin_context(user)
         roles = await list_admin_roles(_ctx=ctx)
@@ -166,7 +171,7 @@ def test_get_admin_roles_requires_admin_permission():
     with patch.dict(os.environ, {"JWT_SECRET_KEY": VALID_SECRET}, clear=False):
         async def get_token() -> str:
             await init_db()
-            user = await authenticate_user("gate", "gate123")
+            user = await authenticate_user(GATE_EMAIL, YMS_DEMO_PASSWORD)
             assert user is not None
             return create_access_token(
                 user_id=user["user_id"],
@@ -190,7 +195,7 @@ def test_admin_roles_http_endpoints():
     with patch.dict(os.environ, {"JWT_SECRET_KEY": VALID_SECRET}, clear=False):
         async def get_token() -> str:
             await init_db()
-            user = await authenticate_user("admin", "admin123")
+            user = await authenticate_user(ADMIN_EMAIL, YMS_DEMO_PASSWORD)
             assert user is not None
             return create_access_token(
                 user_id=user["user_id"],

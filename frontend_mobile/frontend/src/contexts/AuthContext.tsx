@@ -21,7 +21,7 @@ type AuthContextValue = {
   verifyTwoFactor: (code: string) => Promise<void>;
   resendTwoFactorCode: () => Promise<void>;
   switchOrganization: (organizationId: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (options?: { notifyServer?: boolean }) => Promise<void>;
   refresh: () => Promise<void>;
   canFleetops: (action: string, resource: string) => boolean;
   permissionReason: (action: string, resource: string) => string | null;
@@ -120,9 +120,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [activeOrganization?.id, activeOrganization?.uuid, queryClient, refresh]
   );
 
-  const logout = useCallback(async () => {
-    await authService.logout();
-    await clearSession();
+  const logoutInFlightRef = useRef<Promise<void> | null>(null);
+
+  const logout = useCallback(async (options?: { notifyServer?: boolean }) => {
+    if (logoutInFlightRef.current) {
+      await logoutInFlightRef.current;
+      return;
+    }
+
+    const run = (async () => {
+      await authService.logout(options);
+      await clearSession();
+    })();
+
+    logoutInFlightRef.current = run;
+    try {
+      await run;
+    } finally {
+      logoutInFlightRef.current = null;
+    }
   }, [clearSession]);
 
   const permissionResolver = useMemo(
