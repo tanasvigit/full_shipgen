@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SESSION_SCOPE } from "@/lib/sessionScope";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 import { hasPermission as yardHasPermission, MOD } from "@yard/constants/permissions";
 import { clearTokens, getAccessToken, getRefreshToken } from "@yard/services/authStorage";
 
@@ -58,8 +59,8 @@ async function loadYardPermissionsFromSession({ isShipgenAdmin, isYardOnlySessio
  * Only Shipgen admins and yard-only sessions receive Yard engine access.
  */
 export function useYardPermissions() {
-  const { user, isAuthenticated, isYardOnlySession, sessionScope } = useAuth();
-  const isShipgenAdmin = Boolean(user?.isAdmin);
+  const { user, isAuthenticated, isYardOnlySession, sessionScope, hasPermission, canFleetops } = useAuth();
+  const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
   const [permissions, setPermissions] = useState([]);
   const [ready, setReady] = useState(false);
 
@@ -69,7 +70,7 @@ export function useYardPermissions() {
     async function load() {
       const yardOnly = isYardOnlySession || sessionScope === SESSION_SCOPE.YARD_ONLY;
 
-      if (!yardOnly && !isShipgenAdmin) {
+      if (!yardOnly && !isConsoleAdmin) {
         if (!cancelled) {
           setPermissions([]);
           setReady(true);
@@ -88,13 +89,13 @@ export function useYardPermissions() {
       const { authStorage } = await import("@/lib/storage");
       const shipgenToken = authStorage.get()?.token;
       const perms = await loadYardPermissionsFromSession({
-        isShipgenAdmin,
+        isShipgenAdmin: isConsoleAdmin,
         isYardOnlySession: yardOnly,
         shipgenToken,
       });
 
       if (!cancelled) {
-        setPermissions(yardOnly ? perms : isShipgenAdmin ? ["*"] : perms);
+        setPermissions(yardOnly ? perms : isConsoleAdmin ? ["*"] : perms);
         setReady(true);
       }
     }
@@ -104,18 +105,18 @@ export function useYardPermissions() {
     return () => {
       cancelled = true;
     };
-  }, [isShipgenAdmin, isAuthenticated, isYardOnlySession, sessionScope, user?.id]);
+  }, [isConsoleAdmin, isAuthenticated, isYardOnlySession, sessionScope, user?.id]);
 
   const can = useCallback(
     (modulePermission) => {
-      if (isShipgenAdmin && sessionScope !== SESSION_SCOPE.YARD_ONLY) return true;
+      if (isConsoleAdmin && sessionScope !== SESSION_SCOPE.YARD_ONLY) return true;
       if (modulePermission === "*") {
         return ALL_YARD_MODULES.some((mod) => yardHasPermission(permissions, mod));
       }
       return yardHasPermission(permissions, modulePermission);
     },
-    [isShipgenAdmin, permissions, sessionScope],
+    [isConsoleAdmin, permissions, sessionScope],
   );
 
-  return { can, ready, permissions, isShipgenAdmin };
+  return { can, ready, permissions, isShipgenAdmin: isConsoleAdmin };
 }

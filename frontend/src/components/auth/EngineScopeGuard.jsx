@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
 import { canAccessPath, getDefaultEngineHome } from "@/lib/engineAccess";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 
 export default function EngineScopeGuard({ children }) {
   const location = useLocation();
@@ -12,14 +13,15 @@ export default function EngineScopeGuard({ children }) {
 
   const ctx = useMemo(
     () => ({
-      isAdmin: Boolean(user?.isAdmin),
+      isConsoleAdmin: resolveConsoleAdmin(user, { canFleetops, hasPermission }),
+      isAdmin: resolveConsoleAdmin(user, { canFleetops, hasPermission }),
       sessionScope,
       hasPermission,
       canFleetops,
       canYardModule,
       userPermissions: user?.permissions,
     }),
-    [user?.isAdmin, user?.permissions, sessionScope, hasPermission, canFleetops, canYardModule],
+    [user, sessionScope, hasPermission, canFleetops, canYardModule],
   );
 
   useEffect(() => {

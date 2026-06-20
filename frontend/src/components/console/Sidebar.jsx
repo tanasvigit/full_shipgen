@@ -65,6 +65,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
 import { filterSidebarGroups } from "@/lib/sidebarAccess";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 
 const sections = {
     "/": [
@@ -344,15 +345,17 @@ export default function Sidebar() {
     const { user, hasPermission, canFleetops } = useAuth();
     const { can: canYardModule } = useYardPermissions();
 
+    const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
+
     const groups = useMemo(() => {
         const raw = sections[section.key] || [];
         return filterSidebarGroups(raw, section.key, {
-            isAdmin: Boolean(user?.isAdmin),
+            isAdmin: isConsoleAdmin,
             hasPermission,
             canFleetops,
             canYardModule,
         });
-    }, [section.key, user?.isAdmin, hasPermission, canFleetops, canYardModule]);
+    }, [section.key, isConsoleAdmin, hasPermission, canFleetops, canYardModule]);
 
     return (
         <aside

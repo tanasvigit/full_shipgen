@@ -32,6 +32,7 @@ import NotificationsTray from "@/components/console/NotificationsTray";
 import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
 import { CONSOLE_ENGINES, getVisibleEngines } from "@/lib/engineAccess";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
 
 const engineIcons = {
@@ -54,17 +55,23 @@ export default function Header({ onOpenPalette }) {
     const [switchingOrg, setSwitchingOrg] = useState(false);
     const currentOrg = activeOrganization || organizations[0] || { name: "No Organization" };
 
+    const isConsoleAdmin = useMemo(
+        () => resolveConsoleAdmin(user, { canFleetops, hasPermission }),
+        [user, canFleetops, hasPermission],
+    );
+
     const visibleEngines = useMemo(
         () =>
             getVisibleEngines({
-                isAdmin: Boolean(user?.isAdmin),
+                isConsoleAdmin,
+                isAdmin: isConsoleAdmin,
                 sessionScope,
                 hasPermission,
                 canFleetops,
                 canYardModule,
                 userPermissions: user?.permissions,
             }),
-        [user?.isAdmin, user?.permissions, sessionScope, hasPermission, canFleetops, canYardModule],
+        [isConsoleAdmin, user?.permissions, sessionScope, hasPermission, canFleetops, canYardModule],
     );
 
     const isActive = (engine) => {

@@ -6,6 +6,7 @@ import { getAccessToken, getRefreshToken } from "@yard/services/authStorage";
 import { authStorage } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { SESSION_SCOPE } from "@/lib/sessionScope";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 import { yardPath } from "@yard/constants/basePath";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
 
@@ -15,7 +16,8 @@ import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback"
  */
 export default function YardPlatformSession({ children }) {
   const navigate = useNavigate();
-  const { user, isYardOnlySession, sessionScope } = useAuth();
+  const { user, isYardOnlySession, sessionScope, hasPermission, canFleetops } = useAuth();
+  const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
   const { refresh, ready, isAuthenticated } = useYardAuth();
   const [bridgeState, setBridgeState] = useState(() =>
     getAccessToken() || getRefreshToken() ? "ready" : "pending",
@@ -42,7 +44,7 @@ export default function YardPlatformSession({ children }) {
       return;
     }
 
-    if (!user?.isAdmin) {
+    if (!isConsoleAdmin) {
       setBridgeState("failed");
       navigate(yardPath("/unauthorized"), { replace: true });
       return;
@@ -65,7 +67,7 @@ export default function YardPlatformSession({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [bridgeState, navigate, refresh, isYardOnlySession, sessionScope, user?.isAdmin]);
+  }, [bridgeState, navigate, refresh, isYardOnlySession, sessionScope, isConsoleAdmin]);
 
   useEffect(() => {
     if (isAuthenticated && bridgeState !== "ready") {

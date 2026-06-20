@@ -104,7 +104,32 @@ export function AuthProvider({ children }) {
   }, []);
 
   const bootstrap = useCallback(async () => {
+    const auth = authService.getAuth();
     const scope = sessionScopeStorage.get();
+
+    // Shipgen session always wins over a stale yard-only scope in localStorage.
+    if (auth?.token) {
+      if (scope === SESSION_SCOPE.YARD_ONLY) {
+        sessionScopeStorage.set(SESSION_SCOPE.PLATFORM);
+        setSessionScope(SESSION_SCOPE.PLATFORM);
+      }
+      loadingManager.setAuth(true, MESSAGES.auth);
+      try {
+        setSession(auth);
+        const { me, organizations: orgs, activeOrg } = await authService.bootstrap();
+        setUser(me);
+        setOrganizations(orgs);
+        setActiveOrganization(activeOrg);
+      } catch {
+        resetSession();
+      } finally {
+        loadingManager.setAuth(false);
+        loadingManager.setBootstrap(false);
+        setAuthReady(true);
+      }
+      return;
+    }
+
     if (scope === SESSION_SCOPE.YARD_ONLY) {
       loadingManager.setAuth(true, MESSAGES.auth);
       try {
@@ -124,27 +149,9 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    const auth = authService.getAuth();
-    if (!auth?.token) {
-      loadingManager.setAuth(false);
-      loadingManager.setBootstrap(false);
-      setAuthReady(true);
-      return;
-    }
-    loadingManager.setAuth(true, MESSAGES.auth);
-    try {
-      setSession(auth);
-      const { me, organizations: orgs, activeOrg } = await authService.bootstrap();
-      setUser(me);
-      setOrganizations(orgs);
-      setActiveOrganization(activeOrg);
-    } catch {
-      resetSession();
-    } finally {
-      loadingManager.setAuth(false);
-      loadingManager.setBootstrap(false);
-      setAuthReady(true);
-    }
+    loadingManager.setAuth(false);
+    loadingManager.setBootstrap(false);
+    setAuthReady(true);
   }, [resetSession]);
 
   useEffect(() => {
@@ -193,6 +200,12 @@ export function AuthProvider({ children }) {
     try {
       sessionScopeStorage.set(SESSION_SCOPE.PLATFORM);
       setSessionScope(SESSION_SCOPE.PLATFORM);
+      try {
+        const { clearTokens } = await import("@yard/services/authStorage");
+        clearTokens();
+      } catch {
+        /* optional */
+      }
       const auth = await authService.login(credentials);
       if (auth.requiresTwoFactor) {
         setSession(auth);

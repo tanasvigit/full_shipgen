@@ -3,6 +3,8 @@
  * Company administrators see every engine; other roles see engines they can access.
  */
 
+import { canAccessYardEngine } from "@/lib/consoleAccess";
+
 export const CONSOLE_ENGINES = [
   { id: "console", label: "Console", to: "/", iconKey: "console", always: true },
   {
@@ -96,17 +98,18 @@ function hasAnyPermissionPrefix(hasPermission, userPermissions, prefixes) {
 
 /**
  * @param {typeof CONSOLE_ENGINES[number]} engine
- * @param {{ isAdmin?: boolean, sessionScope?: string, hasPermission: (p: string) => boolean, canFleetops: (a: string, r: string) => boolean, canYardModule: (m: string) => boolean, userPermissions?: string[] }} ctx
+ * @param {{ isConsoleAdmin?: boolean, isAdmin?: boolean, sessionScope?: string, hasPermission: (p: string) => boolean, canFleetops: (a: string, r: string) => boolean, canYardModule: (m: string) => boolean, userPermissions?: string[] }} ctx
  */
 export function canAccessEngine(engine, ctx) {
   const scope = ctx.sessionScope || "platform";
+  const isConsoleAdmin = Boolean(ctx.isConsoleAdmin ?? ctx.isAdmin);
 
   if (scope === "yard-only") {
     return engine.id === "yard";
   }
 
   if (engine.always) return true;
-  if (ctx.isAdmin) return true;
+  if (isConsoleAdmin) return true;
 
   if (engine.fleetopsAny?.length) {
     return engine.fleetopsAny.some(([action, resource]) => ctx.canFleetops(action, resource));
@@ -117,7 +120,7 @@ export function canAccessEngine(engine, ctx) {
   }
 
   if (engine.yardEngine) {
-    return ctx.canYardModule("*");
+    return canAccessYardEngine({ ...ctx, isConsoleAdmin });
   }
 
   if (engine.permissionPrefixes?.length) {

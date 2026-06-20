@@ -15,12 +15,19 @@ const mapOrganization = (org) => ({
 
 const mapUser = (user) => {
   const roleName = user?.role?.name || user?.role_name || user?.company_role || user?.role || "Member";
+  const roleNormalized = String(roleName).toLowerCase();
+  const typeNormalized = String(user?.type || "").toLowerCase();
   return {
     id: user?.id || user?.uuid || user?.public_id,
     name: user?.name || user?.full_name || "User",
     email: user?.email || "",
     role: roleName,
-    isAdmin: Boolean(user?.is_admin || String(user?.type || "").toLowerCase() === "admin"),
+    isAdmin: Boolean(
+      user?.is_admin ||
+        typeNormalized === "admin" ||
+        roleNormalized === "admin" ||
+        roleNormalized === "administrator",
+    ),
     avatarInitials: (user?.name || "U")
       .split(" ")
       .map((part) => part[0])
