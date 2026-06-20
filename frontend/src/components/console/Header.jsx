@@ -50,7 +50,7 @@ const engineIcons = {
 export default function Header({ onOpenPalette }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, hasPermission, canFleetops, sessionScope } = useAuth();
+    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, hasPermission, canFleetops, sessionScope, isYardOnlySession } = useAuth();
     const { can: canYardModule } = useYardPermissions();
     const [switchingOrg, setSwitchingOrg] = useState(false);
     const currentOrg = activeOrganization || organizations[0] || { name: "No Organization" };
@@ -214,6 +214,7 @@ export default function Header({ onOpenPalette }) {
                 </button>
 
                 <div className="flex shrink-0 items-center gap-0.5 border-l border-black/[0.06] pl-1 sm:pl-2">
+                    {!isYardOnlySession ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button data-testid="org-switcher" className="flex max-w-[100px] items-center gap-1.5 h-8 px-2 hover:bg-black/[0.04] rounded-lg border border-transparent hover:border-black/[0.08] transition-all sm:max-w-[140px] lg:max-w-[160px] lg:px-2.5">
@@ -240,6 +241,7 @@ export default function Header({ onOpenPalette }) {
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    ) : null}
 
                     <NotificationsTray />
 

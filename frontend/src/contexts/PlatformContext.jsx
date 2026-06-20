@@ -10,7 +10,7 @@ const PlatformContext = createContext(null);
 const HEALTH_POLL_MS = 120000;
 
 export function PlatformProvider({ children }) {
-  const { isAuthenticated, authReady } = useAuth();
+  const { isAuthenticated, isYardOnlySession, authReady } = useAuth();
   const [online, setOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
@@ -53,7 +53,7 @@ export function PlatformProvider({ children }) {
 
   const refreshHealth = useCallback(async () => {
     if (refreshInFlight.current) return health;
-    if (!authReady || !isAuthenticated) {
+    if (!authReady || !isAuthenticated || isYardOnlySession) {
       return null;
     }
     if (typeof document !== "undefined" && document.visibilityState === "hidden") {
@@ -79,14 +79,14 @@ export function PlatformProvider({ children }) {
       refreshInFlight.current = false;
       setHealthLoading(false);
     }
-  }, [authReady, isAuthenticated]);
+  }, [authReady, isAuthenticated, isYardOnlySession]);
 
   useEffect(() => {
-    if (!authReady || !isAuthenticated) return undefined;
+    if (!authReady || !isAuthenticated || isYardOnlySession) return undefined;
     void refreshHealth();
     const id = setInterval(() => void refreshHealth(), HEALTH_POLL_MS);
     return () => clearInterval(id);
-  }, [authReady, isAuthenticated, refreshHealth]);
+  }, [authReady, isAuthenticated, isYardOnlySession, refreshHealth]);
 
   const isDegraded = useMemo(() => {
     if (!online) return true;

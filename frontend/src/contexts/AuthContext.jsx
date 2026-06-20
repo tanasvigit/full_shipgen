@@ -6,7 +6,7 @@ import { resolveIamPermissionCandidates } from "@/lib/iam/permissions";
 import { loadingManager, MESSAGES } from "@/services/loading-manager";
 import { onboardingContextStorage } from "@/lib/onboarding/contextStorage";
 import { logOnboardingDebug } from "@/lib/onboarding/debug";
-import { SESSION_SCOPE, sessionScopeStorage } from "@/lib/sessionScope";
+import { isYardOperatorEmail, SESSION_SCOPE, sessionScopeStorage } from "@/lib/sessionScope";
 
 const AuthContext = createContext(null);
 
@@ -133,6 +133,7 @@ export function AuthProvider({ children }) {
     if (scope === SESSION_SCOPE.YARD_ONLY) {
       loadingManager.setAuth(true, MESSAGES.auth);
       try {
+        authService.clearSession();
         const yardSession = await bootstrapYardOnlySession();
         if (yardSession) {
           setSessionScope(SESSION_SCOPE.YARD_ONLY);
@@ -421,6 +422,7 @@ export function AuthProvider({ children }) {
 
   const loginYardOperator = useCallback(async ({ email, password }) => {
     try {
+      authService.clearSession();
       const { login: ymsLogin, fetchAuthMe } = await import("@yard/services/authApi");
       await ymsLogin(email.trim(), password);
       const me = await fetchAuthMe({ silent: true });
@@ -435,6 +437,42 @@ export function AuthProvider({ children }) {
       throw toApiError(error);
     }
   }, []);
+
+  const loginUnified = useCallback(
+    async ({ email, password, remember = true }) => {
+      const identity = String(email || "").trim();
+
+      if (isYardOperatorEmail(identity)) {
+        const me = await loginYardOperator({ email: identity, password });
+        return { sessionType: "yard", me };
+      }
+
+      try {
+        const result = await login({ email: identity, password, remember });
+        return { sessionType: "platform", ...result };
+      } catch (platformError) {
+        const status = platformError?.status || platformError?.raw?.response?.status;
+        const message = platformError?.message || "";
+        const isAuthFailure =
+          status === 401 ||
+          status === 403 ||
+          status === 422 ||
+          /invalid|credentials|password|unauthorized|incorrect/i.test(message);
+
+        if (!isAuthFailure) {
+          throw platformError;
+        }
+
+        try {
+          const me = await loginYardOperator({ email: identity, password });
+          return { sessionType: "yard", me };
+        } catch {
+          throw platformError;
+        }
+      }
+    },
+    [login, loginYardOperator],
+  );
 
   const logout = useCallback(async () => {
     if (sessionScopeStorage.get() === SESSION_SCOPE.YARD_ONLY) {
@@ -518,6 +556,7 @@ export function AuthProvider({ children }) {
       organizations,
       activeOrganization,
       login,
+      loginUnified,
       loginYardOperator,
       createOnboardingAccount,
       saveOnboardingDraft,
@@ -549,6 +588,7 @@ export function AuthProvider({ children }) {
       organizations,
       activeOrganization,
       login,
+      loginUnified,
       loginYardOperator,
       createOnboardingAccount,
       saveOnboardingDraft,

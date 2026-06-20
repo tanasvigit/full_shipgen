@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { consoleService } from "@/services/console";
 import { mapNotification } from "@/lib/mappers";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 function iconFor(level) {
   if (level === "warning") return AlertTriangle;
@@ -25,11 +26,17 @@ function colorFor(level) {
 }
 
 export default function NotificationsTray() {
+  const { isYardOnlySession, session } = useAuth();
   const [items, setItems] = useState([]);
   const navigate = useNavigate();
   const unread = items.filter((n) => !n.read).length;
+  const platformSession = Boolean(session?.token) && !isYardOnlySession;
 
   const load = useCallback(async () => {
+    if (!platformSession) {
+      setItems([]);
+      return;
+    }
     try {
       const notifications = await consoleService.listNotifications();
       setItems(notifications.map(mapNotification));
@@ -37,13 +44,16 @@ export default function NotificationsTray() {
       toast.error(parseApiError(err, "Could not load notifications."));
       setItems([]);
     }
-  }, []);
+  }, [platformSession]);
 
   useEffect(() => {
+    if (!platformSession) return undefined;
     load();
     const id = setInterval(load, 60000);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, platformSession]);
+
+  if (!platformSession) return null;
 
   async function markAllRead() {
     try {
