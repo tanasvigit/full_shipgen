@@ -11,6 +11,8 @@
     "run-android": "react-native run-android",
     "run-android:log": "node ./scripts/run-android-log.js",
     "run-android:usb": "npm run env:usb && npm run adb:reverse && node ./scripts/run-android-log.js",
+    "logs:android": "adb logcat *:S ReactNativeJS:V",
+    "logs:device": "adb logcat *:S ReactNativeJS:V",
     "android:usb": "npm run env:usb && npm run adb:reverse && node ./scripts/run-android-usb.js",
     "android:device": "expo run:android --device",
     "reset-project": "node ./scripts/reset-project.js",

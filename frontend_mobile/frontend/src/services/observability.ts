@@ -2,6 +2,12 @@ import * as Sentry from "@sentry/react-native";
 
 let sentryInitialized = false;
 
+/** Set EXPO_PUBLIC_MOBILE_DEBUG=true to force verbose logs in release builds. */
+export const mobileDebugEnabled =
+  typeof __DEV__ !== "undefined" && __DEV__
+    ? process.env.EXPO_PUBLIC_MOBILE_DEBUG !== "false"
+    : process.env.EXPO_PUBLIC_MOBILE_DEBUG === "true";
+
 type ObservabilityContext = {
   userId?: string;
   email?: string;
@@ -9,6 +15,16 @@ type ObservabilityContext = {
 };
 
 let context: ObservabilityContext = {};
+
+function writeLog(level: "log" | "warn", prefix: string, message: string, data?: Record<string, unknown>) {
+  if (!mobileDebugEnabled && level === "log") return;
+  const line = `${prefix} ${message}`;
+  if (level === "warn" || mobileDebugEnabled) {
+    console.warn(line, data ?? "");
+  } else {
+    console.log(line, data ?? "");
+  }
+}
 
 export function initObservability() {
   if (sentryInitialized) return;
@@ -60,7 +76,7 @@ export function captureError(error: unknown, meta?: Record<string, unknown>) {
 
 export function logEvent(name: string, payload?: Record<string, unknown>) {
   const data = { ...context, ...(payload || {}) };
-  console.log(`[mobile-event] ${name}`, data);
+  writeLog("log", "[mobile-event]", name, data);
 
   if (!sentryInitialized) return;
   Sentry.addBreadcrumb({
@@ -71,10 +87,19 @@ export function logEvent(name: string, payload?: Record<string, unknown>) {
   });
 }
 
+export function logDebug(name: string, payload?: Record<string, unknown>) {
+  if (!mobileDebugEnabled) return;
+  writeLog("warn", "[mobile-debug]", name, { ...context, ...(payload || {}) });
+}
+
 export function logWorkflow(action: string, payload?: Record<string, unknown>) {
   logEvent(`workflow.${action}`, payload);
 }
 
 export function logApiTiming(path: string, method: string, durationMs: number, status: number) {
   logEvent("api.timing", { path, method, durationMs, status });
+}
+
+export function logYmsTiming(path: string, method: string, durationMs: number, status: number) {
+  logEvent("yms.timing", { path, method, durationMs, status });
 }

@@ -1,7 +1,7 @@
 import { DeviceEventEmitter } from "react-native";
 import { env } from "@/src/lib/env";
 import { storage } from "@/src/utils/storage";
-import { captureError } from "@/src/services/observability";
+import { captureError, logDebug, logEvent, logYmsTiming, mobileDebugEnabled } from "@/src/services/observability";
 
 const YARD_AUTH_KEY = "fleet_mobile.yard.auth";
 
@@ -81,6 +81,16 @@ export async function ymsRequest<T = unknown>(path: string, options: RequestOpti
   }
 
   const url = `${env.YMS_API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const startedAt = Date.now();
+
+  if (mobileDebugEnabled) {
+    logDebug("yms.request.start", {
+      method,
+      path,
+      auth,
+      body: body === undefined ? undefined : redactYmsBody(body),
+    });
+  }
 
   const execute = async (token?: string) => {
     const reqHeaders = { ...headers };
@@ -106,6 +116,7 @@ export async function ymsRequest<T = unknown>(path: string, options: RequestOpti
     let { res, payload } = await execute(session?.accessToken);
 
     if (res.status === 401 && auth && session?.refreshToken) {
+      logEvent("yms.auth.refresh", { path });
       try {
         session = await refreshYardSession(session.refreshToken);
         ({ res, payload } = await execute(session.accessToken));
@@ -121,6 +132,8 @@ export async function ymsRequest<T = unknown>(path: string, options: RequestOpti
       DeviceEventEmitter.emit("shipgen:yard-unauthorized");
     }
 
+    logYmsTiming(path, method, Date.now() - startedAt, res.status);
+
     if (!res.ok) {
       const message =
         typeof payload?.detail === "string"
@@ -128,14 +141,45 @@ export async function ymsRequest<T = unknown>(path: string, options: RequestOpti
           : Array.isArray(payload?.detail)
             ? payload.detail.map((item: any) => item?.msg || String(item)).join(", ")
             : `Request failed (${res.status})`;
+      logEvent("yms.error", { path, method, status: res.status, message });
       throw new YmsApiError(message, res.status, payload);
+    }
+
+    logEvent("yms.success", { path, method, status: res.status });
+    if (mobileDebugEnabled) {
+      logDebug("yms.response", { path, method, status: res.status, payload: summarizeYmsPayload(payload) });
     }
 
     return payload as T;
   } catch (error) {
     if (!(error instanceof YmsApiError)) {
+      logEvent("yms.network_error", {
+        path,
+        method,
+        message: error instanceof Error ? error.message : String(error),
+      });
       captureError(error, { operation: "yms.request", path });
     }
     throw error;
   }
+}
+
+function redactYmsBody(body: unknown) {
+  if (!body || typeof body !== "object") return body;
+  const record = { ...(body as Record<string, unknown>) };
+  if ("password" in record) record.password = "***";
+  if ("refresh_token" in record) record.refresh_token = "***";
+  return record;
+}
+
+function summarizeYmsPayload(payload: unknown) {
+  if (payload === null || payload === undefined) return payload;
+  if (Array.isArray(payload)) return { type: "array", length: payload.length };
+  if (typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (Array.isArray(record.items)) return { type: "paginated", total: record.total, count: record.items.length };
+    if (Array.isArray(record.records)) return { type: "bundle", count: record.records.length };
+    return { type: "object", keys: Object.keys(record).slice(0, 12) };
+  }
+  return payload;
 }

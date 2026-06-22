@@ -1,51 +1,43 @@
-import { View, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { colors, spacing } from "@/src/theme";
 
 type Props = {
   subtitle?: string;
   compact?: boolean;
+  centered?: boolean;
+  large?: boolean;
 };
 
-export default function ShipgenBrand({ subtitle, compact = false }: Props) {
+export default function ShipgenBrand({ subtitle, compact = false, centered = false, large = false }: Props) {
+  const logoWidth = large ? 300 : compact ? 168 : 220;
+  const logoHeight = large ? 92 : compact ? 52 : 68;
+
   return (
-    <View style={styles.wrap}>
-      <View style={styles.markRow}>
-        <View style={styles.mark}>
-          <Ionicons name="flash" size={compact ? 14 : 16} color="#fff" />
-        </View>
-        <Text style={[styles.name, compact && styles.nameCompact]}>SHIPGEN</Text>
-      </View>
-      {subtitle ? <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>{subtitle}</Text> : null}
+    <View style={[styles.wrap, centered && styles.wrapCentered]}>
+      <Image
+        source={require("@/assets/images/shipgen-logo-full.png")}
+        style={{ width: logoWidth, height: logoHeight }}
+        resizeMode="contain"
+      />
+      {subtitle ? (
+        <Text style={[styles.subtitle, compact && styles.subtitleCompact, centered && styles.subtitleCentered]}>
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { alignItems: "flex-start" },
-  markRow: { flexDirection: "row", alignItems: "center" },
-  mark: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.shipgenBlue,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.sm,
-  },
-  name: {
-    color: colors.text,
-    fontWeight: "900",
-    letterSpacing: 2.4,
-    fontSize: 14,
-  },
-  nameCompact: { fontSize: 12, letterSpacing: 2 },
+  wrapCentered: { alignItems: "center" },
   subtitle: {
-    marginTop: 6,
+    marginTop: spacing.sm,
     color: colors.textSecondary,
     fontSize: 13,
-    maxWidth: 280,
+    maxWidth: 320,
     lineHeight: 18,
   },
+  subtitleCentered: { textAlign: "center" },
   subtitleCompact: { fontSize: 12 },
 });

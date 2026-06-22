@@ -3,6 +3,7 @@ import {
   setStoredYardSession,
   ymsRequest,
 } from "@/src/lib/ymsApi";
+import { logEvent } from "@/src/services/observability";
 
 export type YardUser = {
   userId: string;
@@ -36,6 +37,7 @@ export const ymsAuthService = {
   },
 
   async login(identity: string, password: string) {
+    logEvent("yms.auth.login.start", { identity: identity.trim() });
     const data = await ymsRequest<{ access_token: string; refresh_token: string }>("/auth/login", {
       method: "POST",
       auth: false,
@@ -45,7 +47,11 @@ export const ymsAuthService = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
     });
-    return this.bootstrap();
+    const result = await this.bootstrap();
+    if (result.me) {
+      logEvent("yms.auth.login.success", { role: result.me.role, username: result.me.username });
+    }
+    return result;
   },
 
   async bootstrap() {
@@ -60,6 +66,7 @@ export const ymsAuthService = {
   async logout(options: { notifyServer?: boolean } = {}) {
     const notifyServer = options.notifyServer !== false;
     const session = await getStoredYardSession();
+    logEvent("yms.auth.logout", { notifyServer: notifyServer && Boolean(session?.refreshToken) });
     if (notifyServer && session?.refreshToken) {
       try {
         await ymsRequest("/auth/logout", {

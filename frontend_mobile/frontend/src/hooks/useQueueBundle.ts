@@ -1,19 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { ymsRequest } from "@/src/lib/ymsApi";
+import type { QueueEntryRow } from "@/src/services/queueService";
 
 export type QueueBundle = {
-  entries: Array<{
-    queueEntryId: string;
-    plate?: string;
-    transporter?: string;
-    displayStatus?: string;
-    queueRank?: number;
-    waitingMin?: number;
-    priorityScore?: number;
-    status?: string;
-    dockCode?: string;
-    material?: string;
-  }>;
+  entries: QueueEntryRow[];
   summary: {
     inQueue?: number;
     avgWaitMin?: number;

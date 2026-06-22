@@ -4,10 +4,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
+import { visibleYardTabs } from "@/src/lib/moduleAccess";
+import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
+
+const PERMISSION_LABELS: { key: string; label: string }[] = [
+  { key: YMS_PERMISSIONS.FLOW_CHECK_IN, label: "Gate check-in" },
+  { key: YMS_PERMISSIONS.FLOW_VEHICLE_TRANSITION, label: "Gate transitions" },
+  { key: YMS_PERMISSIONS.QUEUE_WRITE, label: "Queue management" },
+  { key: YMS_PERMISSIONS.FLOW_CALL, label: "Call vehicles" },
+  { key: YMS_PERMISSIONS.FLOW_ASSIGN_DOCK, label: "Assign dock" },
+  { key: YMS_PERMISSIONS.LOADING_START, label: "Start loading" },
+  { key: YMS_PERMISSIONS.LOADING_COMPLETE, label: "Complete loading" },
+  { key: YMS_PERMISSIONS.YARD_EVENT_WRITE, label: "Yard events" },
+];
 
 export default function YardProfileScreen() {
   const router = useRouter();
-  const { user, logout, can } = useYardAuth();
+  const { user, logout, can, isYardAdmin } = useYardAuth();
 
   const handleLogout = () => {
     Alert.alert("Sign out of Yard", "Return to the Shipgen module picker?", [
@@ -29,6 +42,8 @@ export default function YardProfileScreen() {
     .slice(0, 2)
     .toUpperCase();
 
+  const tabs = visibleYardTabs(can, isYardAdmin, user?.role).filter((tab) => tab !== "profile");
+
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -46,12 +61,25 @@ export default function YardProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.cardColumn}>
+          <Text style={styles.sectionTitle}>Your navigation</Text>
+          {tabs.length ? (
+            tabs.map((tab) => (
+              <View key={tab} style={styles.permRow}>
+                <Ionicons name="navigate-circle-outline" size={16} color={colors.shipgenOrange} />
+                <Text style={styles.permText}>{tab.replace(/^\w/, (c) => c.toUpperCase())}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.permText}>Profile only — contact your yard administrator.</Text>
+          )}
+        </View>
+
+        <View style={styles.cardColumn}>
           <Text style={styles.sectionTitle}>Permissions</Text>
-          <PermissionRow label="Gate check-in" enabled={can("flow:check_in") || can("*")} />
-          <PermissionRow label="Gate transitions" enabled={can("flow:vehicle_transition") || can("*")} />
-          <PermissionRow label="Queue management" enabled={can("queue:write") || can("*")} />
-          <PermissionRow label="Yard events" enabled={can("yard:event_write") || can("*")} />
+          {PERMISSION_LABELS.map((item) => (
+            <PermissionRow key={item.key} label={item.label} enabled={can(item.key)} />
+          ))}
         </View>
 
         <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.replace("/")}>
@@ -93,6 +121,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     flexWrap: "wrap",
   },
+  cardColumn: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
   avatar: {
     width: 52,
     height: 52,
@@ -105,8 +141,8 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontWeight: "800", color: colors.text },
   role: { fontSize: 13, color: colors.shipgenOrange, marginTop: 2, textTransform: "capitalize", fontWeight: "700" },
   meta: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
-  sectionTitle: { width: "100%", fontSize: 13, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },
-  permRow: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  sectionTitle: { fontSize: 13, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },
+  permRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
   permText: { fontSize: 13, color: colors.textSecondary },
   secondaryBtn: {
     marginTop: spacing.md,

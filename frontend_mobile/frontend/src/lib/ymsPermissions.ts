@@ -1,0 +1,23 @@
+/** YMS permission keys — aligned with yms/backend/auth_rbac.py */
+export const YMS_PERMISSIONS = {
+  FLOW_CHECK_IN: "flow.check_in",
+  FLOW_VEHICLE_TRANSITION: "flow.vehicle_transition",
+  FLOW_CALL: "flow.call",
+  FLOW_ASSIGN_DOCK: "flow.assign_dock",
+  QUEUE_WRITE: "queue.write",
+  YARD_EVENT_WRITE: "yard_event.write",
+  APPOINTMENT_WRITE: "appointment.write",
+  DOCK_WRITE: "dock.write",
+  DETENTION_WRITE: "detention.write",
+  VEHICLE_WRITE: "vehicle.write",
+  GATE_APPROVE_ENTRY: "gate.approve_entry",
+  GATE_REJECT_ENTRY: "gate.reject_entry",
+  GATE_VERIFY_EXIT: "gate.verify_exit",
+  GATE_GATE_OUT: "gate.gate_out",
+  DOCK_VIEW_AVAILABILITY: "dock.view_availability",
+  LOADING_START: "loading.start",
+  LOADING_COMPLETE: "loading.complete",
+  LOADING_MANAGE_EXCEPTIONS: "loading.manage_exceptions",
+  LABOR_WRITE: "labor.write",
+  EQUIPMENT_WRITE: "equipment.write",
+} as const;

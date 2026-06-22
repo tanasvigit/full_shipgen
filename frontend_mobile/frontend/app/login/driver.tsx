@@ -38,11 +38,11 @@ export default function DriverLoginScreen() {
 
   return (
     <AuthLoginShell
-      moduleLabel="Driver App"
+      moduleLabel="Fleetops Driver"
       title="Welcome back"
-      subtitle="Sign in with your Shipgen fleet account."
+      subtitle="Sign in with your Fleetops fleet account."
       heroTitle={"Move fleets,\nnot paperwork."}
-      heroSubtitle="Driver app for assigned orders, live tracking, and proof of delivery."
+      heroSubtitle="Fleetops driver experience for assigned orders, live tracking, and proof of delivery."
     >
       <Text style={styles.label}>Email</Text>
       <View style={styles.inputRow}>
@@ -77,12 +77,12 @@ export default function DriverLoginScreen() {
       </View>
 
       <TouchableOpacity testID="login-submit-btn" style={styles.primaryBtn} onPress={handleLogin}>
-        <Text style={styles.primaryBtnText}>{submitting ? "Signing in..." : "Sign in to Driver App"}</Text>
+        <Text style={styles.primaryBtnText}>{submitting ? "Signing in..." : "Sign in to Fleetops"}</Text>
         <Ionicons name="arrow-forward" size={16} color="#fff" />
       </TouchableOpacity>
 
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-      <Text style={styles.footer}>Fleet drivers and dispatch users · Shipgen IAM</Text>
+      <Text style={styles.footer}>Fleet drivers and dispatch users · Fleetops IAM</Text>
     </AuthLoginShell>
   );
 }

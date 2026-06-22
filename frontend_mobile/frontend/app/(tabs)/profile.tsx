@@ -259,7 +259,7 @@ export default function Profile() {
           <Text style={styles.logoutText}>Sign out</Text>
         </TouchableOpacity>
 
-        <Text style={styles.copyright}>© 2026 Fleetbase Mobile</Text>
+        <Text style={styles.copyright}>© 2026 Fleetops</Text>
         <View style={{ height: spacing.xxxl }} />
       </ScrollView>
 

@@ -46,6 +46,7 @@ export async function startRuntime(next: RuntimeSession) {
 }
 
 export async function stopRuntime() {
+  if (!started) return;
   await trackingEngine.stop();
   await realtimeSubscriptions.stopSession();
   realtimeClient.disconnect();

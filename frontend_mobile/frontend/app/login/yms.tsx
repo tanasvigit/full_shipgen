@@ -5,7 +5,7 @@ import { Redirect, useRouter } from "expo-router";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import AuthLoginShell, { loginFieldStyles as styles } from "@/src/components/auth/AuthLoginShell";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { canAccessYardTab } from "@/src/lib/moduleAccess";
+import { defaultYardHome } from "@/src/lib/moduleAccess";
 
 const YMS_DEMO_PASSWORD = "Shipgen@Yms2026!";
 
@@ -14,18 +14,8 @@ const YARD_ROLE_HINTS = [
   { email: "yard.manager@shipgen.demo", password: YMS_DEMO_PASSWORD, role: "Yard Manager" },
   { email: "yard.gate@shipgen.demo", password: YMS_DEMO_PASSWORD, role: "Gate Operator" },
   { email: "yard.coordinator@shipgen.demo", password: YMS_DEMO_PASSWORD, role: "Yard Coordinator" },
+  { email: "yard.supervisor@shipgen.demo", password: YMS_DEMO_PASSWORD, role: "Dock Supervisor" },
 ];
-
-function defaultYardHomeForUser(user: { role?: string | null; permissions?: string[] }) {
-  const isYardAdmin = user.role === "yard_admin";
-  const can = (permission: string) => {
-    if (isYardAdmin || user.permissions?.includes("*")) return true;
-    return Boolean(user.permissions?.includes(permission));
-  };
-  if (canAccessYardTab("gate", can, isYardAdmin)) return "/(yard)/gate";
-  if (canAccessYardTab("queue", can, isYardAdmin)) return "/(yard)/queue";
-  return "/(yard)/profile";
-}
 
 export default function YmsLoginScreen() {
   const router = useRouter();
@@ -38,7 +28,7 @@ export default function YmsLoginScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (yardReady && isYardAuthenticated && user) {
-    return <Redirect href={defaultYardHomeForUser(user)} />;
+    return <Redirect href={defaultYardHome(user)} />;
   }
 
   const handleLogin = async () => {
@@ -48,7 +38,7 @@ export default function YmsLoginScreen() {
     try {
       const me = await login(email.trim(), password);
       await logoutDriver({ notifyServer: false });
-      router.replace(defaultYardHomeForUser(me));
+      router.replace(defaultYardHome(me));
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Yard sign-in failed");
     } finally {

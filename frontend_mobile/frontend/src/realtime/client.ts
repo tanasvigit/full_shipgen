@@ -47,6 +47,9 @@ class RealtimeClient {
   }
 
   disconnect() {
+    if (this.state === "idle" && !this.socket && !this.reconnectTimer) {
+      return;
+    }
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
