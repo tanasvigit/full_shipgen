@@ -101,10 +101,12 @@ export function resolveQueueActions(
 export function filterQueueEntries(
   entries: QueueEntryRow[],
   search: string,
+  readyOnly = false,
 ) {
+  const scoped = readyOnly ? entries.filter((entry) => canCallQueueEntry(entry)) : entries;
   const query = search.trim().toLowerCase();
-  if (!query) return entries;
-  return entries.filter((entry) => {
+  if (!query) return scoped;
+  return scoped.filter((entry) => {
     const haystack = [
       entry.plate,
       entry.transporter,

@@ -210,6 +210,9 @@ export function mapDockRow(dock, vehicle, appointment, queue, equipmentList = []
     queue: activeQueue,
     equipRow,
     laborRow,
+    tareWeightKg: activeQueue?.tare_weight_kg ?? activeQueue?.tareWeightKg ?? null,
+    grossWeightKg: activeQueue?.gross_weight_kg ?? activeQueue?.grossWeightKg ?? null,
+    netWeightKg: activeQueue?.net_weight_kg ?? activeQueue?.netWeightKg ?? null,
   };
 }
 

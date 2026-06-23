@@ -45,10 +45,27 @@ export function summarizeLoadingOps(rows: LoadingOpRow[], exceptionCount: number
   };
 }
 
-export function filterLoadingOpsRows(rows: LoadingOpRow[], search: string) {
+export function filterLoadingOpsRows(
+  rows: LoadingOpRow[],
+  search: string,
+  focus: "all" | "loading" | "ready" | "exceptions" = "all",
+) {
+  let scoped = rows;
+  if (focus === "loading") {
+    scoped = rows.filter(
+      (row) => row.status.toUpperCase() === "LOADING" || row.vehicleStatus.toUpperCase() === "LOADING",
+    );
+  } else if (focus === "ready") {
+    scoped = rows.filter((row) =>
+      ["READY_FOR_LOADING", "RESOURCE_PENDING", "DOCK_ASSIGNED"].includes(row.status.toUpperCase()),
+    );
+  } else if (focus === "exceptions") {
+    scoped = rows.filter((row) => row.progressPct < 35 && row.status.toUpperCase() === "LOADING");
+  }
+
   const query = search.trim().toLowerCase();
-  if (!query) return rows;
-  return rows.filter((row) =>
+  if (!query) return scoped;
+  return scoped.filter((row) =>
     [row.plate, row.transporter, row.dockCode, row.status, row.labor, row.equipment]
       .filter(Boolean)
       .join(" ")

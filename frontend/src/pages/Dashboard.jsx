@@ -187,6 +187,10 @@ export default function Dashboard() {
     return <Navigate to="/yard" replace />;
   }
 
+  if (sessionScope === SESSION_SCOPE.PARKING_ONLY) {
+    return <Navigate to="/parking" replace />;
+  }
+
   return (
     <PageLoaderOverlay loading={loading && ordersState.length === 0} message="Loading dashboard…" testId="dashboard-page-loader">
     <div data-testid="dashboard-page" className="bg-[#F5F6F8] min-h-full">

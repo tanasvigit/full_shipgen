@@ -3,6 +3,7 @@ const SCOPE_KEY = "fleetbase.frontend.sessionScope";
 export const SESSION_SCOPE = {
   PLATFORM: "platform",
   YARD_ONLY: "yard-only",
+  PARKING_ONLY: "parking-only",
 };
 
 export const sessionScopeStorage = {
@@ -24,4 +25,10 @@ export const sessionScopeStorage = {
 export function isYardOperatorEmail(email) {
   const normalized = String(email || "").trim().toLowerCase();
   return normalized.endsWith("@shipgen.demo") && normalized.startsWith("yard.");
+}
+
+/** Detect PMS demo / parking-operator emails for login routing hints. */
+export function isParkingOperatorEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  return normalized.endsWith("@shipgen.demo") && normalized.startsWith("parking.");
 }

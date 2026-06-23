@@ -1,0 +1,47 @@
+/* Embedded in Shipgen — matches console shell (see frontend/tailwind.config.js). */
+
+.parking-embedded [data-testid="parking-module-main"],
+.parking-embedded [data-testid="parking-shell"] {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  background: #f5f6f8;
+  color: #0a0e1a;
+}
+
+.parking-embedded [data-testid="parking-module-main"] main,
+.parking-embedded [data-testid="parking-shell"] main {
+  padding: 1.5rem 1.75rem;
+}
+
+.parking-embedded .bg-surface {
+  background-color: #f5f6f8;
+}
+
+.parking-embedded .text-blue-600 {
+  color: #0066ff;
+}
+
+.parking-embedded .bg-blue-50 {
+  background-color: rgba(0, 102, 255, 0.08);
+}
+
+.parking-embedded .bg-sidebar-active,
+.parking-embedded .bg-\[\#ea1c26\] {
+  background-color: #0066ff;
+}
+
+.parking-embedded ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.parking-embedded ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.parking-embedded ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.parking-embedded ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

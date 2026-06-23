@@ -29,6 +29,9 @@ export type QueueEntryRow = {
   bookingRef?: string;
   queueNumber?: string;
   recommendedDock?: RecommendedDock | null;
+  tareWeightKg?: number | null;
+  grossWeightKg?: number | null;
+  netWeightKg?: number | null;
 };
 
 export type DockOption = {

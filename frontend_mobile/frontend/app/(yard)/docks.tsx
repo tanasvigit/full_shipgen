@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { useDockBoard } from "@/src/hooks/useDockBoard";
 import { useDockMutations } from "@/src/hooks/useDockMutations";
+import { useQueueMutations } from "@/src/hooks/useQueueMutations";
 import { useDockResources } from "@/src/hooks/useDockResources";
 import { useDockCallableQueue } from "@/src/hooks/useDockCallableQueue";
 import { useDockReadiness } from "@/src/hooks/useDockReadiness";
@@ -28,11 +29,16 @@ import {
   MOBILE_EXCEPTION_TYPES,
   type DockFilter,
 } from "@/src/lib/dockActions";
+import { dockSummaryFilter } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
 import DockDetailSheet from "@/src/components/yard/DockDetailSheet";
 import CreateDockSheet from "@/src/components/yard/CreateDockSheet";
+import WeighWeightSheet from "@/src/components/yard/WeighWeightSheet";
+import { formatWeightKg } from "@/src/services/weighingService";
 import type { DockBoardRow } from "@/src/services/dockService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 import { formatYmsAlertMessage } from "@/src/lib/ymsErrors";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 const FILTER_OPTIONS: { key: DockFilter; label: string }[] = [
   { key: "all", label: "All" },
@@ -41,14 +47,17 @@ const FILTER_OPTIONS: { key: DockFilter; label: string }[] = [
 ];
 
 export default function YardDocksScreen() {
+  useYardMoreBackHandler();
   const { user, can, isYardAdmin } = useYardAuth();
   const { openVehicle360 } = useYardVehicle360();
-  const params = useLocalSearchParams<{ q?: string }>();
+  const params = useLocalSearchParams<{ q?: string; filter?: string }>();
   const { data, isLoading, isRefetching, refetch, error, isError } = useDockBoard();
   const mutations = useDockMutations();
+  const queueMutations = useQueueMutations();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<DockFilter>("all");
+  const [grossOpen, setGrossOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<DockBoardRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,6 +92,13 @@ export default function YardDocksScreen() {
     const q = typeof params.q === "string" ? params.q.trim() : "";
     if (q) setSearch(q);
   }, [params.q]);
+
+  useEffect(() => {
+    const next = params.filter;
+    if (next === "all" || next === "active" || next === "available" || next === "loading" || next === "delayed") {
+      setFilter(next);
+    }
+  }, [params.filter]);
 
   useEffect(() => {
     if (!sheetOpen || !selectedRow?.id || !data?.rows?.length) return;
@@ -284,6 +300,29 @@ export default function YardDocksScreen() {
     }
   }, [mutations.releaseResources, refetchResources, refreshAll, selectedRow]);
 
+  const handleGross = useCallback(
+    async (weightKg: number) => {
+      if (!selectedRow?.queueEntryId) return;
+      try {
+        const result = await queueMutations.recordGross.mutateAsync({
+          queueEntryId: selectedRow.queueEntryId,
+          weightKg,
+        });
+        Alert.alert(
+          "Gross recorded",
+          `Net weight ${Number(result.netWeightKg).toLocaleString("en-IN")} kg`,
+        );
+        setGrossOpen(false);
+        await refreshAll();
+        const fresh = (await refetch()).data?.rows.find((row) => row.id === selectedRow.id);
+        if (fresh) setSelectedRow(fresh);
+      } catch (err) {
+        Alert.alert("Gross failed", formatYmsAlertMessage(err));
+      }
+    },
+    [queueMutations.recordGross, refetch, refreshAll, selectedRow],
+  );
+
   const handleAssignVehicle = useCallback(
     async (queueEntryId: string) => {
       if (!selectedRow) return;
@@ -323,7 +362,7 @@ export default function YardDocksScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -374,10 +413,26 @@ export default function YardDocksScreen() {
 
         {data?.summary ? (
           <View style={styles.summaryRow}>
-            <SummaryChip label="Available" value={data.summary.available} />
-            <SummaryChip label="Occupied" value={data.summary.occupied} />
-            <SummaryChip label="Loading" value={data.summary.loading} />
-            <SummaryChip label="Delayed" value={data.summary.delayed} />
+            {(
+              [
+                ["available", "Available", data.summary.available],
+                ["occupied", "Occupied", data.summary.occupied],
+                ["loading", "Loading", data.summary.loading],
+                ["delayed", "Delayed", data.summary.delayed],
+              ] as const
+            ).map(([key, label, value]) => {
+              const nextFilter = dockSummaryFilter(key);
+              return (
+                <YardKpiStat
+                  key={key}
+                  label={label}
+                  value={value}
+                  onPress={() => setFilter(nextFilter)}
+                  testID={`docks-kpi-${key}`}
+                  style={[styles.summaryChip, filter === nextFilter && styles.summaryChipActive]}
+                />
+              );
+            })}
           </View>
         ) : null}
 
@@ -416,6 +471,11 @@ export default function YardDocksScreen() {
                         {row.equipment ? (
                           <Text style={styles.meta}>Equipment · {row.equipment.code} · {row.equipment.name}</Text>
                         ) : null}
+                        <View style={styles.weighRow}>
+                          <Text style={styles.weighChip}>TW {formatWeightKg(row.tareWeightKg)}</Text>
+                          <Text style={styles.weighChip}>GW {formatWeightKg(row.grossWeightKg)}</Text>
+                          <Text style={[styles.weighChip, styles.weighNet]}>NW {formatWeightKg(row.netWeightKg)}</Text>
+                        </View>
                         <View style={styles.progressTrack}>
                           <View style={[styles.progressFill, { width: `${row.progressPct}%` }]} />
                         </View>
@@ -479,8 +539,21 @@ export default function YardDocksScreen() {
         onAssignLabor={(laborId) => void handleAssignLabor(laborId)}
         onAssignEquipment={(equipmentId) => void handleAssignEquipment(equipmentId)}
         onReleaseResources={() => void handleReleaseResources()}
+        onGrossWeight={() => setGrossOpen(true)}
         readiness={readiness}
         readinessLoading={readinessLoading}
+      />
+
+      <WeighWeightSheet
+        visible={grossOpen}
+        title="Gross weight"
+        subtitle="Weigh the loaded truck before releasing the dock."
+        unitLabel="kg"
+        busy={queueMutations.busy}
+        tareWeightKg={selectedRow?.tareWeightKg}
+        initialValue={selectedRow?.grossWeightKg != null ? String(selectedRow.grossWeightKg) : ""}
+        onClose={() => setGrossOpen(false)}
+        onSubmit={(weightKg) => void handleGross(weightKg)}
       />
 
       <CreateDockSheet
@@ -492,15 +565,6 @@ export default function YardDocksScreen() {
         }}
       />
     </SafeAreaView>
-  );
-}
-
-function SummaryChip({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipValue}>{value}</Text>
-      <Text style={styles.chipLabel}>{label}</Text>
-    </View>
   );
 }
 
@@ -547,17 +611,8 @@ const styles = StyleSheet.create({
   filterChipText: { fontSize: 12, fontWeight: "700", color: colors.textSecondary },
   filterChipTextActive: { color: "#fff" },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
-  chip: {
-    minWidth: 72,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  chipValue: { fontSize: 18, fontWeight: "900", color: colors.text },
-  chipLabel: { fontSize: 10, fontWeight: "700", color: colors.textMuted, marginTop: 2 },
+  summaryChip: { minWidth: 72, flexGrow: 1 },
+  summaryChipActive: { borderColor: colors.shipgenOrange },
   muted: { fontSize: 13, color: colors.textMuted, lineHeight: 19 },
   errorBox: {
     backgroundColor: colors.errorBg,
@@ -589,6 +644,17 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: { height: "100%", backgroundColor: colors.shipgenOrange, borderRadius: radius.pill },
+  weighRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginTop: spacing.sm },
+  weighChip: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: colors.textSecondary,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+  },
+  weighNet: { color: "#047857", backgroundColor: "#ecfdf5" },
   rowFooter: {
     flexDirection: "row",
     alignItems: "center",

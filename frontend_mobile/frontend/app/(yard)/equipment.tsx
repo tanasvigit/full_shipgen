@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,37 +7,133 @@ import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { canAccessYardScreen } from "@/src/lib/moduleAccess";
 import { useEquipmentBundle } from "@/src/hooks/useEquipmentBundle";
-import { filterEquipmentRows } from "@/src/services/equipmentService";
+import { useEquipmentMutations } from "@/src/hooks/useEquipmentMutations";
+import { filterEquipmentRows, type EquipmentRow } from "@/src/services/equipmentService";
+import { equipmentSummaryStatus } from "@/src/lib/kpiNavigation";
+import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
+import { formatYmsAlertMessage } from "@/src/lib/ymsErrors";
+import type { EquipmentFormInput } from "@/src/lib/equipmentActions";
+import { canDeleteEquipmentRow } from "@/src/lib/equipmentActions";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import EquipmentFormSheet from "@/src/components/yard/EquipmentFormSheet";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 const STATUS_FILTERS = ["ALL", "IDLE", "ASSIGNED", "IN_USE", "MAINTENANCE", "CHARGING"] as const;
 
 export default function YardEquipmentScreen() {
+  useYardMoreBackHandler();
   const { user, can, isYardAdmin } = useYardAuth();
   const { data, isLoading, isRefetching, refetch, error } = useEquipmentBundle();
+  const mutations = useEquipmentMutations();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>("ALL");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingRow, setEditingRow] = useState<EquipmentRow | null>(null);
 
   const allowed = canAccessYardScreen("equipment", can, isYardAdmin, user?.role);
+  const canWrite = can("*") || can(YMS_PERMISSIONS.EQUIPMENT_WRITE);
   const filtered = useMemo(() => filterEquipmentRows(data?.rows ?? [], search, status), [data?.rows, search, status]);
+
+  const openCreate = () => {
+    setEditingRow(null);
+    setFormOpen(true);
+  };
+
+  const openEdit = (row: EquipmentRow) => {
+    setEditingRow(row);
+    setFormOpen(true);
+  };
+
+  const handleSubmit = async (input: EquipmentFormInput) => {
+    try {
+      if (editingRow) {
+        await mutations.updateEquipmentEntry.mutateAsync({ equipmentId: editingRow.id, input });
+        Alert.alert("Equipment updated", `${input.equipmentName.trim()} saved`);
+      } else {
+        await mutations.createEquipmentEntry.mutateAsync(input);
+        Alert.alert("Equipment added", "New equipment registered");
+      }
+      setFormOpen(false);
+      setEditingRow(null);
+      await refetch();
+    } catch (err) {
+      Alert.alert(editingRow ? "Update failed" : "Create failed", formatYmsAlertMessage(err));
+    }
+  };
+
+  const handleDelete = () => {
+    if (!editingRow || !canDeleteEquipmentRow(editingRow)) return;
+    Alert.alert(
+      "Delete equipment?",
+      `Remove ${editingRow.name} (${editingRow.code})? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await mutations.deleteEquipmentEntry.mutateAsync(editingRow.id);
+                Alert.alert("Equipment deleted", `${editingRow.code} removed`);
+                setFormOpen(false);
+                setEditingRow(null);
+                await refetch();
+              } catch (err) {
+                Alert.alert("Delete failed", formatYmsAlertMessage(err));
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
 
   if (!allowed) return <Redirect href="/(yard)/profile" />;
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={colors.shipgenOrange} />}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.overline}>YARD · EQUIPMENT</Text>
-        <Text style={styles.title}>Equipment</Text>
-        <Text style={styles.subtitle}>Forklifts, cranes, and yard equipment availability.</Text>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.overline}>YARD · EQUIPMENT</Text>
+            <Text style={styles.title}>Equipment</Text>
+            <Text style={styles.subtitle}>Forklifts, cranes, and yard equipment availability.</Text>
+          </View>
+          {canWrite ? (
+            <TouchableOpacity style={styles.createBtn} onPress={openCreate} testID="equipment-create-open">
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text style={styles.createBtnText}>New</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
 
         {data?.summary ? (
           <View style={styles.summaryRow}>
-            <Chip label="Total" value={data.summary.total} />
-            <Chip label="Idle" value={data.summary.idle} />
-            <Chip label="Assigned" value={data.summary.assigned} />
-            <Chip label="In use" value={data.summary.inUse} />
+            {(
+              [
+                ["total", "Total", data.summary.total],
+                ["idle", "Idle", data.summary.idle],
+                ["assigned", "Assigned", data.summary.assigned],
+                ["inUse", "In use", data.summary.inUse],
+              ] as const
+            ).map(([key, label, value]) => {
+              const nextStatus = equipmentSummaryStatus(key);
+              return (
+                <YardKpiStat
+                  key={key}
+                  label={label}
+                  value={value}
+                  onPress={() => setStatus(nextStatus)}
+                  testID={`equipment-kpi-${key}`}
+                  style={[styles.summaryChip, status === nextStatus && styles.summaryChipActive]}
+                />
+              );
+            })}
           </View>
         ) : null}
 
@@ -71,57 +167,79 @@ export default function YardEquipmentScreen() {
         ) : filtered.length ? (
           filtered.map((row) => {
             const badge = statusColor(row.status.toLowerCase());
+            const CardWrapper = canWrite ? TouchableOpacity : View;
             return (
-              <View key={row.id} style={styles.card}>
+              <CardWrapper
+                key={row.id}
+                style={styles.card}
+                onPress={canWrite ? () => openEdit(row) : undefined}
+                testID={canWrite ? `equipment-row-${row.code}` : undefined}
+              >
                 <View style={styles.cardTop}>
                   <Text style={styles.code}>{row.code}</Text>
-                  <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                    <Text style={[styles.badgeText, { color: badge.fg }]}>{row.status}</Text>
+                  <View style={styles.cardTopRight}>
+                    <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                      <Text style={[styles.badgeText, { color: badge.fg }]}>{row.status}</Text>
+                    </View>
+                    {canWrite ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null}
                   </View>
                 </View>
-                <Text style={styles.meta}>{row.name} · {row.type}</Text>
-                <Text style={styles.meta}>{row.operator} · {row.location}</Text>
+                <Text style={styles.meta}>
+                  {row.name} · {row.type}
+                </Text>
+                <Text style={styles.meta}>
+                  {row.operator} · {row.location}
+                </Text>
                 {row.battery !== null && row.battery !== undefined ? (
                   <Text style={styles.meta}>Battery {row.battery}%</Text>
                 ) : null}
-              </View>
+              </CardWrapper>
             );
           })
         ) : (
           <Text style={styles.muted}>No equipment matches this filter.</Text>
         )}
       </ScrollView>
-    </SafeAreaView>
-  );
-}
 
-function Chip({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipValue}>{value}</Text>
-      <Text style={styles.chipLabel}>{label}</Text>
-    </View>
+      <EquipmentFormSheet
+        visible={formOpen}
+        busy={mutations.busy}
+        row={editingRow}
+        canDelete={editingRow ? canDeleteEquipmentRow(editingRow) : false}
+        onClose={() => {
+          setFormOpen(false);
+          setEditingRow(null);
+        }}
+        onSubmit={(input) => {
+          void handleSubmit(input);
+        }}
+        onDelete={canWrite && editingRow ? handleDelete : undefined}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, paddingBottom: spacing.xxxl },
+  titleRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md, marginBottom: spacing.lg },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.shipgenOrange,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    marginTop: spacing.lg,
+  },
+  createBtnText: { color: "#fff", fontWeight: "800", fontSize: 12 },
   overline: { fontSize: 10, fontWeight: "700", letterSpacing: 2, color: colors.textMuted },
   title: { fontSize: 28, fontWeight: "900", color: colors.text, marginTop: 6 },
-  subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 8, marginBottom: spacing.lg, lineHeight: 19 },
+  subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 8, lineHeight: 19 },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
-  chip: {
-    minWidth: 72,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  chipValue: { fontSize: 18, fontWeight: "900", color: colors.text },
-  chipLabel: { fontSize: 10, fontWeight: "700", color: colors.textMuted, marginTop: 2 },
+  summaryChip: { minWidth: 72, flexGrow: 1 },
+  summaryChipActive: { borderColor: colors.shipgenOrange },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -156,6 +274,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   cardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.xs },
+  cardTopRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   code: { fontSize: 18, fontWeight: "900", color: colors.shipgenOrange },
   badge: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: "800" },

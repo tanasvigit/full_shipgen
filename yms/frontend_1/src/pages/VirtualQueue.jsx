@@ -6,6 +6,7 @@ import KpiCard from "../components/yms/KpiCard";
 import ExportMenu from "../components/yms/ExportMenu";
 import EmptyState from "../components/yms/EmptyState";
 import QueueOverrideDialog from "../components/yms/QueueOverrideDialog";
+import WeighTareDialog from "../components/yms/WeighTareDialog";
 import queueApi from "../services/queueApi";
 import ymsApi from "../services/ymsApi";
 import { notifyYmsDataChanged } from "../services/gateManagementApi";
@@ -47,6 +48,8 @@ const VirtualQueue = () => {
   const [error, setError] = useState("");
   const [overrideRow, setOverrideRow] = useState(null);
   const [overrideOpen, setOverrideOpen] = useState(false);
+  const [tareRow, setTareRow] = useState(null);
+  const [tareOpen, setTareOpen] = useState(false);
 
   const loadQueue = useCallback(async () => {
     setLoading(true);
@@ -168,6 +171,7 @@ const VirtualQueue = () => {
                   <th className="text-left font-semibold px-2 py-2.5">Detention</th>
                   <th className="text-left font-semibold px-2 py-2.5">Risk</th>
                   <th className="text-left font-semibold px-2 py-2.5">Aging</th>
+                  <th className="text-left font-semibold px-2 py-2.5">Tare</th>
                   <th className="text-right font-semibold px-2 py-2.5">Score</th>
                   <th className="text-right font-semibold px-4 py-2.5">Action</th>
                 </tr>
@@ -200,6 +204,9 @@ const VirtualQueue = () => {
                     <td className="px-2 py-2.5">
                       <StatusPill status={v.queueAging === "NORMAL" ? "AVAILABLE" : v.queueAging} />
                     </td>
+                    <td className="px-2 py-2.5 font-mono-yms text-slate-700">
+                      {v.tareWeightKg != null ? `${Number(v.tareWeightKg).toLocaleString("en-IN")} kg` : "—"}
+                    </td>
                     <td className="px-2 py-2.5 text-right">
                       <span className={`font-mono-yms font-bold text-base ${v.priorityScore >= 80 ? "text-red-600" : v.priorityScore >= 60 ? "text-amber-600" : "text-slate-700"}`}>
                         {v.priorityScore}
@@ -208,6 +215,19 @@ const VirtualQueue = () => {
                     <td className="px-4 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                       {(canWriteQueue || canCallVehicle) ? (
                       <div className="inline-flex items-center gap-1">
+                        {canWriteQueue && (
+                        <button
+                          type="button"
+                          data-testid={`tare-${v.id}`}
+                          onClick={() => {
+                            setTareRow(v);
+                            setTareOpen(true);
+                          }}
+                          className="text-[10px] font-bold uppercase tracking-wider border border-sky-300 text-sky-800 px-2 py-1 rounded-sm hover:bg-sky-50"
+                        >
+                          Tare Weight
+                        </button>
+                        )}
                         {canWriteQueue && (
                         <button
                           type="button"
@@ -261,6 +281,12 @@ const VirtualQueue = () => {
         row={overrideRow}
         maxRank={queue.length}
         onApplied={loadQueue}
+      />
+      <WeighTareDialog
+        open={tareOpen}
+        onOpenChange={setTareOpen}
+        row={tareRow}
+        onRecorded={loadQueue}
       />
     </>
   );

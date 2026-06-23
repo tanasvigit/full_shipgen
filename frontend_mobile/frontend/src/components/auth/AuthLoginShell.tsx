@@ -22,6 +22,7 @@ type Props = {
   heroTitle: string;
   heroSubtitle: string;
   children: ReactNode;
+  showBackButton?: boolean;
 };
 
 export default function AuthLoginShell({
@@ -31,6 +32,7 @@ export default function AuthLoginShell({
   heroTitle,
   heroSubtitle,
   children,
+  showBackButton = true,
 }: Props) {
   const router = useRouter();
 
@@ -43,10 +45,14 @@ export default function AuthLoginShell({
       >
         <View style={styles.heroOverlay} />
         <SafeAreaView edges={["top"]} style={styles.heroSafe}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.replace("/")} testID="login-back-btn">
-            <Ionicons name="arrow-back" size={18} color="#fff" />
-            <Text style={styles.backText}>Modules</Text>
-          </TouchableOpacity>
+          {showBackButton ? (
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.replace("/")} testID="login-back-btn">
+              <Ionicons name="arrow-back" size={18} color="#fff" />
+              <Text style={styles.backText}>Modules</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.backBtnSpacer} />
+          )}
           <ShipgenBrand subtitle={moduleLabel} compact />
           <View style={{ flex: 1 }} />
           <Text style={styles.heroTitle}>{heroTitle}</Text>
@@ -82,6 +88,7 @@ const styles = StyleSheet.create({
   },
   heroSafe: { flex: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },
   backBtn: { flexDirection: "row", alignItems: "center", marginTop: spacing.sm, marginBottom: spacing.lg },
+  backBtnSpacer: { height: spacing.lg, marginTop: spacing.sm, marginBottom: spacing.lg },
   backText: { color: "#fff", marginLeft: 6, fontWeight: "700", fontSize: 13 },
   heroTitle: { color: "#fff", fontSize: 28, fontWeight: "900", letterSpacing: -0.5, lineHeight: 34 },
   heroSubtitle: { color: "rgba(255,255,255,0.82)", fontSize: 13, marginTop: 8, maxWidth: 300 },

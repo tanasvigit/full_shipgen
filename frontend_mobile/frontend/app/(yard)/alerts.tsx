@@ -38,7 +38,7 @@ export default function YardAlertsScreen() {
   const alerts = data?.activeAlerts ?? [];
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={

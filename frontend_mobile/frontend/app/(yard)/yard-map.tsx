@@ -15,8 +15,10 @@ import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { canAccessYardScreen } from "@/src/lib/moduleAccess";
 import { useYardMap } from "@/src/hooks/useYardMap";
 import { filterYardZones } from "@/src/lib/yardMapActions";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 export default function YardMapScreen() {
+  useYardMoreBackHandler();
   const { user, can, isYardAdmin } = useYardAuth();
   const { data, isLoading, isRefetching, refetch, error } = useYardMap();
   const [search, setSearch] = useState("");
@@ -33,7 +35,7 @@ export default function YardMapScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={

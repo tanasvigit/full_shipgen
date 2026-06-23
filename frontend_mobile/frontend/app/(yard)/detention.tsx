@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   RefreshControl,
@@ -18,19 +18,33 @@ import { useDetentionMutations } from "@/src/hooks/useDetentionMutations";
 import {
   DETENTION_STATUS_OPTIONS,
   canUpdateDetentionStatus,
+  filterDetentionByKpi,
+  type DetentionKpiFilter,
+} from "@/src/lib/detentionActions";
+import { detentionKpiFilter } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import {
   type DetentionRow,
 } from "@/src/services/detentionService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 import { YmsApiError } from "@/src/lib/ymsApi";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 export default function YardDetentionScreen() {
+  useYardMoreBackHandler();
   const { user, can, isYardAdmin } = useYardAuth();
   const { data, isLoading, isRefetching, refetch, error } = useDetentionBundle();
   const mutations = useDetentionMutations();
   const [selected, setSelected] = useState<DetentionRow | null>(null);
+  const [kpiFilter, setKpiFilter] = useState<DetentionKpiFilter>("all");
 
   const allowed = canAccessYardScreen("detention", can, isYardAdmin, user?.role);
   const canWrite = can("*") || can(YMS_PERMISSIONS.DETENTION_WRITE);
+
+  const visibleRecords = useMemo(
+    () => filterDetentionByKpi(data?.records ?? [], kpiFilter),
+    [data?.records, kpiFilter],
+  );
 
   const handleStatus = useCallback(
     async (row: DetentionRow, status: string) => {
@@ -55,7 +69,7 @@ export default function YardDetentionScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -70,18 +84,25 @@ export default function YardDetentionScreen() {
 
         {data?.summary ? (
           <View style={styles.kpiRow}>
-            <View style={styles.kpiCard}>
-              <Text style={styles.kpiValue}>{data.summary.recordCount}</Text>
-              <Text style={styles.kpiLabel}>Records</Text>
-            </View>
-            <View style={styles.kpiCard}>
-              <Text style={styles.kpiValue}>{data.summary.disputedCount}</Text>
-              <Text style={styles.kpiLabel}>Disputed</Text>
-            </View>
-            <View style={styles.kpiCard}>
-              <Text style={styles.kpiValue}>{data.summary.today}</Text>
-              <Text style={styles.kpiLabel}>Today</Text>
-            </View>
+            {(
+              [
+                ["records", "Records", data.summary.recordCount],
+                ["disputed", "Disputed", data.summary.disputedCount],
+                ["today", "Today", data.summary.today],
+              ] as const
+            ).map(([key, label, value]) => {
+              const nextFilter = detentionKpiFilter(key);
+              return (
+                <YardKpiStat
+                  key={key}
+                  label={label}
+                  value={value}
+                  onPress={() => setKpiFilter(nextFilter)}
+                  testID={`detention-kpi-${key}`}
+                  style={[styles.kpiCard, kpiFilter === nextFilter && styles.kpiCardActive]}
+                />
+              );
+            })}
           </View>
         ) : null}
 
@@ -89,10 +110,10 @@ export default function YardDetentionScreen() {
           <Text style={styles.muted}>Loading detention…</Text>
         ) : error ? (
           <Text style={styles.muted}>{error instanceof Error ? error.message : "Unable to load detention."}</Text>
-        ) : !data?.records.length ? (
-          <Text style={styles.muted}>No detention records.</Text>
+        ) : !visibleRecords.length ? (
+          <Text style={styles.muted}>No detention records match this filter.</Text>
         ) : (
-          data.records.map((row) => {
+          visibleRecords.map((row) => {
             const badge = statusColor(row.status);
             const expanded = selected?.id === row.id;
             return (
@@ -145,16 +166,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "900", color: colors.text, marginTop: 6 },
   subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 4, marginBottom: spacing.lg, lineHeight: 19 },
   kpiRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
-  kpiCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  kpiValue: { fontSize: 20, fontWeight: "900", color: colors.text },
-  kpiLabel: { fontSize: 10, color: colors.textSecondary, marginTop: 4, fontWeight: "700" },
+  kpiCard: { flex: 1 },
+  kpiCardActive: { borderColor: colors.shipgenOrange },
   rowCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,

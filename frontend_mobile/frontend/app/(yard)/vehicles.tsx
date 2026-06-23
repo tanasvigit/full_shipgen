@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect } from "expo-router";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
@@ -21,14 +21,26 @@ import {
   VEHICLE_MONITOR_CATEGORIES,
   type VehicleMonitorCategory,
 } from "@/src/lib/vehicleMonitorActions";
+import { vehicleSummaryCategory } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 export default function YardVehiclesScreen() {
+  useYardMoreBackHandler();
+  const params = useLocalSearchParams<{ category?: string }>();
   const { user, can, isYardAdmin } = useYardAuth();
   const { openVehicle360 } = useYardVehicle360();
   const { data, isLoading, isRefetching, refetch, error } = useVehicleMonitor();
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<VehicleMonitorCategory>("inYard");
+
+  useEffect(() => {
+    const next = params.category;
+    if (VEHICLE_MONITOR_CATEGORIES.some((item) => item.key === next)) {
+      setCategory(next as VehicleMonitorCategory);
+    }
+  }, [params.category]);
 
   const allowed = canAccessYardScreen("vehicles", can, isYardAdmin, user?.role);
 
@@ -42,7 +54,7 @@ export default function YardVehiclesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -56,10 +68,23 @@ export default function YardVehiclesScreen() {
 
         {data?.counts ? (
           <View style={styles.summaryRow}>
-            <SummaryChip label="In yard" value={data.counts.inYard} />
-            <SummaryChip label="Waiting" value={data.counts.waiting} />
-            <SummaryChip label="Loading" value={data.counts.loading} />
-            <SummaryChip label="Exit hold" value={data.counts.exitHolding} />
+            {(
+              [
+                ["inYard", "In yard", data.counts.inYard],
+                ["waiting", "Waiting", data.counts.waiting],
+                ["loading", "Loading", data.counts.loading],
+                ["exitHolding", "Exit hold", data.counts.exitHolding],
+              ] as const
+            ).map(([key, label, value]) => (
+              <YardKpiStat
+                key={key}
+                label={label}
+                value={value}
+                onPress={() => setCategory(vehicleSummaryCategory(key))}
+                testID={`vehicles-kpi-${key}`}
+                style={[styles.summaryChip, category === vehicleSummaryCategory(key) && styles.summaryChipActive]}
+              />
+            ))}
           </View>
         ) : null}
 
@@ -132,15 +157,6 @@ export default function YardVehiclesScreen() {
   );
 }
 
-function SummaryChip({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipValue}>{value}</Text>
-      <Text style={styles.chipLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, paddingBottom: spacing.xxxl },
@@ -148,17 +164,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "900", color: colors.text, marginTop: 6 },
   subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 8, marginBottom: spacing.lg, lineHeight: 19 },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
-  chip: {
-    minWidth: 72,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  chipValue: { fontSize: 18, fontWeight: "900", color: colors.text },
-  chipLabel: { fontSize: 10, fontWeight: "700", color: colors.textMuted, marginTop: 2 },
+  summaryChip: { minWidth: 72, flexGrow: 1 },
+  summaryChipActive: { borderColor: colors.shipgenOrange },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",

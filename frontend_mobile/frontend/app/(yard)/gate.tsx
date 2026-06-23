@@ -38,8 +38,11 @@ import {
   type GateVehicleContext,
 } from "@/src/services/gateService";
 import { YmsApiError } from "@/src/lib/ymsApi";
+import { gateKpiSelection, type GateKpiKey } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
-const KPI_ITEMS = [
+const KPI_ITEMS: { key: GateKpiKey; label: string }[] = [
   { key: "approaching", label: "Approaching" },
   { key: "arrived", label: "Arrived" },
   { key: "checkedIn", label: "Checked In" },
@@ -51,9 +54,10 @@ const KPI_ITEMS = [
 type RejectTarget = { kind: "entry" | "exit"; vehicleId: string };
 
 export default function YardGateScreen() {
+  useYardMoreBackHandler();
   const { user, can, isYardAdmin } = useYardAuth();
   const { openVehicle360 } = useYardVehicle360();
-  const params = useLocalSearchParams<{ q?: string }>();
+  const params = useLocalSearchParams<{ q?: string; mode?: string; tab?: string }>();
   const { data, isLoading, isRefetching, refetch, error } = useGateDashboard();
   const mutations = useGateMutations(data?.gateId || "G1");
 
@@ -244,12 +248,21 @@ export default function YardGateScreen() {
     void loadVehicleContext(q);
   }, [loadVehicleContext, params.q]);
 
+  useEffect(() => {
+    if (params.mode === "entry" || params.mode === "exit") {
+      setMode(params.mode);
+    }
+    if (params.tab && params.tab !== "ALL") {
+      setPipelineTab(params.tab as GatePipelineTab);
+    }
+  }, [params.mode, params.tab]);
+
   if (!allowed) {
     return <Redirect href="/(yard)/profile" />;
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -336,10 +349,18 @@ export default function YardGateScreen() {
           <>
             <View style={styles.kpiGrid}>
               {KPI_ITEMS.map((item) => (
-                <View key={item.key} style={styles.kpiCard}>
-                  <Text style={styles.kpiValue}>{data?.kpis?.[item.key] ?? 0}</Text>
-                  <Text style={styles.kpiLabel}>{item.label}</Text>
-                </View>
+                <YardKpiStat
+                  key={item.key}
+                  label={item.label}
+                  value={data?.kpis?.[item.key] ?? 0}
+                  onPress={() => {
+                    const next = gateKpiSelection(item.key);
+                    setMode(next.mode);
+                    setPipelineTab(next.tab);
+                  }}
+                  testID={`gate-kpi-${item.key}`}
+                  style={styles.kpiCard}
+                />
               ))}
             </View>
 
@@ -473,14 +494,8 @@ const styles = StyleSheet.create({
   kpiCard: {
     width: "31%",
     minWidth: 100,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
+    flexGrow: 1,
   },
-  kpiValue: { fontSize: 22, fontWeight: "900", color: colors.text },
-  kpiLabel: { fontSize: 10, color: colors.textSecondary, marginTop: 4, fontWeight: "700" },
   sectionTitle: { fontSize: 14, fontWeight: "800", color: colors.text, marginBottom: spacing.md },
   rowCard: {
     backgroundColor: colors.surface,

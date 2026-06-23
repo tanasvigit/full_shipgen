@@ -1,15 +1,20 @@
 import { ymsRequest } from "@/src/lib/ymsApi";
 import { parseYmsList } from "@/src/services/queueService";
+import type { EquipmentFormInput } from "@/src/lib/equipmentActions";
+import { parseEquipmentBattery } from "@/src/lib/equipmentActions";
 
 export type EquipmentRow = {
   id: string;
   code: string;
   name: string;
   type: string;
+  model: string;
+  assetNumber: string;
   status: string;
   operator: string;
   location: string;
   battery?: number | null;
+  notes?: string | null;
   assignedDockId?: string | null;
 };
 
@@ -28,10 +33,13 @@ function mapEquipmentRow(row: Record<string, unknown>): EquipmentRow {
     code: String(row.equipment_code || row.equipmentCode || "—"),
     name: String(row.equipment_name || row.equipmentName || "Equipment"),
     type: String(row.equipment_type || row.equipmentType || "—"),
+    model: String(row.model || "—"),
+    assetNumber: String(row.asset_number || ""),
     status: String(row.status || ""),
     operator: String(row.operator_name || "—"),
     location: String(row.current_location || "—"),
     battery: battery === null || battery === undefined ? null : Number(battery),
+    notes: row.notes ? String(row.notes) : null,
     assignedDockId: row.assigned_dock_id ? String(row.assigned_dock_id) : null,
   };
 }
@@ -77,4 +85,38 @@ export async function assignEquipmentToDock(dockId: string, equipmentId: string)
       created_by: "mobile-equipment",
     },
   });
+}
+
+function equipmentFormBody(form: EquipmentFormInput) {
+  const battery = parseEquipmentBattery(form.batteryLevel);
+  return {
+    equipment_name: form.equipmentName.trim(),
+    equipment_type: form.equipmentType,
+    model: form.model.trim() || "—",
+    asset_number: form.assetNumber.trim() || null,
+    operator_name: form.operatorName.trim() || null,
+    current_location: form.currentLocation.trim() || null,
+    battery_level: battery === "invalid" ? null : battery,
+    status: form.status,
+    notes: form.notes.trim() || null,
+    created_by: "mobile-equipment",
+  };
+}
+
+export async function createEquipment(form: EquipmentFormInput) {
+  return ymsRequest<Record<string, unknown>>("/equipment", {
+    method: "POST",
+    body: equipmentFormBody(form),
+  });
+}
+
+export async function updateEquipment(equipmentId: string, form: EquipmentFormInput) {
+  return ymsRequest<Record<string, unknown>>(`/equipment/${equipmentId}`, {
+    method: "PATCH",
+    body: equipmentFormBody(form),
+  });
+}
+
+export async function deleteEquipment(equipmentId: string) {
+  return ymsRequest<void>(`/equipment/${equipmentId}`, { method: "DELETE" });
 }

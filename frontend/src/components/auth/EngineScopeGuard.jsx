@@ -32,6 +32,13 @@ export default function EngineScopeGuard({ children }) {
       return;
     }
 
+    if (sessionScope === "parking-only") {
+      if (!location.pathname.startsWith("/parking")) {
+        navigate("/parking", { replace: true });
+      }
+      return;
+    }
+
     if (location.pathname.startsWith("/yard") && !yardReady) {
       return;
     }

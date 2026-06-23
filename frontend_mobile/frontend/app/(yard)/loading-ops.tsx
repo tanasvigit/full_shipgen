@@ -8,20 +8,25 @@ import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { canAccessYardScreen } from "@/src/lib/moduleAccess";
 import { useLoadingOpsBundle } from "@/src/hooks/useLoadingOpsBundle";
 import { filterLoadingOpsRows } from "@/src/services/loadingOpsService";
+import { loadingOpsKpiFocus } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 export default function YardLoadingOpsScreen() {
+  useYardMoreBackHandler();
   const router = useRouter();
   const { user, can, isYardAdmin } = useYardAuth();
   const { data, isLoading, isRefetching, refetch, error } = useLoadingOpsBundle();
   const [search, setSearch] = useState("");
+  const [focus, setFocus] = useState<"all" | "loading" | "ready" | "exceptions">("all");
 
   const allowed = canAccessYardScreen("loading-ops", can, isYardAdmin, user?.role);
-  const filtered = useMemo(() => filterLoadingOpsRows(data?.rows ?? [], search), [data?.rows, search]);
+  const filtered = useMemo(() => filterLoadingOpsRows(data?.rows ?? [], search, focus), [data?.rows, focus, search]);
 
   if (!allowed) return <Redirect href="/(yard)/profile" />;
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={colors.shipgenOrange} />}
@@ -32,10 +37,26 @@ export default function YardLoadingOpsScreen() {
 
         {data?.summary ? (
           <View style={styles.summaryRow}>
-            <Chip label="Active" value={data.summary.active} />
-            <Chip label="Loading" value={data.summary.loading} />
-            <Chip label="Ready" value={data.summary.ready} />
-            <Chip label="Exceptions" value={data.summary.exceptions} />
+            {(
+              [
+                ["active", "Active", data.summary.active],
+                ["loading", "Loading", data.summary.loading],
+                ["ready", "Ready", data.summary.ready],
+                ["exceptions", "Exceptions", data.summary.exceptions],
+              ] as const
+            ).map(([key, label, value]) => {
+              const nextFocus = loadingOpsKpiFocus(key);
+              return (
+                <YardKpiStat
+                  key={key}
+                  label={label}
+                  value={value}
+                  onPress={() => setFocus(nextFocus)}
+                  testID={`loading-ops-kpi-${key}`}
+                  style={[styles.summaryChip, focus === nextFocus && styles.summaryChipActive]}
+                />
+              );
+            })}
           </View>
         ) : null}
 
@@ -88,15 +109,6 @@ export default function YardLoadingOpsScreen() {
   );
 }
 
-function Chip({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipValue}>{value}</Text>
-      <Text style={styles.chipLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.xl, paddingBottom: spacing.xxxl },
@@ -104,17 +116,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "900", color: colors.text, marginTop: 6 },
   subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 8, marginBottom: spacing.lg, lineHeight: 19 },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
-  chip: {
-    minWidth: 72,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  chipValue: { fontSize: 18, fontWeight: "900", color: colors.text },
-  chipLabel: { fontSize: 10, fontWeight: "700", color: colors.textMuted, marginTop: 2 },
+  summaryChip: { minWidth: 72, flexGrow: 1 },
+  summaryChipActive: { borderColor: colors.shipgenOrange },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",

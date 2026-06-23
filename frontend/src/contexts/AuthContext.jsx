@@ -6,7 +6,7 @@ import { resolveIamPermissionCandidates } from "@/lib/iam/permissions";
 import { loadingManager, MESSAGES } from "@/services/loading-manager";
 import { onboardingContextStorage } from "@/lib/onboarding/contextStorage";
 import { logOnboardingDebug } from "@/lib/onboarding/debug";
-import { isYardOperatorEmail, SESSION_SCOPE, sessionScopeStorage } from "@/lib/sessionScope";
+import { isParkingOperatorEmail, isYardOperatorEmail, SESSION_SCOPE, sessionScopeStorage } from "@/lib/sessionScope";
 
 const AuthContext = createContext(null);
 
@@ -37,6 +37,18 @@ function mapYardOperatorUser(me, email) {
   };
 }
 
+function mapParkingOperatorUser(me, email) {
+  return {
+    id: me.id,
+    name: me.name,
+    email: email || me.email,
+    role: me.role,
+    isAdmin: me.role === "admin",
+    isParkingOnly: true,
+    permissions: me.permissions || [],
+  };
+}
+
 async function bootstrapYardOnlySession() {
   const { getAccessToken, getRefreshToken, clearTokens } = await import("@yard/services/authStorage");
   if (!getAccessToken() && !getRefreshToken()) {
@@ -52,6 +64,31 @@ async function bootstrapYardOnlySession() {
     };
   } catch {
     clearTokens();
+    sessionScopeStorage.clear();
+    return null;
+  }
+}
+
+async function bootstrapParkingOnlySession() {
+  const { getToken, setToken } = await import("@pms/api/client");
+  if (!getToken()) {
+    sessionScopeStorage.clear();
+    return null;
+  }
+  try {
+    const { restoreSession } = await import("@pms/api/auth");
+    const me = await restoreSession();
+    if (!me) {
+      setToken(null);
+      sessionScopeStorage.clear();
+      return null;
+    }
+    return {
+      session: { parkingOnly: true },
+      user: mapParkingOperatorUser(me),
+    };
+  } catch {
+    setToken(null);
     sessionScopeStorage.clear();
     return null;
   }
@@ -107,9 +144,9 @@ export function AuthProvider({ children }) {
     const auth = authService.getAuth();
     const scope = sessionScopeStorage.get();
 
-    // Shipgen session always wins over a stale yard-only scope in localStorage.
+    // Shipgen session always wins over a stale engine-only scope in localStorage.
     if (auth?.token) {
-      if (scope === SESSION_SCOPE.YARD_ONLY) {
+      if (scope === SESSION_SCOPE.YARD_ONLY || scope === SESSION_SCOPE.PARKING_ONLY) {
         sessionScopeStorage.set(SESSION_SCOPE.PLATFORM);
         setSessionScope(SESSION_SCOPE.PLATFORM);
       }
@@ -139,6 +176,26 @@ export function AuthProvider({ children }) {
           setSessionScope(SESSION_SCOPE.YARD_ONLY);
           setSession(yardSession.session);
           setUser(yardSession.user);
+        } else {
+          resetSession();
+        }
+      } finally {
+        loadingManager.setAuth(false);
+        loadingManager.setBootstrap(false);
+        setAuthReady(true);
+      }
+      return;
+    }
+
+    if (scope === SESSION_SCOPE.PARKING_ONLY) {
+      loadingManager.setAuth(true, MESSAGES.auth);
+      try {
+        authService.clearSession();
+        const parkingSession = await bootstrapParkingOnlySession();
+        if (parkingSession) {
+          setSessionScope(SESSION_SCOPE.PARKING_ONLY);
+          setSession(parkingSession.session);
+          setUser(parkingSession.user);
         } else {
           resetSession();
         }
@@ -438,6 +495,23 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const loginParkingOperator = useCallback(async ({ email, password }) => {
+    try {
+      authService.clearSession();
+      const { login: pmsLogin } = await import("@pms/api/auth");
+      const me = await pmsLogin(email.trim(), password);
+      sessionScopeStorage.set(SESSION_SCOPE.PARKING_ONLY);
+      setSessionScope(SESSION_SCOPE.PARKING_ONLY);
+      setSession({ parkingOnly: true });
+      setUser(mapParkingOperatorUser(me, email.trim()));
+      setOrganizations([]);
+      setActiveOrganization(null);
+      return me;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  }, []);
+
   const loginUnified = useCallback(
     async ({ email, password, remember = true }) => {
       const identity = String(email || "").trim();
@@ -445,6 +519,11 @@ export function AuthProvider({ children }) {
       if (isYardOperatorEmail(identity)) {
         const me = await loginYardOperator({ email: identity, password });
         return { sessionType: "yard", me };
+      }
+
+      if (isParkingOperatorEmail(identity)) {
+        const me = await loginParkingOperator({ email: identity, password });
+        return { sessionType: "parking", me };
       }
 
       try {
@@ -467,15 +546,21 @@ export function AuthProvider({ children }) {
           const me = await loginYardOperator({ email: identity, password });
           return { sessionType: "yard", me };
         } catch {
-          throw platformError;
+          try {
+            const me = await loginParkingOperator({ email: identity, password });
+            return { sessionType: "parking", me };
+          } catch {
+            throw platformError;
+          }
         }
       }
     },
-    [login, loginYardOperator],
+    [login, loginYardOperator, loginParkingOperator],
   );
 
   const logout = useCallback(async () => {
-    if (sessionScopeStorage.get() === SESSION_SCOPE.YARD_ONLY) {
+    const scope = sessionScopeStorage.get();
+    if (scope === SESSION_SCOPE.YARD_ONLY) {
       try {
         const { logoutApi } = await import("@yard/services/authApi");
         await logoutApi();
@@ -484,6 +569,13 @@ export function AuthProvider({ children }) {
       }
       const { clearTokens } = await import("@yard/services/authStorage");
       clearTokens();
+    } else if (scope === SESSION_SCOPE.PARKING_ONLY) {
+      try {
+        const { logout: pmsLogout } = await import("@pms/api/auth");
+        await pmsLogout();
+      } catch {
+        /* best-effort */
+      }
     } else {
       await authService.logout();
     }
@@ -510,7 +602,7 @@ export function AuthProvider({ children }) {
   const hasPermission = useCallback(
     (permission) => {
       if (!permission) return true;
-      if (user?.isYardOnly) return false;
+      if (user?.isYardOnly || user?.isParkingOnly) return false;
       if (user?.isAdmin) return true;
       if (!permissionMap || permissionMap.size === 0) {
         return (
@@ -528,15 +620,15 @@ export function AuthProvider({ children }) {
       }
       return resolveIamPermissionCandidates(permission).some((p) => permissionMap.has(p));
     },
-    [permissionMap, fleetopsChecker, user?.isAdmin, user?.isYardOnly],
+    [permissionMap, fleetopsChecker, user?.isAdmin, user?.isYardOnly, user?.isParkingOnly],
   );
 
   const canFleetops = useCallback(
     (action, resource) => {
-      if (user?.isYardOnly) return false;
+      if (user?.isYardOnly || user?.isParkingOnly) return false;
       return fleetopsChecker.can(action, resource);
     },
-    [fleetopsChecker, user?.isYardOnly],
+    [fleetopsChecker, user?.isYardOnly, user?.isParkingOnly],
   );
 
   const value = useMemo(
@@ -545,9 +637,10 @@ export function AuthProvider({ children }) {
       onboardingGateReady,
       shouldInstall,
       shouldOnboard,
-      isAuthenticated: Boolean(session?.token) || Boolean(session?.yardOnly),
+      isAuthenticated: Boolean(session?.token) || Boolean(session?.yardOnly) || Boolean(session?.parkingOnly),
       sessionScope,
       isYardOnlySession: sessionScope === SESSION_SCOPE.YARD_ONLY && Boolean(session?.yardOnly),
+      isParkingOnlySession: sessionScope === SESSION_SCOPE.PARKING_ONLY && Boolean(session?.parkingOnly),
       requiresTwoFactor: Boolean(session?.requiresTwoFactor),
       session,
       onboardingSession,
@@ -558,6 +651,7 @@ export function AuthProvider({ children }) {
       login,
       loginUnified,
       loginYardOperator,
+      loginParkingOperator,
       createOnboardingAccount,
       saveOnboardingDraft,
       clearOnboardingSession,
@@ -590,6 +684,7 @@ export function AuthProvider({ children }) {
       login,
       loginUnified,
       loginYardOperator,
+      loginParkingOperator,
       createOnboardingAccount,
       saveOnboardingDraft,
       clearOnboardingSession,

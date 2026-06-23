@@ -17,6 +17,7 @@ import {
     Boxes,
     Blocks,
     Warehouse,
+    Car,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { IAM_HEADER_SHORTCUTS } from "@/lib/iam/headerShortcuts";
@@ -42,6 +43,7 @@ const engineIcons = {
     ledger: Receipt,
     pallet: Boxes,
     yard: Warehouse,
+    parking: Car,
     developers: Code2,
     registry: Blocks,
     iam: ShieldCheck,

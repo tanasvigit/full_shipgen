@@ -1,9 +1,12 @@
 import { ActivityIndicator, View } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { YardVehicle360Provider } from "@/src/contexts/YardVehicle360Context";
+import { YardMoreFlowProvider } from "@/src/contexts/YardMoreFlowContext";
+import YardModuleTopBar from "@/src/components/yard/YardModuleTopBar";
 import { canAccessYardTab } from "@/src/lib/moduleAccess";
 import { useYardAlerts } from "@/src/hooks/useYardAlerts";
 import { alertBadgeCount } from "@/src/services/alertsService";
@@ -30,12 +33,16 @@ function YardTabs() {
   const tabVisible = (tabName: string) => canAccessYardTab(tabName, can, isYardAdmin, role);
 
   if (!isYardAuthenticated) {
-    return <Redirect href="/login/yms" />;
+    return <Redirect href="/login" />;
   }
 
   return (
-    <Tabs
-      screenOptions={({ route }) => ({
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={["top"]}>
+      <YardMoreFlowProvider>
+        <YardModuleTopBar />
+        <View style={{ flex: 1 }}>
+          <Tabs
+            screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.shipgenOrange,
         tabBarInactiveTintColor: colors.textMuted,
@@ -83,8 +90,11 @@ function YardTabs() {
       <Tabs.Screen name="loading-ops" options={{ href: null }} />
       <Tabs.Screen name="labor" options={{ href: null }} />
       <Tabs.Screen name="equipment" options={{ href: null }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
-    </Tabs>
+          <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+          </Tabs>
+        </View>
+      </YardMoreFlowProvider>
+    </SafeAreaView>
   );
 }
 
@@ -100,7 +110,7 @@ export default function YardTabLayout() {
   }
 
   if (!isYardAuthenticated) {
-    return <Redirect href="/login/yms" />;
+    return <Redirect href="/login" />;
   }
 
   return (

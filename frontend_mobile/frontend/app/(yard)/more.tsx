@@ -6,15 +6,18 @@ import { colors, radius, spacing } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { canAccessYardScreen } from "@/src/lib/moduleAccess";
 import { groupYardModuleLinks, visibleYardModuleLinks } from "@/src/lib/yardModules";
+import { navigateYardModule } from "@/src/lib/yardModuleNavigation";
+import { useYardMoreFlow } from "@/src/contexts/YardMoreFlowContext";
 
 export default function YardMoreScreen() {
   const router = useRouter();
+  const { startMoreFlow } = useYardMoreFlow();
   const { user, can, isYardAdmin } = useYardAuth();
 
   const allowed = canAccessYardScreen("more", can, isYardAdmin, user?.role);
 
   const links = visibleYardModuleLinks(can, isYardAdmin, user?.role, {
-    excludeKeys: ["search", "profile"],
+    excludeKeys: ["search", "profile", "more", "overview", "alerts"],
   });
   const grouped = groupYardModuleLinks(links);
 
@@ -23,11 +26,13 @@ export default function YardMoreScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.overline}>YARD · MORE</Text>
-        <Text style={styles.title}>Modules</Text>
-        <Text style={styles.subtitle}>All yard workspaces available to your role.</Text>
+        <Text style={styles.overline}>YARD · MODULES</Text>
+        <Text style={styles.title}>Module hub</Text>
+        <Text style={styles.subtitle}>
+          Open a module below to work inside it. A module bar appears at the top so you can switch between More modules and return here when you exit.
+        </Text>
 
         {Object.entries(grouped).map(([section, sectionLinks]) => (
           <View key={section} style={styles.section}>
@@ -36,7 +41,10 @@ export default function YardMoreScreen() {
               <TouchableOpacity
                 key={link.key}
                 style={styles.linkCard}
-                onPress={() => router.push(link.href)}
+                onPress={() => {
+                  startMoreFlow();
+                  navigateYardModule(router, link, "more");
+                }}
                 testID={`yard-more-link-${link.key}`}
               >
                 <View style={styles.linkIcon}>

@@ -19,6 +19,8 @@ import type {
   LaborOption,
 } from "@/src/services/dockService";
 import type { ResourceReadiness } from "@/src/lib/resourceGating";
+import { formatWeightKg } from "@/src/services/weighingService";
+import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 
 type Props = {
   visible: boolean;
@@ -44,6 +46,7 @@ type Props = {
   onAssignLabor: (laborId: string) => void;
   onAssignEquipment: (equipmentId: string) => void;
   onReleaseResources: () => void;
+  onGrossWeight?: () => void;
   readiness?: ResourceReadiness | null;
   readinessLoading?: boolean;
 };
@@ -72,6 +75,7 @@ export default function DockDetailSheet({
   onAssignLabor,
   onAssignEquipment,
   onReleaseResources,
+  onGrossWeight,
   readiness,
   readinessLoading,
 }: Props) {
@@ -89,6 +93,10 @@ export default function DockDetailSheet({
   const statusAction = actions.find((action) => action.id === "update_status");
   const showResourceAssign = Boolean(canAssignLabor || canAssignEquipment);
   const showVehicleAssign = Boolean(canAssignVehicle && !row?.hasActiveAssignment);
+  const canWriteDock = can("*") || can(YMS_PERMISSIONS.DOCK_WRITE);
+  const showGrossWeight = Boolean(
+    canWriteDock && row?.hasActiveAssignment && onGrossWeight && row?.queueEntryId && row?.tareWeightKg != null,
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -172,6 +180,21 @@ export default function DockDetailSheet({
                         <View style={[styles.progressFill, { width: `${row.progressPct}%` }]} />
                       </View>
                       <Text style={styles.progressLabel}>{row.progressPct}% estimated progress</Text>
+                      {row.queueEntryId ? (
+                        <>
+                          <Text style={styles.weighTitle}>Weighing</Text>
+                          <View style={styles.weighRow}>
+                            <Text style={styles.weighChip}>TW {formatWeightKg(row.tareWeightKg)}</Text>
+                            <Text style={styles.weighChip}>GW {formatWeightKg(row.grossWeightKg)}</Text>
+                            <Text style={[styles.weighChip, styles.weighNet]}>NW {formatWeightKg(row.netWeightKg)}</Text>
+                          </View>
+                          {row.tareWeightKg == null && canWriteDock ? (
+                            <Text style={styles.weighHint}>
+                              Record tare weight in Virtual Queue before gross weighing.
+                            </Text>
+                          ) : null}
+                        </>
+                      ) : null}
                     </>
                   ) : (
                     <Text style={styles.metaLine}>No active assignment</Text>
@@ -220,6 +243,17 @@ export default function DockDetailSheet({
                     />
                   ) : null}
                 </View>
+
+                {showGrossWeight ? (
+                  <TouchableOpacity
+                    style={styles.grossBtn}
+                    disabled={actionBusy}
+                    onPress={onGrossWeight}
+                    testID="dock-gross-weight-open"
+                  >
+                    <Text style={styles.grossBtnText}>Gross weight</Text>
+                  </TouchableOpacity>
+                ) : null}
 
                 {statusAction?.enabled ? (
                   <View style={styles.exceptionSection}>
@@ -487,6 +521,29 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: "100%", backgroundColor: colors.shipgenOrange, borderRadius: radius.pill },
   progressLabel: { fontSize: 11, color: colors.textMuted, marginTop: 6 },
+  weighTitle: { fontSize: 10, fontWeight: "800", color: colors.textMuted, textTransform: "uppercase", marginTop: spacing.sm, letterSpacing: 1 },
+  weighRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginTop: spacing.xs },
+  weighChip: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: colors.textSecondary,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+  },
+  weighNet: { color: "#047857", backgroundColor: "#ecfdf5" },
+  weighHint: { fontSize: 11, color: "#b45309", marginTop: spacing.xs, lineHeight: 16 },
+  grossBtn: {
+    borderWidth: 1,
+    borderColor: "#7dd3fc",
+    backgroundColor: "#f0f9ff",
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  grossBtnText: { fontSize: 12, fontWeight: "800", color: "#0369a1" },
   actions: { gap: spacing.sm, marginBottom: spacing.md },
   actionWrap: { gap: 4 },
   actionBtn: {

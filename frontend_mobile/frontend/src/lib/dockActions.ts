@@ -7,7 +7,7 @@ import {
   type ResourceReadiness,
 } from "@/src/lib/resourceGating";
 
-export type DockFilter = "all" | "active" | "available";
+export type DockFilter = "all" | "active" | "available" | "loading" | "delayed";
 
 export type DockActionId =
   | "start_loading"
@@ -170,6 +170,11 @@ export function filterDockRows(rows: DockBoardRow[], filter: DockFilter, search:
   return rows.filter((row) => {
     if (filter === "active" && !row.hasActiveAssignment && row.status !== "LOADING") return false;
     if (filter === "available" && row.status !== "AVAILABLE") return false;
+    if (filter === "loading") {
+      const loadingStatus = String(row.loadingStatus || row.vehicleStatus || row.status || "").toUpperCase();
+      if (loadingStatus !== "LOADING" && row.status !== "LOADING") return false;
+    }
+    if (filter === "delayed" && row.status !== "DELAYED") return false;
     if (!query) return true;
     const haystack = [row.code, row.name, row.plate, row.transporter, row.zone, row.status, row.loadingStatus]
       .filter(Boolean)

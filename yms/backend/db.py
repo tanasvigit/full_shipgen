@@ -349,6 +349,15 @@ async def create_schema() -> None:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_detention_status ON detention_records(status);")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_detention_billing_date ON detention_records(billing_date);")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_detention_vehicle ON detention_records(vehicle_id);")
+        await conn.execute(
+            "ALTER TABLE queue_entries ADD COLUMN IF NOT EXISTS tare_weight_kg NUMERIC(12, 2);"
+        )
+        await conn.execute(
+            "ALTER TABLE queue_entries ADD COLUMN IF NOT EXISTS gross_weight_kg NUMERIC(12, 2);"
+        )
+        await conn.execute(
+            "ALTER TABLE queue_entries ADD COLUMN IF NOT EXISTS net_weight_kg NUMERIC(12, 2);"
+        )
 
         await conn.execute(
             """

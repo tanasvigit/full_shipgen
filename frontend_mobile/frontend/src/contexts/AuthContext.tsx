@@ -17,7 +17,7 @@ type AuthContextValue = {
   user: MobileUser | null;
   organizations: MobileOrganization[];
   activeOrganization: MobileOrganization | null;
-  login: (email: string, password: string) => Promise<{ requiresTwoFactor: boolean }>;
+  login: (email: string, password: string, options?: { quiet?: boolean }) => Promise<{ requiresTwoFactor: boolean }>;
   verifyTwoFactor: (code: string) => Promise<void>;
   resendTwoFactorCode: () => Promise<void>;
   switchOrganization: (organizationId: string) => Promise<void>;
@@ -83,8 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, [clearSession]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await authService.login(email, password);
+  const login = useCallback(async (email: string, password: string, options?: { quiet?: boolean }) => {
+    const result = await authService.login(email, password, options);
     if (result.requiresTwoFactor) {
       setSession(await getStoredSession());
       return { requiresTwoFactor: true };

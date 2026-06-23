@@ -45,7 +45,7 @@ export default function YardProfileScreen() {
   const tabs = visibleYardTabs(can, isYardAdmin, user?.role).filter((tab) => tab !== "profile");
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.overline}>YARD · PROFILE</Text>
         <Text style={styles.title}>Operator account</Text>

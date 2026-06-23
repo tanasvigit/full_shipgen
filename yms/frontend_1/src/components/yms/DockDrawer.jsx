@@ -19,6 +19,7 @@ import {
   MapPin,
   Tag,
   Calendar,
+  Scale,
 } from "lucide-react";
 import docksApi, {
   getCallableQueueEntries,
@@ -35,6 +36,8 @@ import { canStartLoadingFromReadiness, computeMandatoryReadiness } from "../../u
 import { formatDockTypeLabel } from "../../utils/dockTypeSelectors";
 import usePermissions from "../../hooks/usePermissions";
 import useBundlePermissionFlags from "../../hooks/useBundlePermissionFlags";
+import WeighGrossDialog from "./WeighGrossDialog";
+import { formatWeightKg } from "../../utils/display";
 
 export const DockDrawer = () => {
   const { dock, closeDock } = useUI();
@@ -63,6 +66,7 @@ export const DockDrawer = () => {
   const [assignEquipmentId, setAssignEquipmentId] = useState("");
   const [availableLabor, setAvailableLabor] = useState([]);
   const [availableEquipment, setAvailableEquipment] = useState([]);
+  const [grossOpen, setGrossOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!dock?.dockId) return;
@@ -153,7 +157,9 @@ export const DockDrawer = () => {
 
   const hasActiveAssignment = !!row?.hasActiveAssignment;
   const canAssign = canAssignDock && row?.status === "AVAILABLE" && !hasActiveAssignment && callable.length > 0;
-  const canRelease = hasActiveAssignment && row?.currentVehicle && row.status !== "AVAILABLE";
+  const canRelease = hasActiveAssignment && !!row?.currentVehicle;
+  const showGrossWeight =
+    canWriteDock && hasActiveAssignment && row?.queueEntryId && row?.tareWeightKg != null;
   const lifecycleStage = resolveAssignmentLifecycleStage(row?.vehicle, row?.queue, readiness);
   const canStartLoadingNow =
     row?.queue &&
@@ -292,6 +298,31 @@ export const DockDrawer = () => {
               </div>
 
               {hasActiveAssignment && <ResourceReadinessPanel readiness={readiness} />}
+
+              {hasActiveAssignment && row.queueEntryId && (
+                <div className="border border-slate-200 rounded-md p-3 space-y-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
+                    <Scale className="w-3 h-3" /> Weighing
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div className="bg-slate-50 border border-slate-200 rounded-md px-2 py-2">
+                      <div className="text-[9px] uppercase font-bold text-slate-500">TW</div>
+                      <div className="font-mono-yms font-semibold">{formatWeightKg(row.tareWeightKg)}</div>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-md px-2 py-2">
+                      <div className="text-[9px] uppercase font-bold text-slate-500">GW</div>
+                      <div className="font-mono-yms font-semibold">{formatWeightKg(row.grossWeightKg)}</div>
+                    </div>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-md px-2 py-2">
+                      <div className="text-[9px] uppercase font-bold text-emerald-700">NW</div>
+                      <div className="font-mono-yms font-semibold text-emerald-900">{formatWeightKg(row.netWeightKg)}</div>
+                    </div>
+                  </div>
+                  {canWriteDock && row.tareWeightKg == null ? (
+                    <p className="text-[10px] text-amber-700">Record tare weight in Virtual Queue before gross weighing.</p>
+                  ) : null}
+                </div>
+              )}
 
               {hasActiveAssignment && row.currentVehicle && (canWriteLabor || canWriteEquipment) && (
                 <div className="border border-slate-200 rounded-md p-3 space-y-3">
@@ -435,6 +466,17 @@ export const DockDrawer = () => {
 
               {(canWriteDock || canTransitionVehicle) && (
               <div className="grid grid-cols-2 gap-2">
+                {showGrossWeight && (
+                  <button
+                    type="button"
+                    disabled={working}
+                    onClick={() => setGrossOpen(true)}
+                    className="inline-flex items-center justify-center gap-1 border border-sky-300 bg-sky-50 text-sky-900 text-[11px] font-semibold py-2 rounded-md col-span-2"
+                    data-testid="dock-gross-weight-open"
+                  >
+                    <Scale className="w-3 h-3" /> Gross Weight
+                  </button>
+                )}
                 {canTransitionVehicle && canStartLoading && showStartLoading && (
                   <button
                     type="button"
@@ -561,6 +603,12 @@ export const DockDrawer = () => {
         </SheetContent>
       </Sheet>
       <EditDockDialog open={editOpen} dock={row} onOpenChange={setEditOpen} onUpdated={afterAction} />
+      <WeighGrossDialog
+        open={grossOpen}
+        onOpenChange={setGrossOpen}
+        row={row}
+        onRecorded={afterAction}
+      />
     </>
   );
 };

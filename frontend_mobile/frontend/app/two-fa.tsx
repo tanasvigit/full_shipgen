@@ -33,7 +33,7 @@ export default function TwoFactorScreen() {
   }, [session?.requiresTwoFactor, session?.twoFaClientToken]);
 
   if (!twoFaUiEnabled) {
-    return <Redirect href="/" />;
+    return <Redirect href="/login" />;
   }
 
   if (authReady && isAuthenticated) {
@@ -41,7 +41,7 @@ export default function TwoFactorScreen() {
   }
 
   if (authReady && !session?.requiresTwoFactor) {
-    return <Redirect href="/" />;
+    return <Redirect href="/login" />;
   }
 
   const handleVerify = async () => {
@@ -79,7 +79,7 @@ export default function TwoFactorScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.wrap}
       >
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace("/")}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace("/login")}>
           <Ionicons name="arrow-back" size={18} color={colors.text} />
         </TouchableOpacity>
 

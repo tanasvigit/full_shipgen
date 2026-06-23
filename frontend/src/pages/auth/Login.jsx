@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_CONSOLE_LABEL, PORTAL_NAME } from "@/lib/branding";
 import { yardPath } from "@yard/constants/basePath";
 import { resolvePostLoginPath } from "@yard/utils/authRedirect";
+import { parkingPath } from "@pms/constants/basePath";
+import { getDashboardPath } from "@pms/config/permissions";
 
 export default function Login() {
     const [searchParams] = useSearchParams();
@@ -42,6 +44,18 @@ export default function Login() {
                 return;
             }
 
+            if (outcome.sessionType === "parking") {
+                toast.success("Signed in to Parking");
+                const role = outcome.me?.role || "operator";
+                navigate(
+                    redirectTo.startsWith("/parking")
+                        ? redirectTo
+                        : parkingPath(getDashboardPath(role)),
+                    { replace: true },
+                );
+                return;
+            }
+
             if (outcome.requiresTwoFactor) {
                 navigate("/auth/two-fa", { replace: true });
                 return;
@@ -64,7 +78,7 @@ export default function Login() {
                     Welcome back to<br />your console.
                 </h2>
                 <p className="text-sm text-[#374151] mt-3 max-w-sm">
-                    Enter your {PORTAL_NAME} credentials. You will see FleetOps, IAM, Yard, and admin screens based on your role.
+                    Enter your {PORTAL_NAME} credentials. You will see FleetOps, IAM, Yard, Parking, and admin screens based on your role.
                 </p>
             </div>
 

@@ -1,5 +1,7 @@
 import { ymsRequest } from "@/src/lib/ymsApi";
 import { parseYmsList } from "@/src/services/queueService";
+import type { LaborFormInput } from "@/src/lib/laborActions";
+import { parseLaborMembersCount } from "@/src/lib/laborActions";
 
 export type LaborRow = {
   id: string;
@@ -7,11 +9,16 @@ export type LaborRow = {
   name: string;
   status: string;
   shift: string;
+  shiftStart: string;
+  shiftEnd: string;
   members: number;
   available: number;
   assigned: string;
   supervisor: string;
+  supervisorPhone: string;
+  materialType: string;
   location: string;
+  notes?: string | null;
   assignedDockId?: string | null;
 };
 
@@ -31,11 +38,16 @@ function mapLaborRow(row: Record<string, unknown>): LaborRow {
     name: String(row.team_name || row.teamName || "Team"),
     status: String(row.status || ""),
     shift: shiftStart && shiftEnd ? `${shiftStart} — ${shiftEnd}` : "—",
+    shiftStart,
+    shiftEnd,
     members: Number(row.members_count || 0),
     available: Number(row.available_count || 0),
     assigned: String(row.current_assignment || "—"),
     supervisor: String(row.supervisor_name || "—"),
+    supervisorPhone: String(row.supervisor_phone || ""),
+    materialType: String(row.material_type || row.team_type || "GENERAL"),
     location: String(row.current_location || "—"),
+    notes: row.notes ? String(row.notes) : null,
     assignedDockId: row.assigned_dock_id ? String(row.assigned_dock_id) : null,
   };
 }
@@ -83,4 +95,37 @@ export async function assignLaborToDock(dockId: string, laborId: string) {
       created_by: "mobile-labor",
     },
   });
+}
+
+function laborFormBody(form: LaborFormInput) {
+  return {
+    team_name: form.teamName.trim(),
+    supervisor_name: form.supervisorName.trim(),
+    supervisor_phone: form.supervisorPhone.trim(),
+    shift_start: form.shiftStart.trim(),
+    shift_end: form.shiftEnd.trim(),
+    members_count: parseLaborMembersCount(form),
+    material_type: form.materialType,
+    status: form.status,
+    notes: form.notes.trim() || null,
+    created_by: "mobile-labor",
+  };
+}
+
+export async function createLaborTeam(form: LaborFormInput) {
+  return ymsRequest<Record<string, unknown>>("/labor", {
+    method: "POST",
+    body: laborFormBody(form),
+  });
+}
+
+export async function updateLaborTeam(laborId: string, form: LaborFormInput) {
+  return ymsRequest<Record<string, unknown>>(`/labor/${laborId}`, {
+    method: "PATCH",
+    body: laborFormBody(form),
+  });
+}
+
+export async function deleteLaborTeam(laborId: string) {
+  return ymsRequest<void>(`/labor/${laborId}`, { method: "DELETE" });
 }

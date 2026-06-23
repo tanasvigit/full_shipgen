@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { resolveQueueActions } from "@/src/lib/queueActions";
 import type { DockOption, QueueEntryRow } from "@/src/services/queueService";
+import { formatWeightKg } from "@/src/services/weighingService";
+import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 
 type Props = {
   visible: boolean;
@@ -23,6 +25,7 @@ type Props = {
   onCall: () => void;
   onAssignDock: (dockId: string) => void;
   onOverride: () => void;
+  onTareWeight?: () => void;
 };
 
 export default function QueueEntrySheet({
@@ -36,6 +39,7 @@ export default function QueueEntrySheet({
   onCall,
   onAssignDock,
   onOverride,
+  onTareWeight,
 }: Props) {
   const actions = resolveQueueActions(entry, can);
   const badge = statusColor(entry?.displayStatus || entry?.status || "waiting");
@@ -43,6 +47,7 @@ export default function QueueEntrySheet({
   const assignAction = actions.find((action) => action.id === "assign_dock");
   const callAction = actions.find((action) => action.id === "call");
   const overrideAction = actions.find((action) => action.id === "override");
+  const canWriteQueue = can("*") || can(YMS_PERMISSIONS.QUEUE_WRITE);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -77,6 +82,9 @@ export default function QueueEntrySheet({
                   <Text style={styles.metaLine}>
                     Dock {entry.dockCode || "—"} · {entry.bookingRef || entry.queueNumber || "—"}
                   </Text>
+                  <Text style={styles.metaLine}>Tare (TW): {formatWeightKg(entry.tareWeightKg)}</Text>
+                  <Text style={styles.metaLine}>Gross (GW): {formatWeightKg(entry.grossWeightKg)}</Text>
+                  <Text style={styles.metaLine}>Net (NW): {formatWeightKg(entry.netWeightKg)}</Text>
                 </View>
 
                 {recommended?.dockCode ? (
@@ -123,6 +131,16 @@ export default function QueueEntrySheet({
                       variant="secondary"
                       onPress={onOverride}
                       testID="queue-action-override"
+                    />
+                  ) : null}
+                  {canWriteQueue && onTareWeight ? (
+                    <QueueActionButton
+                      label="Tare weight"
+                      enabled
+                      busy={actionBusy}
+                      variant="secondary"
+                      onPress={onTareWeight}
+                      testID="queue-action-tare"
                     />
                   ) : null}
                 </View>

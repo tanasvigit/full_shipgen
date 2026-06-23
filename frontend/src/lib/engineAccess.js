@@ -3,7 +3,7 @@
  * Company administrators see every engine; other roles see engines they can access.
  */
 
-import { canAccessYardEngine } from "@/lib/consoleAccess";
+import { canAccessParkingEngine, canAccessYardEngine } from "@/lib/consoleAccess";
 
 export const CONSOLE_ENGINES = [
   { id: "console", label: "Console", to: "/", iconKey: "console", always: true },
@@ -51,6 +51,14 @@ export const CONSOLE_ENGINES = [
     iconKey: "yard",
     prefix: "/yard",
     yardEngine: true,
+  },
+  {
+    id: "parking",
+    label: "Parking",
+    to: "/parking",
+    iconKey: "parking",
+    prefix: "/parking",
+    parkingEngine: true,
   },
   {
     id: "developers",
@@ -108,6 +116,10 @@ export function canAccessEngine(engine, ctx) {
     return engine.id === "yard";
   }
 
+  if (scope === "parking-only") {
+    return engine.id === "parking";
+  }
+
   if (engine.always) return true;
   if (isConsoleAdmin) return true;
 
@@ -121,6 +133,10 @@ export function canAccessEngine(engine, ctx) {
 
   if (engine.yardEngine) {
     return canAccessYardEngine({ ...ctx, isConsoleAdmin });
+  }
+
+  if (engine.parkingEngine) {
+    return canAccessParkingEngine({ ...ctx, isConsoleAdmin });
   }
 
   if (engine.permissionPrefixes?.length) {
@@ -140,11 +156,16 @@ export function getDefaultEngineHome(ctx) {
     return "/yard";
   }
 
+  if (ctx.sessionScope === "parking-only") {
+    return "/parking";
+  }
+
   const visible = getVisibleEngines(ctx);
   const ids = new Set(visible.map((engine) => engine.id));
 
   if (ids.has("fleet-ops")) return "/fleet-ops/operations/orders";
   if (ids.has("yard")) return "/yard";
+  if (ids.has("parking")) return "/parking";
   if (ids.has("iam")) return "/iam";
   if (ids.has("storefront")) return "/storefront";
   if (ids.has("ledger")) return "/ledger";
@@ -158,6 +179,7 @@ export function getDefaultEngineHome(ctx) {
 const ENGINE_ROUTE_GUARDS = [
   { prefix: "/fleet-ops", id: "fleet-ops" },
   { prefix: "/yard", id: "yard" },
+  { prefix: "/parking", id: "parking" },
   { prefix: "/iam", id: "iam" },
   { prefix: "/storefront", id: "storefront" },
   { prefix: "/ledger", id: "ledger" },
@@ -173,6 +195,10 @@ export function getEngineGuardForPath(pathname) {
 export function canAccessPath(pathname, ctx) {
   if (ctx.sessionScope === "yard-only") {
     return pathname.startsWith("/yard");
+  }
+
+  if (ctx.sessionScope === "parking-only") {
+    return pathname.startsWith("/parking");
   }
 
   const guard = getEngineGuardForPath(pathname);

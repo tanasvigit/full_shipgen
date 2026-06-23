@@ -38,6 +38,11 @@ upstream yms_upstream {
     server yms-service:8000 resolve;
 }
 
+upstream pms_upstream {
+    zone gateway_pms 64k;
+    server pms-service:8000 resolve;
+}
+
 map $http_origin $cors_allow_origin {
     default "";
     "~^https?://localhost(:[0-9]+)?$" $http_origin;
@@ -138,6 +143,14 @@ server {
         include /etc/nginx/cors_preflight.conf;
         rewrite ^/api/yms/(.*)$ /api/$1 break;
         proxy_pass http://yms_upstream;
+        include /etc/nginx/proxy_params.conf;
+    }
+
+    # --- pms-service (Parking Management — JWT validated by FastAPI) ---
+    location ~ ^/api/pms/ {
+        include /etc/nginx/cors_preflight.conf;
+        rewrite ^/api/pms/(.*)$ /api/v1/$1 break;
+        proxy_pass http://pms_upstream;
         include /etc/nginx/proxy_params.conf;
     }
 

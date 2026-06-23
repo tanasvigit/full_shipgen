@@ -59,11 +59,21 @@ import {
     HardHat,
     Sparkles,
     AlertTriangle,
+    DollarSign,
+    ParkingCircle,
+    QrCode,
+    Ticket,
+    CreditCard,
+    Printer,
+    Search,
+    Clock,
+    Layers,
 } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
+import { useParkingPermissions } from "@/hooks/useParkingPermissions";
 import { filterSidebarGroups } from "@/lib/sidebarAccess";
 import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 
@@ -324,6 +334,58 @@ const sections = {
             ],
         },
     ],
+    "/parking": [
+        {
+            label: "Overview",
+            items: [
+                { to: "/parking/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+                { to: "/parking/supervisor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+                { to: "/parking/operator/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            ],
+        },
+        {
+            label: "Administration",
+            items: [
+                { to: "/parking/admin/users", label: "Employees", icon: Users },
+                { to: "/parking/admin/pricing", label: "Pricing", icon: DollarSign },
+                { to: "/parking/admin/parking", label: "Parking Sessions", icon: ParkingCircle },
+                { to: "/parking/admin/parking-floors", label: "Floors", icon: Layers },
+                { to: "/parking/admin/hardware", label: "Hardware", icon: Cpu },
+                { to: "/parking/admin/audit-logs", label: "Audit Logs", icon: ScrollText },
+            ],
+        },
+        {
+            label: "Operations",
+            items: [
+                { to: "/parking/supervisor/monitoring", label: "Monitoring", icon: ParkingCircle },
+                { to: "/parking/supervisor/parking-floors", label: "Floors", icon: Layers },
+                { to: "/parking/supervisor/vehicle-search", label: "Vehicle Search", icon: Search },
+                { to: "/parking/supervisor/qr-monitoring", label: "QR Monitoring", icon: QrCode },
+                { to: "/parking/supervisor/operator-activity", label: "Operator Activity", icon: Activity },
+                { to: "/parking/supervisor/recent-tickets", label: "Recent Tickets", icon: Clock },
+                { to: "/parking/operator/new-ticket", label: "New Ticket", icon: Ticket },
+                { to: "/parking/operator/collect-payment", label: "Collect Payment", icon: CreditCard },
+                { to: "/parking/operator/qr-print", label: "QR Print", icon: Printer },
+                { to: "/parking/operator/vehicle-search", label: "Vehicle Search", icon: Search },
+                { to: "/parking/operator/recent-tickets", label: "Recent Tickets", icon: Clock },
+                { to: "/parking/operator/occupancy", label: "Occupancy", icon: Layers },
+            ],
+        },
+        {
+            label: "Reports",
+            items: [
+                { to: "/parking/admin/reports", label: "Reports", icon: LineChart },
+                { to: "/parking/supervisor/reports", label: "Reports", icon: LineChart },
+            ],
+        },
+        {
+            label: "Settings",
+            items: [
+                { to: "/parking/admin/settings", label: "Settings", icon: SettingsIcon },
+                { to: "/parking/operator/settings", label: "Settings", icon: SettingsIcon },
+            ],
+        },
+    ],
 };
 
 function pickSection(pathname) {
@@ -335,6 +397,7 @@ function pickSection(pathname) {
     if (pathname.startsWith("/developers")) return { key: "/developers", title: "Developers", subtitle: "API & integrations", accent: "from-cyan-accent to-[#7C4DFF]" };
     if (pathname.startsWith("/iam")) return { key: "/iam", title: "IAM", subtitle: "Identity & access", accent: "from-[#FF1744] to-[#FFEA00]" };
     if (pathname.startsWith("/yard")) return { key: "/yard", title: "Yard", subtitle: "Yard management", accent: "from-amber-400 to-[#FF6D00]" };
+    if (pathname.startsWith("/parking")) return { key: "/parking", title: "Parking", subtitle: "Parking management", accent: "from-[#0066FF] to-[#2979FF]" };
     if (pathname.startsWith("/settings")) return { key: "/settings", title: "Settings", subtitle: "Workspace config", accent: "from-white/40 to-white/10" };
     return { key: "/", title: "Console", subtitle: "Overview", accent: "from-cyan-accent to-[#2979FF]" };
 }
@@ -344,6 +407,7 @@ export default function Sidebar() {
     const section = pickSection(location.pathname);
     const { user, hasPermission, canFleetops } = useAuth();
     const { can: canYardModule } = useYardPermissions();
+    const { can: canParkingModule, role: parkingRole } = useParkingPermissions();
 
     const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
 
@@ -354,8 +418,10 @@ export default function Sidebar() {
             hasPermission,
             canFleetops,
             canYardModule,
+            canParkingModule,
+            parkingRole,
         });
-    }, [section.key, isConsoleAdmin, hasPermission, canFleetops, canYardModule]);
+    }, [section.key, isConsoleAdmin, hasPermission, canFleetops, canYardModule, canParkingModule, parkingRole]);
 
     return (
         <aside

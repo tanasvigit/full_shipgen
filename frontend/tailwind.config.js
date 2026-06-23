@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     darkMode: ["class"],
-    content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}", "../yms/frontend_1/src/**/*.{js,jsx,ts,tsx}"],
+    content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}", "../yms/frontend_1/src/**/*.{js,jsx,ts,tsx}", "../Parking management/frontend/src/**/*.{js,jsx,ts,tsx}"],
     theme: {
         extend: {
             fontFamily: {
@@ -58,6 +58,12 @@ module.exports = {
                 cyan: {
                     accent: "#0066FF",
                     accentHover: "#0040CC",
+                },
+                surface: "#f7f6f6",
+                sidebar: {
+                    DEFAULT: "#2e2c30",
+                    dark: "#262427",
+                    active: "#ea1c26",
                 },
             },
             keyframes: {

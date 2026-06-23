@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Depends
 
-from auth_rbac import PERM_QUEUE_WRITE, require_permission
+from auth_rbac import PERM_DOCK_WRITE, PERM_QUEUE_WRITE, require_permission
 from schemas import (
     QueueBundleOut,
     QueueEntryDetailOut,
     QueueEntryMetricsOut,
     QueueOverrideRequest,
+    WeighGrossRequest,
+    WeighingOut,
+    WeighTareRequest,
 )
 from services.queue_service import (
     build_queue_bundle,
     get_queue_entry_detail,
     override_queue_priority,
 )
+from services.weighing_service import record_gross_weight, record_tare_weight
 
 router = APIRouter(prefix="/queue", tags=["queue"])
 
@@ -56,3 +60,21 @@ async def queue_override_endpoint(
         supervisor=payload.supervisor,
         created_by=payload.created_by,
     )
+
+
+@router.post("/entries/{queue_entry_id}/tare-weight", response_model=WeighingOut)
+async def record_tare_weight_endpoint(
+    queue_entry_id: str,
+    payload: WeighTareRequest,
+    _auth=Depends(require_permission(PERM_QUEUE_WRITE)),
+):
+    return WeighingOut(**(await record_tare_weight(queue_entry_id, payload.weight_kg, created_by=payload.created_by)))
+
+
+@router.post("/entries/{queue_entry_id}/gross-weight", response_model=WeighingOut)
+async def record_gross_weight_endpoint(
+    queue_entry_id: str,
+    payload: WeighGrossRequest,
+    _auth=Depends(require_permission(PERM_DOCK_WRITE)),
+):
+    return WeighingOut(**(await record_gross_weight(queue_entry_id, payload.weight_kg, created_by=payload.created_by)))

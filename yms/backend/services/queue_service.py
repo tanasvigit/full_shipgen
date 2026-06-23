@@ -325,6 +325,9 @@ def _enrich_row(
             else "Contract"
             if (vehicle or {}).get("ownership_type") == "contract"
             else "Outside",
+        "tareWeightKg": float(entry["tare_weight_kg"]) if entry.get("tare_weight_kg") is not None else None,
+        "grossWeightKg": float(entry["gross_weight_kg"]) if entry.get("gross_weight_kg") is not None else None,
+        "netWeightKg": float(entry["net_weight_kg"]) if entry.get("net_weight_kg") is not None else None,
     }
 
 

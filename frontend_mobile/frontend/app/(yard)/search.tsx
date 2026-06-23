@@ -66,7 +66,7 @@ export default function YardSearchScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.overline}>YARD · SEARCH</Text>
         <Text style={styles.title}>Find anything</Text>

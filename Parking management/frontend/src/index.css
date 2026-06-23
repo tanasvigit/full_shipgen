@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Theme derived from public/security-systems-1.svg & security-systems-2.svg:
+   accent rgb(234,28,38), charcoal rgb(38,36,39), light fill rgb(247,246,246) */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-primary-50: #fff5f5;
+  --color-primary-100: #ffe4e6;
+  --color-primary-500: #ea1c26;
+  --color-primary-600: #d51922;
+  --color-primary-700: #b3141c;
+
+  --color-sidebar: #2e2c30;
+  --color-sidebar-dark: #262427;
+  --color-sidebar-active: #ea1c26;
+
+  --color-surface: #f7f6f6;
+  --color-card: #ffffff;
+
+  --color-success: #16a34a;
+  --color-danger: #ea1c26;
+  --color-warning: #f59e0b;
+  --color-info: #3d3a3e;
+
+  /* Remap blue utilities → brand reds (charcoal-tinted) so existing blue-* classes match the logo */
+  --color-blue-50: #fff5f5;
+  --color-blue-100: #ffe4e6;
+  --color-blue-200: #fecdd3;
+  --color-blue-300: #fda4af;
+  --color-blue-400: #f87171;
+  --color-blue-500: #ea1c26;
+  --color-blue-600: #ea1c26;
+  --color-blue-700: #c91620;
+  --color-blue-800: #9f141c;
+  --color-blue-900: #3d1819;
+  --color-blue-950: #1f0d0e;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-slate-800 font-sans antialiased;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}

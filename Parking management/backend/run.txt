@@ -1,0 +1,8 @@
+how to run the backend:-
+
+python -m app.seed.run
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+how to run the frontend:-
+
+npm run dev

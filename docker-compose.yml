@@ -147,6 +147,8 @@ services:
         condition: service_started
       yms-service:
         condition: service_started
+      pms-service:
+        condition: service_started
       application:
         condition: service_started
 
@@ -454,6 +456,54 @@ services:
       retries: 12
       start_period: 25s
 
+  # PMS (Parking Management) — FastAPI + PostgreSQL; proxied at /api/pms via gateway.
+  pms-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: parkflow
+      POSTGRES_USER: pms_user
+      POSTGRES_PASSWORD: pms_pass
+    volumes:
+      - pms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pms_user -d parkflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 8
+      start_period: 5s
+
+  pms-service:
+    build:
+      context: "./Parking management/backend"
+    restart: unless-stopped
+    env_file:
+      - "./Parking management/.env.example"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://pms_user:pms_pass@pms-postgres:5432/parkflow
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8000,http://localhost:8081
+      JWT_SECRET: ${PMS_JWT_SECRET:-pms-dev-jwt-secret-change-in-production}
+      PLATFORM_USERINFO_URL: http://iam-service:8000/int/v1/users/me
+    expose:
+      - "8000"
+    depends_on:
+      pms-postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 120s
+
   # Direct nginx → app (bypass gateway). Use for debugging only.
   httpd:
     restart: unless-stopped
@@ -467,3 +517,4 @@ services:
 
 volumes:
   yms_postgres_data:
+  pms_postgres_data:

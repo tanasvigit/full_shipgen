@@ -115,6 +115,11 @@ export function hasQueueModuleAccess(can: (permission: string) => boolean) {
   return can("module.queue");
 }
 
+/** Dock views need queue-entry weights (TW/GW/NW) even when the role only has docks access. */
+export function shouldLoadQueueForDocks(can: (permission: string) => boolean) {
+  return hasQueueModuleAccess(can) || hasDocksModuleAccess(can);
+}
+
 export function hasLoadingModuleAccess(can: (permission: string) => boolean) {
   return can("module.loading");
 }

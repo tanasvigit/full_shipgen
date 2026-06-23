@@ -74,6 +74,9 @@ export function mapQueueRow(row) {
     equipment: row.equipment,
     recommendedDock: row.recommendedDock,
     checkinTime: row.checkinTime,
+    tareWeightKg: row.tareWeightKg ?? null,
+    grossWeightKg: row.grossWeightKg ?? null,
+    netWeightKg: row.netWeightKg ?? null,
   };
 }
 
@@ -103,10 +106,30 @@ export async function overrideQueueEntry(queueEntryId, { targetRank, reason, sup
   return result;
 }
 
+export async function recordTareWeight(queueEntryId, weightKg) {
+  const result = await request(`/queue/entries/${queueEntryId}/tare-weight`, {
+    method: "POST",
+    body: JSON.stringify({ weight_kg: weightKg, created_by: "queue-ui" }),
+  });
+  notifyYmsDataChanged();
+  return result;
+}
+
+export async function recordGrossWeight(queueEntryId, weightKg) {
+  const result = await request(`/queue/entries/${queueEntryId}/gross-weight`, {
+    method: "POST",
+    body: JSON.stringify({ weight_kg: weightKg, created_by: "dock-ui" }),
+  });
+  notifyYmsDataChanged();
+  return result;
+}
+
 export default {
   fetchQueueBundle,
   getQueueEntryDetail,
   overrideQueueEntry,
+  recordTareWeight,
+  recordGrossWeight,
   mapQueueRow,
   QUEUE_DISPLAY_STATUSES,
 };

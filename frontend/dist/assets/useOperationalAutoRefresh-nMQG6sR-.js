@@ -1,0 +1,1 @@
+import{dw as a,dn as s}from"./index-BeHcDPFF.js";const c=3e4;function i(t,n=!0,e=c){a.useEffect(()=>{if(!n||typeof t!="function")return;const o=()=>{t()},u=s(o),r=setInterval(o,e);return()=>{u(),clearInterval(r)}},[t,n,e])}export{i as u};

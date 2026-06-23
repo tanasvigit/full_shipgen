@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { assignDockToQueueEntry, callQueueEntry, overrideQueueEntry } from "@/src/services/queueService";
+import { recordGrossWeight, recordTareWeight } from "@/src/services/weighingService";
 
 export function useQueueMutations() {
   const queryClient = useQueryClient();
@@ -35,7 +36,24 @@ export function useQueueMutations() {
     onSuccess: invalidate,
   });
 
-  const busy = callEntry.isPending || assignDock.isPending || overrideRank.isPending;
+  const recordTare = useMutation({
+    mutationFn: ({ queueEntryId, weightKg }: { queueEntryId: string; weightKg: number }) =>
+      recordTareWeight(queueEntryId, weightKg),
+    onSuccess: invalidate,
+  });
 
-  return { callEntry, assignDock, overrideRank, busy };
+  const recordGross = useMutation({
+    mutationFn: ({ queueEntryId, weightKg }: { queueEntryId: string; weightKg: number }) =>
+      recordGrossWeight(queueEntryId, weightKg),
+    onSuccess: invalidate,
+  });
+
+  const busy =
+    callEntry.isPending ||
+    assignDock.isPending ||
+    overrideRank.isPending ||
+    recordTare.isPending ||
+    recordGross.isPending;
+
+  return { callEntry, assignDock, overrideRank, recordTare, recordGross, busy };
 }

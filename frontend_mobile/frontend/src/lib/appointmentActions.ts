@@ -96,6 +96,14 @@ export function filterAppointmentsBySlot(rows: AppointmentRow[], slot: string | 
   return rows.filter((row) => row.slot === slot);
 }
 
+export type AppointmentKpiFilter = "all" | "scheduled" | "delayed";
+
+export function filterAppointmentsByKpi(rows: AppointmentRow[], kpi: AppointmentKpiFilter) {
+  if (kpi === "scheduled") return rows.filter((row) => row.status === "SCHEDULED");
+  if (kpi === "delayed") return rows.filter((row) => row.delayed);
+  return rows;
+}
+
 export function groupAppointmentsBySlot(rows: AppointmentRow[]) {
   const groups = new Map<string, AppointmentRow[]>();
   for (const row of rows) {

@@ -1,6 +1,7 @@
 import { ymsRequest } from "@/src/lib/ymsApi";
 import { buildCallableQueueEntries } from "@/src/lib/dockResourceActions";
 import { parseYmsList } from "@/src/services/queueService";
+import { readQueueWeightKg } from "@/src/services/weighingService";
 import {
   DOCK_CARGO_TYPE_DEFAULTS,
   DOCK_VEHICLE_TYPE_DEFAULTS,
@@ -35,6 +36,9 @@ export type DockBoardRow = {
   progressPct: number;
   labor?: DockResourceAssignment | null;
   equipment?: DockResourceAssignment | null;
+  tareWeightKg?: number | null;
+  grossWeightKg?: number | null;
+  netWeightKg?: number | null;
 };
 
 export type DockResourceAssignment = {
@@ -130,6 +134,9 @@ export function mapDockBoardRow(
     progressPct: hasActiveAssignment ? estimateProgress(activeQueue, activeVehicle) : 0,
     labor: labor ? mapLaborOption(labor) : null,
     equipment: equipment ? mapEquipmentOption(equipment) : null,
+    tareWeightKg: readQueueWeightKg(activeQueue, "tare"),
+    grossWeightKg: readQueueWeightKg(activeQueue, "gross"),
+    netWeightKg: readQueueWeightKg(activeQueue, "net"),
   };
 }
 

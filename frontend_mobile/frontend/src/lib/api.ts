@@ -86,6 +86,8 @@ export function isPermissionDenied(status: number, payload: unknown) {
 
 function isAuthFailure(status: number, path: string, payload: unknown) {
   if (status !== 401) return false;
+  // Wrong email/password on login is not an expired session.
+  if (path === "/auth/login") return false;
   if (isPermissionDenied(status, payload)) return false;
   if (path.startsWith("/auth/") || path === "/users/me") return true;
   const message = getErrorMessage(payload).toLowerCase();

@@ -114,7 +114,7 @@ async function withBootstrapRetry<T>(operation: string, fn: () => Promise<T>): P
 }
 
 export const authService = {
-  async login(email: string, password: string) {
+  async login(email: string, password: string, options?: { quiet?: boolean }) {
     try {
       const body: LoginRequestDTO = { identity: email, password, remember: true };
       const payload = await apiRequest<LoginResponseDTO>("/auth/login", {
@@ -157,7 +157,9 @@ export const authService = {
       logEvent("auth.login.success", { email });
       return { token, requiresTwoFactor: false };
     } catch (error) {
-      captureError(error, { operation: "auth.login", email });
+      if (!options?.quiet) {
+        captureError(error, { operation: "auth.login", email });
+      }
       throw error;
     }
   },

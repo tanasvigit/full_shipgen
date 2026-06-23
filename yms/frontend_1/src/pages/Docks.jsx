@@ -46,7 +46,7 @@ const Docks = () => {
   const { search, openDock, openVehicle } = useUI();
   const { canWriteDock, canAssignDock, can } = usePermissions();
   const includeAppointments = can(MOD.APPOINTMENTS);
-  const includeQueue = can(MOD.QUEUE);
+  const includeQueue = can(MOD.QUEUE) || can(MOD.DOCKS);
   const [rows, setRows] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -532,6 +532,13 @@ const Docks = () => {
                             <span>{d.progressPct}% {d.progressEstimated ? "(est.)" : ""}</span>
                             <span className="text-slate-700">ETA {d.etaCloseMin}m</span>
                           </div>
+                          {(d.tareWeightKg != null || d.grossWeightKg != null || d.netWeightKg != null) && (
+                            <div className="mt-2 grid grid-cols-3 gap-1 text-[9px] font-mono-yms">
+                              <span>TW {d.tareWeightKg != null ? `${Number(d.tareWeightKg).toLocaleString("en-IN")}` : "—"}</span>
+                              <span>GW {d.grossWeightKg != null ? `${Number(d.grossWeightKg).toLocaleString("en-IN")}` : "—"}</span>
+                              <span className="text-emerald-700 font-bold">NW {d.netWeightKg != null ? `${Number(d.netWeightKg).toLocaleString("en-IN")}` : "—"}</span>
+                            </div>
+                          )}
                         </div>
                       ) : d.status === "MAINTENANCE" ? (
                         <div className="mt-3 pt-3 border-t border-slate-100 bg-slate-50 -mx-4 px-4 py-3 flex items-center gap-2 text-[11px] text-slate-600">

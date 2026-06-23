@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect, useLocalSearchParams } from "expo-router";
+import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { useQueueBundle } from "@/src/hooks/useQueueBundle";
@@ -20,13 +20,20 @@ import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { useYardVehicle360 } from "@/src/contexts/YardVehicle360Context";
 import { canAccessYardScreen, hasDocksModuleAccess } from "@/src/lib/moduleAccess";
 import { canCallQueueEntry, filterQueueEntries } from "@/src/lib/queueActions";
+import { dockChipNavigation } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 import QueueEntrySheet from "@/src/components/yard/QueueEntrySheet";
 import QueueOverrideSheet from "@/src/components/yard/QueueOverrideSheet";
+import WeighWeightSheet from "@/src/components/yard/WeighWeightSheet";
 import { fetchAvailableDocks, type QueueEntryRow } from "@/src/services/queueService";
+import { formatYmsAlertMessage } from "@/src/lib/ymsErrors";
 import { YmsApiError } from "@/src/lib/ymsApi";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 
 export default function YardQueueScreen() {
+  useYardMoreBackHandler();
+  const router = useRouter();
   const { user, can, isYardAdmin } = useYardAuth();
   const { openVehicle360 } = useYardVehicle360();
   const params = useLocalSearchParams<{ q?: string }>();
@@ -40,10 +47,23 @@ export default function YardQueueScreen() {
   const [assignDocks, setAssignDocks] = useState<Awaited<ReturnType<typeof fetchAvailableDocks>>>([]);
   const [assignDocksLoading, setAssignDocksLoading] = useState(false);
   const [overrideOpen, setOverrideOpen] = useState(false);
+  const [tareOpen, setTareOpen] = useState(false);
+  const [tareEntry, setTareEntry] = useState<QueueEntryRow | null>(null);
+  const [readyOnly, setReadyOnly] = useState(false);
 
   const allowed = canAccessYardScreen("queue", can, isYardAdmin, user?.role);
   const canCall = can("*") || can(YMS_PERMISSIONS.FLOW_CALL);
+  const canWriteQueue = can("*") || can(YMS_PERMISSIONS.QUEUE_WRITE);
   const showDockChips = hasDocksModuleAccess(can);
+  const canOpenDocks = canAccessYardScreen("docks", can, isYardAdmin, user?.role);
+
+  const openDockSummary = useCallback(
+    (label: string) => {
+      const href = dockChipNavigation(label, () => canOpenDocks);
+      if (href) router.push(href);
+    },
+    [canOpenDocks, router],
+  );
 
   useEffect(() => {
     const q = typeof params.q === "string" ? params.q.trim() : "";
@@ -51,8 +71,8 @@ export default function YardQueueScreen() {
   }, [params.q]);
 
   const filteredEntries = useMemo(
-    () => filterQueueEntries(data?.entries || [], search),
-    [data?.entries, search],
+    () => filterQueueEntries(data?.entries || [], search, readyOnly),
+    [data?.entries, readyOnly, search],
   );
 
   const openEntry = useCallback(
@@ -146,12 +166,31 @@ export default function YardQueueScreen() {
     [closeSheet, mutations.overrideRank, refreshAll, selectedEntry],
   );
 
+  const handleTare = useCallback(
+    async (weightKg: number) => {
+      if (!tareEntry?.queueEntryId) return;
+      try {
+        await mutations.recordTare.mutateAsync({ queueEntryId: tareEntry.queueEntryId, weightKg });
+        Alert.alert("Tare recorded", `${tareEntry.plate || "Vehicle"} · ${weightKg.toLocaleString("en-IN")} kg`);
+        setTareOpen(false);
+        setTareEntry(null);
+        if (sheetOpen && selectedEntry?.queueEntryId === tareEntry.queueEntryId) {
+          setSelectedEntry({ ...selectedEntry, tareWeightKg: weightKg });
+        }
+        await refreshAll();
+      } catch (err) {
+        Alert.alert("Tare failed", formatYmsAlertMessage(err));
+      }
+    },
+    [mutations.recordTare, refreshAll, selectedEntry, sheetOpen, tareEntry],
+  );
+
   if (!allowed) {
     return <Redirect href="/(yard)/profile" />;
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -177,9 +216,24 @@ export default function YardQueueScreen() {
 
         {showDockChips && dockData?.summary ? (
           <View style={styles.dockStrip}>
-            <DockChip label="Available" value={dockData.summary.available} tone="success" />
-            <DockChip label="Occupied" value={dockData.summary.occupied} tone="warning" />
-            <DockChip label="Delayed" value={dockData.summary.delayed} tone="muted" />
+            <DockChip
+              label="Available"
+              value={dockData.summary.available}
+              tone="success"
+              onPress={canOpenDocks ? () => openDockSummary("Available") : undefined}
+            />
+            <DockChip
+              label="Occupied"
+              value={dockData.summary.occupied}
+              tone="warning"
+              onPress={canOpenDocks ? () => openDockSummary("Occupied") : undefined}
+            />
+            <DockChip
+              label="Delayed"
+              value={dockData.summary.delayed}
+              tone="muted"
+              onPress={canOpenDocks ? () => openDockSummary("Delayed") : undefined}
+            />
           </View>
         ) : null}
 
@@ -193,9 +247,26 @@ export default function YardQueueScreen() {
         ) : (
           <>
             <View style={styles.summaryRow}>
-              <SummaryChip label="In queue" value={data?.summary?.inQueue ?? data?.entries?.length ?? 0} />
-              <SummaryChip label="Avg wait" value={data?.summary?.avgWaitMin ?? 0} suffix="m" />
-              <SummaryChip label="Ready" value={data?.summary?.readyToCall ?? 0} />
+              <YardKpiStat
+                label="In queue"
+                value={data?.summary?.inQueue ?? data?.entries?.length ?? 0}
+                onPress={() => setReadyOnly(false)}
+                testID="queue-kpi-in-queue"
+                style={[styles.summaryChip, !readyOnly && styles.summaryChipActive]}
+              />
+              <YardKpiStat
+                label="Avg wait"
+                value={`${data?.summary?.avgWaitMin ?? 0}m`}
+                testID="queue-kpi-avg-wait"
+                style={styles.summaryChip}
+              />
+              <YardKpiStat
+                label="Ready"
+                value={data?.summary?.readyToCall ?? 0}
+                onPress={() => setReadyOnly(true)}
+                testID="queue-kpi-ready"
+                style={[styles.summaryChip, readyOnly && styles.summaryChipActive]}
+              />
             </View>
 
             {filteredEntries.map((entry) => {
@@ -216,6 +287,7 @@ export default function YardQueueScreen() {
                     <Text style={styles.meta}>{entry.transporter || "Transporter"} · Dock {entry.dockCode || "—"}</Text>
                     <Text style={styles.meta}>
                       Wait {entry.waitingMin ?? 0} min · Priority {entry.priorityScore ?? 0}
+                      {entry.tareWeightKg != null ? ` · TW ${Number(entry.tareWeightKg).toLocaleString("en-IN")} kg` : ""}
                     </Text>
                     {entry.recommendedDock?.dockCode ? (
                       <Text style={styles.recLine}>Suggested dock {entry.recommendedDock.dockCode}</Text>
@@ -242,6 +314,18 @@ export default function YardQueueScreen() {
                           <Text style={styles.quickCallText}>Call in</Text>
                         </TouchableOpacity>
                       ) : null}
+                      {canWriteQueue ? (
+                        <TouchableOpacity
+                          style={styles.quickTareBtn}
+                          onPress={() => {
+                            setTareEntry(entry);
+                            setTareOpen(true);
+                          }}
+                          testID={`queue-tare-${entry.queueEntryId}`}
+                        >
+                          <Text style={styles.quickTareText}>Tare</Text>
+                        </TouchableOpacity>
+                      ) : null}
                     </View>
                   </View>
                 </View>
@@ -263,6 +347,11 @@ export default function YardQueueScreen() {
         onCall={() => selectedEntry && void handleCall(selectedEntry)}
         onAssignDock={(dockId) => void handleAssignDock(dockId)}
         onOverride={() => setOverrideOpen(true)}
+        onTareWeight={() => {
+          if (!selectedEntry) return;
+          setTareEntry(selectedEntry);
+          setTareOpen(true);
+        }}
       />
 
       <QueueOverrideSheet
@@ -275,20 +364,35 @@ export default function YardQueueScreen() {
           void handleOverride(payload);
         }}
       />
+      <WeighWeightSheet
+        visible={tareOpen}
+        title="Tare weight"
+        subtitle={tareEntry?.plate ? `${tareEntry.plate} · empty truck weight` : undefined}
+        initialValue={tareEntry?.tareWeightKg != null ? String(tareEntry.tareWeightKg) : ""}
+        busy={mutations.busy}
+        onClose={() => {
+          setTareOpen(false);
+          setTareEntry(null);
+        }}
+        onSubmit={(weightKg) => {
+          void handleTare(weightKg);
+        }}
+      />
     </SafeAreaView>
   );
 }
 
-function SummaryChip({ label, value, suffix = "" }: { label: string; value: number; suffix?: string }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipValue}>{value}{suffix}</Text>
-      <Text style={styles.chipLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function DockChip({ label, value, tone }: { label: string; value: number; tone: "success" | "warning" | "muted" }) {
+function DockChip({
+  label,
+  value,
+  tone,
+  onPress,
+}: {
+  label: string;
+  value: number;
+  tone: "success" | "warning" | "muted";
+  onPress?: () => void;
+}) {
   const palette =
     tone === "success"
       ? { bg: colors.successBg, fg: colors.success }
@@ -296,12 +400,22 @@ function DockChip({ label, value, tone }: { label: string; value: number; tone: 
         ? { bg: colors.warningBg, fg: colors.warning }
         : { bg: colors.surfaceAlt, fg: colors.textSecondary };
 
-  return (
-    <View style={[styles.dockChip, { backgroundColor: palette.bg }]}>
+  const content = (
+    <>
       <Text style={[styles.dockChipValue, { color: palette.fg }]}>{value}</Text>
       <Text style={styles.dockChipLabel}>{label}</Text>
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity style={[styles.dockChip, { backgroundColor: palette.bg }]} onPress={onPress} activeOpacity={0.72}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={[styles.dockChip, { backgroundColor: palette.bg }]}>{content}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -334,16 +448,8 @@ const styles = StyleSheet.create({
   dockChipValue: { fontSize: 18, fontWeight: "900" },
   dockChipLabel: { fontSize: 10, fontWeight: "700", color: colors.textSecondary, marginTop: 4 },
   summaryRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
-  chip: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  chipValue: { fontSize: 20, fontWeight: "900", color: colors.text },
-  chipLabel: { fontSize: 10, fontWeight: "700", color: colors.textSecondary, marginTop: 4 },
+  summaryChip: { flex: 1 },
+  summaryChipActive: { borderColor: colors.shipgenOrange },
   rowCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -377,6 +483,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   quickCallText: { color: "#fff", fontSize: 11, fontWeight: "800" },
+  quickTareBtn: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: "#7dd3fc",
+    backgroundColor: "#f0f9ff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  quickTareText: { color: "#0369a1", fontSize: 11, fontWeight: "800" },
   muted: { fontSize: 13, color: colors.textMuted, marginTop: spacing.md },
   errorBox: {
     backgroundColor: colors.errorBg,

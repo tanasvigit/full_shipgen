@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const yardSrc = path.resolve(__dirname, "../yms/frontend_1/src");
+const pmsSrc = path.resolve(__dirname, "../Parking management/frontend/src");
 const fleetSrc = path.resolve(__dirname, "src");
 const enableHealthCheck = process.env.ENABLE_HEALTH_CHECK === "true";
 const startedAt = Date.now();
@@ -42,16 +43,32 @@ function isYardImporter(importer) {
   return importer.replace(/\\/g, "/").includes("/yms/frontend_1/");
 }
 
-/** Resolve `@/` to YMS or Shipgen src based on importer context. */
-function fleetAndYardAliasPlugin() {
+function isPmsImporter(importer) {
+  if (!importer) return false;
+  return importer.replace(/\\/g, "/").includes("/Parking management/");
+}
+
+function isEmbeddedImporter(importer) {
+  return isYardImporter(importer) || isPmsImporter(importer);
+}
+
+function embeddedSrcForImporter(importer) {
+  if (isYardImporter(importer)) return yardSrc;
+  if (isPmsImporter(importer)) return pmsSrc;
+  return null;
+}
+
+/** Resolve `@/` to YMS, PMS, or Shipgen src based on importer context. */
+function fleetAndEmbeddedAliasPlugin() {
   return {
-    name: "fleet-yard-alias",
+    name: "fleet-embedded-alias",
     enforce: "pre",
     resolveId(source, importer) {
       if (!source.startsWith("@/")) return null;
       const subpath = source.slice(2);
-      if (isYardImporter(importer)) {
-        return resolveWithExtensions(path.resolve(yardSrc, subpath));
+      const embeddedSrc = embeddedSrcForImporter(importer);
+      if (embeddedSrc) {
+        return resolveWithExtensions(path.resolve(embeddedSrc, subpath));
       }
       return resolveWithExtensions(path.resolve(fleetSrc, subpath));
     },
@@ -161,18 +178,19 @@ const YARD_DELEGATE_TO_VITE = new Set(["recharts", "react-redux"]);
 
 const fleetResolveAnchor = path.join(fleetSrc, "App.jsx");
 
-/** Resolve npm packages for YMS files to Shipgen node_modules using ESM entries. */
-function yardDependencyResolverPlugin() {
+/** Resolve npm packages for embedded engine files to Shipgen node_modules using ESM entries. */
+function embeddedDependencyResolverPlugin() {
   return {
-    name: "yard-dependency-resolver",
+    name: "embedded-dependency-resolver",
     enforce: "pre",
     async resolveId(source, importer) {
-      if (!isYardImporter(importer)) return null;
+      if (!isEmbeddedImporter(importer)) return null;
       if (
         source.startsWith(".") ||
         source.startsWith("/") ||
         source.startsWith("@/") ||
-        source.startsWith("@yard")
+        source.startsWith("@yard") ||
+        source.startsWith("@pms")
       ) {
         return null;
       }
@@ -269,14 +287,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
   const apiHost = (env.VITE_API_HOST || "http://localhost:8000").replace(/\/+$/, "");
   const ymsApiBase = env.VITE_YMS_API_BASE_URL || "/api/yms";
+  const pmsApiBase = env.VITE_PMS_API_BASE_URL || "/api/pms";
   const yardBasePath = env.VITE_YARD_BASE_PATH || "/yard";
+  const pmsBasePath = env.VITE_PMS_BASE_PATH || "/parking";
 
   return {
     plugins: [
-      fleetAndYardAliasPlugin(),
+      fleetAndEmbeddedAliasPlugin(),
       esToolkitCompatPlugin(),
       useSyncExternalStoreShimPlugin(),
-      yardDependencyResolverPlugin(),
+      embeddedDependencyResolverPlugin(),
       react({
         include: /\.[jt]sx?$/,
       }),
@@ -333,9 +353,13 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.REACT_APP_API_BASE_URL": JSON.stringify(ymsApiBase),
       "process.env.REACT_APP_YARD_BASE_PATH": JSON.stringify(yardBasePath),
+      "process.env.REACT_APP_PMS_BASE_PATH": JSON.stringify(pmsBasePath),
+      "process.env.REACT_APP_PMS_API_BASE_URL": JSON.stringify(pmsApiBase),
       "process.env.REACT_APP_ENABLE_DEV_ROLE_OVERRIDE": JSON.stringify(
         env.VITE_YMS_ENABLE_DEV_ROLE_OVERRIDE || "false",
       ),
+      "import.meta.env.VITE_PMS_BASE_PATH": JSON.stringify(pmsBasePath),
+      "import.meta.env.VITE_PMS_API_BASE_URL": JSON.stringify(pmsApiBase),
     },
     resolve: {
       dedupe: [
@@ -350,6 +374,7 @@ export default defineConfig(({ mode }) => {
       ],
       alias: {
         "@yard": yardSrc,
+        "@pms": pmsSrc,
         clsx: path.resolve(__dirname, "node_modules/clsx/dist/clsx.mjs"),
         jspdf: path.resolve(__dirname, "node_modules/jspdf/dist/jspdf.es.min.js"),
         "jspdf-autotable": path.resolve(
@@ -376,7 +401,39 @@ export default defineConfig(({ mode }) => {
           ws: true,
           changeOrigin: true,
         },
+        "/int/v1": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/fleet-ops": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/ledger": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/storefront": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/pallet": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/registry": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/~registry": {
+          target: apiHost,
+          changeOrigin: true,
+        },
         "/api/yms": {
+          target: apiHost,
+          changeOrigin: true,
+        },
+        "/api/pms": {
           target: apiHost,
           changeOrigin: true,
         },

@@ -17,6 +17,8 @@ import { useYardVehicle360 } from "@/src/contexts/YardVehicle360Context";
 import { canAccessYardScreen, YARD_ROLE } from "@/src/lib/moduleAccess";
 import { alertSeverityTone, formatAlertHeadline } from "@/src/lib/overviewMetrics";
 import type { OverviewKpi } from "@/src/lib/overviewMetrics";
+import { overviewKpiNavigation } from "@/src/lib/kpiNavigation";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
 
 export default function YardOverviewScreen() {
   const router = useRouter();
@@ -27,6 +29,19 @@ export default function YardOverviewScreen() {
   const allowed = canAccessYardScreen("overview", can, isYardAdmin, user?.role);
   const showQueueShortcut = user?.role === YARD_ROLE.MANAGER;
 
+  const canAccessScreen = useCallback(
+    (screen: string) => canAccessYardScreen(screen, can, isYardAdmin, user?.role),
+    [can, isYardAdmin, user?.role],
+  );
+
+  const openKpi = useCallback(
+    (key: string) => {
+      const href = overviewKpiNavigation(key, canAccessScreen);
+      if (href) router.push(href);
+    },
+    [canAccessScreen, router],
+  );
+
   const refreshAll = useCallback(async () => {
     await refetch();
   }, [refetch]);
@@ -36,7 +51,7 @@ export default function YardOverviewScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -67,18 +82,34 @@ export default function YardOverviewScreen() {
 
             <View style={styles.kpiGrid}>
               {(data?.kpis ?? []).map((item) => (
-                <KpiCard key={item.key} item={item} />
+                <KpiCard
+                  key={item.key}
+                  item={item}
+                  onPress={() => openKpi(item.key)}
+                  disabled={!overviewKpiNavigation(item.key, canAccessScreen)}
+                />
               ))}
             </View>
 
             <View style={styles.secondaryRow}>
               {(data?.secondaryKpis ?? []).map((item) => (
-                <SecondaryChip key={item.key} item={item} />
+                <SecondaryChip
+                  key={item.key}
+                  item={item}
+                  onPress={() => openKpi(item.key)}
+                  disabled={!overviewKpiNavigation(item.key, canAccessScreen)}
+                />
               ))}
             </View>
 
             {data?.yardUtilizationPct != null ? (
-              <View style={styles.utilCard}>
+              <TouchableOpacity
+                style={styles.utilCard}
+                activeOpacity={canAccessScreen("yard-map") ? 0.72 : 1}
+                disabled={!canAccessScreen("yard-map")}
+                onPress={() => openKpi("yard_util")}
+                testID="overview-yard-utilization"
+              >
                 <View style={styles.utilHeader}>
                   <Text style={styles.sectionTitle}>Yard utilization</Text>
                   <Text style={styles.utilValue}>{Math.round(data.yardUtilizationPct)}%</Text>
@@ -94,7 +125,7 @@ export default function YardOverviewScreen() {
                     ]}
                   />
                 </View>
-              </View>
+              </TouchableOpacity>
             ) : null}
 
             <View style={styles.section}>
@@ -193,7 +224,15 @@ export default function YardOverviewScreen() {
   );
 }
 
-function KpiCard({ item }: { item: OverviewKpi }) {
+function KpiCard({
+  item,
+  onPress,
+  disabled,
+}: {
+  item: OverviewKpi;
+  onPress: () => void;
+  disabled: boolean;
+}) {
   const toneColor =
     item.tone === "danger"
       ? colors.error
@@ -204,20 +243,43 @@ function KpiCard({ item }: { item: OverviewKpi }) {
           : colors.text;
 
   return (
-    <View style={styles.kpiCard} testID={`overview-kpi-${item.key}`}>
-      <Text style={[styles.kpiValue, { color: toneColor }]}>{item.value}</Text>
-      <Text style={styles.kpiLabel}>{item.label}</Text>
-      {item.hint ? <Text style={styles.kpiHint}>{item.hint}</Text> : null}
-    </View>
+    <YardKpiStat
+      label={item.label}
+      value={item.value}
+      hint={item.hint}
+      toneColor={toneColor}
+      onPress={onPress}
+      disabled={disabled}
+      testID={`overview-kpi-${item.key}`}
+      style={styles.kpiCard}
+    />
   );
 }
 
-function SecondaryChip({ item }: { item: OverviewKpi }) {
-  return (
-    <View style={styles.secondaryChip}>
+function SecondaryChip({
+  item,
+  onPress,
+  disabled,
+}: {
+  item: OverviewKpi;
+  onPress: () => void;
+  disabled: boolean;
+}) {
+  const body = (
+    <>
       <Text style={styles.secondaryValue}>{item.value}</Text>
       <Text style={styles.secondaryLabel}>{item.label}</Text>
-    </View>
+    </>
+  );
+
+  if (disabled) {
+    return <View style={styles.secondaryChip}>{body}</View>;
+  }
+
+  return (
+    <TouchableOpacity style={styles.secondaryChip} onPress={onPress} activeOpacity={0.72}>
+      {body}
+    </TouchableOpacity>
   );
 }
 
@@ -248,15 +310,7 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md },
   kpiCard: {
     width: "47%",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
   },
-  kpiValue: { fontSize: 22, fontWeight: "900", color: colors.text },
-  kpiLabel: { fontSize: 11, color: colors.textMuted, marginTop: 4, fontWeight: "600" },
-  kpiHint: { fontSize: 10, color: colors.textSecondary, marginTop: 4 },
   secondaryRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
   secondaryChip: {
     minWidth: "22%",

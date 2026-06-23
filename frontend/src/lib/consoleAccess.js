@@ -3,7 +3,7 @@
  * Matches FleetOps ability logic (type admin, Administrator role, see admin).
  */
 export function resolveConsoleAdmin(user, { canFleetops, hasPermission } = {}) {
-  if (!user || user.isYardOnly) return false;
+  if (!user || user.isYardOnly || user.isParkingOnly) return false;
   if (user.isAdmin) return true;
 
   const type = String(user?.raw?.type || user?.type || "").toLowerCase();
@@ -30,4 +30,10 @@ export function canAccessYardEngine(ctx) {
   if (ctx.sessionScope === "yard-only") return true;
   if (ctx.isConsoleAdmin) return true;
   return ctx.canYardModule("*");
+}
+
+export function canAccessParkingEngine(ctx) {
+  if (ctx.sessionScope === "parking-only") return true;
+  if (ctx.isConsoleAdmin) return true;
+  return false;
 }

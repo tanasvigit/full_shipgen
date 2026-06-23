@@ -121,6 +121,9 @@ class QueueEntryBase(BaseModel):
     called_time: Optional[datetime] = None
     dock_assigned_time: Optional[datetime] = None
     status: str = "WAITING"
+    tare_weight_kg: Optional[float] = None
+    gross_weight_kg: Optional[float] = None
+    net_weight_kg: Optional[float] = None
 
 
 class QueueEntryCreate(BaseModel):
@@ -782,6 +785,23 @@ class MoveVehicleRequest(BaseModel):
     created_by: str = "yard-ui"
 
 
+class WeighTareRequest(BaseModel):
+    weight_kg: float = Field(gt=0, le=200_000)
+    created_by: str = "queue-ui"
+
+
+class WeighGrossRequest(BaseModel):
+    weight_kg: float = Field(gt=0, le=200_000)
+    created_by: str = "dock-ui"
+
+
+class WeighingOut(BaseModel):
+    queueEntryId: str
+    tareWeightKg: Optional[float] = None
+    grossWeightKg: Optional[float] = None
+    netWeightKg: Optional[float] = None
+
+
 class QueueOverrideRequest(BaseModel):
     target_rank: int = Field(ge=1, le=500)
     reason: str = Field(min_length=3, max_length=500)
@@ -828,6 +848,9 @@ class QueueEntryMetricsOut(BaseModel):
     status: Optional[str] = None
     checkinTime: Optional[datetime] = None
     category: Optional[str] = None
+    tareWeightKg: Optional[float] = None
+    grossWeightKg: Optional[float] = None
+    netWeightKg: Optional[float] = None
 
 
 class QueueBundleSummaryOut(BaseModel):

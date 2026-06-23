@@ -9,6 +9,7 @@ export type DetentionRow = {
   cost: number;
   actualHours: number;
   category: string;
+  billingDate?: string | null;
   remarks?: string | null;
 };
 
@@ -33,6 +34,11 @@ function mapDetentionRow(row: Record<string, unknown>): DetentionRow {
     cost: Number(row.cost ?? 0),
     actualHours: Number(row.actual_hours ?? row.actualHours ?? 0),
     category: String(row.category || "—"),
+    billingDate: row.billing_date
+      ? String(row.billing_date).slice(0, 10)
+      : row.billingDate
+        ? String(row.billingDate).slice(0, 10)
+        : null,
     remarks: row.remarks ? String(row.remarks) : null,
   };
 }

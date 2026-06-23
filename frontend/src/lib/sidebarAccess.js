@@ -1,4 +1,5 @@
 import { MOD } from "@yard/constants/permissions";
+import { PARKING_SIDEBAR_PERMISSIONS } from "@/lib/parkingSidebar";
 
 /** Map Yard console sidebar routes to YMS module permissions. */
 export const YARD_SIDEBAR_PERMISSIONS = {
@@ -65,11 +66,21 @@ export const FLEETOPS_SIDEBAR_PERMISSIONS = {
  * @param {{ isAdmin?: boolean, hasPermission: (p: string) => boolean, canFleetops: (a: string, r: string) => boolean, canYardModule: (m: string) => boolean }} ctx
  */
 export function canAccessSidebarItem(item, sectionKey, ctx) {
-  if (ctx.isAdmin) return true;
+  if (ctx.isAdmin && sectionKey !== "/parking") return true;
 
   if (sectionKey === "/yard") {
     const mod = YARD_SIDEBAR_PERMISSIONS[item.to];
     return mod ? ctx.canYardModule(mod) : true;
+  }
+
+  if (sectionKey === "/parking") {
+    const perm = PARKING_SIDEBAR_PERMISSIONS[item.to];
+    if (!perm) return true;
+    const role = ctx.parkingRole;
+    if (role === "admin" && !item.to.startsWith("/parking/admin")) return false;
+    if (role === "supervisor" && !item.to.startsWith("/parking/supervisor")) return false;
+    if (role === "operator" && !item.to.startsWith("/parking/operator")) return false;
+    return ctx.canParkingModule?.(perm) ?? false;
   }
 
   if (sectionKey === "/iam") {

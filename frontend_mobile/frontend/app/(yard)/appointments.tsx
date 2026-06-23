@@ -22,33 +22,39 @@ import AppointmentDetailSheet from "@/src/components/yard/AppointmentDetailSheet
 import {
   appointmentDayKpis,
   appointmentLookupQuery,
+  filterAppointmentsByKpi,
   filterAppointmentsBySlot,
   groupAppointmentsBySlot,
   todayIsoDate,
+  type AppointmentKpiFilter,
   type AppointmentRow,
   type BookAppointmentForm,
 } from "@/src/lib/appointmentActions";
+import YardKpiStat from "@/src/components/yard/YardKpiStat";
+import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 import { YmsApiError } from "@/src/lib/ymsApi";
 
 const SLOT_FILTERS = ["ALL", "AM", "PM", "EVE"] as const;
 
 export default function YardAppointmentsScreen() {
+  useYardMoreBackHandler();
   const router = useRouter();
   const { user, can, isYardAdmin } = useYardAuth();
   const today = todayIsoDate();
   const { data, isLoading, isRefetching, refetch, error } = useGateAppointments(today);
   const mutations = useAppointmentMutations();
   const [slotFilter, setSlotFilter] = useState<(typeof SLOT_FILTERS)[number]>("ALL");
+  const [kpiFilter, setKpiFilter] = useState<AppointmentKpiFilter>("all");
   const [bookOpen, setBookOpen] = useState(false);
   const [detailRow, setDetailRow] = useState<AppointmentRow | null>(null);
 
   const allowed = canAccessYardScreen("appointments", can, isYardAdmin, user?.role);
   const canWrite = can("*") || can(YMS_PERMISSIONS.APPOINTMENT_WRITE);
 
-  const filteredRows = useMemo(
-    () => filterAppointmentsBySlot(data?.rows ?? [], slotFilter),
-    [data?.rows, slotFilter],
-  );
+  const filteredRows = useMemo(() => {
+    const bySlot = filterAppointmentsBySlot(data?.rows ?? [], slotFilter);
+    return filterAppointmentsByKpi(bySlot, kpiFilter);
+  }, [data?.rows, kpiFilter, slotFilter]);
   const grouped = useMemo(() => groupAppointmentsBySlot(filteredRows), [filteredRows]);
   const kpis = useMemo(() => appointmentDayKpis(data?.rows ?? []), [data?.rows]);
 
@@ -114,7 +120,7 @@ export default function YardAppointmentsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -136,18 +142,27 @@ export default function YardAppointmentsScreen() {
         </View>
 
         <View style={styles.kpiGrid}>
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>{kpis.total}</Text>
-            <Text style={styles.kpiLabel}>Total</Text>
-          </View>
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>{kpis.scheduled}</Text>
-            <Text style={styles.kpiLabel}>Scheduled</Text>
-          </View>
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>{kpis.delayed}</Text>
-            <Text style={styles.kpiLabel}>Delayed</Text>
-          </View>
+          <YardKpiStat
+            label="Total"
+            value={kpis.total}
+            onPress={() => setKpiFilter("all")}
+            testID="appointments-kpi-total"
+            style={[styles.kpiCard, kpiFilter === "all" && styles.kpiCardActive]}
+          />
+          <YardKpiStat
+            label="Scheduled"
+            value={kpis.scheduled}
+            onPress={() => setKpiFilter("scheduled")}
+            testID="appointments-kpi-scheduled"
+            style={[styles.kpiCard, kpiFilter === "scheduled" && styles.kpiCardActive]}
+          />
+          <YardKpiStat
+            label="Delayed"
+            value={kpis.delayed}
+            onPress={() => setKpiFilter("delayed")}
+            testID="appointments-kpi-delayed"
+            style={[styles.kpiCard, kpiFilter === "delayed" && styles.kpiCardActive]}
+          />
         </View>
 
         <View style={styles.slotRow}>
@@ -251,16 +266,8 @@ const styles = StyleSheet.create({
   },
   bookBtnText: { color: "#fff", fontWeight: "800", fontSize: 12 },
   kpiGrid: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
-  kpiCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  kpiValue: { fontSize: 22, fontWeight: "900", color: colors.text },
-  kpiLabel: { fontSize: 10, color: colors.textSecondary, marginTop: 4, fontWeight: "700" },
+  kpiCard: { flex: 1 },
+  kpiCardActive: { borderColor: colors.shipgenOrange },
   slotRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
   slotBtn: {
     borderWidth: 1,

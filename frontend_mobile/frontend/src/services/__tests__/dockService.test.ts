@@ -50,4 +50,25 @@ describe("dockService permissions", () => {
     expect(row.vehicleId).toBe("v1");
     expect(row.plate).toBe("ABC-123");
   });
+
+  it("maps weighing fields from queue entry", () => {
+    const row = mapDockBoardRow(
+      { id: "d1", dock_code: "D-01", dock_name: "Dock 1", status: "OCCUPIED", current_vehicle_id: "v1" },
+      { id: "v1", vehicle_number: "TN-01", status: "LOADING" },
+      {
+        id: "q1",
+        vehicle_id: "v1",
+        dock_id: "d1",
+        status: "LOADING",
+        tare_weight_kg: 4000,
+        gross_weight_kg: 11000,
+        net_weight_kg: 7000,
+      },
+    );
+
+    expect(row.queueEntryId).toBe("q1");
+    expect(row.tareWeightKg).toBe(4000);
+    expect(row.grossWeightKg).toBe(11000);
+    expect(row.netWeightKg).toBe(7000);
+  });
 });

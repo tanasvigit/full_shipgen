@@ -5,7 +5,25 @@ const apiHostFromLocation =
     ? window.location.origin
     : "http://localhost:8000";
 
-const API_HOST = trimTrailingSlash(import.meta.env.VITE_API_HOST || apiHostFromLocation);
+function resolveApiHost() {
+  const configured = trimTrailingSlash(import.meta.env.VITE_API_HOST || "");
+  if (!configured) return apiHostFromLocation;
+
+  // Vite dev (e.g. :5173) must not call the gateway (:8000) directly — browser CORS blocks it.
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    try {
+      if (new URL(configured).origin !== window.location.origin) {
+        return apiHostFromLocation;
+      }
+    } catch {
+      return apiHostFromLocation;
+    }
+  }
+
+  return configured;
+}
+
+const API_HOST = resolveApiHost();
 const API_NAMESPACE = (import.meta.env.VITE_API_NAMESPACE || "int/v1").replace(/^\/+/, "");
 const API_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS || 20000);
 const INSTALLER_API_TIMEOUT_MS = Number(import.meta.env.VITE_INSTALLER_API_TIMEOUT_MS || 600000);
