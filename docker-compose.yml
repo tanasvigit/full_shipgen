@@ -122,7 +122,20 @@ services:
       cache:
         condition: service_healthy
 
-  # React UI runs locally (not in Docker): cd frontend && npm run dev -> http://localhost:5173
+  # Shipgen React console — nginx serves dist + proxies API/socket to gateway.
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: shipgen-frontend:local
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      gateway:
+        condition: service_started
+      socket:
+        condition: service_started
 
   # Phase 0 API gateway — public :8000; path routing + session introspection for domain APIs.
   gateway:
