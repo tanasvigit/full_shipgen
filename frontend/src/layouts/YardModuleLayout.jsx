@@ -5,10 +5,13 @@ import ModuleRoute from "@yard/components/auth/ModuleRoute";
 import { MOD } from "@yard/constants/permissions";
 import { yardPath } from "@yard/constants/basePath";
 import { AuthProvider as YardAuthProvider } from "@yard/contexts/AuthContext";
+import { EmbeddedYardAccessProvider } from "@yard/contexts/EmbeddedYardAccessContext";
 import YardShell from "@/components/yard/YardShell";
 import YardPlatformSession from "@/components/yard/YardPlatformSession";
 import YardUnauthorized from "@/pages/yard/YardUnauthorized";
 import SuspenseFallback from "@/components/loaders/transitions/SuspenseFallback";
+import { useAuth } from "@/contexts/AuthContext";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
 
 import "@yard/index.css";
 
@@ -80,6 +83,21 @@ function YardRoutesInner() {
   );
 }
 
+function YardModuleLayoutInner() {
+  const { user, hasPermission, canFleetops } = useAuth();
+  const grantAllModules = resolveConsoleAdmin(user, { canFleetops, hasPermission });
+
+  return (
+    <EmbeddedYardAccessProvider grantAllModules={grantAllModules}>
+      <YardAuthProvider>
+        <YardPlatformSession>
+          <YardRoutesInner />
+        </YardPlatformSession>
+      </YardAuthProvider>
+    </EmbeddedYardAccessProvider>
+  );
+}
+
 export default function YardModuleLayout() {
   const location = useLocation();
 
@@ -98,11 +116,7 @@ export default function YardModuleLayout() {
 
   return (
     <QueryClientProvider client={yardQueryClient}>
-      <YardAuthProvider>
-        <YardPlatformSession>
-          <YardRoutesInner />
-        </YardPlatformSession>
-      </YardAuthProvider>
+      <YardModuleLayoutInner />
     </QueryClientProvider>
   );
 }

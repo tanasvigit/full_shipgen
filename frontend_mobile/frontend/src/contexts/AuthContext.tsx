@@ -8,6 +8,7 @@ import { stopRuntime } from "@/src/runtime/lifecycle";
 import { offlineQueue } from "@/src/offline/queue";
 import { createPermissionResolver } from "@/src/services/permissions";
 import { captureError, clearObservabilityContext } from "@/src/services/observability";
+import { ensureYardPlatformBridge } from "@/src/lib/yardPlatformBridge";
 import type { UserDTO } from "@/src/types/api/auth";
 
 type AuthContextValue = {
@@ -66,6 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(result.me);
       setOrganizations(result.organizations);
       setActiveOrganization(result.activeOrg);
+      if (result.me) {
+        const bridged = await ensureYardPlatformBridge(result.me);
+        if (bridged) {
+          DeviceEventEmitter.emit("shipgen:yard-session-bridge");
+        }
+      }
     } catch (error) {
       captureError(error, { operation: "auth.refresh" });
       await clearSession();

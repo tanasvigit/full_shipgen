@@ -335,7 +335,17 @@ async def _fetch_platform_userinfo(platform_token: str) -> dict[str, Any]:
         or email.split("@", 1)[0]
     )
     user_type = str(user.get("type") or "").lower()
-    is_admin = bool(user.get("is_admin") or user_type == "admin")
+    role_raw = user.get("role")
+    role_name = str(
+        user.get("role_name")
+        or (role_raw.get("name") if isinstance(role_raw, dict) else role_raw)
+        or ""
+    ).lower()
+    is_admin = bool(
+        user.get("is_admin")
+        or user_type == "admin"
+        or role_name in ("admin", "administrator")
+    )
 
     return {
         "email": email,
@@ -346,6 +356,34 @@ async def _fetch_platform_userinfo(platform_token: str) -> dict[str, Any]:
 
 def _default_platform_role(identity: dict[str, Any]) -> str:
     return "yard_admin" if identity.get("is_admin") else "yard_manager"
+
+
+async def _assign_user_role(user_id: uuid.UUID, role_code: str) -> None:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        role_row = await conn.fetchrow("SELECT id FROM roles WHERE code = $1", role_code)
+        if role_row is None:
+            raise HTTPException(status_code=500, detail=f"Yard role not configured: {role_code}")
+        await conn.execute("DELETE FROM user_roles WHERE user_id = $1", user_id)
+        await conn.execute(
+            """
+            INSERT INTO user_roles (user_id, role_id)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING
+            """,
+            user_id,
+            role_row["id"],
+        )
+
+
+async def _get_user_id_by_email(email: str) -> uuid.UUID | None:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND is_active = TRUE",
+            email.strip(),
+        )
+        return row["id"] if row else None
 
 
 async def provision_platform_user(
@@ -403,11 +441,25 @@ async def provision_platform_user(
 
 async def authenticate_platform_token(platform_token: str) -> dict[str, Any]:
     identity = await _fetch_platform_userinfo(platform_token)
+    role_code = _default_platform_role(identity)
     existing = await get_user_by_email(identity["email"])
+
     if existing is not None:
+        if identity.get("is_admin") and existing["role"] != "yard_admin":
+            user_id = uuid.UUID(existing["user_id"])
+            await _assign_user_role(user_id, "yard_admin")
+            upgraded = await get_user_by_id(str(user_id))
+            if upgraded is not None:
+                return upgraded
         return existing
 
-    role_code = _default_platform_role(identity)
+    user_id = await _get_user_id_by_email(identity["email"])
+    if user_id is not None:
+        await _assign_user_role(user_id, role_code)
+        linked = await get_user_by_id(str(user_id))
+        if linked is not None:
+            return linked
+
     return await provision_platform_user(
         email=identity["email"],
         display_name=identity["display_name"],

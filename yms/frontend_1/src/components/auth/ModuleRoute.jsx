@@ -1,12 +1,14 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useEmbeddedYardAccess } from "../../contexts/EmbeddedYardAccessContext";
 import { getAccessToken, getRefreshToken } from "../../services/authStorage";
 import { YARD_EMBEDDED, yardAuthPath, yardUnauthorizedPath } from "../../constants/basePath";
 
 /** Enforces module permission for a single page inside the app shell. */
 export function ModuleRoute({ module, children }) {
   const { ready, isAuthenticated, can } = useAuth();
+  const { grantAllModules } = useEmbeddedYardAccess();
   const hasStoredSession = Boolean(getAccessToken() || getRefreshToken());
 
   if (!hasStoredSession && !isAuthenticated) {
@@ -32,7 +34,7 @@ export function ModuleRoute({ module, children }) {
     return <Navigate to={yardAuthPath()} replace />;
   }
 
-  if (module && !can(module)) {
+  if (module && !grantAllModules && !can(module)) {
     return <Navigate to={yardUnauthorizedPath()} replace />;
   }
 

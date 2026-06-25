@@ -52,8 +52,14 @@ export function YardAuthProvider({ children }: { children: React.ReactNode }) {
     const sub = DeviceEventEmitter.addListener("shipgen:yard-unauthorized", () => {
       void clearSession();
     });
-    return () => sub.remove();
-  }, [clearSession]);
+    const bridgeSub = DeviceEventEmitter.addListener("shipgen:yard-session-bridge", () => {
+      void refresh();
+    });
+    return () => {
+      sub.remove();
+      bridgeSub.remove();
+    };
+  }, [clearSession, refresh]);
 
   const login = useCallback(
     async (email: string, password: string) => {

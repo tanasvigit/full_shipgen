@@ -36,6 +36,26 @@ export const ymsAuthService = {
     await setStoredYardSession(null);
   },
 
+  /** Exchange Shipgen Fleetops session for a Yard JWT (console administrators). */
+  async platformLogin(platformAccessToken: string) {
+    logEvent("yms.auth.platform_login.start");
+    const data = await ymsRequest<{ access_token: string; refresh_token: string }>("/auth/platform-login", {
+      method: "POST",
+      auth: false,
+      headers: { Authorization: `Bearer ${platformAccessToken}` },
+      body: {},
+    });
+    await setStoredYardSession({
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+    });
+    const result = await this.bootstrap();
+    if (result.me) {
+      logEvent("yms.auth.platform_login.success", { role: result.me.role, username: result.me.username });
+    }
+    return result;
+  },
+
   async login(identity: string, password: string) {
     logEvent("yms.auth.login.start", { identity: identity.trim() });
     const data = await ymsRequest<{ access_token: string; refresh_token: string }>("/auth/login", {

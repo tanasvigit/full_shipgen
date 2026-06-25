@@ -68,17 +68,21 @@ async function parseJsonSafe(response: Response) {
   }
 }
 
-function getErrorMessage(payload: any) {
+function getErrorMessage(payload: any, status?: number) {
   if (Array.isArray(payload?.errors) && payload.errors.length > 0) return String(payload.errors[0]);
   if (typeof payload?.error === "string") return payload.error;
   if (typeof payload?.message === "string") return payload.message;
+  if (typeof payload === "string" && payload.includes("405 Not Allowed")) {
+    return "API route unavailable (405). Check EXPO_PUBLIC_API_BASE_URL.";
+  }
+  if (status && status >= 400) return `Request failed (${status})`;
   return "Unexpected API error";
 }
 
 /** Permission denial (401/403) — not an expired/invalid session. */
 export function isPermissionDenied(status: number, payload: unknown) {
   if (status !== 401 && status !== 403) return false;
-  const message = getErrorMessage(payload).toLowerCase();
+  const message = getErrorMessage(payload, status).toLowerCase();
   if (message.includes("not authorized") || message.includes("unauthorized to")) return true;
   if (message.includes("there is nothing to see here")) return true;
   return false;
@@ -90,7 +94,7 @@ function isAuthFailure(status: number, path: string, payload: unknown) {
   if (path === "/auth/login") return false;
   if (isPermissionDenied(status, payload)) return false;
   if (path.startsWith("/auth/") || path === "/users/me") return true;
-  const message = getErrorMessage(payload).toLowerCase();
+  const message = getErrorMessage(payload, status).toLowerCase();
   return (
     message.includes("unauthenticated") ||
     message.includes("invalid token") ||
@@ -146,7 +150,7 @@ export async function apiRequest<T = any>(path: string, options: RequestOptions 
         status: response.status,
       });
     }
-    throw new ApiError(getErrorMessage(payload), response.status, payload);
+    throw new ApiError(getErrorMessage(payload, response.status), response.status, payload);
   }
 
   logEvent("api.success", { path, method, status: response.status });

@@ -14,6 +14,7 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   auth?: boolean;
+  headers?: Record<string, string>;
 };
 
 export class YmsApiError extends Error {
@@ -66,9 +67,10 @@ async function refreshYardSession(refreshToken: string) {
 }
 
 export async function ymsRequest<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = options;
+  const { method = "GET", body, auth = true, headers: extraHeaders } = options;
   const headers: Record<string, string> = {
     Accept: "application/json",
+    ...(extraHeaders ?? {}),
   };
 
   if (body !== undefined) {
@@ -76,7 +78,7 @@ export async function ymsRequest<T = unknown>(path: string, options: RequestOpti
   }
 
   let session = auth ? await getStoredYardSession() : null;
-  if (auth && session?.accessToken) {
+  if (auth && session?.accessToken && !headers.Authorization) {
     headers.Authorization = `Bearer ${session.accessToken}`;
   }
 
