@@ -9,7 +9,7 @@ import { extractBorderGeometry, toLeafletPolygon } from "@/lib/fleetops/geofence
 import { deviceEventLabel } from "@/lib/fleetops/connectivityResourcePayloads";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
-import { formatMoney } from "@/lib/formatMoney";
+import { formatMoney, formatMoneyField } from "@/lib/formatMoney";
 import { serviceRatePerDistanceLabel } from "@/lib/fleetops/serviceRatePayloads";
 
 /** Coerce API values (including nested relations) to a render-safe string. */
@@ -206,6 +206,34 @@ export const CRUD_ENTITIES = {
       { name: "odometer", label: "Odometer (km)" },
       { name: "reported_at", label: "Reported at" },
       { name: "status", label: "Status" },
+    ],
+    listColumns: [
+      {
+        key: "name",
+        header: "Reference",
+        sortable: true,
+        render: (r) => <span className="text-[#0066FF] font-medium">{r.name}</span>,
+      },
+      { key: "volume", header: "Volume (L)", render: (r) => r.raw?.volume ?? "—" },
+      {
+        key: "cost",
+        header: "Cost",
+        render: (r) => formatMoneyField(r.raw?.cost),
+      },
+      {
+        key: "status",
+        header: "Status",
+        render: (r) => <StatusBadge status={r.status} label={String(r.status || "—")} />,
+      },
+      { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
+    ],
+    displayFields: (raw) => [
+      { label: "Reference", value: raw?.name || "—" },
+      { label: "Volume (L)", value: raw?.volume ?? "—" },
+      { label: "Cost", value: formatMoneyField(raw?.cost) },
+      { label: "Odometer (km)", value: raw?.odometer ?? "—" },
+      { label: "Status", value: raw?.status || "—" },
+      { label: "Reported at", value: raw?.reported_at ? String(raw.reported_at).slice(0, 16) : "—" },
     ],
   },
   issue: {
@@ -446,9 +474,9 @@ export const CRUD_ENTITIES = {
       { label: "Completed", value: raw?.completed_at ? String(raw.completed_at).slice(0, 16) : "—" },
       { label: "Odometer", value: raw?.odometer ?? "—" },
       { label: "Engine hours", value: raw?.engine_hours ?? "—" },
-      { label: "Labor cost", value: raw?.labor_cost?.amount ?? raw?.labor_cost ?? "—" },
-      { label: "Parts cost", value: raw?.parts_cost?.amount ?? raw?.parts_cost ?? "—" },
-      { label: "Total cost", value: raw?.total_cost?.amount ?? raw?.total_cost ?? "—" },
+      { label: "Labor cost", value: formatMoneyField(raw?.labor_cost) },
+      { label: "Parts cost", value: formatMoneyField(raw?.parts_cost) },
+      { label: "Total cost", value: formatMoneyField(raw?.total_cost) },
       { label: "Notes", value: raw?.notes || "—" },
     ],
   },
@@ -486,9 +514,9 @@ export const CRUD_ENTITIES = {
       { label: "Asset", value: subjectLabel(raw) },
       { label: "Assignee", value: assigneeLabel(raw) },
       { label: "Due at", value: raw?.due_at ? String(raw.due_at).slice(0, 16) : "—" },
-      { label: "Estimated cost", value: raw?.estimated_cost?.amount ?? raw?.estimated_cost ?? "—" },
-      { label: "Approved budget", value: raw?.approved_budget?.amount ?? raw?.approved_budget ?? "—" },
-      { label: "Actual cost", value: raw?.actual_cost?.amount ?? raw?.actual_cost ?? "—" },
+      { label: "Estimated cost", value: formatMoneyField(raw?.estimated_cost) },
+      { label: "Approved budget", value: formatMoneyField(raw?.approved_budget) },
+      { label: "Actual cost", value: formatMoneyField(raw?.actual_cost) },
       { label: "Instructions", value: raw?.instructions || "—" },
     ],
   },
@@ -526,7 +554,7 @@ export const CRUD_ENTITIES = {
       { label: "Attached to", value: raw?.equipped_to_name || "—" },
       { label: "Warranty", value: raw?.warranty_name || "—" },
       { label: "Purchased", value: raw?.purchased_at ? String(raw.purchased_at).slice(0, 10) : "—" },
-      { label: "Purchase price", value: raw?.purchase_price?.amount ?? raw?.purchase_price ?? "—" },
+      { label: "Purchase price", value: formatMoneyField(raw?.purchase_price) },
       { label: "Status", value: raw?.status || "—" },
     ],
   },
@@ -564,8 +592,8 @@ export const CRUD_ENTITIES = {
       { label: "Name", value: raw?.name || "—" },
       { label: "SKU", value: raw?.sku || "—" },
       { label: "Quantity on hand", value: raw?.quantity_on_hand ?? "—" },
-      { label: "Unit cost", value: raw?.unit_cost?.amount ?? raw?.unit_cost ?? "—" },
-      { label: "MSRP", value: raw?.msrp?.amount ?? raw?.msrp ?? "—" },
+      { label: "Unit cost", value: formatMoneyField(raw?.unit_cost) },
+      { label: "MSRP", value: formatMoneyField(raw?.msrp) },
       { label: "Vendor", value: raw?.vendor_name || "—" },
       { label: "Manufacturer", value: raw?.manufacturer || "—" },
       { label: "Barcode", value: raw?.barcode || "—" },
@@ -729,14 +757,14 @@ export const CRUD_ENTITIES = {
       { key: "type", header: "Type", sortable: true, render: (r) => <span className="text-[#0066FF] font-medium">{r.raw?.type || r.type || "—"}</span> },
       { key: "pickup", header: "Pickup", render: (r) => r.raw?.pickup?.name || r.raw?.pickup_name || r.raw?.pickup?.public_id || "—" },
       { key: "dropoff", header: "Dropoff", render: (r) => r.raw?.dropoff?.name || r.raw?.dropoff_name || r.raw?.dropoff?.public_id || "—" },
-      { key: "cod", header: "COD", render: (r) => (r.raw?.cod_amount ? `${r.raw.cod_amount} ${r.raw.cod_currency || ""}`.trim() : "—") },
+      { key: "cod", header: "COD", render: (r) => (r.raw?.cod_amount != null ? formatMoney(r.raw.cod_amount) : "—") },
       { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
     ],
     displayFields: (raw) => [
       { label: "Type", value: raw?.type || "—" },
       { label: "Pickup", value: raw?.pickup?.name || raw?.pickup?.public_id || "—" },
       { label: "Dropoff", value: raw?.dropoff?.name || raw?.dropoff?.public_id || "—" },
-      { label: "COD", value: raw?.cod_amount ? `${raw.cod_amount} ${raw.cod_currency || ""}`.trim() : "—" },
+      { label: "COD", value: raw?.cod_amount != null ? formatMoney(raw.cod_amount) : "—" },
       { label: "Payment method", value: raw?.cod_payment_method || "—" },
     ],
   },
@@ -853,7 +881,7 @@ export const CRUD_ENTITIES = {
           purchaseRateRef(raw?.service_quote) ||
           raw?.service_quote_id ||
           (raw?.service_quote?.amount != null
-            ? `${raw.service_quote.amount} ${raw.service_quote.currency || ""}`.trim()
+            ? formatMoney(raw.service_quote.amount)
             : null) ||
           "—",
       },
@@ -861,7 +889,7 @@ export const CRUD_ENTITIES = {
         label: "Amount",
         value:
           raw?.amount != null || raw?.service_quote?.amount != null
-            ? `${raw?.amount ?? raw?.service_quote?.amount} ${raw?.currency || raw?.service_quote?.currency || ""}`.trim()
+            ? formatMoney(raw?.amount ?? raw?.service_quote?.amount)
             : "—",
       },
       {
@@ -978,19 +1006,19 @@ export const CRUD_ENTITIES = {
       {
         key: "base_fee",
         header: "Base fee",
-        render: (r) => formatMoney(r.raw?.base_fee, r.raw?.currency || "INR"),
+        render: (r) => formatMoney(r.raw?.base_fee),
       },
       { key: "per_distance", header: "Per distance", render: (r) => serviceRatePerDistanceLabel(r.raw || {}) },
-      { key: "currency", header: "Currency", render: (r) => r.raw?.currency || "—" },
+      { key: "currency", header: "Currency", render: (r) => "INR" },
       { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
     ],
     displayFields: (raw) => [
       { label: "Name", value: raw?.service_name || "—" },
       { label: "Service type", value: raw?.service_type || "—" },
       { label: "Calculation method", value: raw?.rate_calculation_method || "—" },
-      { label: "Base fee", value: formatMoney(raw?.base_fee, raw?.currency || "INR") },
+      { label: "Base fee", value: formatMoney(raw?.base_fee) },
       { label: "Per distance", value: serviceRatePerDistanceLabel(raw || {}) },
-      { label: "Currency", value: raw?.currency || "—" },
+      { label: "Currency", value: "INR" },
     ],
   },
   fleet: {

@@ -16,7 +16,7 @@ import {
   serviceRatePerDistanceLabel,
   serviceRateRowId,
 } from "@/lib/fleetops/serviceRatePayloads";
-import { formatMoney } from "@/lib/formatMoney";
+import { formatMoney, normalizeDisplayCurrency } from "@/lib/formatMoney";
 import { toast } from "sonner";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
@@ -168,7 +168,7 @@ export default function ServiceRatesList() {
       key: "base_fee",
       header: "Base fee",
       sortable: true,
-      render: (row) => formatMoney(row.base_fee ?? row.baseFee, row.currency || "INR"),
+      render: (row) => formatMoney(row.base_fee ?? row.baseFee),
     },
     {
       key: "per_distance",
@@ -178,7 +178,7 @@ export default function ServiceRatesList() {
     {
       key: "currency",
       header: "Currency",
-      render: (row) => row.currency || "—",
+      render: (row) => normalizeDisplayCurrency(row.currency),
     },
     {
       key: "actions",

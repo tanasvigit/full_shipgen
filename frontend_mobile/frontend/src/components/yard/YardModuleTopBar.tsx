@@ -1,18 +1,15 @@
-import { useCallback, useMemo } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { useYardMoreFlow } from "@/src/contexts/YardMoreFlowContext";
 import { visibleYardModuleLinks, type YardModuleLink } from "@/src/lib/yardModules";
 import {
   activeYardModuleKey,
   navigateYardModule,
-  returnToMoreHub,
-  shouldReturnToMoreHub,
   shouldShowYardModuleTopBar,
-  yardModuleShortLabel,
 } from "@/src/lib/yardModuleNavigation";
 
 const MORE_HUB_LINK: YardModuleLink = {
@@ -30,10 +27,10 @@ export default function YardModuleTopBar() {
   const pathname = usePathname();
   const { user, can, isYardAdmin } = useYardAuth();
   const { inMoreFlow } = useYardMoreFlow();
+  const [open, setOpen] = useState(false);
 
   const activeKey = activeYardModuleKey(pathname);
   const visible = shouldShowYardModuleTopBar(pathname, inMoreFlow);
-  const showMoreBack = shouldReturnToMoreHub(pathname, inMoreFlow);
 
   const modules = useMemo(() => {
     const links = visibleYardModuleLinks(can, isYardAdmin, user?.role, {
@@ -42,6 +39,11 @@ export default function YardModuleTopBar() {
     return [MORE_HUB_LINK, ...links];
   }, [can, isYardAdmin, user?.role]);
 
+  const activeLink = useMemo(
+    () => modules.find((link) => link.key === activeKey) ?? modules[1] ?? modules[0],
+    [modules, activeKey],
+  );
+
   const openModule = useCallback(
     (link: YardModuleLink) => {
       navigateYardModule(router, link, "more");
@@ -49,103 +51,155 @@ export default function YardModuleTopBar() {
     [router],
   );
 
+  const select = useCallback(
+    (link: YardModuleLink) => {
+      setOpen(false);
+      openModule(link);
+    },
+    [openModule],
+  );
+
   if (!visible || !modules.length) return null;
 
   return (
-    <View style={styles.root}>
-      {showMoreBack ? (
-        <TouchableOpacity
-          style={styles.backRow}
-          onPress={() => returnToMoreHub(router)}
-          testID="yard-module-back-more"
-          activeOpacity={0.75}
-        >
-          <Ionicons name="chevron-back" size={18} color={colors.shipgenOrange} />
-          <Text style={styles.backText}>Modules</Text>
-        </TouchableOpacity>
-      ) : null}
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.strip}
-        keyboardShouldPersistTaps="handled"
+    <View style={styles.wrap}>
+      <TouchableOpacity
+        testID="yard-modules-trigger"
+        style={styles.trigger}
+        activeOpacity={0.75}
+        onPress={() => setOpen(true)}
       >
-        {modules.map((link) => {
-          const active = link.key === activeKey;
-          const label = yardModuleShortLabel(link.key, link.title);
-          return (
-            <TouchableOpacity
-              key={link.key}
-              style={[styles.chip, active && styles.chipActive]}
-              onPress={() => openModule(link)}
-              testID={`yard-module-chip-${link.key}`}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={link.icon as keyof typeof Ionicons.glyphMap}
-                size={14}
-                color={active ? colors.shipgenOrange : colors.textMuted}
-              />
-              <Text style={[styles.chipLabel, active && styles.chipLabelActive]} numberOfLines={1}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        <Ionicons name="menu" size={26} color={colors.text} />
+        <View style={styles.triggerLabelWrap}>
+          {activeLink ? (
+            <Ionicons
+              name={activeLink.icon as keyof typeof Ionicons.glyphMap}
+              size={17}
+              color={colors.brand}
+            />
+          ) : null}
+          <Text style={styles.triggerLabel} numberOfLines={1}>
+            {activeLink?.title ?? "Modules"}
+          </Text>
+        </View>
+        <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Modules</Text>
+              <TouchableOpacity onPress={() => setOpen(false)} hitSlop={8}>
+                <Ionicons name="close" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.list} bounces={false}>
+              {modules.map((link) => {
+                const isActive = link.key === activeKey;
+                return (
+                  <TouchableOpacity
+                    key={link.key}
+                    testID={`yard-module-item-${link.key}`}
+                    style={[styles.item, isActive && styles.itemActive]}
+                    activeOpacity={0.75}
+                    onPress={() => select(link)}
+                  >
+                    <View style={[styles.itemIcon, isActive && styles.itemIconActive]}>
+                      <Ionicons
+                        name={link.icon as keyof typeof Ionicons.glyphMap}
+                        size={17}
+                        color={isActive ? "#fff" : colors.text}
+                      />
+                    </View>
+                    <Text style={[styles.itemLabel, isActive && styles.itemLabelActive]}>
+                      {link.title}
+                    </Text>
+                    {isActive ? (
+                      <Ionicons name="checkmark" size={18} color={colors.brand} />
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    backgroundColor: colors.surface,
+  wrap: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  backRow: {
+  trigger: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.xs,
-  },
-  backText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: colors.shipgenOrange,
-  },
-  strip: {
     gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    paddingTop: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 56,
   },
-  chip: {
+  triggerLabelWrap: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    borderRadius: radius.pill,
+  },
+  triggerLabel: { fontSize: 16, fontWeight: "800", color: colors.text },
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    maxHeight: "70%",
+    overflow: "hidden",
+    ...shadow.lg,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sheetTitle: { fontSize: 13, fontWeight: "800", letterSpacing: 1, color: colors.textMuted },
+  list: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+  },
+  itemActive: { backgroundColor: colors.brandSoft },
+  itemIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.bg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    maxWidth: 132,
   },
-  chipActive: {
-    borderColor: colors.shipgenOrange,
-    backgroundColor: `${colors.shipgenOrange}14`,
-  },
-  chipLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: colors.textSecondary,
-    flexShrink: 1,
-  },
-  chipLabelActive: {
-    color: colors.shipgenOrange,
-  },
+  itemIconActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  itemLabel: { flex: 1, fontSize: 15, fontWeight: "700", color: colors.text },
+  itemLabelActive: { color: colors.brand },
 });

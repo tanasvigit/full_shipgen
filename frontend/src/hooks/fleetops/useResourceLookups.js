@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fleetopsService } from "@/services/fleetops";
 import { parseApiError } from "@/lib/errors";
+import { formatMoney } from "@/lib/formatMoney";
 
 /** Prefer public_id for API payloads; fall back to uuid. */
 export function resourceOption(row, labelKeys = ["name", "public_id"], prefix = "") {
@@ -46,8 +47,7 @@ function trackingNumberOption(row) {
 
 export function serviceQuoteOption(row) {
   const amount = row?.amount ?? row?.total;
-  const currency = row?.currency || "";
-  const price = amount != null ? ` — ${amount}${currency ? ` ${currency}` : ""}` : "";
+  const price = amount != null ? ` — ${formatMoney(amount)}` : "";
   const opt = resourceOption(row, ["public_id", "request_id"]);
   if (!opt) return null;
   const uuid = String(row?.uuid || row?.id || opt.uuid || "");

@@ -150,7 +150,7 @@ export default function PromotionsList() {
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="This weekend only — get 20% off every order over $25."
+              placeholder="This weekend only — get 20% off every order over ₹2,000."
               className="bg-[#F1F2F5] border-black/[0.08] min-h-[120px]"
               data-testid="promotion-body"
             />
