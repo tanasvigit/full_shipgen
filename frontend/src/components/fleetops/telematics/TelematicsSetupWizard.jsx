@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,24 +11,47 @@ import { parseApiError } from "@/lib/errors";
 
 const STEPS = ["provider", "credentials", "test", "link"];
 
+function telematicUuid(record) {
+  return record?.uuid || record?.id || "";
+}
+
+function providerKey(provider) {
+  return provider?.key || provider?.id || provider?.name || "";
+}
+
+function emptyCredentialFields(provider) {
+  const fields = provider?.required_fields || [];
+  return Object.fromEntries(fields.map((field) => [field.name, ""]));
+}
+
 export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }) {
   const [step, setStep] = useState(0);
   const [providers, setProviders] = useState([]);
   const [provider, setProvider] = useState("");
-  const [credentials, setCredentials] = useState("{}");
+  const [credentialFields, setCredentialFields] = useState({});
   const [deviceId, setDeviceId] = useState("");
   const [telematicId, setTelematicId] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const selectedProvider = useMemo(
+    () => providers.find((p) => providerKey(p) === provider),
+    [providers, provider],
+  );
 
   useEffect(() => {
     if (!open) return;
     fleetopsService.listTelematicProviders().then(setProviders).catch(() => setProviders([]));
   }, [open]);
 
+  useEffect(() => {
+    if (!selectedProvider) return;
+    setCredentialFields(emptyCredentialFields(selectedProvider));
+  }, [selectedProvider]);
+
   const reset = () => {
     setStep(0);
     setProvider("");
-    setCredentials("{}");
+    setCredentialFields({});
     setDeviceId("");
     setTelematicId("");
   };
@@ -38,17 +61,43 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
     onOpenChange(v);
   };
 
+  const buildCredentials = () => {
+    const creds = { ...credentialFields };
+    for (const field of selectedProvider?.required_fields || []) {
+      if (field.required && !String(creds[field.name] ?? "").trim()) {
+        throw new Error(`${field.label || field.name} is required`);
+      }
+    }
+    return creds;
+  };
+
+  const ensureTelematicRecord = useCallback(async (creds) => {
+    if (telematicId) return telematicId;
+    const created = await fleetopsService.createTelematic({
+      name: `${provider} telematics`,
+      provider,
+      status: "initialized",
+      credentials: creds,
+    });
+    const id = telematicUuid(created);
+    if (!id) {
+      throw new Error("Telematic record was created but no id was returned");
+    }
+    setTelematicId(id);
+    return id;
+  }, [provider, telematicId]);
+
   const testCredentials = async () => {
     setBusy(true);
     try {
-      let creds = {};
-      try {
-        creds = JSON.parse(credentials);
-      } catch {
-        toast.error("Credentials must be valid JSON");
+      const creds = buildCredentials();
+      const result = await fleetopsService.testTelematicCredentials(provider, { credentials: creds, provider });
+      if (result?.success === false) {
+        toast.error(result?.message || "Credential test failed");
         return;
       }
-      await fleetopsService.testTelematicCredentials(provider, { credentials: creds, provider });
+      const id = await ensureTelematicRecord(creds);
+      await fleetopsService.updateTelematic(id, { credentials: creds });
       toast.success("Credentials verified");
       setStep(2);
     } catch (err) {
@@ -59,13 +108,15 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
   };
 
   const testConnection = async () => {
-    if (!telematicId) {
-      setStep(3);
-      return;
-    }
     setBusy(true);
     try {
-      await fleetopsService.testTelematicConnection(telematicId, {});
+      const creds = buildCredentials();
+      const id = telematicId || (await ensureTelematicRecord(creds));
+      const result = await fleetopsService.testTelematicConnection(id, {});
+      if (result?.success === false) {
+        toast.error(result?.message || "Connection test failed");
+        return;
+      }
       toast.success("Connection OK");
       setStep(3);
     } catch (err) {
@@ -75,14 +126,22 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
     }
   };
 
+  const skipConnectionTest = () => {
+    setStep(3);
+  };
+
   const linkDevice = async () => {
+    if (!deviceId?.trim()) {
+      toast.error("Enter a device ID to link");
+      return;
+    }
     setBusy(true);
     try {
-      await fleetopsService.linkTelematicDevice({
-        provider,
-        device: deviceId,
-        device_id: deviceId,
-        telematic: telematicId,
+      const creds = buildCredentials();
+      const id = telematicId || (await ensureTelematicRecord(creds));
+      await fleetopsService.linkTelematicDevice(id, {
+        external_id: deviceId.trim(),
+        device_name: deviceId.trim(),
       });
       toast.success("Device linked");
       onComplete?.();
@@ -95,11 +154,16 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
   };
 
   const discover = async () => {
+    if (!provider) {
+      toast.error("Select a provider first");
+      return;
+    }
     setBusy(true);
     try {
-      const result = await fleetopsService.discoverTelematic({ provider });
-      toast.success(`Discovered ${result?.devices?.length || 0} device(s)`);
-      setStep(2);
+      const creds = buildCredentials();
+      const id = telematicId || (await ensureTelematicRecord(creds));
+      const result = await fleetopsService.discoverTelematic(id, {});
+      toast.success(`Discovery started${result?.job_id ? ` (job ${result.job_id})` : ""}`);
     } catch (err) {
       toast.error(parseApiError(err, "Discover failed"));
     } finally {
@@ -138,14 +202,21 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
         {step === 0 && (
           <div className="space-y-2">
             <Label>Provider</Label>
-            <Select value={provider} onValueChange={setProvider}>
+            <Select
+              value={provider}
+              onValueChange={(value) => {
+                setProvider(value);
+                const next = providers.find((p) => providerKey(p) === value);
+                setCredentialFields(emptyCredentialFields(next));
+              }}
+            >
               <SelectTrigger data-testid="telematics-wizard-provider">
                 <SelectValue placeholder="Choose provider" />
               </SelectTrigger>
               <SelectContent>
                 {providers.map((p) => (
-                  <SelectItem key={p.id || p.key || p.name} value={p.key || p.id || p.name}>
-                    {p.name || p.key || p.id}
+                  <SelectItem key={providerKey(p)} value={providerKey(p)}>
+                    {p.name || p.label || providerKey(p)}
                   </SelectItem>
                 ))}
                 {!providers.length && (
@@ -153,25 +224,54 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
                 )}
               </SelectContent>
             </Select>
-            <Button type="button" variant="outline" size="sm" onClick={discover} disabled={!provider || busy}>
-              Discover devices
-            </Button>
+            {selectedProvider?.description ? (
+              <p className="text-xs text-[#6B7280]">{selectedProvider.description}</p>
+            ) : null}
           </div>
         )}
         {step === 1 && (
-          <div className="space-y-2">
-            <Label>Credentials (JSON)</Label>
-            <Input value={credentials} onChange={(e) => setCredentials(e.target.value)} data-testid="telematics-wizard-credentials" />
-            <Label>Telematic record ID (optional)</Label>
-            <Input value={telematicId} onChange={(e) => setTelematicId(e.target.value)} placeholder="UUID after create" />
+          <div className="space-y-3">
+            {(selectedProvider?.required_fields || []).map((field) => (
+              <div key={field.name} className="space-y-1">
+                <Label htmlFor={`telematics-cred-${field.name}`}>
+                  {field.label || field.name}
+                  {field.required ? " *" : ""}
+                </Label>
+                <Input
+                  id={`telematics-cred-${field.name}`}
+                  type={field.type === "password" ? "password" : "text"}
+                  placeholder={field.placeholder || ""}
+                  value={credentialFields[field.name] ?? ""}
+                  onChange={(e) =>
+                    setCredentialFields((prev) => ({ ...prev, [field.name]: e.target.value }))
+                  }
+                  data-testid={`telematics-wizard-cred-${field.name}`}
+                />
+              </div>
+            ))}
+            {!selectedProvider?.required_fields?.length ? (
+              <p className="text-sm text-[#6B7280]">No credential fields defined for this provider.</p>
+            ) : null}
           </div>
         )}
         {step === 2 && (
-          <p className="text-sm text-[#4B5563]">Test connection to provider before linking hardware.</p>
+          <div className="space-y-2">
+            <p className="text-sm text-[#4B5563]">Test connection to provider before linking hardware.</p>
+            <div className="flex flex-wrap gap-2">
+              {telematicId ? (
+                <Button type="button" variant="outline" size="sm" onClick={discover} disabled={busy}>
+                  Discover devices
+                </Button>
+              ) : null}
+              <Button type="button" variant="ghost" size="sm" onClick={skipConnectionTest} disabled={busy}>
+                Skip to link device
+              </Button>
+            </div>
+          </div>
         )}
         {step === 3 && (
           <div className="space-y-2">
-            <Label>Device ID to link</Label>
+            <Label>External device ID to link</Label>
             <Input value={deviceId} onChange={(e) => setDeviceId(e.target.value)} data-testid="telematics-wizard-device-id" />
           </div>
         )}

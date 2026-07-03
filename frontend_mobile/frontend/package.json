@@ -20,7 +20,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "android:release:aab": "powershell -ExecutionPolicy Bypass -File ./scripts/build-playstore-aab.ps1"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.6",

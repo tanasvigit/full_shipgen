@@ -55,8 +55,9 @@ export default function Orchestrator() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
+      const orderListParams = mode === "optimize_routes" ? {} : { unassigned: true };
       const [orderRows, engineList, fields] = await Promise.all([
-        fleetopsService.listOrchestratorOrders({ unassigned: true }).catch(() => []),
+        fleetopsService.listOrchestratorOrders(orderListParams).catch(() => []),
         fleetopsService.getOrchestratorEngines().catch(() => []),
         fleetopsService.getOrchestratorOrderConfigFields().catch(() => []),
       ]);
@@ -67,7 +68,7 @@ export default function Orchestrator() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     reload();

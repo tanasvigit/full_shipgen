@@ -12,12 +12,15 @@ import { toast } from "sonner";
 import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtimeChannel";
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
 import { parseApiError } from "@/lib/errors";
+import { coordsFromGeoPoint } from "@/lib/fleetops/geofence";
 
 const MAX_MARKERS = 500;
 
 function toMarker(item, kind, color) {
-  const lat = item.latitude ?? item.lat ?? item.location?.latitude ?? item.location?.lat;
-  const lng = item.longitude ?? item.lng ?? item.location?.longitude ?? item.location?.lng;
+  const fromRoot = coordsFromGeoPoint(item);
+  const fromLocation = coordsFromGeoPoint(item.location);
+  const lat = fromRoot.lat ?? fromLocation.lat ?? item.latitude ?? item.lat;
+  const lng = fromRoot.lng ?? fromLocation.lng ?? item.longitude ?? item.lng;
   if (lat == null || lng == null) return null;
   const id = item.uuid || item.id;
   return {
@@ -52,13 +55,13 @@ export default function FleetTrackingHub() {
     setLoading(true);
     try {
       const params = fleetFilter !== "all" ? { fleet: fleetFilter, fleet_id: fleetFilter } : {};
-      const [d, v, o, f] = await Promise.all([
-        fleetopsService.getLiveDrivers(params).catch(() => []),
-        fleetopsService.getLiveVehicles(params).catch(() => []),
+      const drivers = await fleetopsService.getLiveDrivers(params).catch(() => []);
+      const [v, o, f] = await Promise.all([
+        fleetopsService.getLiveVehicles(params, { drivers }).catch(() => []),
         fleetopsService.getLiveOrders(params).catch(() => []),
         fleetopsService.listFleets().catch(() => []),
       ]);
-      setDrivers(d);
+      setDrivers(drivers);
       setVehicles(v);
       setOrders(o);
       setFleets(f);
@@ -101,6 +104,11 @@ export default function FleetTrackingHub() {
     }
     return out.slice(0, MAX_MARKERS);
   }, [drivers, vehicles, orders, showDrivers, showVehicles, showOrders]);
+
+  const vehicleMarkerCount = useMemo(
+    () => markers.filter((m) => m.entityKey === "vehicle").length,
+    [markers],
+  );
 
   return (
     <div data-testid="fleet-tracking-hub">
@@ -166,8 +174,8 @@ export default function FleetTrackingHub() {
             position={mapContextMenu?.position}
             onClose={() => setMapContextMenu(null)}
             onOpenDetail={(entityKey, entityId) => {
-              if (entityKey === "driver") navigate(`/fleet-ops/management/drivers?driver=${entityId}`);
-              if (entityKey === "vehicle") navigate(`/fleet-ops/management/vehicles?vehicle=${entityId}`);
+              if (entityKey === "driver") navigate(`/fleet-ops/management/drivers/${entityId}`);
+              if (entityKey === "vehicle") navigate(`/fleet-ops/management/vehicles/${entityId}`);
             }}
           />
         </div>
@@ -179,7 +187,10 @@ export default function FleetTrackingHub() {
           />
         )}
         <p className="text-xs text-[#4B5563] font-mono" data-testid="tracking-live-api-note">
-          Data source: fleet-ops/live/* · Click marker to load position trail · Blue = vehicles · Green = drivers
+          Data source: fleet-ops/live/* · Blue = vehicles · Green = drivers · Orange = orders
+          {showVehicles && vehicleMarkerCount === 0
+            ? " · No vehicle positions yet — set vehicle location, device GPS (not 0,0), or assign a driver with location"
+            : ""}
         </p>
       </div>
     </div>

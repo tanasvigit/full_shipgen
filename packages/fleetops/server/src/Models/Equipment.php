@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Casts\Json;
 use Fleetbase\Casts\Money;
+use Fleetbase\Casts\PolymorphicType;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Models\File;
 use Fleetbase\Models\Model;
@@ -18,6 +19,7 @@ use Fleetbase\Traits\TracksApiCredential;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
@@ -121,11 +123,33 @@ class Equipment extends Model
      * @var array
      */
     protected $casts = [
-        'purchased_at'   => 'date',
+        'purchased_at'     => 'date',
+        'equipable_type'   => PolymorphicType::class,
         // Money values
-        'purchase_price' => Money::class,
-        'meta'           => Json::class,
+        'purchase_price'   => Money::class,
+        'meta'             => Json::class,
     ];
+
+    /**
+     * Resolve fleet-ops:* and legacy morph aliases for equipable relations.
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        Relation::morphMap([
+            'fleet-ops:vehicle'                        => Vehicle::class,
+            'fleet-ops:equipment'                      => Equipment::class,
+            'vehicle'                                  => Vehicle::class,
+            'equipment'                                => Equipment::class,
+            'Fleetbase\\FleetOps\\Models\\Vehicle'     => Vehicle::class,
+            'Fleetbase\\FleetOps\\Models\\Equipment'   => Equipment::class,
+            'Fleetbase\\Models\\Vehicle'               => Vehicle::class,
+            '\\Fleetbase\\Models\\Vehicle'             => Vehicle::class,
+            'Fleetbase\\Models\\Equipment'             => Equipment::class,
+            '\\Fleetbase\\Models\\Equipment'           => Equipment::class,
+        ], true);
+    }
 
     /**
      * Properties which activity needs to be logged.

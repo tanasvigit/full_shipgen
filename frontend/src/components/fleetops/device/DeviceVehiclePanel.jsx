@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { parseApiError } from "@/lib/errors";
+import { deviceVehicleId } from "@/lib/fleetops/connectivityResourcePayloads";
 
-export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
+export default function DeviceVehiclePanel({ deviceId, deviceApi, onDeviceChange }) {
   const ability = useFleetopsAbility();
   const canManage = ability.canUpdateOrder || ability.isDispatcher;
   const [vehicle, setVehicle] = useState(null);
@@ -16,7 +17,7 @@ export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
   const [options, setOptions] = useState([]);
   const [busy, setBusy] = useState(false);
 
-  const vehicleId = deviceApi?.vehicle_uuid || deviceApi?.vehicle_id || deviceApi?.vehicle?.id;
+  const vehicleId = deviceVehicleId(deviceApi);
 
   const load = useCallback(async () => {
     if (vehicleId) {
@@ -47,6 +48,7 @@ export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
       toast.success("Device attached to vehicle");
       setPick("");
       await load();
+      onDeviceChange?.();
     } catch (err) {
       toast.error(parseApiError(err, "Attach failed"));
     } finally {
@@ -61,6 +63,7 @@ export default function DeviceVehiclePanel({ deviceId, deviceApi }) {
       await fleetopsService.detachDeviceFromVehicle(vehicle.id, deviceId);
       toast.success("Device detached");
       await load();
+      onDeviceChange?.();
     } catch (err) {
       toast.error(parseApiError(err, "Detach failed"));
     } finally {

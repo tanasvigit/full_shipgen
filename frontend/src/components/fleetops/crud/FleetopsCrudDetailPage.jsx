@@ -25,14 +25,17 @@ import {
 } from "@/lib/fleetops/detailEmbedded";
 
 const ISSUE_STATUSES = ["open", "in_progress", "resolved", "closed"];
-const WO_STATUSES = ["draft", "scheduled", "in_progress", "completed", "cancelled"];
+const WO_STATUSES = ["open", "in_progress", "closed", "canceled"];
 
 export default function FleetopsCrudDetailPage({
   config,
   relationSlots = null,
+  detailExtras = null,
   embedded = false,
   entityId: entityIdProp,
   onClose,
+  FormComponent,
+  valuesFromApi: valuesFromApiProp,
 }) {
   const { id: routeId } = useParams();
   const id = resolveDetailEntityId(entityIdProp, routeId);
@@ -49,6 +52,9 @@ export default function FleetopsCrudDetailPage({
   const [loading, setLoading] = useState(true);
   const [raw, setRaw] = useState(null);
   const [row, setRow] = useState(null);
+
+  const EntityForm = FormComponent || SimpleEntityForm;
+  const mapFormValues = valuesFromApiProp || ((raw) => valuesFromApi(raw, config.fields));
 
   const testPrefix = config.key.replace(/([A-Z])/g, "-$1").toLowerCase();
 
@@ -179,11 +185,16 @@ export default function FleetopsCrudDetailPage({
         )}
       </div>
       <DetailFieldGrid
-        fields={config.fields.map((f) => ({
-          label: f.label,
-          value: row.raw?.[f.name] ?? row.raw?.[f.name.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] ?? "—",
-        }))}
+        fields={
+          config.displayFields
+            ? config.displayFields(raw, row)
+            : config.fields.map((f) => ({
+                label: f.label,
+                value: row.raw?.[f.name] ?? row.raw?.[f.name.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] ?? "—",
+              }))
+        }
       />
+      {detailExtras?.(raw, row)}
       {relationSlots}
     </div>
   );
@@ -200,12 +211,12 @@ export default function FleetopsCrudDetailPage({
       testId={`${testPrefix}-edit-dialog`}
     >
       {editDialog.open && (
-        <SimpleEntityForm
+        <EntityForm
           ref={formRef}
           formId={`${testPrefix}-edit`}
           mode="edit"
           fields={config.fields}
-          initialValues={valuesFromApi(raw, config.fields)}
+          initialValues={mapFormValues(raw)}
         />
       )}
     </FleetOpsFormDialog>

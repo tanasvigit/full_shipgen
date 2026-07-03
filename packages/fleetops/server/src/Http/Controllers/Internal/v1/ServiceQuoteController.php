@@ -82,8 +82,8 @@ class ServiceQuoteController extends FleetOpsController
             return response()->json($serviceQuotes);
         }
 
-        // get all waypoints
-        $waypoints = $payload->getAllStops()->mapInto(Place::class);
+        // get all waypoints (already Place models from getAllStops)
+        $waypoints = $payload->getAllStops();
 
         // if quote for single service
         if ($service && $service !== 'all') {

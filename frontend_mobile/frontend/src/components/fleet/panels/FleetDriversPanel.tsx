@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import EntityImage from "@/src/components/EntityImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
@@ -108,11 +108,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.sm,
   },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surfaceAlt },
   dot: { position: "absolute", bottom: 0, right: 0, width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colors.surface },

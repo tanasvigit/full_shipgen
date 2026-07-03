@@ -1,0 +1,1 @@
+import{dA as o,ek as m,c8 as t,C as i}from"./index-3dsuW4rV.js";import{F as s}from"./FleetopsCrudDetailPage-Cxu5Cz4W.js";import"./DetailFieldGrid-LeVZEgYf.js";import"./detailEmbedded-D0YBs2AI.js";function l({embedded:r=!1,entityId:e,onClose:a}){return o.jsx(s,{embedded:r,entityId:e,onClose:a,config:i.trackingNumber,FormComponent:t,valuesFromApi:m})}export{l as default};

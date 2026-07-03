@@ -14,7 +14,7 @@ import FleetIssuesPanel from "@/src/components/fleet/panels/FleetIssuesPanel";
 import FleetFuelPanel from "@/src/components/fleet/panels/FleetFuelPanel";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useFleetData } from "@/src/hooks/useFleetData";
-import { showFleetTab } from "@/src/lib/fleetAccess";
+import { canAccessFleetWorkspace } from "@/src/lib/fleetAccess";
 import {
   parseFleetWorkspaceTab,
   visibleFleetWorkspaceTabs,
@@ -46,7 +46,7 @@ export default function Fleet() {
   const router = useRouter();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const { user, canFleetops, activeOrganization } = useAuth();
-  const fleetAllowed = showFleetTab(user, canFleetops);
+  const fleetAllowed = canAccessFleetWorkspace(user, canFleetops);
   const { error, refresh } = useFleetData();
 
   const visibleTabs = useMemo(() => visibleFleetWorkspaceTabs(canFleetops), [canFleetops]);

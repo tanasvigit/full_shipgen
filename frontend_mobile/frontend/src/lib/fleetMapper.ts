@@ -209,6 +209,7 @@ export function mapIssueFromApi(dto: IssueDTO): Issue {
     status: normalizeIssueStatus(dto.status),
     reportedAt: formatDate(dto.created_at || dto.reportedAt),
     description: report,
+    location: typeof dto.location === "string" ? dto.location : "",
   };
 }
 
@@ -236,5 +237,8 @@ export function mapFuelLogFromApi(dto: FuelLogDTO): FuelLog {
     cost: Number(dto.amount ?? dto.cost ?? 0),
     date: formatDate(dto.created_at || dto.date),
     station,
+    odometer: dto.odometer != null ? Number(dto.odometer) : undefined,
+    location: typeof dto.location === "string" ? dto.location : "",
+    metricUnit: dto.metric_unit || "L",
   };
 }

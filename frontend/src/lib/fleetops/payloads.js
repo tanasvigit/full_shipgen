@@ -27,6 +27,7 @@ export function buildGeoLocation(values) {
 }
 
 export function buildDriverPayload(values) {
+  const location = buildGeoLocation(values);
   const body = clean({
     name: values.name,
     email: values.email,
@@ -39,20 +40,20 @@ export function buildDriverPayload(values) {
     status: values.status || "active",
     vehicle: values.vehicleId,
     vendor: values.vendorId,
-    latitude: values.latitude != null && values.latitude !== "" ? Number(values.latitude) : undefined,
-    longitude: values.longitude != null && values.longitude !== "" ? Number(values.longitude) : undefined,
     skills: values.skills?.length ? values.skills : undefined,
     max_travel_time: values.maxTravelTime != null && values.maxTravelTime !== "" ? Number(values.maxTravelTime) : undefined,
     max_distance: values.maxDistance != null && values.maxDistance !== "" ? Number(values.maxDistance) : undefined,
     time_window_start: values.timeWindowStart || undefined,
     time_window_end: values.timeWindowEnd || undefined,
     custom_field_values: values.customFieldValues,
+    ...(location ? { location } : {}),
   });
   return { driver: body };
 }
 
 export function buildVehiclePayload(values) {
   const yearNum = Number(values.year);
+  const location = buildGeoLocation(values);
   const body = clean({
     name: values.name,
     plate_number: values.plate,
@@ -73,9 +74,8 @@ export function buildVehiclePayload(values) {
     height: values.height != null && values.height !== "" ? Number(values.height) : undefined,
     ownership_type: values.ownershipType,
     description: values.description,
-    latitude: values.latitude != null && values.latitude !== "" ? Number(values.latitude) : undefined,
-    longitude: values.longitude != null && values.longitude !== "" ? Number(values.longitude) : undefined,
     custom_field_values: values.customFieldValues,
+    ...(location ? { location } : {}),
   });
   return { vehicle: body };
 }

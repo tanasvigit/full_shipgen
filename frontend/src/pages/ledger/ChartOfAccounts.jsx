@@ -106,7 +106,7 @@ export default function ChartOfAccounts() {
           code: v.code.trim(),
           name: v.name.trim(),
           type: API_TYPE[v.type] || v.type?.toLowerCase(),
-          currency: "USD",
+          currency: "INR",
         },
       });
       await load();

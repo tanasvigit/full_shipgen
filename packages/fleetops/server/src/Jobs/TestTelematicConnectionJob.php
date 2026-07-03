@@ -3,12 +3,13 @@
 namespace Fleetbase\FleetOps\Jobs;
 
 use Fleetbase\FleetOps\Models\Telematic;
+use Fleetbase\FleetOps\Support\Telematics\TelematicCredentials;
+use Fleetbase\FleetOps\Support\Telematics\TelematicProviderRegistry;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -40,7 +41,7 @@ class TestTelematicConnectionJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ProviderRegistry $registry): void
+    public function handle(TelematicProviderRegistry $registry): void
     {
         $correlationId = Str::uuid()->toString();
 
@@ -52,7 +53,7 @@ class TestTelematicConnectionJob implements ShouldQueue
 
         try {
             $provider    = $registry->resolve($this->telematic->provider);
-            $credentials = json_decode(Crypt::decryptString($this->telematic->credentials), true);
+            $credentials = TelematicCredentials::read($this->telematic->getAttributes()['credentials'] ?? $this->telematic->credentials);
 
             $result = $provider->testConnection($credentials);
 

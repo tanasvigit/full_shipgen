@@ -320,7 +320,7 @@ export default function OrderDetail() {
           </View>
           <View style={styles.metaGrid}>
             <Cell label="DISTANCE" value={displayOrder.distance} />
-            <Cell label="AMOUNT" value={`$${displayOrder.amount}`} />
+            <Cell label="AMOUNT" value={`₹${displayOrder.amount}`} />
             <Cell label="SCHEDULED" value={displayOrder.scheduledAt} />
           </View>
           {etaLabel ? (

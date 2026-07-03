@@ -49,9 +49,12 @@ class Payload extends FleetbaseResource
                 return $this->waypoints->count();
             }),
 
-            'type'       => $this->type,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'type'               => $this->type,
+            'cod_amount'         => $this->cod_amount ?? null,
+            'cod_currency'       => $this->cod_currency ?? null,
+            'cod_payment_method' => $this->cod_payment_method ?? null,
+            'created_at'         => $this->created_at,
+            'updated_at'         => $this->updated_at,
         ];
     }
 }

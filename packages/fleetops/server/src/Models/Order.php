@@ -258,7 +258,8 @@ class Order extends Model
                 '\\Fleetbase\\Models\\Driver'  => Driver::class,
                 'Fleetbase\\Models\\Vendor'    => Vendor::class,
                 '\\Fleetbase\\Models\\Vendor'  => Vendor::class,
-            ]
+            ],
+            true
         );
     }
 

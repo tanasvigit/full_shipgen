@@ -57,7 +57,7 @@ export default function LedgerHome() {
     load();
   }, [load]);
 
-  const currency = "USD";
+  const currency = "INR";
 
   const kpis = useMemo(() => {
     const k = dashboard?.kpis || {};

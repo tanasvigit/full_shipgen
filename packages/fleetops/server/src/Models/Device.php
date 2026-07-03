@@ -21,6 +21,7 @@ use Fleetbase\Traits\TracksApiCredential;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -134,7 +135,35 @@ class Device extends Model
      *
      * @var array
      */
-    protected $hidden = [];
+    protected $hidden = ['attachable'];
+
+    /**
+     * Resolve fleet-ops:* and legacy morph aliases for attachable relations.
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        Relation::morphMap([
+            'fleet-ops:vehicle'                      => Vehicle::class,
+            'fleet-ops:asset'                        => Asset::class,
+            'fleet-ops:driver'                       => Driver::class,
+            'fleet-ops:contact'                      => Contact::class,
+            'vehicle'                                => Vehicle::class,
+            'asset'                                  => Asset::class,
+            'driver'                                 => Driver::class,
+            'contact'                                => Contact::class,
+            'Fleetbase\\FleetOps\\Models\\Vehicle'   => Vehicle::class,
+            'Fleetbase\\FleetOps\\Models\\Asset'     => Asset::class,
+            'Fleetbase\\FleetOps\\Models\\Driver'    => Driver::class,
+            'Fleetbase\\FleetOps\\Models\\Contact'   => Contact::class,
+            'Fleetbase\\Models\\Vehicle'             => Vehicle::class,
+            '\\Fleetbase\\Models\\Vehicle'           => Vehicle::class,
+            'Fleetbase\\Models\\Asset'               => Asset::class,
+            'Fleetbase\\Models\\Driver'              => Driver::class,
+            'Fleetbase\\Models\\Contact'             => Contact::class,
+        ], true);
+    }
 
     /**
      * The attributes that are spatial columns.
@@ -282,8 +311,12 @@ class Device extends Model
      */
     public function getAttachedToNameAttribute(): ?string
     {
-        if ($this->attachable) {
-            return $this->attachable->name ?? $this->attachable->display_name ?? null;
+        try {
+            if ($this->attachable) {
+                return $this->attachable->name ?? $this->attachable->display_name ?? null;
+            }
+        } catch (\Throwable $e) {
+            return null;
         }
 
         return null;

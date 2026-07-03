@@ -70,7 +70,7 @@ class PurchaseRate extends Model
      *
      * @var array
      */
-    protected $appends = ['customer_is_vendor', 'customer_is_contact', 'amount', 'currency', 'service_quote_id', 'order_id', 'transaction_id', 'customer_id'];
+    protected $appends = ['customer_is_vendor', 'customer_is_contact', 'amount', 'currency', 'service_quote_id', 'order_id', 'transaction_id', 'customer_id', 'payload_id'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -162,6 +162,15 @@ class PurchaseRate extends Model
         }
 
         return data_get($this, 'customer.public_id');
+    }
+
+    public function getPayloadIdAttribute(): ?string
+    {
+        if (!$this->relationLoaded('payload')) {
+            return null;
+        }
+
+        return data_get($this, 'payload.public_id');
     }
 
     public function getTransactionIdAttribute(): ?string

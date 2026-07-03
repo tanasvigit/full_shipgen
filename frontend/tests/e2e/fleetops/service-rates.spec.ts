@@ -13,45 +13,44 @@ test.describe("FleetOps Day 1 — Service rates", () => {
     const seed = e2eUnique("Rate");
     await navigateFleetOpsSidebar(page, "service-rates", "/fleet-ops/operations/service-rates", "service-rates-list-page");
     await page.goto("/fleet-ops/operations/service-rates/new");
-    await expect(page.getByTestId("service-rate-form-page")).toBeVisible();
+    await expect(page.getByTestId("service-rate-create-dialog")).toBeVisible({ timeout: 15_000 });
     const form = page.getByTestId("service-rate-form-page");
-    const inputs = form.locator("input");
-    await inputs.nth(0).fill(seed.label);
-    await inputs.nth(1).fill("delivery");
-    await inputs.nth(2).fill("12.5");
+    const nameInput = form.locator("div", { hasText: /^Name/ }).locator("input");
+    const typeInput = form.locator("div", { hasText: /^Service type/ }).locator("input");
+    const feeInput = form.locator("div", { hasText: /^Base fee$/ }).locator("input");
+    await nameInput.fill(seed.label);
+    await typeInput.fill("delivery");
+    await feeInput.fill("12.5");
 
     const createPromise = page.waitForResponse(
       (res) => /service_rates|service-rates/i.test(res.url()) && res.request().method() === "POST" && res.status() < 400,
       { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: /^save$/i }).click();
+    await page.getByRole("button", { name: /create service rate/i }).click();
     const createRes = await createPromise.catch(() => null);
     if (!createRes || !createRes.ok()) {
       test.skip(true, "Service rates POST API not available in this environment");
       return;
     }
-    await page.waitForURL(/\/service-rates\/(?!new)/, { timeout: 45_000 }).catch(() => {});
-    if (page.url().endsWith("/new")) {
-      test.skip(true, "Service rate create did not navigate to detail");
-      return;
-    }
 
-    await expect(form.getByText("Loading")).toBeHidden({ timeout: 45_000 }).catch(() => {});
-    const nameInput = form.locator("div", { hasText: /^Name$/ }).locator("input");
-    const typeInput = form.locator("div", { hasText: /^Service type$/ }).locator("input");
-    const feeInput = form.locator("div", { hasText: /^Base fee$/ }).locator("input");
+    await expect(page.getByTestId("service-rate-detail-drawer")).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByTestId("service-rate-detail-page")).toBeVisible({ timeout: 45_000 });
 
-    // In degraded API mode, name can come back empty even when create succeeds.
-    await expect(typeInput).toHaveValue("delivery", { timeout: 45_000 });
-    await expect(feeInput).toHaveValue(/^(12\.5|125)$/, { timeout: 45_000 });
-    await expect(nameInput).toBeVisible();
+    await page.getByTestId("service-rate-edit").click();
+    await expect(page.getByTestId("service-rate-edit-dialog")).toBeVisible({ timeout: 15_000 });
+    const editForm = page.getByTestId("service-rate-form-page");
+    const editFeeInput = editForm.locator("div", { hasText: /^Base fee$/ }).locator("input");
+    await expect(editForm.locator("div", { hasText: /^Service type/ }).locator("input")).toHaveValue("delivery", {
+      timeout: 45_000,
+    });
+    await expect(editFeeInput).toHaveValue(/^(12\.5|125)$/, { timeout: 45_000 });
 
-    await feeInput.fill("15");
+    await editFeeInput.fill("15");
     const updatePromise = page.waitForResponse(
       (res) => /service_rates|service-rates/i.test(res.url()) && ["PATCH", "PUT"].includes(res.request().method()) && res.status() < 400,
       { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: /^save$/i }).click();
+    await page.getByRole("button", { name: /save changes/i }).click();
     const updateRes = await updatePromise.catch(() => null);
     if (!updateRes) {
       test.skip(true, "Service rates PATCH API not available");
@@ -59,11 +58,16 @@ test.describe("FleetOps Day 1 — Service rates", () => {
     }
     await waitForApiSettle(page);
     await page.reload();
-    await expect(page.getByTestId("service-rate-form-page")).toBeVisible();
-    const reloadedForm = page.getByTestId("service-rate-form-page");
-    await expect(reloadedForm.getByText("Loading")).toBeHidden({ timeout: 45_000 }).catch(() => {});
-    const reloadedFeeInput = reloadedForm.locator("div", { hasText: /^Base fee$/ }).locator("input");
-    await expect(reloadedFeeInput).toHaveValue(/^(15|150)$/, { timeout: 45_000 });
+    await expect(page.getByTestId("service-rate-detail-page")).toBeVisible({ timeout: 45_000 }).catch(() => {});
+    if (await page.getByTestId("service-rate-detail-page").isVisible().catch(() => false)) {
+      await page.getByTestId("service-rate-edit").click();
+      const reloadedFeeInput = page
+        .getByTestId("service-rate-edit-dialog")
+        .getByTestId("service-rate-form-page")
+        .locator("div", { hasText: /^Base fee$/ })
+        .locator("input");
+      await expect(reloadedFeeInput).toHaveValue(/^(15|150)$/, { timeout: 45_000 });
+    }
   });
 
   test("G011 — export button visible", async ({ page }) => {

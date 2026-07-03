@@ -2,10 +2,11 @@ import { resolveCustomFieldRenderer } from "@/lib/fleetops/customFieldRegistry";
 import { Input } from "@/components/ui/input";
 
 export default function CustomFieldRenderer({ field, value, onChange }) {
-  const custom = resolveCustomFieldRenderer(field?.field_type);
+  const fieldType = field?.type || field?.field_type;
+  const custom = resolveCustomFieldRenderer(fieldType);
   if (custom) return custom({ field, value, onChange });
 
-  if (field?.field_type === "number") {
+  if (fieldType === "number") {
     return (
       <Input
         type="number"

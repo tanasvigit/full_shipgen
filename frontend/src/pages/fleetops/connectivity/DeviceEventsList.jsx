@@ -1,18 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar";
+import {
+  deviceEventType,
+  eventMatchesDevice,
+} from "@/lib/fleetops/connectivityResourcePayloads";
 
 export default function DeviceEventsList() {
-  const navigate = useNavigate();
+  const { openDetail } = useFleetopsDetailDrawer("deviceEvent");
   const { can } = useFleetopsPermission();
-  const canView = can("view", "device");
+  const canView = can("view", "device-event") || can("view", "device");
   const [rows, setRows] = useState([]);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +39,8 @@ export default function DeviceEventsList() {
       ]);
       setRows(events.map((r) => mapCrudRow(r, "deviceEvent")));
       setDevices(devs.map((r) => mapCrudRow(r, "device")));
-    } catch {
+    } catch (err) {
+      toast.error(parseApiError(err, "Failed to load device events"));
       setRows([]);
     } finally {
       setLoading(false);
@@ -45,14 +52,15 @@ export default function DeviceEventsList() {
   }, [load]);
 
   const types = useMemo(
-    () => [...new Set(rows.map((r) => r.raw?.type || r.type).filter(Boolean))],
+    () => [...new Set(rows.map((r) => deviceEventType(r.raw)).filter(Boolean))],
     [rows],
   );
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
-      if (deviceFilter !== "all" && String(r.raw?.device_uuid || r.raw?.device_id) !== deviceFilter) return false;
-      if (typeFilter && (r.raw?.type || r.type) !== typeFilter) return false;
+      if (deviceFilter !== "all" && !eventMatchesDevice(r.raw, deviceFilter)) return false;
+      const eventType = deviceEventType(r.raw);
+      if (typeFilter && eventType !== typeFilter) return false;
       if (dateFrom) {
         const created = r.raw?.created_at || r.raw?.occurred_at || "";
         if (created && created < dateFrom) return false;
@@ -107,13 +115,13 @@ export default function DeviceEventsList() {
           testid="device-event-table"
           columns={[
             { key: "name", header: "Event" },
-            { key: "type", header: "Type", render: (r) => r.raw?.type || "—" },
-            { key: "device", header: "Device", render: (r) => r.raw?.device_uuid || r.raw?.device_id || "—" },
+            { key: "type", header: "Type", render: (r) => deviceEventType(r.raw) || "—" },
+            { key: "device", header: "Device", render: (r) => r.raw?.device_name || r.raw?.device?.name || r.raw?.device_uuid || "—" },
             { key: "when", header: "When", render: (r) => r.raw?.created_at || r.raw?.occurred_at || "—" },
           ]}
           data={filtered}
           loading={loading}
-          onRowClick={(r) => navigate(`/fleet-ops/connectivity/device-events/${r.id}`)}
+          onRowClick={(r) => openDetail(r.id)}
           searchKeys={["name", "publicId"]}
         />
       </div>

@@ -32,7 +32,7 @@ export default function WalletsList() {
   }, [load]);
 
   const total = useMemo(
-    () => wallets.reduce((s, w) => s + (w.currency === "USD" ? w.balance : 0), 0),
+    () => wallets.reduce((s, w) => s + (w.currency === "INR" ? w.balance : 0), 0),
     [wallets],
   );
 

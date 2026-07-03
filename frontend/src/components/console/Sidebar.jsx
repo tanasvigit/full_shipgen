@@ -43,6 +43,7 @@ import {
     ScrollText,
     Route,
     CalendarClock,
+    Workflow,
     Blocks,
     BookText,
     NotebookPen,
@@ -98,6 +99,8 @@ const sections = {
                 { to: "/fleet-ops/operations/orders", label: "Orders", icon: Package },
                 { to: "/fleet-ops/operations/routes", label: "Routes", icon: Route },
                 { to: "/fleet-ops/operations/schedule", label: "Schedule", icon: CalendarClock },
+                { to: "/fleet-ops/operations/service-rates", label: "Service rates", icon: DollarSign },
+                { to: "/fleet-ops/operations/orchestrator", label: "Orchestrator", icon: Workflow },
                 { to: "/fleet-ops/operations/order-config", label: "Order config", icon: SettingsIcon },
             ],
         },
@@ -118,6 +121,8 @@ const sections = {
             label: "Connectivity",
             items: [
                 { to: "/fleet-ops/connectivity/telematics", label: "Telematics", icon: Radio },
+                { to: "/fleet-ops/connectivity/devices", label: "Devices", icon: Cpu },
+                { to: "/fleet-ops/connectivity/device-events", label: "Device events", icon: Zap },
                 { to: "/fleet-ops/connectivity/sensors", label: "Sensors", icon: Activity },
                 { to: "/fleet-ops/connectivity/tracking", label: "Fleet tracking", icon: MapPin },
             ],
@@ -125,8 +130,10 @@ const sections = {
         {
             label: "Maintenance",
             items: [
+                { to: "/fleet-ops/maintenance/calendar", label: "Calendar", icon: CalendarClock },
                 { to: "/fleet-ops/maintenance/schedules", label: "Schedules", icon: CalendarClock },
                 { to: "/fleet-ops/maintenance/work-orders", label: "Work orders", icon: ClipboardList },
+                { to: "/fleet-ops/maintenance/records", label: "Service records", icon: ScrollText },
                 { to: "/fleet-ops/maintenance/equipment", label: "Equipment", icon: Wrench },
                 { to: "/fleet-ops/maintenance/parts", label: "Parts", icon: Boxes },
             ],
@@ -425,7 +432,7 @@ export default function Sidebar() {
 
     return (
         <aside
-            className="hidden xl:flex flex-col w-[248px] shrink-0 bg-white border-r border-black/[0.06] relative"
+            className="hidden xl:flex flex-col h-full min-h-0 w-[248px] shrink-0 overflow-hidden bg-white border-r border-black/[0.06] relative"
             data-testid="console-sidebar"
         >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0066FF]/40 to-transparent" />
@@ -434,7 +441,7 @@ export default function Sidebar() {
                 <div className="overline relative">{section.subtitle}</div>
                 <div className="font-display text-[22px] font-black tracking-[-0.04em] mt-1 relative text-[#0A0E1A]">{section.title}</div>
             </div>
-            <nav className="flex-1 overflow-y-auto py-4 px-2">
+            <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-4 px-2">
                 {groups.map((group) => (
                     <div key={group.label} className="mb-5">
                         <div className="px-3 mb-2 overline">{group.label}</div>

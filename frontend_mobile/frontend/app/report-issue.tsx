@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,24 +7,46 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Redirect } from "expo-router";
 import * as Location from "expo-location";
+import { useQueryClient } from "@tanstack/react-query";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import { colors, radius, spacing } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { resolveDriverTrackId } from "@/src/lib/driver";
+import { resolveDriverTrackId, isDriverUser } from "@/src/lib/driver";
 import { issuesService } from "@/src/services/issuesService";
+import { useFleetData } from "@/src/hooks/useFleetData";
+import { invalidateFleetAggregate } from "@/src/query/invalidation";
 
 export default function ReportIssue() {
   const router = useRouter();
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const isEdit = Boolean(editId);
+  const { user, activeOrganization } = useAuth();
+  const companyUuid = activeOrganization?.uuid || null;
   const driverId = resolveDriverTrackId(user);
+  const { issues, sectionLoading, refresh } = useFleetData();
+  const existing = editId ? issues.find((item) => item.id === editId) : undefined;
+
   const [report, setReport] = useState("");
   const [location, setLocation] = useState("");
   const [priority, setPriority] = useState("medium");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!existing) return;
+    setReport(existing.description || "");
+    setLocation(existing.location || "");
+    setPriority(existing.priority || "medium");
+  }, [existing?.id]);
+
+  if (isEdit && isDriverUser(user)) {
+    return <Redirect href={editId ? `/issue/${editId}` : "/issues"} />;
+  }
 
   const useCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -37,36 +59,74 @@ export default function ReportIssue() {
   };
 
   const submit = async () => {
-    if (!driverId) {
-      Alert.alert("Driver profile required", "Link this user to a driver record first.");
-      return;
-    }
     if (!report.trim()) {
       Alert.alert("Description required", "Describe the issue before submitting.");
       return;
     }
+    if (!isEdit && !driverId) {
+      Alert.alert("Driver profile required", "Link this user to a driver record first.");
+      return;
+    }
     setSubmitting(true);
     try {
-      await issuesService.create({
-        driver: driverId,
-        report: report.trim(),
-        location: location.trim() || "unknown",
-        priority,
-        type: "driver_report",
-      });
-      Alert.alert("Issue reported", "Your report was submitted.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      if (isEdit && editId) {
+        await issuesService.update(editId, {
+          report: report.trim(),
+          location: location.trim() || "unknown",
+          priority,
+        });
+        await invalidateFleetAggregate(queryClient, companyUuid);
+        Alert.alert("Issue updated", "Your changes were saved.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        await issuesService.create({
+          driver: driverId!,
+          report: report.trim(),
+          location: location.trim() || "unknown",
+          priority,
+          type: "driver_report",
+        });
+        await invalidateFleetAggregate(queryClient, companyUuid);
+        Alert.alert("Issue reported", "Your report was submitted.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      }
     } catch (error) {
-      Alert.alert("Unable to submit", error instanceof Error ? error.message : "Try again.");
+      Alert.alert("Unable to save", error instanceof Error ? error.message : "Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (isEdit && !existing && sectionLoading.issues) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScreenHeader title="Edit issue" back />
+        <View style={styles.loader}>
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isEdit && !existing) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScreenHeader title="Edit issue" back />
+        <View style={styles.loader}>
+          <Text style={styles.loaderText}>Issue not found.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => void refresh()}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Report issue" back />
+      <ScreenHeader title={isEdit ? "Edit issue" : "Report issue"} back />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.label}>DESCRIPTION</Text>
         <TextInput
@@ -114,7 +174,9 @@ export default function ReportIssue() {
           onPress={() => void submit()}
           disabled={submitting}
         >
-          <Text style={styles.primaryBtnText}>{submitting ? "Submitting..." : "Submit report"}</Text>
+          <Text style={styles.primaryBtnText}>
+            {submitting ? "Saving..." : isEdit ? "Save changes" : "Submit report"}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -124,6 +186,15 @@ export default function ReportIssue() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, gap: spacing.sm },
+  loader: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md },
+  loaderText: { color: colors.textMuted, fontWeight: "600" },
+  retryBtn: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.brandSoft,
+  },
+  retryText: { color: colors.brand, fontWeight: "800" },
   label: { fontSize: 10, fontWeight: "800", color: colors.textMuted, letterSpacing: 1.4, marginTop: spacing.md },
   textArea: {
     minHeight: 120,

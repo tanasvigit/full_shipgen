@@ -14,6 +14,7 @@ import { fleetService } from "@/src/services/fleetService";
 import { queryKeys } from "@/src/query/keys";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { idsMatch } from "@/src/lib/vehicleMapper";
+import { isDriverUser } from "@/src/lib/driver";
 
 type FleetDataState = {
   orders: Order[];
@@ -38,10 +39,15 @@ const EMPTY_DATA: FleetDataState = {
 };
 
 export function useFleetData() {
-  const { authReady, isAuthenticated, activeOrganization, canFleetops } = useAuth();
+  const { authReady, isAuthenticated, activeOrganization, canFleetops, user } = useAuth();
   const companyUuid = activeOrganization?.uuid || null;
   const enabled = authReady && isAuthenticated;
   const canList = (resource: string) => canFleetops("list", resource);
+  // Drivers report issues and log fuel as part of their workflow, so allow
+  // them to load these two datasets even without an explicit list permission.
+  const isDriver = isDriverUser(user);
+  const canListIssues = canList("issue") || isDriver;
+  const canListFuel = canList("fuel-report") || canList("fuel_report") || isDriver;
 
   const results = useQueries({
     queries: [
@@ -72,12 +78,12 @@ export function useFleetData() {
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "issues"] as const,
-        enabled: enabled && canList("issue"),
+        enabled: enabled && canListIssues,
         queryFn: () => fleetService.listIssues(),
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "fuel"] as const,
-        enabled: enabled && (canList("fuel-report") || canList("fuel_report")),
+        enabled: enabled && canListFuel,
         queryFn: () => fleetService.listFuelLogs(),
       },
       {

@@ -28,16 +28,37 @@ export function useOrderDetail(orderId) {
     const raw = await fleetopsService.getOrder(orderId);
     setRawOrder(raw);
     setOptimisticEvents([]);
-    try {
-      const next = await fleetopsService.getNextActivity(orderId);
-      setNextActivity(next);
-    } catch {
+
+    // next-activity depends on the order's config flow, and eta depends on the
+    // order's payload/waypoints. Orders that lack either can't produce these and
+    // the backend endpoints 500, so skip the calls entirely for such orders.
+    const hasConfig = Boolean(raw?.order_config_uuid || raw?.order_config || raw?.config);
+    const hasPayload = Boolean(
+      raw?.payload_uuid ||
+        raw?.payload?.uuid ||
+        raw?.payload?.id ||
+        raw?.payload?.public_id,
+    );
+
+    if (hasConfig) {
+      try {
+        const next = await fleetopsService.getNextActivity(orderId);
+        setNextActivity(next);
+      } catch {
+        setNextActivity(null);
+      }
+    } else {
       setNextActivity(null);
     }
-    try {
-      const etaData = await fleetopsService.getOrderEta(orderId);
-      setEta(etaData);
-    } catch {
+
+    if (hasPayload) {
+      try {
+        const etaData = await fleetopsService.getOrderEta(orderId);
+        setEta(etaData);
+      } catch {
+        setEta(null);
+      }
+    } else {
       setEta(null);
     }
     return raw;

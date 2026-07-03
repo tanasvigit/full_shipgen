@@ -7,6 +7,7 @@ import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { YardVehicle360Provider } from "@/src/contexts/YardVehicle360Context";
 import { YardMoreFlowProvider } from "@/src/contexts/YardMoreFlowContext";
 import YardModuleTopBar from "@/src/components/yard/YardModuleTopBar";
+import SwipeTabsHost from "@/src/components/navigation/SwipeTabsHost";
 import { canAccessYardTab } from "@/src/lib/moduleAccess";
 import { useYardAlerts } from "@/src/hooks/useYardAlerts";
 import { alertBadgeCount } from "@/src/services/alertsService";
@@ -32,6 +33,20 @@ function YardTabs() {
 
   const tabVisible = (tabName: string) => canAccessYardTab(tabName, can, isYardAdmin, role);
 
+  // Ordered to match the bottom tab bar declaration order below.
+  const swipeTabs = [
+    "overview",
+    "ops",
+    "gate",
+    "appointments",
+    "queue",
+    "docks",
+    "search",
+    "alerts",
+    "more",
+    "profile",
+  ].filter(tabVisible);
+
   if (!isYardAuthenticated) {
     return <Redirect href="/login" />;
   }
@@ -41,9 +56,11 @@ function YardTabs() {
       <YardMoreFlowProvider>
         <YardModuleTopBar />
         <View style={{ flex: 1 }}>
+          <SwipeTabsHost group="(yard)" routes={swipeTabs}>
           <Tabs
             screenOptions={({ route }) => ({
         headerShown: false,
+        animation: "shift",
         tabBarActiveTintColor: colors.shipgenOrange,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
@@ -92,6 +109,7 @@ function YardTabs() {
       <Tabs.Screen name="equipment" options={{ href: null }} />
           <Tabs.Screen name="profile" options={{ title: "Profile" }} />
           </Tabs>
+          </SwipeTabsHost>
         </View>
       </YardMoreFlowProvider>
     </SafeAreaView>

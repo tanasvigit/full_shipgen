@@ -71,7 +71,7 @@ export default function PaymentsSettingsPage() {
         <div className="space-y-1.5">
           <Label>Currency</Label>
           <Input
-            value={form.currency || "USD"}
+            value={form.currency || "INR"}
             onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
             data-testid="fleetops-settings-payments-currency"
           />

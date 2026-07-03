@@ -21,6 +21,7 @@ class PurchaseRate extends FleetbaseResource
             'uuid'          => $this->when(Http::isInternalRequest(), $this->uuid),
             'public_id'     => $this->when(Http::isInternalRequest(), $this->public_id),
             'service_quote' => $this->when(Http::isInternalRequest(), $this->serviceQuote(), $this->service_quote_id),
+            'payload'       => $this->payload_id,
             'order'         => $this->order_id,
             'customer'      => $this->customer_id,
             'transaction'   => $this->transaction_id,

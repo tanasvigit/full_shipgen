@@ -1,9 +1,11 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { colors, radius, spacing } from "@/src/theme";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
+import SignOutDialog from "@/src/components/common/SignOutDialog";
 import { visibleYardTabs } from "@/src/lib/moduleAccess";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 
@@ -22,18 +24,19 @@ export default function YardProfileScreen() {
   const router = useRouter();
   const { user, logout, can, isYardAdmin } = useYardAuth();
 
-  const handleLogout = () => {
-    Alert.alert("Sign out of Yard", "Return to the Shipgen module picker?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign out",
-        style: "destructive",
-        onPress: () => {
-          void logout().then(() => router.replace("/"));
-        },
-      },
-    ]);
-  };
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const confirmSignOut = useCallback(async () => {
+    setSigningOut(true);
+    try {
+      await logout();
+      router.replace("/");
+    } finally {
+      setSigningOut(false);
+      setSignOutOpen(false);
+    }
+  }, [logout, router]);
 
   const initials = (user?.displayName || user?.username || "Y")
     .split(" ")
@@ -87,11 +90,20 @@ export default function YardProfileScreen() {
           <Text style={styles.secondaryBtnText}>Switch module</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} testID="yard-logout-btn">
+        <TouchableOpacity style={styles.logoutBtn} onPress={() => setSignOutOpen(true)} testID="yard-logout-btn">
           <Ionicons name="log-out-outline" size={16} color="#fff" />
           <Text style={styles.logoutText}>Sign out of Yard</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <SignOutDialog
+        visible={signOutOpen}
+        title="Sign out of Yard?"
+        message="You'll return to the ShipGen module picker and need to sign in again."
+        loading={signingOut}
+        onCancel={() => setSignOutOpen(false)}
+        onConfirm={confirmSignOut}
+      />
     </SafeAreaView>
   );
 }

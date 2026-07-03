@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Resources\v1\Orchestrator\Order as OrchestratorOrderResource;
+use Fleetbase\FleetOps\Imports\OrdersImport;
 use Fleetbase\FleetOps\Models\Contact;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Manifest;
@@ -17,7 +18,9 @@ use Fleetbase\FleetOps\Orchestration\Engines\DriverAssignmentEngine;
 use Fleetbase\FleetOps\Orchestration\Engines\RouteSequencingEngine;
 use Fleetbase\FleetOps\Orchestration\OrchestrationEngineRegistry;
 use Fleetbase\Http\Controllers\Controller;
+use Fleetbase\Models\File;
 use Fleetbase\Models\Setting;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -543,8 +546,22 @@ class OrchestrationController extends Controller
      */
     public function importOrders(Request $request): JsonResponse
     {
-        $rows        = $request->input('rows', []);
         $companyUuid = session('company');
+        $orderIds    = $this->extractOrchestratorImportOrderIds($request);
+
+        if (!empty($orderIds) && !$request->has('rows') && !$request->filled('file_uuid')) {
+            return response()->json($this->acknowledgeOrchestratorOrderIds($orderIds, $companyUuid));
+        }
+
+        $rows = $request->input('rows', []);
+
+        if (empty($rows) && $request->filled('file_uuid')) {
+            try {
+                $rows = $this->parseOrchestratorImportFile($request->input('file_uuid'));
+            } catch (\Throwable $e) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+        }
 
         if (empty($rows)) {
             return response()->json(['error' => 'No rows provided.'], 422);
@@ -1103,5 +1120,132 @@ class OrchestrationController extends Controller
         $result['summary']['applied'] = count($applied);
 
         return $result;
+    }
+
+    /**
+     * Normalize pasted order public IDs from JSON body or form input.
+     */
+    private function extractOrchestratorImportOrderIds(Request $request): array
+    {
+        $raw = $request->input('order_ids');
+
+        if ($raw === null && $request->isJson()) {
+            $raw = $request->json('order_ids');
+        }
+
+        return collect(is_array($raw) ? $raw : [$raw])
+            ->map(fn ($id) => trim((string) $id))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Parse an uploaded spreadsheet into orchestrator import rows.
+     */
+    private function parseOrchestratorImportFile(string $fileUuid): array
+    {
+        $file = File::where('uuid', $fileUuid)->first();
+        if (!$file) {
+            throw new \InvalidArgumentException('Uploaded file not found.');
+        }
+
+        $disk           = config('filesystems.default');
+        $validFileTypes = ['csv', 'tsv', 'xls', 'xlsx'];
+        $extension      = Str::lower(pathinfo((string) $file->path, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $validFileTypes, true)) {
+            throw new \InvalidArgumentException('Invalid file uploaded, must be one of: csv, tsv, xls, xlsx');
+        }
+
+        $sheets = Excel::toArray(new OrdersImport(), $file->path, $disk);
+        $rows   = [];
+
+        foreach ($sheets as $sheet) {
+            foreach ($sheet as $index => $row) {
+                if (!is_array($row) || empty(array_filter($row, fn ($value) => $value !== null && $value !== ''))) {
+                    continue;
+                }
+
+                $row['_rowIndex'] = $index + 2;
+                $rows[]           = $row;
+            }
+        }
+
+        if (empty($rows)) {
+            throw new \InvalidArgumentException('No import rows found in file.');
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Validate existing orders for the orchestrator pool (paste public IDs flow).
+     */
+    private function acknowledgeOrchestratorOrderIds(array $orderIds, string $companyUuid): array
+    {
+        $acknowledged = [];
+        $ineligible   = [];
+        $notFound     = [];
+
+        foreach ($orderIds as $orderId) {
+            $order = Order::where('company_uuid', $companyUuid)
+                ->where(function ($query) use ($orderId) {
+                    $query->where('public_id', $orderId)
+                        ->orWhere('uuid', $orderId);
+                })
+                ->with(['payload.pickup', 'payload.dropoff', 'payload.waypoints', 'trackingNumber', 'trackingStatuses'])
+                ->first();
+
+            if (!$order) {
+                $notFound[] = $orderId;
+                continue;
+            }
+
+            $reason = $this->orchestratorIneligibilityReason($order);
+            if ($reason) {
+                $ineligible[] = [
+                    'order_id' => $order->public_id,
+                    'reason'   => $reason,
+                ];
+                continue;
+            }
+
+            $acknowledged[] = $order->public_id;
+        }
+
+        return [
+            'acknowledged' => $acknowledged,
+            'ineligible'   => $ineligible,
+            'not_found'    => $notFound,
+            'created'      => [],
+        ];
+    }
+
+    private function orchestratorIneligibilityReason(Order $order): ?string
+    {
+        if (!in_array($order->status, ['created', 'dispatched', 'started', 'en_route', 'enroute'], true)) {
+            return 'Order status is not eligible for orchestrator.';
+        }
+
+        $payload = $order->payload;
+        if (!$payload) {
+            return 'Order is missing a payload.';
+        }
+
+        $hasPlace = $payload->pickup || $payload->dropoff || $payload->waypoints->isNotEmpty();
+        if (!$hasPlace) {
+            return 'Payload needs pickup, dropoff, or waypoint places.';
+        }
+
+        if (!$order->trackingNumber) {
+            return 'Order is missing a tracking number.';
+        }
+
+        if ($order->trackingStatuses->isEmpty()) {
+            return 'Order is missing tracking statuses.';
+        }
+
+        return null;
     }
 }

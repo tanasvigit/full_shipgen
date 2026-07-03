@@ -1,0 +1,1 @@
+import{dA as t,d$ as o,bp as s,C as p}from"./index-3dsuW4rV.js";import{F as m}from"./FleetopsCrudDetailPage-Cxu5Cz4W.js";import"./DetailFieldGrid-LeVZEgYf.js";import"./detailEmbedded-D0YBs2AI.js";function c({embedded:a=!1,entityId:e,onClose:r}){return t.jsx(m,{embedded:a,entityId:e,onClose:r,config:p.purchaseRate,FormComponent:s,valuesFromApi:o})}export{c as default};

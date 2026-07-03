@@ -3,6 +3,7 @@ import path from "path";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "url";
+import { shouldProxyFleetOpsRequest } from "./src/lib/fleetops/fleetOpsProxy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -408,6 +409,18 @@ export default defineConfig(({ mode }) => {
         "/fleet-ops": {
           target: apiHost,
           changeOrigin: true,
+          bypass(req) {
+            const pathname = (req.url || "").split("?")[0];
+            const accept = req.headers?.accept || "";
+            // Vite bypass semantics: `false` → 404; string → rewrite and serve locally; undefined → proxy.
+            if (shouldProxyFleetOpsRequest(pathname, accept)) {
+              return;
+            }
+            if (String(accept).includes("text/html")) {
+              return "/index.html";
+            }
+            return req.url;
+          },
         },
         "/ledger": {
           target: apiHost,

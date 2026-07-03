@@ -38,6 +38,8 @@ export const FLEETOPS_SIDEBAR_PERMISSIONS = {
   "/fleet-ops/operations/orders": ["list", "order"],
   "/fleet-ops/operations/routes": ["list", "route"],
   "/fleet-ops/operations/schedule": ["list", "order"],
+  "/fleet-ops/operations/service-rates": ["list", "service-rate"],
+  "/fleet-ops/operations/orchestrator": ["dispatch", "order"],
   "/fleet-ops/operations/order-config": ["list", "order"],
   "/fleet-ops/management/drivers": ["list", "driver"],
   "/fleet-ops/management/vehicles": ["list", "vehicle"],
@@ -48,9 +50,14 @@ export const FLEETOPS_SIDEBAR_PERMISSIONS = {
   "/fleet-ops/management/issues": ["list", "issue"],
   "/fleet-ops/management/fuel-reports": ["list", "fuel-report"],
   "/fleet-ops/connectivity/telematics": ["list", "telematic"],
+  "/fleet-ops/connectivity/devices": ["list", "device"],
+  "/fleet-ops/connectivity/device-events": ["list", "device-event"],
   "/fleet-ops/connectivity/sensors": ["list", "sensor"],
   "/fleet-ops/connectivity/tracking": ["list", "vehicle"],
+  "/fleet-ops/connectivity/vehicle-devices": ["list", "device"],
+  "/fleet-ops/maintenance/calendar": ["list", "maintenance"],
   "/fleet-ops/maintenance/schedules": ["list", "maintenance"],
+  "/fleet-ops/maintenance/records": ["list", "maintenance"],
   "/fleet-ops/maintenance/work-orders": ["list", "work-order"],
   "/fleet-ops/maintenance/equipment": ["list", "equipment"],
   "/fleet-ops/maintenance/parts": ["list", "part"],
@@ -58,6 +65,14 @@ export const FLEETOPS_SIDEBAR_PERMISSIONS = {
   "/fleet-ops/settings": ["list", "setting"],
   "/fleet-ops/custom-fields": ["list", "custom-field"],
   "/fleet-ops/tracking/lookup": ["list", "order"],
+  "/fleet-ops/admin/warranties": ["list", "warranty"],
+  "/fleet-ops/admin/manifests": ["list", "order"],
+  "/fleet-ops/admin/payloads": ["list", "payload"],
+  "/fleet-ops/admin/entities": ["list", "entity"],
+  "/fleet-ops/admin/proofs": ["list", "proof"],
+  "/fleet-ops/admin/purchase-rates": ["list", "purchase-rate"],
+  "/fleet-ops/admin/tracking-numbers": ["list", "tracking-number"],
+  "/fleet-ops/admin/tracking-statuses": ["list", "tracking-status"],
 };
 
 /**
@@ -89,6 +104,12 @@ export function canAccessSidebarItem(item, sectionKey, ctx) {
   }
 
   if (sectionKey === "/fleet-ops") {
+    if (item.to === "/fleet-ops/operations/orchestrator") {
+      return (
+        ctx.canFleetops("dispatch", "order") ||
+        ctx.canFleetops("update", "order")
+      );
+    }
     const check = FLEETOPS_SIDEBAR_PERMISSIONS[item.to];
     if (!check) return true;
     const [action, resource] = check;

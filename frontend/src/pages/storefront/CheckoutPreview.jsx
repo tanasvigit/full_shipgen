@@ -121,7 +121,7 @@ export default function CheckoutPreview() {
   }
 
   const displayLines = cart?.items?.length ? cart.items : lines;
-  const currency = cart?.currency || lines[0]?.currency || products[0]?.currency || "USD";
+  const currency = cart?.currency || lines[0]?.currency || products[0]?.currency || "INR";
   const subtotal = cart?.subtotal ?? lines.reduce((s, l) => s + l.price * l.qty, 0);
 
   return (

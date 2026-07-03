@@ -1,0 +1,1 @@
+import{dA as i,C as r}from"./index-3dsuW4rV.js";import{F as s}from"./FleetopsCrudDetailPage-Cxu5Cz4W.js";import"./DetailFieldGrid-LeVZEgYf.js";import"./detailEmbedded-D0YBs2AI.js";function u({embedded:t=!1,entityId:o,onClose:e}){return i.jsx(s,{embedded:t,entityId:o,onClose:e,config:r.customField})}export{u as default};

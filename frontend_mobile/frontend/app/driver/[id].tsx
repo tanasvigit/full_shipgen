@@ -72,7 +72,7 @@ export default function DriverDetail() {
         <View style={styles.statsRow}>
           <Stat label="Rating" value={`★ ${driver.rating}`} />
           <Stat label="Trips" value={String(driver.trips)} />
-          <Stat label="Earnings" value={`$${(driver.earnings / 1000).toFixed(1)}K`} />
+          <Stat label="Earnings" value={`₹${(driver.earnings / 1000).toFixed(1)}K`} />
         </View>
 
         <View style={styles.card}>

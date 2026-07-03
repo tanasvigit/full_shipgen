@@ -1,0 +1,1 @@
+import{dA as r,C as a}from"./index-3dsuW4rV.js";import{F as i}from"./FleetopsCrudDetailPage-Cxu5Cz4W.js";import"./DetailFieldGrid-LeVZEgYf.js";import"./detailEmbedded-D0YBs2AI.js";function m({embedded:t=!1,entityId:e,onClose:o}){return r.jsx(i,{embedded:t,entityId:e,onClose:o,config:a.fuelReport})}export{m as default};

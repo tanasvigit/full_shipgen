@@ -34,8 +34,19 @@ const defaultValues = {
   timeWindowEnd: "",
 };
 
+function locationCoordsFromApi(loc) {
+  if (!loc) return { latitude: "", longitude: "" };
+  const latitude = loc.latitude ?? loc.lat ?? loc.coordinates?.[1];
+  const longitude = loc.longitude ?? loc.lng ?? loc.coordinates?.[0];
+  return {
+    latitude: latitude != null && latitude !== "" ? String(latitude) : "",
+    longitude: longitude != null && longitude !== "" ? String(longitude) : "",
+  };
+}
+
 export function driverValuesFromApi(raw) {
   if (!raw) return { ...defaultValues };
+  const coords = locationCoordsFromApi(raw.location);
   return {
     name: raw.name || "",
     email: raw.email || raw.user?.email || "",
@@ -48,8 +59,8 @@ export function driverValuesFromApi(raw) {
     status: raw.status || "active",
     vehicleId: String(raw.vehicle_uuid || raw.vehicle_id || raw.vehicle?.uuid || ""),
     vendorId: String(raw.vendor_uuid || raw.vendor?.public_id || ""),
-    latitude: raw.location?.latitude ?? raw.latitude ?? "",
-    longitude: raw.location?.longitude ?? raw.longitude ?? "",
+    latitude: coords.latitude || (raw.latitude != null ? String(raw.latitude) : ""),
+    longitude: coords.longitude || (raw.longitude != null ? String(raw.longitude) : ""),
     skills: Array.isArray(raw.skills) ? raw.skills : [],
     maxTravelTime: raw.max_travel_time ?? "",
     maxDistance: raw.max_distance ?? "",
@@ -186,7 +197,7 @@ const DriverForm = forwardRef(function DriverForm(
         </div>
       </FormSection>
 
-      <FormSection title="Availability & location" collapsible defaultOpen={false} testId="driver-form-availability">
+      <FormSection title="Availability & location" collapsible defaultOpen testId="driver-form-availability">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs font-mono uppercase text-[#374151]">Max travel time (min)</Label>

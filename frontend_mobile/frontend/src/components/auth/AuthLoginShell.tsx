@@ -7,8 +7,8 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -38,12 +38,13 @@ export default function AuthLoginShell({
 
   return (
     <View style={styles.root}>
-      <ImageBackground
-        source={require("@/assets/images/splash-image.png")}
+      <LinearGradient
+        colors={["#081C3A", "#0A3D91", "#0066FF"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.heroBg}
-        resizeMode="cover"
       >
-        <View style={styles.heroOverlay} />
+        <View style={styles.heroGlow} />
         <SafeAreaView edges={["top"]} style={styles.heroSafe}>
           {showBackButton ? (
             <TouchableOpacity style={styles.backBtn} onPress={() => router.replace("/")} testID="login-back-btn">
@@ -58,7 +59,7 @@ export default function AuthLoginShell({
           <Text style={styles.heroTitle}>{heroTitle}</Text>
           <Text style={styles.heroSubtitle}>{heroSubtitle}</Text>
         </SafeAreaView>
-      </ImageBackground>
+      </LinearGradient>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -82,9 +83,14 @@ export default function AuthLoginShell({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   heroBg: { height: 260 },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10,14,26,0.72)",
+  heroGlow: {
+    position: "absolute",
+    top: -70,
+    right: -50,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "rgba(255,102,0,0.22)",
   },
   heroSafe: { flex: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },
   backBtn: { flexDirection: "row", alignItems: "center", marginTop: spacing.sm, marginBottom: spacing.lg },

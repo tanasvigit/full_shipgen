@@ -116,7 +116,7 @@ export default function InventoryList() {
       ),
     },
     { key: "threshold", header: "Min qty", render: (r) => <span className="font-mono text-xs text-[#374151]">{r.threshold}</span> },
-    { key: "cost", header: "Unit cost", sortable: true, render: (r) => <span className="font-mono tabular text-sm">${r.cost.toFixed(2)}</span> },
+    { key: "cost", header: "Unit cost", sortable: true, render: (r) => <span className="font-mono tabular text-sm">₹{r.cost.toFixed(2)}</span> },
     {
       key: "lastReceived",
       header: "Updated",

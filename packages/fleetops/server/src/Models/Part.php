@@ -19,6 +19,7 @@ use Fleetbase\Traits\Searchable;
 use Fleetbase\Traits\TracksApiCredential;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\HasSlug;
@@ -157,6 +158,23 @@ class Part extends Model
      * @var string
      */
     protected static $logName = 'part';
+
+    /**
+     * Resolve fleet-ops:* and legacy morph aliases for asset relations.
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        Relation::morphMap([
+            'fleet-ops:vehicle'                      => Vehicle::class,
+            'fleet-ops:equipment'                    => Equipment::class,
+            'vehicle'                                => Vehicle::class,
+            'equipment'                              => Equipment::class,
+            'Fleetbase\\FleetOps\\Models\\Vehicle'   => Vehicle::class,
+            'Fleetbase\\FleetOps\\Models\\Equipment' => Equipment::class,
+        ], true);
+    }
 
     /**
      * Get the options for generating the slug.

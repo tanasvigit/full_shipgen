@@ -7,7 +7,7 @@ export const PLANS = {
   starter: {
     id: "starter",
     name: "Starter",
-    priceLabel: "$99/mo",
+    priceLabel: "₹7,999/mo",
     seats: 3,
     limits: {
       ordersPerMonth: 500,
@@ -27,7 +27,7 @@ export const PLANS = {
   professional: {
     id: "professional",
     name: "Professional",
-    priceLabel: "$299/mo",
+    priceLabel: "₹24,999/mo",
     seats: 15,
     limits: {
       ordersPerMonth: 5000,

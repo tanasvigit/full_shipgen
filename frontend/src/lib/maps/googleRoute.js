@@ -13,14 +13,20 @@ const CACHE_LIMIT = 64;
  */
 export function toLatLng(point) {
   if (!point) return null;
+  let lat;
+  let lng;
   if (Array.isArray(point)) {
-    const lat = Number(point[0]);
-    const lng = Number(point[1]);
-    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+    lat = Number(point[0]);
+    lng = Number(point[1]);
+  } else {
+    lat = Number(point.lat);
+    lng = Number(point.lng);
   }
-  const lat = Number(point.lat);
-  const lng = Number(point.lng);
-  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  // Reject the "null island" (0,0) placeholder — orders without a real payload
+  // report 0,0 coordinates, which would trigger bogus directions requests.
+  if (lat === 0 && lng === 0) return null;
+  return { lat, lng };
 }
 
 /**

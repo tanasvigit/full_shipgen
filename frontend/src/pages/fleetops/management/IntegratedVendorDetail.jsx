@@ -42,9 +42,12 @@ function IntegratedVendorProvidersPanel() {
   );
 }
 
-export default function IntegratedVendorDetail() {
+export default function IntegratedVendorDetail({ embedded = false, entityId, onClose }) {
   return (
     <FleetopsCrudDetailPage
+      embedded={embedded}
+      entityId={entityId}
+      onClose={onClose}
       config={CRUD_ENTITIES.integratedVendor}
       relationSlots={<IntegratedVendorProvidersPanel />}
     />

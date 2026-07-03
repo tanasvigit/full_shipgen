@@ -1,62 +1,113 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { colors, radius, spacing } from "@/src/theme";
 import ScreenHeader from "@/src/components/ScreenHeader";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
-import { colors, radius, spacing } from "@/src/theme";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { isDriverUser } from "@/src/lib/driver";
 
 const priorityColor = (p: string) =>
   p === "high" ? colors.error : p === "medium" ? colors.warning : colors.info;
 
+const statusToBadge = (status: string) =>
+  status === "in_progress" ? "assigned" : status === "resolved" ? "delivered" : "pending";
+
 export default function IssueDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const issueRef = String(id);
-  const { issues, findVehicle } = useFleetData();
-  const issue = issues.find((row) => row.id === issueRef);
-  const vehicle = issue ? findVehicle(issue.vehicleId) : undefined;
+  const { user } = useAuth();
+  const driverMode = isDriverUser(user);
+  const { issues, findVehicle, sectionLoading } = useFleetData();
+  const issue = issues.find((item) => item.id === id);
 
-  if (!issue) {
+  if (!issue && sectionLoading.issues) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
         <ScreenHeader title="Issue" back />
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>Issue not found in cache. Refresh the issues list.</Text>
+          <ActivityIndicator color={colors.text} />
+          <Text style={styles.emptyText}>Loading issue...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
+  if (!issue) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScreenHeader title="Issue" back />
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>Issue not found.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const vehicle = findVehicle(issue.vehicleId);
+  const vehicleLabel = vehicle?.plate || issue.vehicleName || "—";
+  const prio = priorityColor(issue.priority);
+  const canEdit = !driverMode && issue.status !== "resolved";
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScreenHeader title="Issue" subtitle={issue.title} back />
+      <ScreenHeader
+        title="Issue"
+        subtitle={issue.title}
+        back
+        rightIcon={canEdit ? "create-outline" : undefined}
+        onRightPress={canEdit ? () => router.push({ pathname: "/report-issue", params: { id: issue.id } }) : undefined}
+      />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.card}>
-          <View style={styles.rowBetween}>
-            <View style={[styles.prioDot, { backgroundColor: priorityColor(issue.priority) }]} />
-            <StatusBadge
-              status={issue.status === "in_progress" ? "assigned" : issue.status === "resolved" ? "delivered" : "pending"}
-            />
+          <View style={styles.titleRow}>
+            <View style={[styles.prioDot, { backgroundColor: prio }]} />
+            <Text style={styles.title}>{issue.title}</Text>
+            <StatusBadge status={statusToBadge(issue.status)} />
           </View>
-          <Text style={styles.title}>{issue.title}</Text>
-          <Text style={styles.description}>{issue.description}</Text>
+          <View style={[styles.prioBadge, { borderColor: prio }]}>
+            <Text style={[styles.prioText, { color: prio }]}>
+              {issue.priority.toUpperCase()} PRIORITY
+            </Text>
+          </View>
         </View>
 
         <View style={styles.card}>
-          <Meta label="REPORTED BY" value={issue.reportedBy} />
-          <Meta label="REPORTED AT" value={issue.reportedAt} />
-          <Meta label="PRIORITY" value={issue.priority.toUpperCase()} />
-          <Meta label="VEHICLE" value={vehicle?.plate || issue.vehicleName || "—"} />
+          <Text style={styles.sectionLabel}>DESCRIPTION</Text>
+          <Text style={styles.body}>{issue.description || "No description provided."}</Text>
         </View>
 
-        {vehicle ? (
-          <TouchableOpacity style={styles.linkBtn} onPress={() => router.push(`/vehicle/${vehicle.id}`)}>
-            <Ionicons name="car-sport-outline" size={16} color="#fff" />
-            <Text style={styles.linkBtnText}>View vehicle</Text>
-          </TouchableOpacity>
+        {issue.location ? (
+          <View style={styles.metaGrid}>
+            <Meta label="Location" value={issue.location} />
+          </View>
         ) : null}
+
+        {vehicle ? (
+          <TouchableOpacity style={styles.assignCard} onPress={() => router.push(`/vehicle/${vehicle.id}`)}>
+            <View style={styles.assignIcon}>
+              <Ionicons name="car-sport-outline" size={16} color={colors.text} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.assignLabel}>Vehicle</Text>
+              <Text style={styles.assignValue}>{vehicleLabel}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.metaGrid}>
+            <Meta label="Vehicle" value={vehicleLabel} />
+          </View>
+        )}
+
+        <View style={styles.metaGrid}>
+          <Meta label="Reported by" value={issue.reportedBy || "—"} />
+          <Meta label="Reported at" value={issue.reportedAt || "—"} />
+        </View>
+
+        <View style={{ height: spacing.xxxl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -64,8 +115,8 @@ export default function IssueDetail() {
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.metaRow}>
-      <Text style={styles.metaLabel}>{label}</Text>
+    <View style={styles.metaCell}>
+      <Text style={styles.metaLabel}>{label.toUpperCase()}</Text>
       <Text style={styles.metaValue}>{value}</Text>
     </View>
   );
@@ -74,8 +125,8 @@ function Meta({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, gap: spacing.md },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xxxl },
-  emptyText: { color: colors.textMuted, textAlign: "center", fontSize: 13 },
+  empty: { padding: spacing.xxxl, alignItems: "center", gap: spacing.sm },
+  emptyText: { color: colors.textMuted },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -83,21 +134,49 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
   },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  prioDot: { width: 10, height: 10, borderRadius: 5 },
-  title: { fontSize: 18, fontWeight: "900", color: colors.text, marginTop: spacing.md },
-  description: { fontSize: 14, color: colors.textSecondary, marginTop: spacing.sm, lineHeight: 20 },
-  metaRow: { marginTop: spacing.sm },
-  metaLabel: { fontSize: 10, fontWeight: "800", color: colors.textMuted, letterSpacing: 1.2 },
-  metaValue: { fontSize: 14, fontWeight: "700", color: colors.text, marginTop: 4 },
-  linkBtn: {
+  titleRow: { flexDirection: "row", alignItems: "center" },
+  prioDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+  title: { fontSize: 16, fontWeight: "800", color: colors.text, flex: 1, marginRight: 8 },
+  prioBadge: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    alignSelf: "flex-start",
+    marginTop: spacing.md,
+  },
+  prioText: { fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
+  sectionLabel: { fontSize: 10, fontWeight: "800", color: colors.textMuted, letterSpacing: 1.6, marginBottom: spacing.sm },
+  body: { fontSize: 13, color: colors.textSecondary, lineHeight: 19 },
+  assignCard: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: colors.brand,
-    borderRadius: radius.md,
-    height: 48,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
   },
-  linkBtnText: { color: "#fff", fontWeight: "800", fontSize: 14 },
+  assignIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
+  },
+  assignLabel: { fontSize: 10, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },
+  assignValue: { fontSize: 14, fontWeight: "700", color: colors.text, marginTop: 2 },
+  metaGrid: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+  },
+  metaCell: { flex: 1 },
+  metaLabel: { fontSize: 9, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },
+  metaValue: { fontSize: 14, fontWeight: "900", color: colors.text, marginTop: 4 },
 });

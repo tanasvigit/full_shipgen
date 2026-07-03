@@ -2,10 +2,11 @@
 
 namespace Fleetbase\FleetOps\Support\Telematics;
 
-use Fleetbase\FleetOps\Jobs\SyncDevicesJob;
-use Fleetbase\FleetOps\Jobs\TestConnectionJob;
+use Fleetbase\FleetOps\Jobs\SyncTelematicDevicesJob;
+use Fleetbase\FleetOps\Jobs\TestTelematicConnectionJob;
 use Fleetbase\FleetOps\Models\Device;
 use Fleetbase\FleetOps\Models\Telematic;
+use Fleetbase\FleetOps\Support\Telematics\TelematicCredentials;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -78,7 +79,7 @@ class TelematicService
         if (isset($data['credentials'])) {
             $descriptor = $this->registry->findByKey($telematic->provider);
             $this->validateCredentials($data['credentials'], $descriptor->requiredFields);
-            $telematic->credentials = Crypt::encryptString(json_encode($data['credentials']));
+            $telematic->credentials = TelematicCredentials::encrypt($data['credentials']);
         }
 
         if (isset($data['status'])) {
@@ -110,16 +111,14 @@ class TelematicService
     public function testConnection(Telematic $telematic, bool $async = false)
     {
         if ($async) {
-            $job = new TestConnectionJob($telematic);
+            $job = new TestTelematicConnectionJob($telematic);
             dispatch($job);
 
             return ['job_id' => $job->getJobId(), 'message' => 'Connection test queued'];
         }
 
-        $provider = $this->registry->resolve($telematic->provider);
-        $provider->connect($telematic);
-
-        $credentials = json_decode(Crypt::decryptString($telematic->credentials), true);
+        $provider    = $this->registry->resolve($telematic->provider);
+        $credentials = $this->getCredentials($telematic);
 
         return $provider->testConnection($credentials);
     }
@@ -131,7 +130,7 @@ class TelematicService
      */
     public function discoverDevices(Telematic $telematic, array $options = []): string
     {
-        $job = new SyncDevicesJob($telematic, $options);
+        $job = new SyncTelematicDevicesJob($telematic, $options);
         dispatch($job);
 
         return $job->getJobId();
@@ -144,14 +143,19 @@ class TelematicService
     {
         $device = Device::firstOrNew([
             'telematic_uuid' => $telematic->uuid,
-            'external_id'    => $deviceData['external_id'],
+            'device_id'      => $deviceData['external_id'],
         ]);
 
-        $device->device_name     = $deviceData['device_name'] ?? 'Unknown Device';
-        $device->device_model    = $deviceData['device_model'] ?? null;
-        $device->device_provider = $telematic->provider;
-        $device->status          = $deviceData['status'] ?? 'active';
-        $device->meta            = array_merge($device->meta ?? [], $deviceData['meta'] ?? []);
+        $device->company_uuid = $telematic->company_uuid;
+        $device->name         = $deviceData['device_name'] ?? 'Unknown Device';
+        $device->model        = $deviceData['device_model'] ?? null;
+        $device->provider     = $telematic->provider;
+        $device->status       = $deviceData['status'] ?? 'active';
+        $device->meta         = array_merge($device->meta ?? [], $deviceData['meta'] ?? []);
+
+        if (!$device->last_position) {
+            $device->last_position = new \Fleetbase\LaravelMysqlSpatial\Types\Point(0, 0);
+        }
 
         $device->save();
 
@@ -173,8 +177,8 @@ class TelematicService
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('device_name', 'like', "%{$filters['search']}%")
-                  ->orWhere('external_id', 'like', "%{$filters['search']}%");
+                $q->where('name', 'like', "%{$filters['search']}%")
+                  ->orWhere('device_id', 'like', "%{$filters['search']}%");
             });
         }
 
@@ -218,6 +222,6 @@ class TelematicService
      */
     public function getCredentials(Telematic $telematic): array
     {
-        return json_decode(Crypt::decryptString($telematic->credentials), true);
+        return TelematicCredentials::read($telematic->getAttributes()['credentials'] ?? $telematic->credentials);
     }
 }

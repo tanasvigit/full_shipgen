@@ -35,3 +35,13 @@ export function canListFleetIssues(canFleetops: CanFleetops): boolean {
 export function canListFleetFuel(canFleetops: CanFleetops): boolean {
   return canFleetops("list", "fuel-report") || canFleetops("list", "fuel_report");
 }
+
+/** Fleet workspace screen — ops users with vehicle list, or anyone with issues/fuel list access (e.g. drivers). */
+export function canAccessFleetWorkspace(
+  user: MobileUser | null | undefined,
+  canFleetops: CanFleetops,
+): boolean {
+  if (!user) return false;
+  if (showFleetTab(user, canFleetops)) return true;
+  return canListFleetIssues(canFleetops) || canListFleetFuel(canFleetops);
+}

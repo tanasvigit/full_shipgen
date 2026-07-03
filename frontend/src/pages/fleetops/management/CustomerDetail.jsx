@@ -6,9 +6,11 @@ import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 import { Button } from "@/components/ui/button";
 import { KeyRound } from "lucide-react";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
+import { resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
 
-export default function CustomerDetail() {
-  const { id } = useParams();
+export default function CustomerDetail({ embedded = false, entityId: entityIdProp, onClose }) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
   const { can } = useFleetopsPermission();
   const [resetOpen, setResetOpen] = useState(false);
   const canReset = can("update", "customer");
@@ -16,6 +18,9 @@ export default function CustomerDetail() {
   return (
     <>
       <FleetopsCrudDetailPage
+        embedded={embedded}
+        entityId={id}
+        onClose={onClose}
         config={CRUD_ENTITIES.customer}
         relationSlots={
           canReset ? (

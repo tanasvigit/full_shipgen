@@ -78,6 +78,14 @@ export function useYardPermissions() {
         return;
       }
 
+      if (!yardOnly && isConsoleAdmin) {
+        if (!cancelled) {
+          setPermissions(["*"]);
+          setReady(true);
+        }
+        return;
+      }
+
       if (!yardOnly && !isAuthenticated) {
         if (!cancelled) {
           setPermissions([]);

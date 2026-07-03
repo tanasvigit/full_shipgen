@@ -12,9 +12,9 @@ export const DEFAULT_BRANDING = {
 };
 
 export const DEFAULT_PREFERENCES = {
-  timezone: "UTC",
-  currency: "USD",
-  locale: "en-US",
+  timezone: "Asia/Kolkata",
+  currency: "INR",
+  locale: "en-IN",
   notifications: {
     orderCreated: { email: true, push: true },
     orderDispatched: { email: true, push: true },

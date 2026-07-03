@@ -80,7 +80,7 @@ export default function DriverDetail({
     if (!id) return;
     setLoading(true);
     try {
-      const rawDriver = await fleetopsService.getDriver(id, { with: "fleets,vehicle", nocache: 1 });
+      const rawDriver = await fleetopsService.getDriver(id, { nocache: 1 });
       setDriverApi(rawDriver || null);
 
       let v = null;

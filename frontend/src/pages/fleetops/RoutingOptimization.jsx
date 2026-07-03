@@ -128,7 +128,7 @@ export default function RoutingOptimization() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Metric icon={TrendingDown} label="Distance (API)" baseline="—" value={`${active.distance || 0} km`} delta="live" accent="emerald" />
               <Metric icon={Clock} label="ETA" baseline="—" value={active.eta} delta="live" accent="blue" />
-              <Metric icon={Package} label="Order total" baseline="—" value={`$${active.total.toFixed(2)}`} delta={statusLabel(active.status)} accent="emerald" />
+              <Metric icon={Package} label="Order total" baseline="—" value={`₹${active.total.toFixed(2)}`} delta={statusLabel(active.status)} accent="emerald" />
             </div>
             <div className="bg-white border border-black/[0.08] rounded-xl overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-black/[0.06]">

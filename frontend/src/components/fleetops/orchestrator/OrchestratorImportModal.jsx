@@ -5,6 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { filesService } from "@/services/files";
 import { fleetopsService } from "@/services/fleetops";
+import {
+  parseCsvToOrchestratorRows,
+  parseOrderIdsText,
+  summarizeOrchestratorImportResult,
+  summarizeOrchestratorPoolValidation,
+} from "@/lib/fleetops/orchestratorImport";
 import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import { toast } from "sonner";
 
@@ -19,22 +25,44 @@ export default function OrchestratorImportModal({ open, onOpenChange, onImported
     setError(null);
     try {
       const body = {};
+      const ids = parseOrderIdsText(orderIdsText);
       if (file) {
-        const uploaded = await filesService.upload(file);
-        const uuid = uploaded?.uuid || uploaded?.id;
-        if (!uuid) throw new Error("Upload did not return a file id.");
-        body.file_uuid = uuid;
+        const name = file.name.toLowerCase();
+        if (name.endsWith(".csv") || name.endsWith(".tsv")) {
+          const rows = parseCsvToOrchestratorRows(await file.text());
+          if (!rows.length) throw new Error("No rows found in spreadsheet.");
+          body.rows = rows;
+        } else {
+          const uploaded = await filesService.upload(file);
+          const uuid = uploaded?.uuid || uploaded?.id;
+          if (!uuid) throw new Error("Upload did not return a file id.");
+          body.file_uuid = uuid;
+        }
       }
-      const ids = orderIdsText
-        .split(/[\s,]+/)
-        .map((s) => s.trim())
-        .filter(Boolean);
       if (ids.length) body.order_ids = ids;
-      if (!body.file_uuid && !body.order_ids?.length) {
+      if (!body.rows?.length && !body.file_uuid && !body.order_ids?.length) {
         throw new Error("Upload a file or enter order IDs.");
       }
-      await fleetopsService.importOrchestratorOrders(body);
-      toast.success("Orders imported into orchestrator pool");
+
+      let result;
+      if (body.order_ids?.length && !body.rows?.length && !body.file_uuid) {
+        const validation = await fleetopsService.validateOrchestratorPoolOrders(body.order_ids);
+        const summary = summarizeOrchestratorPoolValidation(validation);
+        if (summary.tone === "warning") toast.warning(summary.message);
+        else if (summary.tone === "error") throw new Error(summary.message);
+        else toast.success(summary.message);
+        onImported?.();
+        onOpenChange(false);
+        setFile(null);
+        setOrderIdsText("");
+        return;
+      }
+
+      result = await fleetopsService.importOrchestratorOrders(body);
+      const summary = summarizeOrchestratorImportResult(result);
+      if (summary.tone === "warning") toast.warning(summary.message);
+      else if (summary.tone === "error") throw new Error(summary.message);
+      else toast.success(summary.message);
       onImported?.();
       onOpenChange(false);
       setFile(null);

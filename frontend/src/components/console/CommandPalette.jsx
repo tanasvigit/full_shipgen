@@ -18,6 +18,8 @@ import {
   LayoutDashboard,
   Bell,
   Settings as SettingsIcon,
+  Workflow,
+  DollarSign,
 } from "lucide-react";
 import { IAM_HEADER_SHORTCUTS } from "@/lib/iam/headerShortcuts";
 import { useEffect, useState } from "react";
@@ -75,6 +77,12 @@ export default function CommandPalette({ open, onOpenChange }) {
           </CommandItem>
           <CommandItem onSelect={() => go("/fleet-ops/operations/orders")}>
             <Package className="mr-2 h-4 w-4" /> Orders
+          </CommandItem>
+          <CommandItem onSelect={() => go("/fleet-ops/operations/orchestrator")} data-testid="command-orchestrator">
+            <Workflow className="mr-2 h-4 w-4" /> Orchestrator
+          </CommandItem>
+          <CommandItem onSelect={() => go("/fleet-ops/operations/service-rates")} data-testid="command-service-rates">
+            <DollarSign className="mr-2 h-4 w-4" /> Service rates
           </CommandItem>
           <CommandItem onSelect={() => go("/fleet-ops/management/drivers")}>
             <Users className="mr-2 h-4 w-4" /> Drivers

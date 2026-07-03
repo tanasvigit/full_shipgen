@@ -21,13 +21,14 @@ export default function VehicleDevicesAdmin() {
       const junction = await fleetopsService.listVehicleDevicesAdmin();
       setRows(
         junction.map((j) => ({
-          id: j.uuid || j.id,
-          vehicleId: j.vehicle_uuid || j.vehicle_id,
-          deviceId: j.device_uuid || j.device_id,
+          id: j.uuid || j.id || `${j.vehicle_uuid || j.vehicle_id}-${j.device_uuid || j.device_id}`,
+          vehicleId: j.vehicle_uuid || j.vehicle_id || j.attachable_uuid,
+          deviceId: j.device_uuid || j.device_id || j.uuid,
           raw: j,
         })),
       );
-    } catch {
+    } catch (err) {
+      toast.error(parseApiError(err, "Failed to load vehicle-device links"));
       setRows([]);
     } finally {
       setLoading(false);

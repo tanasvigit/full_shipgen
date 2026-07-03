@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/lib/maps/googleConfig";
 import { isValidPolygon, toGeoJsonPolygon, toLeafletPolygon } from "@/lib/fleetops/geofence";
 
+const DEFAULT_HINT =
+  "Click the map to place boundary points. Minimum 3 points required.";
+const EMBEDDED_HINT =
+  "Click the map to draw the zone boundary. It is included when you create or save the zone.";
+
 function MapClickHandler({ onPoint }) {
   const map = useMap();
   useEffect(() => {
@@ -51,12 +56,36 @@ function FitPolygonBounds({ points }) {
   return null;
 }
 
-export default function GoogleServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false }) {
+export default function GoogleServiceAreaMapEditor({
+  geometry,
+  onSave,
+  onDelete,
+  onChange,
+  autoSync = false,
+  busy = false,
+  saveLabel = "Save boundary",
+  deleteLabel = "Delete boundary",
+  showSaveButton,
+  showDeleteButton,
+  hint,
+}) {
   const [points, setPoints] = useState(() => toLeafletPolygon(geometry));
+  const shouldShowSave = showSaveButton ?? !autoSync;
+  const shouldShowDelete = showDeleteButton ?? (!autoSync && Boolean(onDelete));
+  const hintText = hint ?? (autoSync ? EMBEDDED_HINT : DEFAULT_HINT);
 
   useEffect(() => {
     setPoints(toLeafletPolygon(geometry));
   }, [geometry]);
+
+  useEffect(() => {
+    if (!autoSync || !onChange) return;
+    if (isValidPolygon(points)) {
+      onChange(toGeoJsonPolygon(points));
+    } else if (points.length === 0) {
+      onChange(null);
+    }
+  }, [points, autoSync, onChange]);
 
   const addPoint = useCallback((point) => {
     setPoints((prev) => [...prev, point]);
@@ -79,7 +108,7 @@ export default function GoogleServiceAreaMapEditor({ geometry, onSave, onDelete,
     <div className="space-y-3" data-testid="service-area-map-editor">
       <div className="flex items-center justify-between">
         <p className="text-xs text-[#4B5563]" data-testid="service-area-map-hint">
-          Click map to draw polygon points. Minimum 3 points required.
+          {hintText}
         </p>
         <div className="text-xs font-mono text-[#6B7280]" data-testid="service-area-points-count">
           {points.length} pts
@@ -130,12 +159,21 @@ export default function GoogleServiceAreaMapEditor({ geometry, onSave, onDelete,
         >
           Clear
         </Button>
-        <Button onClick={save} disabled={busy || !isValidPolygon(points)} data-testid="service-area-map-save">
-          Save polygon
-        </Button>
-        <Button variant="destructive" onClick={() => onDelete?.()} disabled={busy} data-testid="service-area-map-delete">
-          Delete polygon
-        </Button>
+        {shouldShowSave ? (
+          <Button onClick={save} disabled={busy || !isValidPolygon(points)} data-testid="service-area-map-save">
+            {saveLabel}
+          </Button>
+        ) : null}
+        {shouldShowDelete ? (
+          <Button
+            variant="destructive"
+            onClick={() => onDelete?.()}
+            disabled={busy}
+            data-testid="service-area-map-delete"
+          >
+            {deleteLabel}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

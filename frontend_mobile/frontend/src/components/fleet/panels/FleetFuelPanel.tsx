@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 export default function FleetFuelPanel() {
@@ -47,7 +47,7 @@ export default function FleetFuelPanel() {
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statLabel}>TOTAL COST</Text>
-              <Text style={styles.statValue}>${totalCost.toFixed(2)}</Text>
+              <Text style={styles.statValue}>₹{totalCost.toFixed(2)}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statLabel}>VOLUME (L)</Text>
@@ -71,14 +71,19 @@ export default function FleetFuelPanel() {
         const vehicleLabel = v?.plate || item.vehicleName || "—";
         const driverLabel = d?.name || item.driverName || "—";
         return (
-          <View style={styles.row}>
+          <TouchableOpacity
+            testID={`fuel-${item.id}`}
+            style={styles.row}
+            activeOpacity={0.75}
+            onPress={() => router.push(`/fuel/${item.id}`)}
+          >
             <View style={styles.iconBox}>
               <Ionicons name="flame" size={16} color={colors.warning} />
             </View>
             <View style={{ flex: 1 }}>
               <View style={styles.headerRow}>
                 <Text style={styles.title}>{vehicleLabel}</Text>
-                <Text style={styles.cost}>${item.cost.toFixed(2)}</Text>
+                <Text style={styles.cost}>₹{item.cost.toFixed(2)}</Text>
               </View>
               <Text style={styles.sub}>{item.station}</Text>
               <View style={styles.metaRow}>
@@ -96,7 +101,7 @@ export default function FleetFuelPanel() {
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       }}
     />
@@ -154,11 +159,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.sm,
   },
   iconBox: {
     width: 40,

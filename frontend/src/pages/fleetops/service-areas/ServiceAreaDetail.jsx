@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import FleetopsCrudDetailPage from "@/components/fleetops/crud/FleetopsCrudDetailPage";
 import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
+import { resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
 import { fleetopsService } from "@/services/fleetops";
-import ServiceAreaMapEditor from "./ServiceAreaMapEditor";
+import ServiceAreaBoundarySection from "@/components/fleetops/service-areas/ServiceAreaBoundarySection";
+import ServiceAreaMapPanel from "@/components/fleetops/service-areas/ServiceAreaMapPanel";
 import DataTable from "@/components/common/DataTable";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
 import ZoneFormDialog from "@/components/fleetops/service-areas/ZoneFormDialog";
@@ -12,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { parseApiError } from "@/lib/errors";
+import { extractBorderGeometry, toLeafletPolygon } from "@/lib/fleetops/geofence";
 
 function ServiceAreaRelations({ serviceAreaId }) {
   const [zones, setZones] = useState([]);
@@ -48,10 +51,10 @@ function ServiceAreaRelations({ serviceAreaId }) {
     setSaving(true);
     try {
       await fleetopsService.saveServiceAreaGeometry(serviceAreaId, polygon);
-      toast.success("Polygon saved");
+      toast.success("Boundary saved");
       await load();
     } catch (error) {
-      toast.error(parseApiError(error, "Could not save polygon."));
+      toast.error(parseApiError(error, "Could not save boundary."));
     } finally {
       setSaving(false);
     }
@@ -61,10 +64,10 @@ function ServiceAreaRelations({ serviceAreaId }) {
     setSaving(true);
     try {
       await fleetopsService.deleteServiceAreaGeometry(serviceAreaId);
-      toast.success("Polygon deleted");
+      toast.success("Boundary deleted");
       await load();
     } catch (error) {
-      toast.error(parseApiError(error, "Could not delete polygon."));
+      toast.error(parseApiError(error, "Could not delete boundary."));
     } finally {
       setSaving(false);
     }
@@ -102,10 +105,13 @@ function ServiceAreaRelations({ serviceAreaId }) {
 
   return (
     <div className="space-y-6" data-testid="service-area-relations">
-      <section className="rounded-md border border-black/[0.08] p-4 space-y-3">
-        <div className="overline">Geofence drawing</div>
-        <ServiceAreaMapEditor geometry={geometry} onSave={saveGeometry} onDelete={deleteGeometry} busy={saving} />
-      </section>
+      <ServiceAreaBoundarySection
+        serviceAreaBorder={geometry}
+        zones={zones}
+        onSaveBoundary={saveGeometry}
+        onDeleteBoundary={deleteGeometry}
+        busy={saving}
+      />
       <section className="rounded-md border border-black/[0.08] p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="overline">Zones</div>
@@ -126,6 +132,14 @@ function ServiceAreaRelations({ serviceAreaId }) {
           columns={[
             { key: "name", header: "Zone", render: (row) => row.name || "Untitled" },
             { key: "status", header: "Status", render: (row) => row.status || "active" },
+            {
+              key: "boundary",
+              header: "Boundary",
+              render: (row) => {
+                const hasBorder = toLeafletPolygon(extractBorderGeometry(row.raw)).length >= 3;
+                return hasBorder ? "Defined" : "Not set";
+              },
+            },
             { key: "publicId", header: "Public ID", render: (row) => row.publicId || "—" },
             {
               key: "actions",
@@ -168,7 +182,7 @@ function ServiceAreaRelations({ serviceAreaId }) {
             <DialogTitle>Zone details</DialogTitle>
           </DialogHeader>
           {viewZone && (
-            <dl className="text-sm space-y-2 font-mono">
+            <dl className="text-sm space-y-3 font-mono">
               <div>
                 <dt className="text-[#6B7280] text-xs uppercase">Name</dt>
                 <dd>{viewZone.name}</dd>
@@ -185,6 +199,18 @@ function ServiceAreaRelations({ serviceAreaId }) {
                 <dt className="text-[#6B7280] text-xs uppercase">Public ID</dt>
                 <dd>{viewZone.publicId || "—"}</dd>
               </div>
+              <div>
+                <dt className="text-[#6B7280] text-xs uppercase mb-2">Boundary</dt>
+                <dd>
+                  <ServiceAreaMapPanel
+                    serviceAreaBorder={null}
+                    zones={[viewZone]}
+                    height="240px"
+                    testId="service-area-zone-preview-map"
+                    emptyMessage="No zone boundary drawn yet."
+                  />
+                </dd>
+              </div>
             </dl>
           )}
         </DialogContent>
@@ -193,10 +219,14 @@ function ServiceAreaRelations({ serviceAreaId }) {
   );
 }
 
-export default function ServiceAreaDetail() {
-  const { id } = useParams();
+export default function ServiceAreaDetail({ embedded = false, entityId: entityIdProp, onClose }) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
   return (
     <FleetopsCrudDetailPage
+      embedded={embedded}
+      entityId={id}
+      onClose={onClose}
       config={CRUD_ENTITIES.serviceArea}
       relationSlots={<ServiceAreaRelations serviceAreaId={id} />}
     />

@@ -35,7 +35,7 @@ export default function OrderOverviewSection({
         </CollapsibleSection>
         <CollapsibleSection title="Order" testId="order-meta" defaultOpen={false}>
           <div className="text-xs font-mono text-[#374151]">{order.publicId}</div>
-          <div className="font-mono text-sm mt-2">${Number(order.total || 0).toFixed(2)}</div>
+          <div className="font-mono text-sm mt-2">₹{Number(order.total || 0).toFixed(2)}</div>
         </CollapsibleSection>
       </aside>
     </div>

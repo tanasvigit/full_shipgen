@@ -12,7 +12,7 @@ export default function OrderPurchaseRateTab({ rawOrder }) {
           <DetailFieldGrid
             fields={[
               { label: "ID", value: pr.public_id || pr.id, mono: true },
-              { label: "Amount", value: pr.amount != null ? `$${Number(pr.amount).toFixed(2)}` : "—" },
+              { label: "Amount", value: pr.amount != null ? `₹${Number(pr.amount).toFixed(2)}` : "—" },
               { label: "Currency", value: pr.currency || "—" },
               { label: "Service", value: pr.service_name || pr.service?.name || "—" },
             ]}

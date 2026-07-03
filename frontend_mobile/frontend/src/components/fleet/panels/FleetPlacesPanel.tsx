@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
 const typeIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -103,11 +103,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.md,
+    ...shadow.sm,
   },
   iconBox: {
     width: 40,

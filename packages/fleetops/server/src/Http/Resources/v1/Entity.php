@@ -31,7 +31,17 @@ class Entity extends FleetbaseResource
             'internal_id'       => $this->internal_id,
             'name'              => $this->name,
             'type'              => $this->type,
-            'payload'           => $this->when(Http::isPublicRequest(), data_get($this, 'payload.public_id')),
+            'payload'           => $this->whenLoaded('payload', function () {
+                if (Http::isPublicRequest()) {
+                    return $this->payload->public_id;
+                }
+
+                return [
+                    'uuid'      => $this->payload->uuid,
+                    'public_id' => $this->payload->public_id,
+                    'type'      => $this->payload->type,
+                ];
+            }),
             'destination'       => $this->when(Http::isPublicRequest(), data_get($this, 'destination.public_id')),
             'customer'          => $this->setCustomerType(Resolve::resourceForMorph($this->customer_type, $this->customer_uuid)),
             'supplier'          => $this->whenLoaded('supplier', fn () => $this->supplier),

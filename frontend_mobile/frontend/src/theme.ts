@@ -1,28 +1,44 @@
 export const colors = {
-  bg: "#F8F9FA",
+  // Surfaces — matches web command-center palette
+  bg: "#F5F6F8",
   surface: "#FFFFFF",
-  surfaceAlt: "#F1F3F5",
-  text: "#0A0A0A",
-  textSecondary: "#4B5563",
-  textMuted: "#9CA3AF",
+  surfaceAlt: "#EEF1F6",
+  surfaceElevated: "#F9FAFB",
+
+  // Text
+  text: "#0A0E1A",
+  textSecondary: "#374151",
+  textMuted: "#6B7280",
   textInverse: "#FFFFFF",
-  brand: "#0A0A0A",
-  brandHover: "#262626",
-  accent: "#0033A0",
+
+  // Brand — electric blue (web --primary #0066FF)
+  brand: "#0066FF",
+  brandHover: "#0040CC",
+  brandSoft: "#E6EFFF",
+  brandBorder: "#BBD3FF",
+  accent: "#0066FF",
   shipgenBlue: "#0066FF",
   shipgenOrange: "#FF6600",
-  success: "#10B981",
-  successBg: "#ECFDF5",
-  warning: "#F59E0B",
-  warningBg: "#FFFBEB",
-  error: "#EF4444",
-  errorBg: "#FEF2F2",
-  info: "#3B82F6",
-  infoBg: "#EFF6FF",
+
+  // Secondary accent
+  violet: "#7C3AED",
+  violetBg: "#F3EEFF",
+
+  // Semantic
+  success: "#16A34A",
+  successBg: "#E9F9EF",
+  warning: "#D97706",
+  warningBg: "#FEF3E2",
+  error: "#DC2626",
+  errorBg: "#FDECEC",
+  info: "#0066FF",
+  infoBg: "#E6EFFF",
   offline: "#6B7280",
-  offlineBg: "#F3F4F6",
-  border: "#E5E7EB",
-  borderStrong: "#D1D5DB",
+  offlineBg: "#F1F3F7",
+
+  // Lines
+  border: "#E6E8EE",
+  borderStrong: "#D3D7E0",
 };
 
 export const spacing = {
@@ -36,24 +52,59 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 6,
+  md: 10,
+  lg: 14,
+  xl: 20,
   pill: 999,
 };
 
+/**
+ * Elevation presets. Spread into a style object, e.g. `{ ...shadow.md }`.
+ * Combines iOS shadow props with Android elevation.
+ */
+export const shadow = {
+  sm: {
+    shadowColor: "#0A0E1A",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  md: {
+    shadowColor: "#0A0E1A",
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: "#0A0E1A",
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 6,
+  },
+  brand: {
+    shadowColor: "#0066FF",
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  },
+} as const;
+
 export const typography = {
-  h1: { fontSize: 32, fontWeight: "900" as const, letterSpacing: -0.5, color: colors.text },
-  h2: { fontSize: 24, fontWeight: "800" as const, letterSpacing: -0.3, color: colors.text },
-  h3: { fontSize: 20, fontWeight: "700" as const, color: colors.text },
-  h4: { fontSize: 16, fontWeight: "600" as const, color: colors.text },
+  h1: { fontSize: 32, fontWeight: "900" as const, letterSpacing: -0.6, color: colors.text },
+  h2: { fontSize: 24, fontWeight: "800" as const, letterSpacing: -0.4, color: colors.text },
+  h3: { fontSize: 20, fontWeight: "700" as const, letterSpacing: -0.3, color: colors.text },
+  h4: { fontSize: 16, fontWeight: "700" as const, letterSpacing: -0.2, color: colors.text },
   body: { fontSize: 14, fontWeight: "400" as const, color: colors.text },
   small: { fontSize: 12, fontWeight: "400" as const, color: colors.textSecondary },
   overline: {
     fontSize: 10,
-    fontWeight: "700" as const,
-    letterSpacing: 2,
+    fontWeight: "800" as const,
+    letterSpacing: 1.4,
     textTransform: "uppercase" as const,
     color: colors.textMuted,
   },

@@ -1,6 +1,6 @@
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "../theme";
+import { colors, radius, shadow, spacing } from "../theme";
 
 type Props = {
   label: string;
@@ -13,17 +13,35 @@ type Props = {
 };
 
 export default function KpiCard({ label, value, delta, positive, icon, full, onPress }: Props) {
+  const deltaColor = positive ? colors.success : colors.error;
+  const deltaBg = positive ? colors.successBg : colors.errorBg;
+
   const content = (
     <>
       <View style={styles.headerRow}>
-        <Text style={styles.label}>{label}</Text>
-        {icon ? <Ionicons name={icon} size={16} color={colors.textMuted} /> : null}
-      </View>
-      <Text style={styles.value}>{value}</Text>
-      {delta ? (
-        <Text style={[styles.delta, { color: positive ? colors.success : colors.error }]}>
-          {delta}
+        <Text style={styles.label} numberOfLines={1}>
+          {label}
         </Text>
+        {icon ? (
+          <View style={styles.iconChip}>
+            <Ionicons name={icon} size={15} color={colors.brand} />
+          </View>
+        ) : null}
+      </View>
+      <Text style={styles.value} numberOfLines={1}>
+        {value}
+      </Text>
+      {delta ? (
+        <View style={[styles.deltaPill, { backgroundColor: deltaBg }]}>
+          <Ionicons
+            name={positive ? "arrow-up" : "arrow-down"}
+            size={10}
+            color={deltaColor}
+          />
+          <Text style={[styles.delta, { color: deltaColor }]} numberOfLines={1}>
+            {delta}
+          </Text>
+        </View>
       ) : null}
     </>
   );
@@ -33,7 +51,7 @@ export default function KpiCard({ label, value, delta, positive, icon, full, onP
       <TouchableOpacity
         testID={`kpi-${label}`}
         onPress={onPress}
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         style={[styles.card, full && styles.full]}
       >
         {content}
@@ -57,22 +75,43 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 1,
     minWidth: 0,
+    ...shadow.sm,
   },
   full: { flexBasis: "100%" },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   label: {
     fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1.6,
+    fontWeight: "800",
+    letterSpacing: 1.2,
     textTransform: "uppercase",
     color: colors.textMuted,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  iconChip: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
+    backgroundColor: colors.brandSoft,
+    alignItems: "center",
+    justifyContent: "center",
   },
   value: {
-    fontSize: 26,
+    fontSize: 27,
     fontWeight: "900",
     color: colors.text,
-    marginTop: spacing.sm,
-    letterSpacing: -0.5,
+    marginTop: spacing.md,
+    letterSpacing: -0.8,
   },
-  delta: { fontSize: 12, fontWeight: "600", marginTop: 4 },
+  deltaPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    marginTop: spacing.sm,
+  },
+  delta: { fontSize: 11, fontWeight: "700" },
 });

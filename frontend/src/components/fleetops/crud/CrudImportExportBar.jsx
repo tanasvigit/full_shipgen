@@ -2,7 +2,15 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, Trash2 } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
-import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
+import {
+  buildClientExportCsv,
+  entitySupportsBulkDelete,
+  entitySupportsClientExport,
+  entitySupportsExport,
+  entitySupportsImportExport,
+  entitySupportsServerExport,
+  entitySupportsServerImport,
+} from "@/lib/fleetops/crudImportExport";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
@@ -12,6 +20,7 @@ import { parseApiError } from "@/lib/errors";
  */
 export default function CrudImportExportBar({
   entityKey,
+  rows = [],
   selectedIds = [],
   onComplete,
   testPrefix,
@@ -23,13 +32,38 @@ export default function CrudImportExportBar({
 
   if (!entitySupportsImportExport(entityKey)) return null;
 
-  const canExport = can("export", resource) || can("view", resource);
-  const canImport = can("import", resource) || can("create", resource);
-  const canBulkDelete = can("delete", resource);
+  const canExport =
+    entitySupportsExport(entityKey) && (can("export", resource) || can("view", resource));
+  const canImport =
+    entitySupportsServerImport(entityKey) && (can("import", resource) || can("create", resource));
+  const canBulkDelete = entitySupportsBulkDelete(entityKey) && can("delete", resource);
 
   const handleExport = async () => {
     setBusy(true);
     try {
+      if (entitySupportsClientExport(entityKey)) {
+        const exportRows = selectedIds.length
+          ? rows.filter((row) => selectedIds.includes(row.id))
+          : rows;
+        if (!exportRows.length) {
+          toast.error("Nothing to export");
+          return;
+        }
+        const blob = buildClientExportCsv(rows, entityKey, selectedIds);
+        fleetopsService.downloadExportBlob(blob, `${entityKey}-export.csv`);
+        toast.success(
+          selectedIds.length > 0
+            ? `Exported ${exportRows.length} selected record(s)`
+            : "Export downloaded",
+        );
+        return;
+      }
+
+      if (!entitySupportsServerExport(entityKey)) {
+        toast.error("Export is not available for this resource.");
+        return;
+      }
+
       const params =
         selectedIds.length > 0
           ? { selections: selectedIds, ids: selectedIds }
@@ -53,8 +87,13 @@ export default function CrudImportExportBar({
     if (!file) return;
     setBusy(true);
     try {
-      await fleetopsService.importResource(entityKey, file);
-      toast.success("Import submitted");
+      const result = await fleetopsService.importResource(entityKey, file);
+      const imported = Number(result?.imported);
+      toast.success(
+        Number.isFinite(imported) && imported > 0
+          ? `Imported ${imported} record(s)`
+          : result?.message || "Import completed",
+      );
       onComplete?.();
     } catch (err) {
       toast.error(parseApiError(err, "Import failed"));

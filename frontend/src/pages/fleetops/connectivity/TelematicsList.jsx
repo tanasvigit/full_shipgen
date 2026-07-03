@@ -1,15 +1,17 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import FleetopsCrudListPage from "@/components/fleetops/crud/FleetopsCrudListPage";
 import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 import { TelematicsSetupButton } from "@/components/fleetops/telematics/TelematicsSetupWizard";
 
 export default function TelematicsList() {
+  const [refreshKey, setRefreshKey] = useState(0);
   return (
     <div data-testid="telematics-module">
       <div className="px-6 pt-4 flex justify-end">
-        <TelematicsSetupButton />
+        <TelematicsSetupButton onComplete={() => setRefreshKey((k) => k + 1)} />
       </div>
-      <FleetopsCrudListPage config={CRUD_ENTITIES.telematic} />
+      <FleetopsCrudListPage key={refreshKey} config={CRUD_ENTITIES.telematic} />
       <div className="px-6 pb-6 text-sm text-[#4B5563]">
         <Link to="/fleet-ops/connectivity/devices" className="text-[#0066FF] mr-4">
           Devices

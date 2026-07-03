@@ -11,9 +11,7 @@ export default function TelematicLinkedDevicesPanel({ telematicId }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const all = await fleetopsService.listTelematicLinkedDevices(
-        telematicId ? { telematic: telematicId, telematic_id: telematicId } : {},
-      );
+      const all = await fleetopsService.listTelematicLinkedDevices(telematicId);
       setRows(all.map((d) => mapCrudRow(d, "device")));
     } catch {
       setRows([]);
@@ -46,7 +44,7 @@ export default function TelematicLinkedDevicesPanel({ telematicId }) {
         data={rows}
         loading={loading}
         pageSize={8}
-        emptyMessage="No linked devices — use setup wizard to link."
+        emptyMessage="No linked devices — set Telematic on a device record or use the setup wizard."
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, spacing } from "../theme";
+import { colors, radius, spacing } from "../theme";
 
 type Props = {
   title: string;
@@ -20,9 +20,10 @@ export default function ScreenHeader({ title, subtitle, back, rightIcon, onRight
           <TouchableOpacity
             testID="header-back-btn"
             onPress={() => router.back()}
-            style={styles.iconBtn}
+            style={[styles.iconBtn, styles.iconBtnFilled]}
+            activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconBtn} />
@@ -41,9 +42,10 @@ export default function ScreenHeader({ title, subtitle, back, rightIcon, onRight
           <TouchableOpacity
             testID="header-right-btn"
             onPress={onRightPress}
-            style={styles.iconBtn}
+            style={[styles.iconBtn, styles.iconBtnFilled]}
+            activeOpacity={0.7}
           >
-            <Ionicons name={rightIcon} size={22} color={colors.text} />
+            <Ionicons name={rightIcon} size={20} color={colors.brand} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconBtn} />
@@ -63,8 +65,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   row: { flexDirection: "row", alignItems: "center" },
-  iconBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-  titleWrap: { flex: 1, alignItems: "center" },
-  title: { fontSize: 16, fontWeight: "800", color: colors.text, letterSpacing: -0.2 },
-  subtitle: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  iconBtn: { width: 38, height: 38, alignItems: "center", justifyContent: "center" },
+  iconBtnFilled: {
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  titleWrap: { flex: 1, alignItems: "center", paddingHorizontal: spacing.sm },
+  title: { fontSize: 17, fontWeight: "800", color: colors.text, letterSpacing: -0.3 },
+  subtitle: { fontSize: 11, color: colors.textMuted, marginTop: 2, fontWeight: "600" },
 });

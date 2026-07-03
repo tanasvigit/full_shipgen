@@ -35,6 +35,7 @@ class Payload extends FleetbaseResource
             'return'                => new Place($this->return),
             'waypoints'             => Waypoint::collection($this->getWaypoints($withRouteETA)),
             'entities'              => Entity::collection($this->entities),
+            'type'                  => $this->type,
             'cod_amount'            => $this->cod_amount ?? null,
             'cod_currency'          => $this->cod_currency ?? null,
             'cod_payment_method'    => $this->cod_payment_method ?? null,

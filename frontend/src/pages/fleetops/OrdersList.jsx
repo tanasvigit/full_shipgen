@@ -269,7 +269,7 @@ export default function OrdersList() {
     driverId: { key: "driverId", header: "Driver", render: (row) => <span className="text-xs">{row.driverId ? String(row.driverId).slice(0, 8) : "—"}</span> },
     vehicleId: { key: "vehicleId", header: "Vehicle", render: (row) => <span className="text-xs">{row.vehicleId ? String(row.vehicleId).slice(0, 8) : "—"}</span> },
     eta: { key: "eta", header: "ETA", render: (row) => <span className="font-mono text-xs text-[#1F2937]">{row.eta}</span> },
-    total: { key: "total", header: "Total", sortable: true, render: (row) => <span className="font-mono tabular text-right">${Number(row.total || 0).toFixed(2)}</span>, className: "text-right" },
+    total: { key: "total", header: "Total", sortable: true, render: (row) => <span className="font-mono tabular text-right">₹{Number(row.total || 0).toFixed(2)}</span>, className: "text-right" },
     paymentStatus: { key: "paymentStatus", header: "Payment", render: (row) => <span className="text-xs capitalize">{row.paymentStatus || "—"}</span> },
     notes: { key: "notes", header: "Notes", render: (row) => <span className="text-xs text-[#374151] truncate max-w-[200px] inline-block">{row.notes || "—"}</span> },
   };

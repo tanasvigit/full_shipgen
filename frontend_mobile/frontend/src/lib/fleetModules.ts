@@ -22,7 +22,7 @@ export type FleetTabDef = {
 };
 
 const MODULE_VISIBILITY: Record<FleetModuleId, (canFleetops: CanFleetops) => boolean> = {
-  vehicles: () => true,
+  vehicles: (can) => can("list", "vehicle"),
   drivers: canListFleetDrivers,
   routes: canListFleetRoutes,
   places: canListFleetPlaces,

@@ -85,6 +85,7 @@ server {
 
     # --- iam-service (auth, users, orgs, settings, files, webhooks, …) ---
     location ~ ^/int/v1/(auth|users|companies|settings|files|roles|policies|groups|permissions|onboard|installer|lookup|two-fa|api-|webhook|notification|dashboard|metric|activit|extension|categor|comment|custom-field|chat|user-device|schedule|template|report|transaction|gateway) {
+        include /etc/nginx/cors_preflight.conf;
         proxy_pass http://iam_upstream;
         include /etc/nginx/proxy_params.conf;
     }

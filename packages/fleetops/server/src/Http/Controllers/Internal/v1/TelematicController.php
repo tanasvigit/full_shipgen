@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Models\Device;
 use Fleetbase\FleetOps\Models\Telematic;
 use Fleetbase\FleetOps\Support\Telematics\TelematicProviderRegistry;
 use Fleetbase\FleetOps\Support\Telematics\TelematicService;
@@ -50,11 +51,25 @@ class TelematicController extends FleetOpsController
     }
 
     /**
+     * Resolve telematic id from route param or request body (legacy flat routes).
+     */
+    protected function resolveTelematicId(Request $request, ?string $id = null): string
+    {
+        $resolved = $id ?: $request->input('telematic') ?: $request->input('telematic_uuid') ?: $request->input('id');
+
+        if (!$resolved) {
+            abort(400, 'Telematic id is required.');
+        }
+
+        return $resolved;
+    }
+
+    /**
      * Test connection to provider.
      */
     public function testConnection(Request $request, string $id): JsonResponse
     {
-        $telematic = Telematic::where('uuid', $id)
+        $telematic = Telematic::where('uuid', $this->resolveTelematicId($request, $id))
             ->where('company_uuid', session('company'))
             ->firstOrFail();
 
@@ -97,9 +112,9 @@ class TelematicController extends FleetOpsController
     /**
      * Discover devices from provider.
      */
-    public function discover(Request $request, string $id): JsonResponse
+    public function discover(Request $request, ?string $id = null): JsonResponse
     {
-        $telematic = Telematic::where('uuid', $id)
+        $telematic = Telematic::where('uuid', $this->resolveTelematicId($request, $id))
             ->where('company_uuid', session('company'))
             ->firstOrFail();
 
@@ -117,9 +132,9 @@ class TelematicController extends FleetOpsController
     /**
      * Get devices for a telematic.
      */
-    public function devices(Request $request, string $id): JsonResponse
+    public function devices(Request $request, ?string $id = null): JsonResponse
     {
-        $telematic = Telematic::where('uuid', $id)
+        $telematic = Telematic::where('uuid', $this->resolveTelematicId($request, $id))
             ->where('company_uuid', session('company'))
             ->firstOrFail();
 
@@ -129,16 +144,26 @@ class TelematicController extends FleetOpsController
         ]);
 
         return response()->json([
-            'data' => $devices,
+            'data' => $devices->map(fn (Device $device) => [
+                'uuid'          => $device->uuid,
+                'public_id'     => $device->public_id,
+                'name'          => $device->name,
+                'imei'          => $device->imei,
+                'serial_number' => $device->serial_number,
+                'provider'      => $device->provider,
+                'status'        => $device->status,
+                'telematic_uuid'=> $device->telematic_uuid,
+                'device_id'     => $device->device_id,
+            ])->values(),
         ]);
     }
 
     /**
      * Link a device to a telematic.
      */
-    public function linkDevice(Request $request, string $id): JsonResponse
+    public function linkDevice(Request $request, ?string $id = null): JsonResponse
     {
-        $telematic = Telematic::where('uuid', $id)
+        $telematic = Telematic::where('uuid', $this->resolveTelematicId($request, $id))
             ->where('company_uuid', session('company'))
             ->firstOrFail();
 

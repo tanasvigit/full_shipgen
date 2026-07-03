@@ -390,7 +390,7 @@ export default function Dashboard() {
                     <td className="px-5 py-3.5">
                       <StatusBadge status={o.status} label={statusLabel(o.status)} />
                     </td>
-                    <td className="px-5 py-3.5 font-mono text-[13px] tabular text-right text-[#0A0E1A]">${Number(o.total || 0).toFixed(2)}</td>
+                    <td className="px-5 py-3.5 font-mono text-[13px] tabular text-right text-[#0A0E1A]">₹{Number(o.total || 0).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

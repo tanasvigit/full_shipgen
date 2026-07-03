@@ -22,13 +22,16 @@ export default function ConsoleLayout() {
 
     return (
         <EngineScopeGuard>
-        <div className="min-h-screen flex flex-col bg-[#F5F6F8] text-[#0A0E1A]" data-testid="console-layout">
+        <div className="h-dvh flex flex-col overflow-hidden bg-[#F5F6F8] text-[#0A0E1A]" data-testid="console-layout">
             <OfflineBanner />
             <DemoModeBanner />
             <Header onOpenPalette={() => setPaletteOpen(true)} />
-            <div className="flex flex-1 min-h-0">
+            <div className="flex flex-1 min-h-0 min-w-0">
                 <Sidebar />
-                <main className="flex-1 min-w-0 overflow-y-auto bg-[#F5F6F8]" data-testid="console-main">
+                <main
+                    className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain bg-[#F5F6F8]"
+                    data-testid="console-main"
+                >
                     <Outlet />
                 </main>
             </div>

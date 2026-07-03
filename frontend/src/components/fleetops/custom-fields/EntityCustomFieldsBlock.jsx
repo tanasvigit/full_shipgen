@@ -17,7 +17,7 @@ export default function EntityCustomFieldsBlock({ entityType, values = {}, onCha
       setLoading(true);
       const rows = await fleetopsService.listCustomFieldsForEntity(entityType).catch(() => []);
       if (active) {
-        setFields(rows.filter((f) => (f.status || "active") === "active"));
+        setFields(rows.filter((f) => f.editable !== false));
         setLoading(false);
       }
     })();

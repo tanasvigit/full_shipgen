@@ -176,6 +176,13 @@ const METHOD_MAP = {
     update: "updateTrackingStatus",
     delete: "deleteTrackingStatus",
   },
+  serviceRate: {
+    list: "listServiceRates",
+    get: "getServiceRate",
+    create: "createServiceRate",
+    update: "updateServiceRate",
+    delete: "deleteServiceRate",
+  },
 };
 
 export function getCrudApi(entityKey) {

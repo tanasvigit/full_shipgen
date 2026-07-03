@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
 
@@ -138,11 +138,12 @@ const styles = StyleSheet.create({
   retryText: { fontSize: 12, fontWeight: "800", color: colors.brand },
   row: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.md,
+    ...shadow.sm,
   },
   top: { flexDirection: "row", alignItems: "center" },
   prioDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },

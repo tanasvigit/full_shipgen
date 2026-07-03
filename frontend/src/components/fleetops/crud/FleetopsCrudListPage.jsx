@@ -18,7 +18,7 @@ import CrudImportExportBar from "@/components/fleetops/crud/CrudImportExportBar"
 import { entitySupportsImportExport } from "@/lib/fleetops/crudImportExport";
 import { parseApiError } from "@/lib/errors";
 
-export default function FleetopsCrudListPage({ config }) {
+export default function FleetopsCrudListPage({ config, FormComponent, formProps = {}, openCreateOnMount = false }) {
   const navigate = useNavigate();
   const drawerConfig = getEntityConfig(config.key);
   const { openDetail } = useFleetopsDetailDrawer(config.key);
@@ -57,6 +57,14 @@ export default function FleetopsCrudListPage({ config }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (openCreateOnMount && canCreate && !config.readOnly) {
+      dialog.setOpen(true);
+    }
+    // Only auto-open once when landing with ?vehicle=
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCreateOnMount]);
+
   const dialog = useFleetopsFormDialog({
     formRef,
     successMessage: `${config.singularLabel} created`,
@@ -89,8 +97,11 @@ export default function FleetopsCrudListPage({ config }) {
     [config.listPath, drawerConfig, navigate, openDetail],
   );
 
+  const EntityForm = FormComponent || SimpleEntityForm;
+
   const columns = useMemo(
-    () => [
+    () =>
+      config.listColumns || [
       {
         key: "name",
         header: "Name",
@@ -173,7 +184,12 @@ export default function FleetopsCrudListPage({ config }) {
       />
       <div className="p-6">
         {entitySupportsImportExport(config.key) && (
-          <CrudImportExportBar entityKey={config.key} onComplete={load} testPrefix={testPrefix} />
+          <CrudImportExportBar
+            entityKey={config.key}
+            rows={rows}
+            onComplete={load}
+            testPrefix={testPrefix}
+          />
         )}
         {!loading && rows.length === 0 ? (
           <div className="mb-4 text-sm text-[#4B5563]" data-testid={`${testPrefix}-empty`}>
@@ -202,8 +218,11 @@ export default function FleetopsCrudListPage({ config }) {
           error={dialog.error}
           onSubmit={dialog.handleSubmit}
           testId={`${testPrefix}-create-dialog`}
+          size={config.formDialogSize || "lg"}
         >
-          <SimpleEntityForm ref={formRef} formId={`${testPrefix}-create`} fields={config.fields} />
+          {dialog.open && (
+            <EntityForm ref={formRef} formId={`${testPrefix}-create`} fields={config.fields} {...formProps} />
+          )}
         </FleetOpsFormDialog>
       )}
     </div>

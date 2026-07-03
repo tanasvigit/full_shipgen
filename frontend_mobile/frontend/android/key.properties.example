@@ -1,0 +1,7 @@
+# Copy to android/key.properties (gitignored) before release builds.
+# See docs/PLAYSTORE_SIGNING.md — back up upload-keystore.jks + this file + keystore.credentials.
+# Generate keystore + AAB: npm run android:release:aab
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks

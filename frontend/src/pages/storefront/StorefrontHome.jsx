@@ -68,7 +68,7 @@ export default function StorefrontHome() {
     return days.map((day, i) => ({ day, v: Math.round(base * (0.85 + (i % 3) * 0.08)) }));
   }, [metrics]);
 
-  const currency = metrics?.currency || products[0]?.currency || "USD";
+  const currency = metrics?.currency || products[0]?.currency || "INR";
 
   return (
     <div data-testid="storefront-home">

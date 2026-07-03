@@ -14,6 +14,7 @@ use Fleetbase\Traits\Searchable;
 use Fleetbase\Traits\TracksApiCredential;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -125,6 +126,32 @@ class MaintenanceSchedule extends Model
      * @var array
      */
     protected $with = ['subject', 'defaultAssignee'];
+
+    /**
+     * Legacy morph types written before fleet-ops:* aliases (e.g. bare "vehicle") resolve incorrectly.
+     */
+    public static function boot(): void
+    {
+        parent::boot();
+
+        Relation::morphMap([
+            'fleet-ops:vehicle'                        => Vehicle::class,
+            'fleet-ops:equipment'                      => Equipment::class,
+            'fleet-ops:vendor'                         => Vendor::class,
+            'vehicle'                                  => Vehicle::class,
+            'equipment'                                => Equipment::class,
+            'vendor'                                   => Vendor::class,
+            'Fleetbase\\FleetOps\\Models\\Vehicle'     => Vehicle::class,
+            'Fleetbase\\FleetOps\\Models\\Equipment'   => Equipment::class,
+            'Fleetbase\\FleetOps\\Models\\Vendor'      => Vendor::class,
+            'Fleetbase\\Models\\Vehicle'               => Vehicle::class,
+            '\\Fleetbase\\Models\\Vehicle'             => Vehicle::class,
+            'Fleetbase\\Models\\Equipment'             => Equipment::class,
+            '\\Fleetbase\\Models\\Equipment'           => Equipment::class,
+            'Fleetbase\\Models\\Vendor'                => Vendor::class,
+            '\\Fleetbase\\Models\\Vendor'              => Vendor::class,
+        ], true);
+    }
 
     /**
      * Activity log options.

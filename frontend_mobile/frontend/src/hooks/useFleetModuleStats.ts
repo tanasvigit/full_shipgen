@@ -58,7 +58,7 @@ export function useFleetModuleStats({
       },
       fuel: {
         count: fuelLogs.length,
-        hint: fuelCost > 0 ? `$${fuelCost.toFixed(0)} logged` : "reports",
+        hint: fuelCost > 0 ? `₹${fuelCost.toFixed(0)} logged` : "reports",
       },
     };
 

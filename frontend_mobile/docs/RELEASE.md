@@ -31,7 +31,35 @@ Production builds should set:
 ## Versioning
 
 - App version in `app.json` (`expo.version`)
-- EAS `production.autoIncrement` for build numbers
+- Android `versionCode` / `versionName` in `android/app/build.gradle`
+- EAS `production.autoIncrement` for build numbers (EAS builds only)
+
+## Play Store — local signed AAB
+
+For Google Play uploads built on this machine (not EAS):
+
+```bash
+cd frontend
+npm run android:release:aab
+```
+
+Signed output: `frontend/dist/fleetbase-mobile-*.aab`
+
+**Critical:** Back up signing files before every release. Full instructions:
+
+→ **[PLAYSTORE_SIGNING.md](./PLAYSTORE_SIGNING.md)** — keystore backup, restore on new PC, version bumps, Play upload
+
+### Files you MUST backup (never lose)
+
+| File | Location |
+|------|----------|
+| `upload-keystore.jks` | `frontend/android/app/` |
+| `key.properties` | `frontend/android/` |
+| `keystore.credentials` | `frontend/android/` |
+
+Also save in a password manager: **keystore password**, **key alias** (`upload`), **key password**.
+
+Store copies on Google Drive, a password manager, and/or an external SSD/pendrive.
 
 ## Pre-release checklist
 

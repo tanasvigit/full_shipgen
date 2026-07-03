@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import KpiCard from "@/src/components/KpiCard";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useFleetData } from "@/src/hooks/useFleetData";
@@ -101,13 +101,13 @@ export default function Dashboard() {
           delta: "from API",
           positive: true,
           icon: "alert-circle-outline" as const,
-          onPress: () => router.push(fleetTabHref("issues")),
+          onPress: () => router.push("/issues"),
         },
       }
     : {
         primary: {
           label: "Order value (open)",
-          value: orderValue > 0 ? `$${orderValue.toLocaleString()}` : "—",
+          value: orderValue > 0 ? `₹${orderValue.toLocaleString("en-IN")}` : "—",
           delta: `${openOrders.length} orders`,
           positive: true,
           icon: "trending-up" as const,
@@ -153,7 +153,7 @@ export default function Dashboard() {
           onPress={() => router.push("/notifications")}
           style={styles.bellBtn}
         >
-          <Ionicons name="notifications-outline" size={20} color={colors.text} />
+          <Ionicons name="notifications-outline" size={20} color={colors.brand} />
           {unreadNotifications > 0 ? <View style={styles.bellDot} /> : null}
         </TouchableOpacity>
       </View>
@@ -226,8 +226,16 @@ export default function Dashboard() {
           {!driverMode ? (
             <QuickItem icon="location-outline" label="Places" onPress={() => router.push(fleetTabHref("places"))} />
           ) : null}
-          <QuickItem icon="alert-circle-outline" label="Issues" onPress={() => router.push(fleetTabHref("issues"))} />
-          <QuickItem icon="flame-outline" label="Fuel" onPress={() => router.push(fleetTabHref("fuel"))} />
+          <QuickItem
+            icon="alert-circle-outline"
+            label="Issues"
+            onPress={() => router.push(driverMode ? "/issues" : fleetTabHref("issues"))}
+          />
+          <QuickItem
+            icon="flame-outline"
+            label="Fuel"
+            onPress={() => router.push(driverMode ? "/fuels" : fleetTabHref("fuel"))}
+          />
           <QuickItem icon="notifications-outline" label="Alerts" onPress={() => router.push("/notifications")} />
         </View>
 
@@ -313,7 +321,7 @@ export default function Dashboard() {
         ) : (
           notifications.slice(0, 4).map((notification) => (
             <View key={notification.id} style={styles.activityRow}>
-              <View style={[styles.activityIcon, { backgroundColor: colors.surfaceAlt }]}>
+              <View style={[styles.activityIcon, { backgroundColor: colors.brandSoft }]}>
                 <Ionicons
                   name={
                     notification.type === "order"
@@ -325,7 +333,7 @@ export default function Dashboard() {
                       : "information-circle-outline"
                   }
                   size={16}
-                  color={colors.text}
+                  color={colors.brand}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -355,9 +363,9 @@ function QuickItem({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity testID={`quick-${label}`} style={styles.quickItem} onPress={onPress}>
+    <TouchableOpacity testID={`quick-${label}`} style={styles.quickItem} onPress={onPress} activeOpacity={0.75}>
       <View style={styles.quickIcon}>
-        <Ionicons name={icon} size={18} color={colors.text} />
+        <Ionicons name={icon} size={19} color={colors.brand} />
       </View>
       <Text style={styles.quickLabel}>{label}</Text>
     </TouchableOpacity>
@@ -374,17 +382,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  overline: { fontSize: 10, letterSpacing: 1.8, fontWeight: "700", color: colors.textMuted },
-  greeting: { fontSize: 22, fontWeight: "900", letterSpacing: -0.5, color: colors.text, marginTop: 2 },
+  overline: { fontSize: 10, letterSpacing: 1.6, fontWeight: "800", color: colors.brand },
+  greeting: { fontSize: 23, fontWeight: "900", letterSpacing: -0.6, color: colors.text, marginTop: 3 },
   bellBtn: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface,
+    ...shadow.sm,
   },
   bellDot: {
     position: "absolute",
@@ -438,15 +447,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     paddingVertical: spacing.md,
     alignItems: "center",
+    ...shadow.sm,
   },
   quickIcon: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: radius.md,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.brandSoft,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 6,
@@ -455,11 +465,12 @@ const styles = StyleSheet.create({
   orderRow: {
     flexDirection: "row",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.sm,
   },
   orderLeft: { flex: 1, marginRight: spacing.sm },
   orderCode: { fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.8 },
@@ -471,18 +482,19 @@ const styles = StyleSheet.create({
   driverChip: {
     width: 84,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.sm,
     alignItems: "center",
+    ...shadow.sm,
   },
   avatarWrap: { width: 48, height: 48, marginBottom: 6 },
   avatarFallback: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.text,
+    backgroundColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -504,15 +516,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.sm,
   },
   activityIcon: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",

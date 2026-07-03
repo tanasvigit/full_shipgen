@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useDriverOrders } from "@/src/hooks/useDriverOrders";
 import { matchesDriverBucket, type DriverOrderBucket } from "@/src/lib/orderStatus";
@@ -183,7 +183,7 @@ export default function Orders() {
               </View>
               <View style={styles.metaItem}>
                 <Ionicons name="cash-outline" size={11} color={colors.textMuted} />
-                <Text style={styles.metaText}>${item.amount}</Text>
+                <Text style={styles.metaText}>₹{item.amount}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -269,11 +269,12 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl },
   row: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.lg,
     marginBottom: spacing.md,
+    ...shadow.sm,
   },
   rowTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   code: { fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 1 },

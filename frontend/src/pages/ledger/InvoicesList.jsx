@@ -65,7 +65,7 @@ export default function InvoicesList() {
         invoice: {
           date: todayIso(),
           due_date: v.due || todayIso(),
-          currency: "USD",
+          currency: "INR",
           items: [
             {
               description: v.customer.trim(),
@@ -134,7 +134,7 @@ export default function InvoicesList() {
         testid="new-invoice-dialog"
         fields={[
           { key: "customer", label: "Customer / line description", placeholder: "Acme Logistics Inc.", required: true },
-          { key: "amount", label: "Amount (USD)", type: "number", min: 0, step: 0.01, defaultValue: "1000", required: true, col: "half" },
+          { key: "amount", label: "Amount (INR)", type: "number", min: 0, step: 0.01, defaultValue: "1000", required: true, col: "half" },
           { key: "due", label: "Due date", placeholder: todayIso(), col: "half" },
           { key: "lineItems", label: "Quantity", type: "number", min: 1, max: 99, defaultValue: "1", col: "half" },
         ]}

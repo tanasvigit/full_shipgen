@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "@/components/common/DataTable";
 import { fleetopsService } from "@/services/fleetops";
 import { mapCrudRow } from "@/lib/fleetops/crudEntities";
+import { deviceVehicleId, eventMatchesDevice, deviceEventType } from "@/lib/fleetops/connectivityResourcePayloads";
 
 export default function DeviceEventsPanel({ deviceId, enabled = true }) {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function DeviceEventsPanel({ deviceId, enabled = true }) {
       const all = await fleetopsService.listDeviceEvent();
       setRows(
         all
-          .filter((e) => String(e.device_uuid || e.device_id || "") === String(deviceId))
+          .filter((e) => eventMatchesDevice(e, deviceId))
           .map((r) => mapCrudRow(r, "deviceEvent")),
       );
     } catch {
@@ -36,7 +37,7 @@ export default function DeviceEventsPanel({ deviceId, enabled = true }) {
         testid="device-events-panel-table"
         columns={[
           { key: "name", header: "Event" },
-          { key: "type", header: "Type", render: (r) => r.raw?.type || r.type || "—" },
+          { key: "type", header: "Type", render: (r) => deviceEventType(r.raw) || "—" },
           {
             key: "created",
             header: "When",

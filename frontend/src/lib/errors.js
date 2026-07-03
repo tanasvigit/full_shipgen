@@ -44,14 +44,32 @@ function humanizeFieldName(field) {
 
 function normalizeErrorEntry(entry) {
   if (entry == null) return "";
-  if (typeof entry === "string") return entry.trim();
+  if (typeof entry === "string") return friendlyDatabaseMessage(entry.trim());
   if (typeof entry === "number" || typeof entry === "boolean") return String(entry);
   if (typeof entry === "object") {
-    if (typeof entry.message === "string") return entry.message.trim();
-    if (typeof entry.error === "string") return entry.error.trim();
-    if (typeof entry.detail === "string") return entry.detail.trim();
+    if (typeof entry.message === "string") return friendlyDatabaseMessage(entry.message.trim());
+    if (typeof entry.error === "string") return friendlyDatabaseMessage(entry.error.trim());
+    if (typeof entry.detail === "string") return friendlyDatabaseMessage(entry.detail.trim());
   }
   return "";
+}
+
+/** Map common SQL constraint errors to user-facing copy. */
+function friendlyDatabaseMessage(text) {
+  if (!text) return text;
+
+  const duplicateSku = text.match(
+    /Duplicate entry '[^']+-([^']+)' for key '[^']*sku[^']*'/i,
+  );
+  if (duplicateSku) {
+    return `A part with SKU "${duplicateSku[1]}" already exists. Check the parts list (including deleted rows) or use a different SKU.`;
+  }
+
+  if (/Duplicate entry/i.test(text) && /unique/i.test(text)) {
+    return "This record conflicts with existing data (duplicate value). Check unique fields such as SKU or code.";
+  }
+
+  return text;
 }
 
 function isTechnicalMessage(text) {

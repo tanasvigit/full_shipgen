@@ -42,8 +42,20 @@ export const mapDriver = (driver) => ({
   rating: Number(driver?.rating || 0),
   ordersCompleted: Number(driver?.orders_completed || 0),
   location: {
-    lat: Number(driver?.location?.latitude || driver?.lat || 0),
-    lng: Number(driver?.location?.longitude || driver?.lng || 0),
+    lat: Number(
+      driver?.location?.latitude ??
+        driver?.location?.lat ??
+        driver?.location?.coordinates?.[1] ??
+        driver?.lat ??
+        0,
+    ),
+    lng: Number(
+      driver?.location?.longitude ??
+        driver?.location?.lng ??
+        driver?.location?.coordinates?.[0] ??
+        driver?.lng ??
+        0,
+    ),
     label: driver?.location?.label || "Unknown",
   },
   skills: driver?.skills || [],
@@ -450,7 +462,7 @@ export const mapInvoiceItem = (item) => ({
 });
 
 export const mapInvoiceRow = (row) => {
-  const currency = row?.currency || "USD";
+  const currency = row?.currency || "INR";
   const totalMinor = moneyNum(row?.total_amount ?? row?.total);
   const paidMinor = moneyNum(row?.amount_paid ?? row?.paid);
   return {
@@ -508,7 +520,7 @@ export const mapWallet = (w) => {
     type: (w?.type || "internal").toLowerCase(),
     balance: ledgerMinor(balanceMinor),
     balanceFormatted: w?.formatted_balance || null,
-    currency: w?.currency || "USD",
+    currency: w?.currency || "INR",
     status: w?.status || "active",
     isFrozen: Boolean(w?.is_frozen),
     lastActivity: w?.updated_at || w?.created_at,
@@ -532,7 +544,7 @@ export const mapLedgerTxn = (t) => {
       customerDisplayName(t?.payer || t?.payee || t?.subject, "—"),
     method: paymentMethodLabel(t),
     amount: ledgerMinor(amountMinor),
-    currency: t?.currency || "USD",
+    currency: t?.currency || "INR",
     status: t?.status || "pending",
     description: t?.description || "",
     time: t?.created_at,
@@ -551,7 +563,7 @@ export const mapAccount = (a) => {
     type: accountTypeLabel(typeRaw),
     typeRaw,
     balance: ledgerMinor(a?.balance),
-    currency: a?.currency || "USD",
+    currency: a?.currency || "INR",
     status: a?.status || "active",
     change: null,
     raw: a,
@@ -570,7 +582,7 @@ export const mapJournalEntry = (j) => {
     posted: (j?.status || "posted") === "posted",
     status: j?.status || "posted",
     amount: ledgerMinor(amountMinor),
-    currency: j?.currency || "USD",
+    currency: j?.currency || "INR",
     debit: {
       code: debitAcct?.code || "—",
       name: debitAcct?.name || "—",
@@ -604,7 +616,7 @@ export const mapProduct = (p, index = 0) => {
     description: p?.description || "",
     price,
     cost,
-    currency: p?.currency || "USD",
+    currency: p?.currency || "INR",
     stock,
     status: productUiStatus(p),
     catalogId: p?.catalog_uuid || p?.category_uuid || p?.catalog_id,
@@ -708,7 +720,7 @@ export const mapCartLine = (item, productLookup = {}) => {
     qty,
     image: item?.product_image_url || fromProduct.image || null,
     subtotal: moneyNum(item?.subtotal ?? unitPrice * qty),
-    currency: item?.currency || fromProduct.currency || "USD",
+    currency: item?.currency || fromProduct.currency || "INR",
   };
 };
 
@@ -717,7 +729,7 @@ export const mapCart = (cart, productLookup = {}) => {
   return {
     id: cart?.public_id || cart?.id,
     uuid: cart?.uuid,
-    currency: cart?.currency || "USD",
+    currency: cart?.currency || "INR",
     subtotal: moneyNum(cart?.subtotal),
     totalItems: Number(cart?.total_items ?? 0),
     discountCode: cart?.discount_code || "",
@@ -1124,11 +1136,11 @@ const formatExtensionPrice = (x) => {
   const amount = x?.on_sale && x?.sale_price != null ? x.sale_price : x?.price;
   const n = Number(amount);
   if (!Number.isFinite(n) || n === 0) return "Free";
-  const cur = x?.currency || "USD";
+  const cur = x?.currency || "INR";
   try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: cur }).format(n);
+    return new Intl.NumberFormat(cur === "INR" ? "en-IN" : undefined, { style: "currency", currency: cur }).format(n);
   } catch {
-    return `$${n}`;
+    return `₹${n}`;
   }
 };
 

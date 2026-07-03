@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Fleetops",
+    "name": "ShipGen",
     "slug": "shipgen-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -45,7 +45,7 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.lawde123.fleetbasemobile"
+      "package": "com.shipgen.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -60,7 +60,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#FFFFFF"
         }
       ],
       [

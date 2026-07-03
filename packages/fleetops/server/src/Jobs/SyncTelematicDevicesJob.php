@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Jobs;
 
 use Fleetbase\FleetOps\Models\Telematic;
+use Fleetbase\FleetOps\Support\Telematics\TelematicProviderRegistry;
 use Fleetbase\FleetOps\Support\Telematics\TelematicService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -41,7 +42,7 @@ class SyncTelematicDevicesJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ProviderRegistry $registry, TelematicService $service): void
+    public function handle(TelematicProviderRegistry $registry, TelematicService $service): void
     {
         $correlationId = \Illuminate\Support\Str::uuid()->toString();
 

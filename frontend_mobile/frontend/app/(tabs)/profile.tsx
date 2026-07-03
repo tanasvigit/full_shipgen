@@ -7,6 +7,7 @@ import { colors, radius, spacing } from "@/src/theme";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useFleetData } from "@/src/hooks/useFleetData";
 import OrgSwitchSheet from "@/src/components/OrgSwitchSheet";
+import SignOutDialog from "@/src/components/common/SignOutDialog";
 import { resolveDriverTrackId, isDriverUser } from "@/src/lib/driver";
 import { useDriverVehicle } from "@/src/hooks/useDriverVehicle";
 import { driverService } from "@/src/services/driverService";
@@ -29,6 +30,19 @@ export default function Profile() {
   const [online, setOnline] = useState(true);
   const [pushReady, setPushReady] = useState<boolean | null>(null);
   const [orgSheetOpen, setOrgSheetOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const confirmSignOut = useCallback(async () => {
+    setSigningOut(true);
+    try {
+      await logout();
+      router.replace("/");
+    } finally {
+      setSigningOut(false);
+      setSignOutOpen(false);
+    }
+  }, [logout, router]);
   const driverMode = isDriverUser(user);
   const driverTrackId = resolveDriverTrackId(user);
   const { vehicle: myVehicle } = useDriverVehicle();
@@ -178,8 +192,16 @@ export default function Profile() {
           {driverMode ? (
             <Row icon="time-outline" label="Schedule & HOS" onPress={() => router.push("/schedule")} />
           ) : null}
-          <Row icon="alert-circle-outline" label="Issues" onPress={() => router.push(fleetTabHref("issues"))} />
-          <Row icon="flame-outline" label="Fuel reports" onPress={() => router.push(fleetTabHref("fuel"))} />
+          <Row
+            icon="alert-circle-outline"
+            label="Issues"
+            onPress={() => router.push(driverMode ? "/issues" : fleetTabHref("issues"))}
+          />
+          <Row
+            icon="flame-outline"
+            label="Fuel reports"
+            onPress={() => router.push(driverMode ? "/fuels" : fleetTabHref("fuel"))}
+          />
           <Row
             icon="notifications-outline"
             label="Notifications"
@@ -250,10 +272,7 @@ export default function Profile() {
         <TouchableOpacity
           testID="logout-btn"
           style={styles.logout}
-          onPress={async () => {
-            await logout();
-            router.replace("/");
-          }}
+          onPress={() => setSignOutOpen(true)}
         >
           <Ionicons name="log-out-outline" size={16} color={colors.error} />
           <Text style={styles.logoutText}>Sign out</Text>
@@ -269,6 +288,13 @@ export default function Profile() {
         activeOrganization={activeOrganization}
         onClose={() => setOrgSheetOpen(false)}
         onSelect={switchOrganization}
+      />
+
+      <SignOutDialog
+        visible={signOutOpen}
+        loading={signingOut}
+        onCancel={() => setSignOutOpen(false)}
+        onConfirm={confirmSignOut}
       />
     </SafeAreaView>
   );

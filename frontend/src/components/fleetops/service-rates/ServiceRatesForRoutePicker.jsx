@@ -40,7 +40,7 @@ export default function ServiceRatesForRoutePicker({ routeId, value, onChange, d
         <SelectContent>
           {rates.map((r) => (
             <SelectItem key={r.uuid || r.id} value={String(r.uuid || r.id)}>
-              {r.name || r.public_id} · {r.service_type || r.serviceType || "—"}
+              {r.service_name || r.serviceName || r.name || r.public_id} · {r.service_type || r.serviceType || "—"}
             </SelectItem>
           ))}
         </SelectContent>

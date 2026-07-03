@@ -120,6 +120,7 @@ export type Issue = {
   status: "open" | "in_progress" | "resolved";
   reportedAt: string;
   description: string;
+  location?: string;
 };
 
 export type FuelLog = {
@@ -132,6 +133,9 @@ export type FuelLog = {
   cost: number;
   date: string;
   station: string;
+  odometer?: number;
+  location?: string;
+  metricUnit?: string;
 };
 
 export type NotificationItem = {

@@ -161,7 +161,12 @@ function DriverTripTracking({
             <Text style={styles.syncBtnText}>Sync now</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tripStrip}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tripStripScroll}
+          contentContainerStyle={styles.tripStrip}
+        >
           {trackableOrders.map((o) => (
             <TouchableOpacity
               key={o.id}
@@ -282,15 +287,23 @@ function OpsFleetTracking({ router }: { router: ReturnType<typeof useRouter> }) 
       <View style={styles.bottomSheet}>
         <View style={styles.sheetHandle} />
         <Text style={styles.sheetLabel}>ONLINE DRIVERS · {pins.length}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tripStrip}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tripStripScroll}
+          contentContainerStyle={styles.tripStrip}
+        >
           {pins.map((pin) => (
             <TouchableOpacity
               key={pin.id}
               testID={`live-driver-chip-${pin.id}`}
-              style={[styles.tripChip, selectedDriver?.id === pin.id && styles.tripChipActive]}
+              style={[styles.tripChip, styles.driverChip, selectedDriver?.id === pin.id && styles.tripChipActive]}
               onPress={() => setSelectedDriverId(pin.id)}
             >
-              <Text style={[styles.tripChipText, selectedDriver?.id === pin.id && styles.tripChipTextActive]}>
+              <Text
+                style={[styles.tripChipText, selectedDriver?.id === pin.id && styles.tripChipTextActive]}
+                numberOfLines={1}
+              >
                 {pin.name}
               </Text>
             </TouchableOpacity>
@@ -416,16 +429,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   syncBtnText: { fontSize: 10, color: colors.text, fontWeight: "700" },
-  tripStrip: { gap: 6, paddingVertical: 8 },
+  tripStripScroll: { flexGrow: 0, maxHeight: 48 },
+  tripStrip: { gap: 6, paddingVertical: 8, alignItems: "center" },
   tripChip: {
+    height: 32,
     paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tripChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  driverChip: { maxWidth: 180 },
   tripChipText: { fontSize: 11, fontWeight: "700", color: colors.textSecondary },
   tripChipTextActive: { color: "#fff" },
   detail: {

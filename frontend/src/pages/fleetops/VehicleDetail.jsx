@@ -7,6 +7,7 @@ import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
 import VehicleOrdersTab from "@/components/fleetops/detail/tabs/vehicle/VehicleOrdersTab";
 import VehicleDevicesTab from "@/components/fleetops/detail/tabs/vehicle/VehicleDevicesTab";
 import VehicleWorkOrdersTab from "@/components/fleetops/detail/tabs/vehicle/VehicleWorkOrdersTab";
+import VehicleMaintenanceTab from "@/components/fleetops/detail/tabs/vehicle/VehicleMaintenanceTab";
 import MapView from "@/components/common/MapView";
 import { DetailLoadingState, resolveDetailEntityId, wrapDetailEditDialog } from "@/lib/fleetops/detailEmbedded";
 import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
@@ -18,7 +19,7 @@ import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFlee
 import { useFleetopsLookups } from "@/hooks/fleetops/useFleetopsLookups";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Edit3, Truck, Fuel, Gauge, Wrench, Calendar } from "lucide-react";
+import { ArrowLeft, Edit3, Truck, Fuel, Gauge } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
 import { mapDriverRow, mapVehicleRow, statusLabel } from "@/lib/mappers";
 import { toast } from "sonner";
@@ -60,7 +61,7 @@ export default function VehicleDetail({
     if (!id) return;
     setLoading(true);
     try {
-      const rawVehicle = await fleetopsService.getVehicle(id, { with: "fleets,driver", nocache: 1 });
+      const rawVehicle = await fleetopsService.getVehicle(id, { nocache: 1 });
       if (!rawVehicle) {
         setVehicle(null);
         setVehicleApi(null);
@@ -223,30 +224,8 @@ export default function VehicleDetail({
     {
       id: "maintenance",
       label: "Maintenance",
-      content: (
-        <div className="p-4">
-          <div className="bg-white border border-black/[0.08] rounded-md p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 bg-emerald-500/10 border border-emerald-500/30 grid place-items-center rounded-sm">
-                <Wrench className="h-4 w-4 text-[#15803D]" />
-              </div>
-              <div>
-                <div className="font-medium">Last service</div>
-                <div className="text-xs text-[#4B5563] font-mono">{v.lastService}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 bg-amber-500/10 border border-amber-500/30 grid place-items-center rounded-sm">
-                <Calendar className="h-4 w-4 text-[#A16207]" />
-              </div>
-              <div>
-                <div className="font-medium">Next service due</div>
-                <div className="text-xs text-[#4B5563] font-mono">{v.nextService}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
+      testId: "vehicle-tab-maintenance",
+      content: <VehicleMaintenanceTab vehicleId={id} vehicleApi={vehicleApi} enabled={tabActive("maintenance")} />,
     },
     {
       id: "devices",

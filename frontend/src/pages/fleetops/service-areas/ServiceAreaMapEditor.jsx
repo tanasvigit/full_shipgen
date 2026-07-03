@@ -6,15 +6,44 @@ import { isValidPolygon, toGeoJsonPolygon, toLeafletPolygon } from "@/lib/fleeto
 import { isGoogleMapsEnabled } from "@/lib/maps/googleConfig";
 import { leafletTileLayerOptions } from "@/lib/maps/tiles";
 
-function LeafletServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false }) {
+const DEFAULT_HINT =
+  "Click the map to place boundary points. Minimum 3 points required.";
+const EMBEDDED_HINT =
+  "Click the map to draw the zone boundary. It is included when you create or save the zone.";
+
+function LeafletServiceAreaMapEditor({
+  geometry,
+  onSave,
+  onDelete,
+  onChange,
+  autoSync = false,
+  busy = false,
+  saveLabel = "Save boundary",
+  deleteLabel = "Delete boundary",
+  showSaveButton,
+  showDeleteButton,
+  hint,
+}) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const [points, setPoints] = useState(() => toLeafletPolygon(geometry));
+  const shouldShowSave = showSaveButton ?? !autoSync;
+  const shouldShowDelete = showDeleteButton ?? (!autoSync && Boolean(onDelete));
+  const hintText = hint ?? (autoSync ? EMBEDDED_HINT : DEFAULT_HINT);
 
   useEffect(() => {
     setPoints(toLeafletPolygon(geometry));
   }, [geometry]);
+
+  useEffect(() => {
+    if (!autoSync || !onChange) return;
+    if (isValidPolygon(points)) {
+      onChange(toGeoJsonPolygon(points));
+    } else if (points.length === 0) {
+      onChange(null);
+    }
+  }, [points, autoSync, onChange]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -73,7 +102,7 @@ function LeafletServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false 
     <div className="space-y-3" data-testid="service-area-map-editor">
       <div className="flex items-center justify-between">
         <p className="text-xs text-[#4B5563]" data-testid="service-area-map-hint">
-          Click map to draw polygon points. Minimum 3 points required.
+          {hintText}
         </p>
         <div className="text-xs font-mono text-[#6B7280]" data-testid="service-area-points-count">
           {points.length} pts
@@ -101,21 +130,25 @@ function LeafletServiceAreaMapEditor({ geometry, onSave, onDelete, busy = false 
         >
           Clear
         </Button>
-        <Button
-          onClick={save}
-          disabled={busy || !isValidPolygon(points)}
-          data-testid="service-area-map-save"
-        >
-          Save polygon
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => onDelete?.()}
-          disabled={busy}
-          data-testid="service-area-map-delete"
-        >
-          Delete polygon
-        </Button>
+        {shouldShowSave ? (
+          <Button
+            onClick={save}
+            disabled={busy || !isValidPolygon(points)}
+            data-testid="service-area-map-save"
+          >
+            {saveLabel}
+          </Button>
+        ) : null}
+        {shouldShowDelete ? (
+          <Button
+            variant="destructive"
+            onClick={() => onDelete?.()}
+            disabled={busy}
+            data-testid="service-area-map-delete"
+          >
+            {deleteLabel}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

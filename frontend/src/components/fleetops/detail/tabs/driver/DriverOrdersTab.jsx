@@ -44,7 +44,7 @@ export default function DriverOrdersTab({ driverId, enabled }) {
           ["Active", stats.active],
           ["Delivered", stats.delivered],
           ["Failed", stats.failed],
-          ["Revenue", `$${stats.revenue.toFixed(2)}`],
+          ["Revenue", `₹${stats.revenue.toFixed(2)}`],
         ].map(([label, value]) => (
           <div key={label} className="bg-white border border-black/[0.08] rounded-md p-3">
             <div className="overline">{label}</div>
@@ -65,7 +65,7 @@ export default function DriverOrdersTab({ driverId, enabled }) {
                 <span className="text-sm flex-1 truncate">{o.customer.name}</span>
                 <StatusBadge status={o.status} label={statusLabel(o.status)} />
                 <span className="font-mono text-sm tabular w-20 text-right">
-                  ${Number(o.total || 0).toFixed(2)}
+                  ₹{Number(o.total || 0).toFixed(2)}
                 </span>
               </div>
             </div>

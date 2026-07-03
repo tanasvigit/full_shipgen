@@ -10,7 +10,35 @@ import {
 } from "@/lib/fleetops/payloads";
 import { buildOrderConfigPayload } from "@/lib/fleetops/orderConfig";
 import { CRUD_IMPORT_EXPORT_RESOURCES } from "@/lib/fleetops/crudImportExport";
+import { toMultiPolygonGeoJson, toZoneBorderGeoJson } from "@/lib/fleetops/geofence";
 import { FLEETOPS_SETTINGS_LOADERS, FLEETOPS_SETTINGS_SAVERS } from "@/lib/fleetops/settingsApi";
+import { orchestratorOrderEligibility } from "@/lib/fleetops/orchestratorImport";
+import {
+  buildCustomFieldApiPayload,
+  buildCustomFieldGroupPayload,
+  customFieldMatchesEntity,
+  mapCustomFieldGroupRow,
+  normalizeEntityFor,
+} from "@/lib/fleetops/customFieldPayloads";
+import {
+  buildDeviceApiPayload,
+  buildEntityApiPayload,
+  buildPayloadApiPayload,
+  buildPurchaseRateApiPayload,
+  buildSensorApiPayload,
+  buildTelematicApiPayload,
+  buildTrackingNumberApiPayload,
+  buildTrackingStatusApiPayload,
+  isUuid,
+  deviceVehicleId,
+  isDeviceAttachedToVehicle,
+  recordMatchesTelematic,
+  enrichLiveVehicles,
+} from "@/lib/fleetops/connectivityResourcePayloads";
+import { buildServiceRateApiPayload } from "@/lib/fleetops/serviceRatePayloads";
+import { FLEETOPS_MORPH, warrantyPayload } from "@/lib/fleetops/maintenancePayloads";
+import { orgStorage } from "@/lib/storage";
+import { filesService } from "@/services/files";
 
 const RESOURCES = {
   orders: ["orders"],
@@ -48,6 +76,7 @@ const RESOURCES = {
   settingsAvatars: ["fleet-ops/settings/avatars", "settings/avatars"],
   zones: ["zones"],
   customFields: ["custom-fields", "custom_fields"],
+  categories: ["categories"],
   reports: ["reports"],
   positions: ["positions"],
   warranties: ["warranties"],
@@ -55,6 +84,7 @@ const RESOURCES = {
   entities: ["entities"],
   proofs: ["proofs"],
   purchaseRates: ["purchase-rates", "purchase_rates"],
+  serviceQuotes: ["service-quotes", "service_quotes"],
   trackingNumbers: ["tracking-numbers", "tracking_numbers"],
   trackingStatuses: ["tracking-statuses", "tracking_statuses"],
 };
@@ -211,6 +241,44 @@ const tryCandidatesMutate = async (candidates, path = "", payload) => {
   }
   throw lastError;
 };
+
+/** Try legacy /telematics/action then canonical /telematics/{id}/action. */
+async function tryTelematicAction(method, telematicId, suffixPath, body = {}, params = {}) {
+  const payload = {
+    ...body,
+    telematic: telematicId,
+    telematic_uuid: telematicId,
+  };
+  const query = {
+    ...params,
+    telematic: telematicId,
+    telematic_uuid: telematicId,
+  };
+  const paths = [suffixPath, `/${telematicId}${suffixPath}`];
+  let lastError;
+  for (const path of paths) {
+    try {
+      if (method === "get") {
+        return await tryCandidatesQuery(RESOURCES.telematics, method, path, undefined, query);
+      }
+      return await tryCandidates(RESOURCES.telematics, method, path, payload);
+    } catch (error) {
+      lastError = error;
+      if (!shouldTryNextTelematicPath(error)) {
+        throw error;
+      }
+    }
+  }
+  throw lastError;
+}
+
+function shouldTryNextTelematicPath(error) {
+  if (shouldTryNextCandidate(error)) return true;
+  const status = error?.response?.status;
+  if (status !== 400) return false;
+  const msg = getApiErrorText(error).toLowerCase();
+  return msg.includes("nothing to see") || msg.includes("telematic id is required");
+}
 
 /**
  * Internal order workflow transitions use PATCH /orders/{dispatch|cancel} with { order: id }.
@@ -1019,20 +1087,18 @@ export const fleetopsService = {
   },
 
   async attachDeviceToVehicle(vehicleId, deviceId) {
-    const body = { device_uuid: deviceId, device_id: deviceId };
-    return tryCandidatesMutate(RESOURCES.vehicles, `/${vehicleId}/devices`, body).catch(async () => {
-      const payload = await tryCandidates(RESOURCES.devices, "patch", `/${deviceId}`, {
-        vehicle_uuid: vehicleId,
-        vehicle_id: vehicleId,
-      });
-      return unwrapEntity(payload, ["device"]);
-    });
+    const attachFields = {
+      attachable_uuid: vehicleId,
+      attachable_type: FLEETOPS_MORPH.vehicle,
+    };
+    const body = { device: attachFields, ...attachFields };
+    return tryCandidatesMutate(RESOURCES.devices, `/${deviceId}`, body);
   },
 
   async detachDeviceFromVehicle(vehicleId, deviceId) {
-    return tryCandidates(RESOURCES.vehicles, "delete", `/${vehicleId}/devices/${deviceId}`).catch(async () => {
-      await tryCandidatesMutate(RESOURCES.devices, `/${deviceId}`, { vehicle_uuid: null, vehicle_id: null });
-    });
+    const clearFields = { attachable_uuid: null, attachable_type: null };
+    const body = { device: clearFields, ...clearFields };
+    return tryCandidatesMutate(RESOURCES.devices, `/${deviceId}`, body);
   },
 
   async listVehicleDevices(vehicleId) {
@@ -1041,19 +1107,25 @@ export const fleetopsService = {
       return unwrapList(payload, ["devices"]);
     } catch {
       const all = await fleetopsService.listDevice();
-      return all.filter(
-        (d) =>
-          String(d.vehicle_uuid || d.vehicle_id || "") === String(vehicleId),
-      );
+      const needle = String(vehicleId || "");
+      return all.filter((d) => String(deviceVehicleId(d) || "") === needle);
     }
   },
 
   async listVehicleWorkOrders(vehicleId) {
     const all = await fleetopsService.listWorkOrder();
-    return all.filter(
-      (wo) =>
-        String(wo.vehicle_uuid || wo.vehicle_id || "") === String(vehicleId),
-    );
+    const id = String(vehicleId || "");
+    return all.filter((wo) => {
+      const candidates = [
+        wo.vehicle_uuid,
+        wo.vehicle_id,
+        wo.target_uuid,
+        wo.target?.uuid,
+        wo.target?.id,
+        wo.target?.public_id,
+      ].map((v) => String(v || ""));
+      return candidates.some((v) => v && v === id);
+    });
   },
 
   async updateIssueStatus(issueId, status) {
@@ -1257,6 +1329,25 @@ export const fleetopsService = {
     return response.data;
   },
 
+  async validateOrchestratorPoolOrders(orderIds = []) {
+    const ids = [...new Set((orderIds || []).map((id) => String(id).trim()).filter(Boolean))];
+    const results = [];
+
+    for (const id of ids) {
+      try {
+        const order = await this.getOrder(id, {
+          with: "payload,payload.pickup,payload.dropoff,payload.waypoints,trackingNumber,trackingStatuses",
+        });
+        const reason = orchestratorOrderEligibility(order);
+        results.push(reason ? { id: order.public_id || id, ok: false, reason } : { id: order.public_id || id, ok: true });
+      } catch {
+        results.push({ id, ok: false, reason: "Order not found." });
+      }
+    }
+
+    return results;
+  },
+
   async listServiceRates(params = {}) {
     try {
       const payload = await tryCandidates(RESOURCES.serviceRates, "get", "", undefined);
@@ -1272,12 +1363,16 @@ export const fleetopsService = {
   },
 
   async createServiceRate(values) {
-    const payload = await tryCandidates(RESOURCES.serviceRates, "post", "", { service_rate: values });
+    const payload = await tryCandidates(RESOURCES.serviceRates, "post", "", {
+      service_rate: buildServiceRateApiPayload(values),
+    });
     return unwrapEntity(payload, ["service_rate", "serviceRate"]);
   },
 
   async updateServiceRate(id, values) {
-    const payload = await tryCandidatesMutate(RESOURCES.serviceRates, `/${id}`, { service_rate: values });
+    const payload = await tryCandidatesMutate(RESOURCES.serviceRates, `/${id}`, {
+      service_rate: buildServiceRateApiPayload(values),
+    });
     return unwrapEntity(payload, ["service_rate", "serviceRate"]);
   },
 
@@ -1335,8 +1430,14 @@ export const fleetopsService = {
   },
 
   async createServiceAreaZone(values = {}) {
+    const zone = { ...values };
+    if (values.border != null) {
+      zone.border = toZoneBorderGeoJson(values.border);
+    } else {
+      delete zone.border;
+    }
     try {
-      const payload = await tryCandidates(RESOURCES.zones, "post", "", { zone: values, ...values });
+      const payload = await tryCandidates(RESOURCES.zones, "post", "", { zone, ...zone });
       return unwrapEntity(payload, ["zone"]);
     } catch {
       const store = readDay3Store();
@@ -1348,8 +1449,14 @@ export const fleetopsService = {
   },
 
   async updateServiceAreaZone(id, values = {}) {
+    const zone = { ...values };
+    if (values.border != null) {
+      zone.border = toZoneBorderGeoJson(values.border);
+    } else {
+      delete zone.border;
+    }
     try {
-      const payload = await tryCandidatesMutate(RESOURCES.zones, `/${id}`, { zone: values, ...values });
+      const payload = await tryCandidatesMutate(RESOURCES.zones, `/${id}`, { zone, ...zone });
       return unwrapEntity(payload, ["zone"]);
     } catch {
       const store = readDay3Store();
@@ -1383,11 +1490,14 @@ export const fleetopsService = {
 
   async getServiceAreaGeometry(id) {
     const area = await this.getServiceArea(id);
-    return area?.geometry || area?.polygon || null;
+    return area?.border || area?.geometry || area?.polygon || null;
   },
 
   async saveServiceAreaGeometry(id, geometry) {
-    return this.updateServiceArea(id, { geometry, polygon: geometry });
+    const border = geometry ? toMultiPolygonGeoJson(geometry) : null;
+    const body = { service_area: { border }, border };
+    const payload = await tryCandidatesMutate(RESOURCES.serviceAreas, `/${id}`, body);
+    return unwrapEntity(payload, ["service_area", "serviceArea"]);
   },
 
   async deleteServiceAreaGeometry(id) {
@@ -1581,21 +1691,39 @@ export const fleetopsService = {
   },
 
   async listCustomFieldGroups() {
-    const store = readDay3Store();
-    return store.customFieldGroups || [];
+    const payload = await tryCandidatesQuery(RESOURCES.categories, "get", "", undefined, {
+      for: "custom_field_group",
+      limit: 200,
+    });
+    const rows = unwrapList(payload, ["categories"]);
+    return rows
+      .filter((row) => String(row?.for || "").toLowerCase() === "custom_field_group")
+      .map(mapCustomFieldGroupRow);
   },
 
   async createCustomFieldGroup(values = {}) {
-    const store = readDay3Store();
-    const row = { uuid: `cfg-${Date.now()}`, ...values };
-    const customFieldGroups = [...(store.customFieldGroups || []), row];
-    writeDay3Store({ ...store, customFieldGroups });
-    return row;
+    const body = buildCustomFieldGroupPayload(values);
+    const payload = await tryCandidates(RESOURCES.categories, "post", "", body);
+    return mapCustomFieldGroupRow(unwrapEntity(payload, ["category"]));
   },
 
   async listCustomFieldsForEntity(entityType) {
+    const type = normalizeEntityFor(entityType);
+    if (!type) return [];
+
+    try {
+      const payload = await tryCandidatesQuery(RESOURCES.customFields, "get", "", undefined, {
+        for: type,
+        limit: 200,
+      });
+      const rows = unwrapList(payload, ["custom_fields", "customFields"]);
+      if (rows.length) return rows;
+    } catch {
+      /* filter full list below */
+    }
+
     const all = await this.listCustomField();
-    return all.filter((f) => String(f.entity_type || f.entityType || "").toLowerCase() === String(entityType).toLowerCase());
+    return all.filter((field) => customFieldMatchesEntity(field, type));
   },
 
   async getReport(id) {
@@ -1630,41 +1758,13 @@ export const fleetopsService = {
   async lookupTrackingOrder(trackingNumber) {
     const number = String(trackingNumber || "").trim();
     if (!number) return null;
-    const rows = await this.listOrders().catch(() => []);
-    return rows.find((row) => String(row.public_id || row.publicId || "").toLowerCase() === number.toLowerCase()) || null;
-  },
 
-  async listCustomField() {
-    const store = readDay3Store();
-    return store.customFields || [];
-  },
-
-  async getCustomField(id) {
-    const all = await this.listCustomField();
-    return all.find((row) => String(row.uuid || row.id) === String(id)) || null;
-  },
-
-  async createCustomField(values = {}) {
-    const store = readDay3Store();
-    const row = { uuid: `cf-${Date.now()}`, status: "active", ...values };
-    const customFields = [...(store.customFields || []), row];
-    writeDay3Store({ ...store, customFields });
-    return row;
-  },
-
-  async updateCustomField(id, values = {}) {
-    const store = readDay3Store();
-    const customFields = (store.customFields || []).map((row) =>
-      String(row.uuid || row.id) === String(id) ? { ...row, ...values } : row,
-    );
-    writeDay3Store({ ...store, customFields });
-    return customFields.find((row) => String(row.uuid || row.id) === String(id)) || null;
-  },
-
-  async deleteCustomField(id) {
-    const store = readDay3Store();
-    const customFields = (store.customFields || []).filter((row) => String(row.uuid || row.id) !== String(id));
-    writeDay3Store({ ...store, customFields });
+    const response = await apiClient.get("/fleet-ops/lookup", {
+      params: { tracking: number },
+      loading: false,
+      silent: true,
+    });
+    return unwrapEntity(response.data, ["order"]);
   },
 
   // --- Phase 4: Service rates ---
@@ -1710,28 +1810,51 @@ export const fleetopsService = {
     }
   },
 
-  async listTelematicLinkedDevices(params = {}) {
+  async listTelematicLinkedDevices(telematicId, params = {}) {
+    const id = telematicId || params.telematic || params.telematic_id || params.telematic_uuid;
+    if (!id) return [];
+    const resolvedId = (await resolveTelematicReference(id)) || (isUuid(id) ? id : null);
+    if (resolvedId) {
+      try {
+        const payload = await tryCandidatesQuery(RESOURCES.telematics, "get", `/${resolvedId}/devices`);
+        const fromApi = unwrapList(payload, ["data", "devices"]);
+        if (fromApi.length) return fromApi;
+      } catch {
+        // fall through to client-side filter
+      }
+    }
     try {
-      const payload = await tryCandidatesQuery(RESOURCES.telematics, "get", "/devices", undefined, params);
-      return unwrapList(payload, ["devices"]);
+      const all = await fleetopsService.listDevice();
+      return all.filter((device) => recordMatchesTelematic(device, resolvedId || id));
     } catch {
       return [];
     }
   },
 
-  async discoverTelematic(body = {}) {
-    const response = await tryCandidates(RESOURCES.telematics, "post", "/discover", body);
-    return response;
+  async discoverTelematic(id, body = {}) {
+    const telematicId = id || body.telematic || body.telematic_uuid;
+    if (!telematicId) {
+      throw new Error("Telematic id is required to discover devices");
+    }
+    return tryTelematicAction("post", telematicId, "/discover", body);
   },
 
-  async linkTelematicDevice(body = {}) {
-    const response = await tryCandidates(RESOURCES.telematics, "post", "/link-device", body);
-    return response;
+  async linkTelematicDevice(telematicId, body = {}) {
+    const id = telematicId || body.telematic || body.telematic_uuid;
+    if (!id) {
+      throw new Error("Telematic id is required to link a device");
+    }
+    const externalId = body.external_id ?? body.device_id ?? body.device;
+    const deviceName = body.device_name ?? body.name ?? externalId;
+    return tryTelematicAction("post", id, "/link-device", {
+      external_id: externalId,
+      device_name: deviceName,
+      ...body,
+    });
   },
 
   async testTelematicConnection(id, body = {}) {
-    const response = await tryCandidates(RESOURCES.telematics, "post", `/${id}/test-connection`, body);
-    return response;
+    return tryTelematicAction("post", id, "/test-connection", body);
   },
 
   async testTelematicCredentials(key, body = {}) {
@@ -1750,9 +1873,21 @@ export const fleetopsService = {
     return unwrapList(response.data, ["drivers", "data"]);
   },
 
-  async getLiveVehicles(params = {}) {
+  async getLiveVehicles(params = {}, options = {}) {
     const response = await apiClient.get("/fleet-ops/live/vehicles", { params, loading: false });
-    return unwrapList(response.data, ["vehicles", "data"]);
+    const vehicles = unwrapList(response.data, ["vehicles", "data"]);
+    const driversPromise =
+      options.drivers != null
+        ? Promise.resolve(options.drivers)
+        : apiClient
+            .get("/fleet-ops/live/drivers", { params, loading: false })
+            .then((r) => unwrapList(r.data, ["drivers", "data"]))
+            .catch(() => []);
+    const [devices, drivers] = await Promise.all([
+      fleetopsService.listDevice().catch(() => []),
+      driversPromise,
+    ]);
+    return enrichLiveVehicles(vehicles, { devices, drivers });
   },
 
   async getLiveOrders(params = {}) {
@@ -1827,7 +1962,20 @@ export const fleetopsService = {
   async listVehicleDevicesAdmin(params = {}) {
     try {
       const payload = await tryCandidatesQuery(RESOURCES.vehicleDevices, "get", "", undefined, params);
-      return unwrapList(payload, ["vehicle_devices", "vehicleDevices"]);
+      const rows = unwrapList(payload, ["vehicle_devices", "vehicleDevices"]);
+      if (rows.length) return rows;
+    } catch {
+      // fall through
+    }
+    try {
+      const devices = await fleetopsService.listDevice();
+      return devices
+        .filter((d) => isDeviceAttachedToVehicle(d))
+        .map((d) => ({
+          uuid: d.uuid || d.id,
+          vehicle_uuid: deviceVehicleId(d),
+          device_uuid: d.uuid || d.id,
+        }));
     } catch {
       return [];
     }
@@ -1861,20 +2009,28 @@ export const fleetopsService = {
   async importResource(entityKey, fileOrUuid, options = {}) {
     const candidates = CRUD_IMPORT_EXPORT_RESOURCES[entityKey];
     if (!candidates) throw new Error(`Import not configured for ${entityKey}`);
-    const body =
-      typeof fileOrUuid === "string"
-        ? { files: [fileOrUuid], ...options }
-        : { file: fileOrUuid, ...options };
+
+    let fileUuids = [];
+    if (typeof fileOrUuid === "string") {
+      fileUuids = [fileOrUuid];
+    } else if (Array.isArray(fileOrUuid)) {
+      fileUuids = fileOrUuid.filter(Boolean);
+    } else if (typeof File !== "undefined" && fileOrUuid instanceof File) {
+      const uploaded = await filesService.upload(fileOrUuid);
+      const uuid = uploaded?.id || uploaded?.uuid;
+      if (!uuid) throw new Error("Upload did not return a file id.");
+      fileUuids = [uuid];
+    } else if (fileOrUuid?.uuid || fileOrUuid?.id) {
+      fileUuids = [fileOrUuid.uuid || fileOrUuid.id];
+    } else {
+      throw new Error("Import requires a CSV or Excel file.");
+    }
+
+    const body = { files: fileUuids, ...options };
     let lastError;
     for (const candidate of candidates) {
       try {
         const response = await apiClient.post(`/${candidate}/import`, body);
-        return response.data;
-      } catch (error) {
-        lastError = error;
-      }
-      try {
-        const response = await apiClient.post(`/${candidate}/process-imports`, body);
         return response.data;
       } catch (error) {
         lastError = error;
@@ -2012,6 +2168,27 @@ fleetopsService.updateCustomer = async (id, formValues = {}) => {
 };
 
 fleetopsService.deleteCustomer = (id) => fleetopsService.deleteContact(id);
+
+fleetopsService.listServiceQuote = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.serviceQuotes, "get", "", undefined, params);
+    if (Array.isArray(payload)) return payload;
+    return unwrapList(payload, ["service_quotes", "serviceQuotes"]);
+  } catch {
+    return [];
+  }
+};
+
+fleetopsService.queryServiceQuotes = async (params = {}) => {
+  if (!params?.payload && !params?.pickup) return [];
+  return fleetopsService.listServiceQuote(params);
+};
+
+fleetopsService.getServiceQuote = async (id) => {
+  const payload = await tryCandidates(RESOURCES.serviceQuotes, "get", `/${id}`);
+  return unwrapEntity(payload, ["service_quote", "serviceQuote"]);
+};
+
 attachGenericCrud(fleetopsService, "fuelReport", RESOURCES.fuelReports, "fuel_report", ["fuel_reports", "fuelReports"]);
 attachGenericCrud(fleetopsService, "issue", RESOURCES.issues, "issue", ["issues"]);
 attachGenericCrud(fleetopsService, "device", RESOURCES.devices, "device", ["devices"]);
@@ -2027,21 +2204,438 @@ attachGenericCrud(fleetopsService, "maintenanceSchedule", RESOURCES.maintenanceS
 ]);
 attachGenericCrud(fleetopsService, "maintenance", RESOURCES.maintenances, "maintenance", ["maintenances"]);
 attachGenericCrud(fleetopsService, "workOrder", RESOURCES.workOrders, "work_order", ["work_orders", "workOrders"]);
-attachGenericCrud(fleetopsService, "equipment", RESOURCES.equipment, "equipment", ["equipment"]);
+attachGenericCrud(fleetopsService, "equipment", RESOURCES.equipment, "equipment", ["equipment", "equipments"]);
 attachGenericCrud(fleetopsService, "part", RESOURCES.parts, "part", ["parts"]);
 attachGenericCrud(fleetopsService, "warranty", RESOURCES.warranties, "warranty", ["warranties"]);
 attachGenericCrud(fleetopsService, "payload", RESOURCES.payloads, "payload", ["payloads"]);
+fleetopsService.listPayload = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.payloads, "get", "", undefined, {
+      with: "pickup,dropoff",
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["payloads"]);
+  } catch {
+    return [];
+  }
+};
 attachGenericCrud(fleetopsService, "entity", RESOURCES.entities, "entity", ["entities"]);
+const genericGetEntity = fleetopsService.getEntity.bind(fleetopsService);
+fleetopsService.getEntity = async (id) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.entities, "get", `/${id}`, undefined, {
+      with: "payload",
+    });
+    return unwrapEntity(payload, ["entity"]);
+  } catch {
+    return genericGetEntity(id);
+  }
+};
 attachGenericCrud(fleetopsService, "proof", RESOURCES.proofs, "proof", ["proofs"]);
+const genericGetProof = fleetopsService.getProof.bind(fleetopsService);
+fleetopsService.getProof = async (id) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.proofs, "get", `/${id}`, undefined, {
+      with: "order,file,subject",
+    });
+    return unwrapEntity(payload, ["proof"]);
+  } catch {
+    return genericGetProof(id);
+  }
+};
+fleetopsService.listProof = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.proofs, "get", "", undefined, {
+      with: "order,file,subject",
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["proofs"]);
+  } catch {
+    return [];
+  }
+};
 attachGenericCrud(fleetopsService, "purchaseRate", RESOURCES.purchaseRates, "purchase_rate", [
   "purchase_rates",
   "purchaseRates",
 ]);
+const genericGetPurchaseRate = fleetopsService.getPurchaseRate.bind(fleetopsService);
+fleetopsService.getPurchaseRate = async (id) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.purchaseRates, "get", `/${id}`, undefined, {
+      with: "serviceQuote,payload,order,customer",
+    });
+    return unwrapEntity(payload, ["purchase_rate", "purchaseRate"]);
+  } catch {
+    return genericGetPurchaseRate(id);
+  }
+};
+fleetopsService.listPurchaseRate = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.purchaseRates, "get", "", undefined, {
+      with: "serviceQuote,payload,order,customer",
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["purchase_rates", "purchaseRates"]);
+  } catch {
+    return [];
+  }
+};
 attachGenericCrud(fleetopsService, "trackingNumber", RESOURCES.trackingNumbers, "tracking_number", [
   "tracking_numbers",
   "trackingNumbers",
 ]);
+const genericGetTrackingNumber = fleetopsService.getTrackingNumber.bind(fleetopsService);
+fleetopsService.getTrackingNumber = async (id) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.trackingNumbers, "get", `/${id}`, undefined, {
+      with: "owner",
+    });
+    return unwrapEntity(payload, ["tracking_number", "trackingNumber"]);
+  } catch {
+    return genericGetTrackingNumber(id);
+  }
+};
+fleetopsService.listTrackingNumber = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.trackingNumbers, "get", "", undefined, {
+      with: "owner",
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["tracking_numbers", "trackingNumbers"]);
+  } catch {
+    return [];
+  }
+};
 attachGenericCrud(fleetopsService, "trackingStatus", RESOURCES.trackingStatuses, "tracking_status", [
   "tracking_statuses",
   "trackingStatuses",
 ]);
+const genericGetTrackingStatus = fleetopsService.getTrackingStatus.bind(fleetopsService);
+fleetopsService.getTrackingStatus = async (id) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.trackingStatuses, "get", `/${id}`, undefined, {
+      with: "trackingNumber",
+    });
+    return unwrapEntity(payload, ["tracking_status", "trackingStatus"]);
+  } catch {
+    return genericGetTrackingStatus(id);
+  }
+};
+fleetopsService.listTrackingStatus = async (params = {}) => {
+  try {
+    const payload = await tryCandidatesQuery(RESOURCES.trackingStatuses, "get", "", undefined, {
+      with: "trackingNumber",
+      limit: 500,
+      ...params,
+    });
+    return unwrapList(payload, ["tracking_statuses", "trackingStatuses"]);
+  } catch {
+    return [];
+  }
+};
+attachGenericCrud(fleetopsService, "customField", RESOURCES.customFields, "custom_field", [
+  "custom_fields",
+  "customFields",
+]);
+
+fleetopsService.createCustomField = async (formValues = {}) => {
+  const org = orgStorage.get();
+  const companyUuid = org?.uuid || org?.id;
+  const values = buildCustomFieldApiPayload(formValues, { companyUuid });
+  const body = { custom_field: values, ...values };
+  const payload = await tryCandidates(RESOURCES.customFields, "post", "", body);
+  return unwrapEntity(payload, ["custom_field", "customField"]);
+};
+
+fleetopsService.updateCustomField = async (id, formValues = {}) => {
+  const org = orgStorage.get();
+  const companyUuid = org?.uuid || org?.id;
+  const values = buildCustomFieldApiPayload(formValues, { companyUuid });
+  const body = { custom_field: values, ...values };
+  const payload = await tryCandidatesMutate(RESOURCES.customFields, `/${id}`, body);
+  return unwrapEntity(payload, ["custom_field", "customField"]);
+};
+
+fleetopsService.listCustomField = async (params = {}) => {
+  const payload = await tryCandidatesQuery(RESOURCES.customFields, "get", "", undefined, params);
+  return unwrapList(payload, ["custom_fields", "customFields"]);
+};
+
+function wrapCrudPayload(entityKey, values) {
+  const payloadKey = toPayloadKey(entityKey);
+  return { [payloadKey]: values, ...values };
+}
+
+async function resolveTelematicReference(ref) {
+  const needle = String(ref || "").trim();
+  if (!needle) return null;
+  if (isUuid(needle)) return needle;
+  const rows = await fleetopsService.listTelematic();
+  const match = rows.find((row) => row.uuid === needle || row.public_id === needle);
+  return match?.uuid || null;
+}
+
+async function resolveDeviceReference(ref) {
+  const needle = String(ref || "").trim();
+  if (!needle) return null;
+  if (isUuid(needle)) return needle;
+  const rows = await fleetopsService.listDevice();
+  const match = rows.find((row) => row.uuid === needle || row.public_id === needle);
+  return match?.uuid || null;
+}
+
+async function resolvePlaceUuid(ref) {
+  const needle = String(ref ?? "").trim();
+  if (!needle) return undefined;
+  const rows = await fleetopsService.listPlaces({ limit: 500 });
+  const match = rows.find(
+    (r) =>
+      String(r.uuid || r.id) === needle ||
+      String(r.public_id || r.publicId) === needle,
+  );
+  if (match?.uuid) return String(match.uuid);
+  if (isUuid(needle)) return needle;
+  return undefined;
+}
+
+async function resolvePayloadUuid(ref) {
+  const needle = String(ref ?? "").trim();
+  if (!needle) return undefined;
+  const rows = await fleetopsService.listPayload();
+  const match = rows.find(
+    (r) =>
+      String(r.uuid || r.id) === needle ||
+      String(r.public_id || r.publicId) === needle,
+  );
+  if (match?.uuid) return String(match.uuid);
+  if (isUuid(needle)) return needle;
+  return undefined;
+}
+
+async function buildResolvedPayloadPayload(values = {}) {
+  const [pickup_uuid, dropoff_uuid] = await Promise.all([
+    values.pickup ? resolvePlaceUuid(values.pickup) : undefined,
+    values.dropoff ? resolvePlaceUuid(values.dropoff) : undefined,
+  ]);
+  return buildPayloadApiPayload({ ...values, pickup_uuid, dropoff_uuid });
+}
+
+async function buildResolvedEntityPayload(values = {}) {
+  const payload_uuid = values.payload
+    ? await resolvePayloadUuid(values.payload)
+    : values.payload_uuid;
+  return buildEntityApiPayload({ ...values, payload_uuid });
+}
+
+const TRACKING_NUMBER_OWNER_TYPES = {
+  order: "Fleetbase\\FleetOps\\Models\\Order",
+  entity: "Fleetbase\\FleetOps\\Models\\Entity",
+};
+
+async function resolveOwnerReference(ref) {
+  const needle = String(ref ?? "").trim();
+  if (!needle) return {};
+  const [orders, entities] = await Promise.all([
+    fleetopsService.listOrders({ limit: 500 }).catch(() => []),
+    fleetopsService.listEntity().catch(() => []),
+  ]);
+  const matchId = (row) =>
+    [row?.public_id, row?.publicId, row?.uuid, row?.id].filter(Boolean).map(String).includes(needle);
+  const order = orders.find(matchId);
+  if (order?.uuid) {
+    return {
+      owner_uuid: String(order.uuid),
+      owner_type: TRACKING_NUMBER_OWNER_TYPES.order,
+      owner: order.public_id || order.publicId || needle,
+    };
+  }
+  const entity = entities.find(matchId);
+  if (entity?.uuid) {
+    return {
+      owner_uuid: String(entity.uuid),
+      owner_type: TRACKING_NUMBER_OWNER_TYPES.entity,
+      owner: entity.public_id || entity.publicId || needle,
+    };
+  }
+  return { owner: needle };
+}
+
+async function buildResolvedTrackingNumberPayload(values = {}) {
+  const ownerRef = await resolveOwnerReference(values.owner);
+  return buildTrackingNumberApiPayload({ ...values, ...ownerRef });
+}
+
+async function resolveTrackingNumberUuid(ref) {
+  const needle = String(ref ?? "").trim();
+  if (!needle) return undefined;
+  const rows = await fleetopsService.listTrackingNumber();
+  const matchId = (row) =>
+    [row?.public_id, row?.publicId, row?.tracking_number, row?.uuid, row?.id]
+      .filter(Boolean)
+      .map(String)
+      .includes(needle);
+  const match = rows.find(matchId);
+  if (match?.uuid) return String(match.uuid);
+  if (isUuid(needle)) return needle;
+  return undefined;
+}
+
+async function buildResolvedTrackingStatusPayload(values = {}) {
+  let tracking_number_uuid = values.tracking_number
+    ? await resolveTrackingNumberUuid(values.tracking_number)
+    : values.tracking_number_uuid;
+
+  if (!tracking_number_uuid && values.order) {
+    const orders = await fleetopsService.listOrders({ limit: 500 }).catch(() => []);
+    const needle = String(values.order).trim();
+    const order = orders.find((row) =>
+      [row?.public_id, row?.publicId, row?.uuid, row?.id].filter(Boolean).map(String).includes(needle),
+    );
+    tracking_number_uuid =
+      order?.tracking_number_uuid ||
+      order?.tracking_number?.uuid ||
+      (order?.tracking_number ? await resolveTrackingNumberUuid(order.tracking_number) : undefined);
+  }
+
+  return buildTrackingStatusApiPayload({ ...values, tracking_number_uuid });
+}
+
+async function resolveServiceQuoteUuid(ref) {
+  const needle = String(ref ?? "").trim();
+  if (!needle) return undefined;
+  if (isUuid(needle)) return needle;
+
+  // Never call queryServiceQuotes here — that endpoint mints new quotes on each request.
+  try {
+    const row = await fleetopsService.getServiceQuote(needle);
+    if (row?.uuid) return String(row.uuid);
+  } catch {
+    // fall through
+  }
+
+  return undefined;
+}
+
+async function buildResolvedPurchaseRatePayload(values = {}) {
+  const quoteRef = values.service_quote;
+  const service_quote_uuid = isUuid(quoteRef)
+    ? String(quoteRef)
+    : quoteRef
+      ? await resolveServiceQuoteUuid(quoteRef)
+      : values.service_quote_uuid;
+  const service_quote_public_id =
+    values.service_quote_public_id ||
+    (!isUuid(quoteRef) && quoteRef ? String(quoteRef) : undefined);
+  // Send the customer public_id (contact_/vendor_) and let the backend resolve
+  // customer_uuid + customer_type from the correct table — guessing the morph
+  // type on the client mislabels vendors as contacts and breaks the relation.
+  return buildPurchaseRateApiPayload({
+    ...values,
+    service_quote_uuid,
+    service_quote_public_id,
+    service_quote: quoteRef,
+  });
+}
+
+async function buildResolvedDevicePayload(values = {}, options = {}) {
+  const ref = values.telematic ?? values.telematic_uuid ?? values.telematic_public_id;
+  const refText = String(ref ?? "").trim();
+
+  if (values.telematic_uuid === null || ("telematic" in values && refText === "")) {
+    return buildDeviceApiPayload({ ...values, telematic: "", telematic_uuid: null }, options);
+  }
+
+  if (refText) {
+    const telematic_uuid = (await resolveTelematicReference(refText)) || (isUuid(refText) ? refText : null);
+    if (!telematic_uuid) {
+      throw new Error(`Telematic not found: ${refText}`);
+    }
+    return buildDeviceApiPayload({ ...values, telematic_uuid }, options);
+  }
+
+  return buildDeviceApiPayload(values, options);
+}
+
+async function buildResolvedSensorPayload(values = {}, options = {}) {
+  const ref = values.device ?? values.device_uuid ?? values.device_public_id;
+  let device_uuid = values.device_uuid;
+  if (ref) {
+    device_uuid = (await resolveDeviceReference(ref)) || (isUuid(ref) ? ref : null);
+    if (!device_uuid) {
+      throw new Error(`Device not found: ${ref}`);
+    }
+  }
+  return buildSensorApiPayload({ ...values, device_uuid }, options);
+}
+
+async function mutateCrud(entityKey, method, id, values) {
+  const candidates = {
+    device: RESOURCES.devices,
+    sensor: RESOURCES.sensors,
+    telematic: RESOURCES.telematics,
+    entity: RESOURCES.entities,
+    payload: RESOURCES.payloads,
+    trackingNumber: RESOURCES.trackingNumbers,
+    trackingStatus: RESOURCES.trackingStatuses,
+    purchaseRate: RESOURCES.purchaseRates,
+    warranty: RESOURCES.warranties,
+  }[entityKey];
+  if (!candidates) throw new Error(`No mutate handler for ${entityKey}`);
+  const payloadKey = toPayloadKey(entityKey);
+  const body = wrapCrudPayload(entityKey, values);
+  if (method === "post") {
+    const payload = await tryCandidates(candidates, "post", "", body);
+    return unwrapEntity(payload, [payloadKey, entityKey]);
+  }
+  const payload = await tryCandidatesMutate(candidates, `/${id}`, body);
+  return unwrapEntity(payload, [payloadKey, entityKey]);
+}
+
+fleetopsService.createDevice = async (values = {}) =>
+  mutateCrud("device", "post", null, await buildResolvedDevicePayload(values, { forCreate: true }));
+fleetopsService.updateDevice = async (id, values = {}) =>
+  mutateCrud("device", "patch", id, await buildResolvedDevicePayload(values));
+
+fleetopsService.createSensor = async (values = {}) =>
+  mutateCrud("sensor", "post", null, await buildResolvedSensorPayload(values, { forCreate: true }));
+fleetopsService.updateSensor = async (id, values = {}) =>
+  mutateCrud("sensor", "patch", id, await buildResolvedSensorPayload(values));
+
+fleetopsService.createTelematic = async (values = {}) =>
+  mutateCrud("telematic", "post", null, buildTelematicApiPayload(values, { forCreate: true }));
+fleetopsService.updateTelematic = async (id, values = {}) =>
+  mutateCrud("telematic", "patch", id, buildTelematicApiPayload(values));
+
+fleetopsService.createEntity = async (values = {}) =>
+  mutateCrud("entity", "post", null, await buildResolvedEntityPayload(values));
+fleetopsService.updateEntity = async (id, values = {}) =>
+  mutateCrud("entity", "patch", id, await buildResolvedEntityPayload(values));
+
+fleetopsService.createPayload = async (values = {}) =>
+  mutateCrud("payload", "post", null, await buildResolvedPayloadPayload(values));
+fleetopsService.updatePayload = async (id, values = {}) =>
+  mutateCrud("payload", "patch", id, await buildResolvedPayloadPayload(values));
+
+fleetopsService.createTrackingNumber = async (values = {}) =>
+  mutateCrud("trackingNumber", "post", null, await buildResolvedTrackingNumberPayload(values));
+fleetopsService.updateTrackingNumber = async (id, values = {}) =>
+  mutateCrud("trackingNumber", "patch", id, await buildResolvedTrackingNumberPayload(values));
+
+fleetopsService.createTrackingStatus = async (values = {}) =>
+  mutateCrud("trackingStatus", "post", null, await buildResolvedTrackingStatusPayload(values));
+fleetopsService.updateTrackingStatus = async (id, values = {}) =>
+  mutateCrud("trackingStatus", "patch", id, await buildResolvedTrackingStatusPayload(values));
+
+fleetopsService.createPurchaseRate = async (values = {}) =>
+  mutateCrud("purchaseRate", "post", null, await buildResolvedPurchaseRatePayload(values));
+fleetopsService.updatePurchaseRate = async (id, values = {}) =>
+  mutateCrud("purchaseRate", "patch", id, await buildResolvedPurchaseRatePayload(values));
+
+fleetopsService.createWarranty = async (values = {}) =>
+  mutateCrud("warranty", "post", null, warrantyPayload(values));
+fleetopsService.updateWarranty = async (id, values = {}) =>
+  mutateCrud("warranty", "patch", id, warrantyPayload(values));

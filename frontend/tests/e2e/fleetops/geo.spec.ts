@@ -23,12 +23,14 @@ test.describe("FleetOps Day 3 — Geo", () => {
       return;
     }
     await row.click();
+    await page.getByTestId("service-area-map-edit-mode").click();
     await expect(page.getByTestId("service-area-map-editor")).toBeVisible();
     await page.getByTestId("service-area-map-canvas").click({ position: { x: 60, y: 60 } });
     await page.getByTestId("service-area-map-canvas").click({ position: { x: 180, y: 60 } });
     await page.getByTestId("service-area-map-canvas").click({ position: { x: 120, y: 180 } });
     await expect(page.getByTestId("service-area-map-save")).toBeEnabled();
     await page.reload();
+    await page.getByTestId("service-area-map-edit-mode").click();
     await expect(page.getByTestId("service-area-map-editor")).toBeVisible();
   });
 });

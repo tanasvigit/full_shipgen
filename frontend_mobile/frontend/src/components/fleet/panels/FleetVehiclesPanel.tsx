@@ -12,7 +12,7 @@ import {
 import EntityImage from "@/src/components/EntityImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import StatusBadge from "@/src/components/StatusBadge";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useFleetData } from "@/src/hooks/useFleetData";
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  chipActive: { backgroundColor: colors.text, borderColor: colors.text },
+  chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   chipText: { fontSize: 10, fontWeight: "700", color: colors.textSecondary, letterSpacing: 0.6 },
   chipTextActive: { color: "#fff" },
   loader: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
@@ -189,11 +189,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
     marginBottom: spacing.md,
+    ...shadow.sm,
   },
   image: { width: 96, height: 110, backgroundColor: colors.surfaceAlt },
   rowBody: { flex: 1, padding: spacing.md, justifyContent: "space-between" },

@@ -148,6 +148,14 @@ class DriverController extends FleetOpsController
                     $input['user_uuid']    = $existingUser->uuid;
                     $input['slug']         = $existingUser->slug;
 
+                    if (!empty($input['latitude']) && !empty($input['longitude'])) {
+                        $input['location'] = Utils::getPointFromCoordinates([
+                            'latitude'  => $input['latitude'],
+                            'longitude' => $input['longitude'],
+                        ]);
+                    }
+                    unset($input['latitude'], $input['longitude']);
+
                     // If no location provided set
                     if (empty($input['location'])) {
                         $input['location'] = new Point(0, 0);
@@ -275,6 +283,14 @@ class DriverController extends FleetOpsController
                     $input['user_uuid'] = $user->uuid;
                     $input['slug']      = $user->slug;
 
+                    if (!empty($input['latitude']) && !empty($input['longitude'])) {
+                        $input['location'] = Utils::getPointFromCoordinates([
+                            'latitude'  => $input['latitude'],
+                            'longitude' => $input['longitude'],
+                        ]);
+                    }
+                    unset($input['latitude'], $input['longitude']);
+
                     // If no location provided set
                     if (empty($input['location'])) {
                         $input['location'] = new Point(0, 0);
@@ -337,13 +353,21 @@ class DriverController extends FleetOpsController
                 $id,
                 function (&$request, &$driver, &$input) {
                     $driver->load(['user'])->guard(['user_uuid']);
-                    $input     = collect($input);
+                    $input = collect($input);
+
+                    if ($input->has('latitude') && $input->has('longitude')) {
+                        $input->put('location', Utils::getPointFromCoordinates([
+                            'latitude'  => $input->get('latitude'),
+                            'longitude' => $input->get('longitude'),
+                        ]));
+                    }
+
                     $userInput = $input->only(['name', 'password', 'email', 'phone', 'avatar_uuid'])->toArray();
                     // handle `photo_uuid`
                     if (isset($input['photo_uuid']) && Str::isUuid($input['photo_uuid'])) {
                         $userInput['avatar_uuid'] = $input['photo_uuid'];
                     }
-                    $input     = $input->except(['name', 'password', 'email', 'phone', 'meta', 'avatar_uuid', 'photo_uuid'])->toArray();
+                    $input = $input->except(['name', 'password', 'email', 'phone', 'meta', 'avatar_uuid', 'photo_uuid', 'latitude', 'longitude'])->toArray();
 
                     // Update driver user details
                     $driverUser = $driver->getUser();

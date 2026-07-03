@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import FleetopsCrudDetailPage from "@/components/fleetops/crud/FleetopsCrudDetailPage";
-import { CRUD_ENTITIES, mapCrudRow } from "@/lib/fleetops/crudEntities";
+import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 import DataTable from "@/components/common/DataTable";
 import { fleetopsService } from "@/services/fleetops";
+import { mapCrudRow } from "@/lib/fleetops/crudEntities";
+import { useEffect, useState } from "react";
 import MaintenanceScheduleActions from "@/components/fleetops/maintenance/MaintenanceScheduleActions";
+import MaintenanceScheduleForm, {
+  maintenanceScheduleValuesFromApi,
+} from "@/components/fleetops/forms/maintenance/MaintenanceScheduleForm";
+import { resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
 
-function ScheduleWorkOrdersPanel() {
-  const { id } = useParams();
+function ScheduleWorkOrdersPanel({ scheduleId }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +24,7 @@ function ScheduleWorkOrdersPanel() {
         if (!active) return;
         setRows(
           all
-            .filter((wo) => String(wo.schedule_uuid || wo.maintenance_schedule_id || "") === String(id))
+            .filter((wo) => String(wo.schedule_uuid || wo.maintenance_schedule_id || "") === String(scheduleId))
             .map((r) => mapCrudRow(r, "workOrder")),
         );
       } catch {
@@ -32,7 +36,7 @@ function ScheduleWorkOrdersPanel() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [scheduleId]);
 
   return (
     <div data-testid="schedule-work-orders-panel" className="mt-4">
@@ -51,19 +55,21 @@ function ScheduleWorkOrdersPanel() {
   );
 }
 
-function ScheduleActionsSlot() {
-  const { id } = useParams();
-  return <MaintenanceScheduleActions scheduleId={id} />;
-}
-
-export default function MaintenanceScheduleDetail() {
+export default function MaintenanceScheduleDetail({ embedded = false, entityId: entityIdProp, onClose }) {
+  const { id: routeId } = useParams();
+  const id = resolveDetailEntityId(entityIdProp, routeId);
   return (
     <FleetopsCrudDetailPage
+      embedded={embedded}
+      entityId={id}
+      onClose={onClose}
       config={CRUD_ENTITIES.maintenanceSchedule}
+      FormComponent={MaintenanceScheduleForm}
+      valuesFromApi={maintenanceScheduleValuesFromApi}
       relationSlots={
         <>
-          <ScheduleWorkOrdersPanel />
-          <ScheduleActionsSlot />
+          <ScheduleWorkOrdersPanel scheduleId={id} />
+          <MaintenanceScheduleActions scheduleId={id} />
         </>
       }
     />

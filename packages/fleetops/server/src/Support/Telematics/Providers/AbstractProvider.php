@@ -5,8 +5,8 @@ namespace Fleetbase\FleetOps\Support\Telematics\Providers;
 use Fleetbase\FleetOps\Contracts\TelematicProviderInterface;
 use Fleetbase\FleetOps\Exceptions\TelematicRateLimitExceededException;
 use Fleetbase\FleetOps\Models\Telematic;
+use Fleetbase\FleetOps\Support\Telematics\TelematicCredentials;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -33,7 +33,7 @@ abstract class AbstractProvider implements TelematicProviderInterface
     public function connect(Telematic $telematic): void
     {
         $this->telematic   = $telematic;
-        $this->credentials = json_decode(Crypt::decryptString($telematic->credentials), true);
+        $this->credentials = TelematicCredentials::read($telematic->getAttributes()['credentials'] ?? $telematic->credentials);
         $this->prepareAuthentication();
     }
 

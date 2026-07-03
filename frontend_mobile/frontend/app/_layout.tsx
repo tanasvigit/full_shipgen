@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { LogBox, View, Text } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
@@ -34,24 +35,26 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Sentry.ErrorBoundary
-        fallback={({ error }) => (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
-            <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>Something went wrong</Text>
-            <Text style={{ textAlign: "center", color: "#6B7280" }}>{error?.message || "Unexpected error"}</Text>
-          </View>
-        )}
-      >
-        <AuthProvider>
-          <YardAuthProvider>
-            <RuntimeProvider>
-              <StatusBar style="dark" />
-              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F8F9FA" } }} />
-            </RuntimeProvider>
-          </YardAuthProvider>
-        </AuthProvider>
-      </Sentry.ErrorBoundary>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <Sentry.ErrorBoundary
+          fallback={({ error }) => (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+              <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>Something went wrong</Text>
+              <Text style={{ textAlign: "center", color: "#6B7280" }}>{error?.message || "Unexpected error"}</Text>
+            </View>
+          )}
+        >
+          <AuthProvider>
+            <YardAuthProvider>
+              <RuntimeProvider>
+                <StatusBar style="dark" />
+                <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F8F9FA" } }} />
+              </RuntimeProvider>
+            </YardAuthProvider>
+          </AuthProvider>
+        </Sentry.ErrorBoundary>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
