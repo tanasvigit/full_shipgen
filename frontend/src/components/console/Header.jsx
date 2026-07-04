@@ -21,7 +21,6 @@ import {
     Car,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { IAM_HEADER_SHORTCUTS } from "@/lib/iam/headerShortcuts";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -33,9 +32,8 @@ import {
 import NotificationsTray from "@/components/console/NotificationsTray";
 import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
-import { CONSOLE_ENGINES, getVisibleEngines } from "@/lib/engineAccess";
-import { resolveConsoleAdmin } from "@/lib/consoleAccess";
-import { useYardPermissions } from "@/hooks/useYardPermissions";
+import { getHeaderEngines } from "@/lib/engineAccess";
+import { useEngineAccessContext, isDashboardPathActive, useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
 
 const engineIcons = {
     console: LayoutGrid,
@@ -53,45 +51,25 @@ const engineIcons = {
 export default function Header({ onOpenPalette }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, hasPermission, canFleetops, sessionScope, isYardOnlySession } = useAuth();
-    const { can: canYardModule } = useYardPermissions();
+    const { user, organizations, activeOrganization, switchOrganization, logout: performLogout, isYardOnlySession, isParkingOnlySession } = useAuth();
+    const ctx = useEngineAccessContext();
+    const dashboardRoute = useEngineDashboardRoute();
+    const hideFleetOpsChrome = isYardOnlySession || isParkingOnlySession;
     const [switchingOrg, setSwitchingOrg] = useState(false);
     const currentOrg = activeOrganization || organizations[0] || { name: "No Organization" };
 
-    const isConsoleAdmin = useMemo(
-        () => resolveConsoleAdmin(user, { canFleetops, hasPermission }),
-        [user, canFleetops, hasPermission],
-    );
-
-    const visibleEngines = useMemo(
-        () =>
-            getVisibleEngines({
-                isConsoleAdmin,
-                isAdmin: isConsoleAdmin,
-                sessionScope,
-                hasPermission,
-                canFleetops,
-                canYardModule,
-                userPermissions: user?.permissions,
-            }),
-        [isConsoleAdmin, user?.permissions, sessionScope, hasPermission, canFleetops, canYardModule],
-    );
+    const visibleEngines = useMemo(() => getHeaderEngines(ctx), [ctx]);
 
     const isActive = (engine) => {
-        if (engine.id === "console") return location.pathname === "/" || location.pathname === "/notifications";
+        if (engine.id === "console") {
+            return isDashboardPathActive(location.pathname, engine.to);
+        }
         return engine.prefix ? location.pathname.startsWith(engine.prefix) : false;
     };
 
     const fleetOpsShortcuts = [];
     const showFleetShortcuts =
         location.pathname.startsWith("/fleet-ops") && fleetOpsShortcuts.length > 0;
-
-    const iamHeaderShortcuts = useMemo(
-        () => IAM_HEADER_SHORTCUTS.filter((item) => !item.permission || hasPermission(item.permission)),
-        [hasPermission],
-    );
-    const showIamShortcuts =
-        location.pathname.startsWith("/iam") && iamHeaderShortcuts.length > 0;
 
     async function logout() {
         await performLogout();
@@ -112,7 +90,7 @@ export default function Header({ onOpenPalette }) {
         <header className="sticky top-0 z-40 glass-header overflow-hidden" data-testid="console-header">
             <div className="flex h-14 min-w-0 max-w-full items-center gap-2 px-3 sm:px-4">
                 <Link
-                    to="/"
+                    to={dashboardRoute}
                     className="flex h-full shrink-0 items-center gap-2 border-r border-black/[0.06] pr-2 sm:pr-3"
                     data-testid="header-logo"
                 >
@@ -163,34 +141,7 @@ export default function Header({ onOpenPalette }) {
                     </nav>
                 )}
 
-                {showIamShortcuts && (
-                    <nav
-                        className="hidden xl:flex items-center gap-0.5 border-l border-black/[0.06] pl-3 shrink-0 max-w-[min(52vw,640px)] overflow-x-auto"
-                        data-testid="iam-header-shortcuts"
-                    >
-                        {iamHeaderShortcuts.map((item) => {
-                            const Icon = item.icon;
-                            const active = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
-                            return (
-                                <Link
-                                    key={item.to}
-                                    to={item.to}
-                                    data-testid={item.testId}
-                                    data-active={active ? "true" : "false"}
-                                    className={`px-2 h-8 text-[11px] font-medium rounded-md flex items-center gap-1 shrink-0 ${
-                                        active
-                                            ? "text-[#0066FF] bg-[#0066FF]/10"
-                                            : "text-[#374151] hover:text-[#0066FF] hover:bg-[#F5F6F8]"
-                                    }`}
-                                >
-                                    <Icon className="h-3 w-3" strokeWidth={1.75} />
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
-                    </nav>
-                )}
-
+                {!hideFleetOpsChrome ? (
                 <button
                     type="button"
                     onClick={onOpenPalette}
@@ -206,7 +157,9 @@ export default function Header({ onOpenPalette }) {
                         ⌘K
                     </kbd>
                 </button>
+                ) : null}
 
+                {!hideFleetOpsChrome ? (
                 <button
                     type="button"
                     onClick={onOpenPalette}
@@ -215,9 +168,10 @@ export default function Header({ onOpenPalette }) {
                 >
                     <Search className="h-3.5 w-3.5" strokeWidth={1.75} />
                 </button>
+                ) : null}
 
                 <div className="flex shrink-0 items-center gap-0.5 border-l border-black/[0.06] pl-1 sm:pl-2">
-                    {!isYardOnlySession ? (
+                    {!hideFleetOpsChrome ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button data-testid="org-switcher" className="flex max-w-[100px] items-center gap-1.5 h-8 px-2 hover:bg-black/[0.04] rounded-lg border border-transparent hover:border-black/[0.08] transition-all sm:max-w-[140px] lg:max-w-[160px] lg:px-2.5">
@@ -263,17 +217,21 @@ export default function Header({ onOpenPalette }) {
                                 <div className="text-[11px] text-[#374151] font-mono mt-0.5">{user?.email || ""}</div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-black/[0.06] my-1" />
-                            <DropdownMenuItem onClick={() => navigate("/account")} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-account">
-                                <User className="h-4 w-4 mr-2 text-[#374151]" /> Account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-settings">
-                                <SettingsIcon className="h-4 w-4 mr-2 text-[#374151]" /> Settings
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={onOpenPalette} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-command">
-                                <CommandIcon className="h-4 w-4 mr-2 text-[#374151]" /> Command palette
-                                <kbd className="ml-auto font-mono text-[9px] bg-[#F5F6F8]/80 border border-black/[0.08] text-[#374151] px-1 py-0.5 rounded">⌘K</kbd>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-black/[0.06] my-1" />
+                            {!hideFleetOpsChrome ? (
+                                <>
+                                    <DropdownMenuItem onClick={() => navigate("/account")} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-account">
+                                        <User className="h-4 w-4 mr-2 text-[#374151]" /> Account
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-settings">
+                                        <SettingsIcon className="h-4 w-4 mr-2 text-[#374151]" /> Settings
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={onOpenPalette} className="cursor-pointer rounded-md focus:bg-black/[0.05]" data-testid="menu-command">
+                                        <CommandIcon className="h-4 w-4 mr-2 text-[#374151]" /> Command palette
+                                        <kbd className="ml-auto font-mono text-[9px] bg-[#F5F6F8]/80 border border-black/[0.08] text-[#374151] px-1 py-0.5 rounded">⌘K</kbd>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-black/[0.06] my-1" />
+                                </>
+                            ) : null}
                             <DropdownMenuItem onClick={logout} className="cursor-pointer text-[#FF1744] focus:text-[#FF1744] focus:bg-[#FF1744]/[0.08] rounded-md" data-testid="menu-logout">
                                 <LogOut className="h-4 w-4 mr-2" /> Sign out
                             </DropdownMenuItem>

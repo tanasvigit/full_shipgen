@@ -12,14 +12,12 @@ test.describe("IAM", () => {
     }
   });
 
-  test("header shortcuts visible on IAM routes", async ({ page }) => {
+  test("sidebar navigation visible on IAM routes", async ({ page }) => {
     await page.setViewportSize({ width: 1400, height: 900 });
     await gotoRoute(page, "/iam/users");
     await expectPageRoot(page, "users-list-page");
-    const shortcuts = page.getByTestId("iam-header-shortcuts");
-    await expect(shortcuts).toBeVisible();
-    await expect(page.getByTestId("iam-shortcut-users")).toBeVisible();
-    await expect(page.getByTestId("iam-shortcut-policies")).toBeVisible();
+    await expect(page.getByTestId("sidebar-link-users")).toBeVisible();
+    await expect(page.getByTestId("sidebar-link-policies")).toBeVisible();
   });
 
   test("dashboard IAM metrics widget", async ({ page }) => {

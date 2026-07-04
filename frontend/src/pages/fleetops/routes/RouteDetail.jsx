@@ -13,7 +13,7 @@ import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { DetailLoadingState, resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
 import ServiceRatesForRoutePicker from "@/components/fleetops/service-rates/ServiceRatesForRoutePicker";
-import { ArrowLeft, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Route as RouteIcon, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 import {
@@ -92,6 +92,21 @@ export default function RouteDetail({
 
   const routePoints = useMemo(() => stopWaypointsFromRoute(route), [route]);
   const markers = useMemo(() => markersFromRoute(route), [route]);
+  const linkedOrderIds = useMemo(() => resolveOrderIdsFromRoute(route), [route]);
+
+  const replanRoute = () => {
+    if (!linkedOrderIds.length) {
+      toast.error("No linked orders to re-plan");
+      return;
+    }
+    const path = `/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(linkedOrderIds.join(","))}`;
+    if (embedded) {
+      closeDetail();
+      navigate(path);
+    } else {
+      navigate(path);
+    }
+  };
 
   const optimize = async () => {
     if (!ability.canUpdateOrder && !ability.isDispatcher) {
@@ -197,6 +212,18 @@ export default function RouteDetail({
   const headerActions = [
     ...(ability.canUpdateOrder || ability.isDispatcher
       ? [
+          ...(linkedOrderIds.length
+            ? [
+                {
+                  id: "replan",
+                  label: "Re-plan",
+                  testId: "route-replan",
+                  onClick: replanRoute,
+                  disabled: busy || loading,
+                  icon: <RouteIcon className="h-3.5 w-3.5 mr-1" />,
+                },
+              ]
+            : []),
           {
             id: "optimize",
             label: "Optimize",
@@ -362,6 +389,11 @@ export default function RouteDetail({
             >
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
+            {(ability.canUpdateOrder || ability.isDispatcher) && linkedOrderIds.length > 0 && (
+              <Button variant="outline" disabled={busy || loading} onClick={replanRoute} data-testid="route-replan">
+                <RouteIcon className="h-4 w-4 mr-1" /> Re-plan
+              </Button>
+            )}
             {(ability.canUpdateOrder || ability.isDispatcher) && (
               <Button variant="outline" disabled={busy || loading} onClick={optimize} data-testid="route-optimize">
                 <Sparkles className="h-4 w-4 mr-1" /> Optimize

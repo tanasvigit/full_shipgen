@@ -8,6 +8,12 @@ test.describe("FleetOps Phase 2 — Routes", () => {
     await expect(page.getByTestId("route-optimization-wizard")).toBeVisible({ timeout: 45_000 });
   });
 
+  test("routes module order picker loads when planning from routes", async ({ page }) => {
+    await gotoRoute(page, "/fleet-ops/operations/routes/new", { pageTestId: "route-new-page" });
+    await expect(page.getByTestId("route-order-picker")).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByTestId("route-order-picker-table")).toBeVisible();
+  });
+
   test("plan route from orders selection navigates with order_ids", async ({ page }) => {
     await gotoRoute(page, "/fleet-ops/operations/orders", { pageTestId: "orders-list-page" });
     const checkbox = page.locator('[data-testid^="orders-table-select-"]').first();

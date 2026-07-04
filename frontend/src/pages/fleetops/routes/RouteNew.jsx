@@ -11,10 +11,14 @@ export default function RouteNew() {
       <PageHeader
         breadcrumbs={[{ label: "FleetOps", to: "/fleet-ops" }, { label: "Routes", to: "/fleet-ops/operations/routes" }, { label: "New" }]}
         title="Route planner"
-        description={orderIds.length ? `${orderIds.length} orders selected` : "Build and optimize a delivery route"}
+        description={
+          orderIds.length
+            ? `${orderIds.length} orders selected from Orders`
+            : "Select orders, optimize stops, and save a route plan"
+        }
       />
       <div className="p-6">
-        <RouteOptimizationWizard orderIds={orderIds} />
+        <RouteOptimizationWizard orderIds={orderIds} allowOrderSelection={orderIds.length === 0} />
       </div>
     </div>
   );

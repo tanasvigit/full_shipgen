@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Bell, Blocks, ChevronRight, Code2, HeartPulse, Rocket, ShieldCheck, User } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +14,22 @@ import { useTenant } from "@/contexts/TenantContext";
 import BillingPlansTab from "@/components/settings/BillingPlansTab";
 import { apiClient } from "@/lib/api";
 import { parseApiError } from "@/lib/errors";
+import { getSettingsModuleEngines } from "@/lib/engineAccess";
+import { getSettingsConsoleLinks } from "@/lib/settingsNavigation";
+import { resolveConsoleAdmin } from "@/lib/consoleAccess";
+
+const MODULE_ICONS = {
+  iam: ShieldCheck,
+  developers: Code2,
+  registry: Blocks,
+};
+
+const CONSOLE_LINK_ICONS = {
+  notifications: Bell,
+  account: User,
+  onboarding: Rocket,
+  "platform-health": HeartPulse,
+};
 
 const NOTIFICATION_ITEMS = [
   { key: "orderCreated", title: "Order created", desc: "When a new order is placed in any network" },
@@ -21,8 +39,32 @@ const NOTIFICATION_ITEMS = [
 ];
 
 export default function Settings() {
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, user, hasPermission, canFleetops, sessionScope } = useAuth();
   const { branding, preferences, updateBranding, updatePreferences, tenantProfile } = useTenant();
+
+  const isConsoleAdmin = useMemo(
+    () => resolveConsoleAdmin(user, { canFleetops, hasPermission }),
+    [user, canFleetops, hasPermission],
+  );
+
+  const settingsModules = useMemo(
+    () =>
+      getSettingsModuleEngines({
+        isConsoleAdmin,
+        isAdmin: isConsoleAdmin,
+        sessionScope,
+        hasPermission,
+        canFleetops,
+        canYardModule: () => false,
+        userPermissions: user?.permissions,
+      }),
+    [isConsoleAdmin, sessionScope, hasPermission, canFleetops, user?.permissions],
+  );
+
+  const settingsConsoleLinks = useMemo(
+    () => getSettingsConsoleLinks({ isConsoleAdmin, isAdmin: isConsoleAdmin }),
+    [isConsoleAdmin],
+  );
 
   const [orgName, setOrgName] = useState(activeOrganization?.name || "");
   const [contact, setContact] = useState("");
@@ -95,8 +137,8 @@ export default function Settings() {
             <TabsTrigger value="billing" data-testid="settings-tab-billing">
               Billing
             </TabsTrigger>
-            <TabsTrigger value="api" data-testid="settings-tab-api">
-              API
+            <TabsTrigger value="modules" data-testid="settings-tab-modules">
+              Platform modules
             </TabsTrigger>
           </TabsList>
 
@@ -336,16 +378,59 @@ export default function Settings() {
             </div>
           </TabsContent>
 
-          <TabsContent value="api" className="space-y-3">
-            <div className="bg-white border border-black/[0.08] rounded-md p-5">
-              <div className="overline mb-2">API access</div>
-              <p className="text-sm text-[#4B5563]">
-                Manage keys and webhooks in the{" "}
-                <a href="/developers" className="text-blue-600 hover:underline">
-                  Developers
-                </a>{" "}
-                console.
-              </p>
+          <TabsContent value="modules" className="space-y-6">
+            <div className="space-y-3">
+              <div className="overline px-1">Console</div>
+              {settingsConsoleLinks.map((link) => {
+                const Icon = CONSOLE_LINK_ICONS[link.id] || User;
+                return (
+                  <Link
+                    key={link.id}
+                    to={link.to}
+                    data-testid={`settings-console-${link.id}`}
+                    className="flex items-center gap-4 bg-white border border-black/[0.08] rounded-md p-5 hover:border-[#0066FF]/30 hover:bg-[#0066FF]/[0.03] transition-colors group"
+                  >
+                    <div className="h-11 w-11 shrink-0 grid place-items-center rounded-md bg-[#0066FF]/10 border border-[#0066FF]/20 text-[#0066FF]">
+                      <Icon className="h-5 w-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-display font-bold text-[#0A0E1A]">{link.label}</div>
+                      <div className="text-sm text-[#4B5563] mt-0.5">{link.description}</div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[#4B5563] group-hover:text-[#0066FF] shrink-0" strokeWidth={2} />
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="space-y-3">
+              <div className="overline px-1">Platform modules</div>
+              {settingsModules.length === 0 ? (
+                <div className="bg-white border border-black/[0.08] rounded-md p-5 text-sm text-[#4B5563]">
+                  No platform modules are available for your account.
+                </div>
+              ) : (
+                settingsModules.map((module) => {
+                  const Icon = MODULE_ICONS[module.id] || ShieldCheck;
+                  return (
+                    <Link
+                      key={module.id}
+                      to={module.to}
+                      data-testid={`settings-module-${module.id}`}
+                      className="flex items-center gap-4 bg-white border border-black/[0.08] rounded-md p-5 hover:border-[#0066FF]/30 hover:bg-[#0066FF]/[0.03] transition-colors group"
+                    >
+                      <div className="h-11 w-11 shrink-0 grid place-items-center rounded-md bg-[#0066FF]/10 border border-[#0066FF]/20 text-[#0066FF]">
+                        <Icon className="h-5 w-5" strokeWidth={1.75} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display font-bold text-[#0A0E1A]">{module.label}</div>
+                        <div className="text-sm text-[#4B5563] mt-0.5">{module.description}</div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[#4B5563] group-hover:text-[#0066FF] shrink-0" strokeWidth={2} />
+                    </Link>
+                  );
+                })
+              )}
             </div>
           </TabsContent>
         </Tabs>

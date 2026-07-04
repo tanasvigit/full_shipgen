@@ -70,6 +70,7 @@ import {
     Search,
     Clock,
     Layers,
+    Code2,
 } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -77,19 +78,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
 import { useParkingPermissions } from "@/hooks/useParkingPermissions";
 import { filterSidebarGroups } from "@/lib/sidebarAccess";
-import { resolveConsoleAdmin } from "@/lib/consoleAccess";
+import { isSettingsConsolePath } from "@/lib/settingsNavigation";
+import { useEngineAccessContext, isDashboardPathActive, useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
 
 const sections = {
     "/": [
         {
-            label: "Console",
+            label: "Home",
             items: [
                 { to: "/", label: "Dashboard", icon: LayoutDashboard },
-                { to: "/notifications", label: "Notifications", icon: Bell },
-                { to: "/account", label: "Account", icon: User },
                 { to: "/settings", label: "Settings", icon: SettingsIcon },
-                { to: "/onboarding", label: "Onboarding", icon: Rocket },
-                { to: "/admin/health", label: "Platform health", icon: HeartPulse },
             ],
         },
     ],
@@ -293,7 +291,23 @@ const sections = {
             label: "Workspace",
             items: [
                 { to: "/settings", label: "Organization", icon: Building },
-                { to: "/account", label: "My Account", icon: User },
+            ],
+        },
+        {
+            label: "Console",
+            items: [
+                { to: "/notifications", label: "Notifications", icon: Bell },
+                { to: "/account", label: "Account", icon: User },
+                { to: "/onboarding", label: "Onboarding", icon: Rocket },
+                { to: "/admin/health", label: "Platform health", icon: HeartPulse },
+            ],
+        },
+        {
+            label: "Platform modules",
+            items: [
+                { to: "/iam", label: "IAM", icon: ShieldCheck },
+                { to: "/developers", label: "Developers", icon: Code2 },
+                { to: "/registry", label: "Registry", icon: Blocks },
             ],
         },
     ],
@@ -406,30 +420,43 @@ function pickSection(pathname) {
     if (pathname.startsWith("/iam")) return { key: "/iam", title: "IAM", subtitle: "Identity & access", accent: "from-[#FF1744] to-[#FFEA00]" };
     if (pathname.startsWith("/yard")) return { key: "/yard", title: "Yard", subtitle: "Yard management", accent: "from-amber-400 to-[#FF6D00]" };
     if (pathname.startsWith("/parking")) return { key: "/parking", title: "Parking", subtitle: "Parking management", accent: "from-[#0066FF] to-[#2979FF]" };
-    if (pathname.startsWith("/settings")) return { key: "/settings", title: "Settings", subtitle: "Workspace config", accent: "from-white/40 to-white/10" };
-    return { key: "/", title: "Console", subtitle: "Overview", accent: "from-cyan-accent to-[#2979FF]" };
+    if (isSettingsConsolePath(pathname)) {
+        return { key: "/settings", title: "Settings", subtitle: "Workspace config", accent: "from-white/40 to-white/10" };
+    }
+    return { key: "/", title: "Dashboard", subtitle: "Overview", accent: "from-cyan-accent to-[#2979FF]" };
 }
 
 export default function Sidebar() {
     const location = useLocation();
     const section = pickSection(location.pathname);
-    const { user, hasPermission, canFleetops } = useAuth();
+    const ctx = useEngineAccessContext();
+    const dashboardRoute = useEngineDashboardRoute();
+    const { user, hasPermission, canFleetops, sessionScope } = useAuth();
     const { can: canYardModule } = useYardPermissions();
     const { can: canParkingModule, role: parkingRole } = useParkingPermissions();
 
-    const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
-
     const groups = useMemo(() => {
         const raw = sections[section.key] || [];
-        return filterSidebarGroups(raw, section.key, {
-            isAdmin: isConsoleAdmin,
+        const scoped =
+            section.key === "/"
+                ? raw.map((group) => ({
+                      ...group,
+                      items: group.items.map((item) =>
+                          item.to === "/" ? { ...item, to: dashboardRoute } : item,
+                      ),
+                  }))
+                : raw;
+        return filterSidebarGroups(scoped, section.key, {
+            isAdmin: ctx.isConsoleAdmin,
             hasPermission,
             canFleetops,
             canYardModule,
             canParkingModule,
             parkingRole,
+            sessionScope,
+            userPermissions: user?.permissions,
         });
-    }, [section.key, isConsoleAdmin, hasPermission, canFleetops, canYardModule, canParkingModule, parkingRole]);
+    }, [section.key, ctx, dashboardRoute, hasPermission, canFleetops, canYardModule, canParkingModule, parkingRole, sessionScope, user?.permissions]);
 
     return (
         <aside
@@ -450,8 +477,8 @@ export default function Sidebar() {
                             {group.items.map((item) => {
                                 const Icon = item.icon;
                                 const active =
-                                    item.to === "/"
-                                        ? location.pathname === "/"
+                                    item.to === dashboardRoute
+                                        ? isDashboardPathActive(location.pathname, dashboardRoute)
                                         : location.pathname === item.to ||
                                           location.pathname.startsWith(item.to + "/");
                                 return (

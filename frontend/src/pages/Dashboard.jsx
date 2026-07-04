@@ -1,8 +1,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "@/components/common/PageHeader";
-import { useAuth } from "@/contexts/AuthContext";
-import { SESSION_SCOPE } from "@/lib/sessionScope";
+import { useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
 import KpiCard from "@/components/common/KpiCard";
 import MapView from "@/components/common/MapView";
 import StatusBadge from "@/components/common/StatusBadge";
@@ -43,7 +42,7 @@ function buildHourly(orders) {
 }
 
 export default function Dashboard() {
-  const { sessionScope } = useAuth();
+  const dashboardRoute = useEngineDashboardRoute();
   const [ordersState, setOrdersState] = useState([]);
   const [driversState, setDriversState] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -183,12 +182,8 @@ export default function Dashboard() {
     })),
   ];
 
-  if (sessionScope === SESSION_SCOPE.YARD_ONLY) {
-    return <Navigate to="/yard" replace />;
-  }
-
-  if (sessionScope === SESSION_SCOPE.PARKING_ONLY) {
-    return <Navigate to="/parking" replace />;
+  if (dashboardRoute !== "/") {
+    return <Navigate to={dashboardRoute} replace />;
   }
 
   return (

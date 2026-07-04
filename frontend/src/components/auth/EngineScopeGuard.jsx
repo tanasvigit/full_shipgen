@@ -1,41 +1,37 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
-import { canAccessPath, getDefaultEngineHome } from "@/lib/engineAccess";
-import { resolveConsoleAdmin } from "@/lib/consoleAccess";
+import { canAccessPath, getDefaultEngineHome, getEngineDashboardRoute } from "@/lib/engineAccess";
+import { useEngineAccessContext } from "@/hooks/useEngineAccessContext";
+import { SESSION_SCOPE } from "@/lib/sessionScope";
 
 export default function EngineScopeGuard({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, sessionScope, hasPermission, canFleetops } = useAuth();
+  const { sessionScope } = useAuth();
   const { can: canYardModule, ready: yardReady } = useYardPermissions();
-
-  const ctx = useMemo(
-    () => ({
-      isConsoleAdmin: resolveConsoleAdmin(user, { canFleetops, hasPermission }),
-      isAdmin: resolveConsoleAdmin(user, { canFleetops, hasPermission }),
-      sessionScope,
-      hasPermission,
-      canFleetops,
-      canYardModule,
-      userPermissions: user?.permissions,
-    }),
-    [user, sessionScope, hasPermission, canFleetops, canYardModule],
-  );
+  const ctx = useEngineAccessContext();
 
   useEffect(() => {
-    if (sessionScope === "yard-only") {
+    const dashboardRoute = getEngineDashboardRoute(ctx);
+
+    if (sessionScope === SESSION_SCOPE.YARD_ONLY) {
       if (!location.pathname.startsWith("/yard")) {
-        navigate("/yard", { replace: true });
+        navigate(dashboardRoute, { replace: true });
       }
       return;
     }
 
-    if (sessionScope === "parking-only") {
+    if (sessionScope === SESSION_SCOPE.PARKING_ONLY) {
       if (!location.pathname.startsWith("/parking")) {
-        navigate("/parking", { replace: true });
+        navigate(dashboardRoute, { replace: true });
       }
+      return;
+    }
+
+    if (location.pathname === "/" && dashboardRoute !== "/") {
+      navigate(dashboardRoute, { replace: true });
       return;
     }
 

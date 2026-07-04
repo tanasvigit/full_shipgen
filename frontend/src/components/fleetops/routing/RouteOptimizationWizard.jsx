@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
-import { parseFleetopsApiError } from "@/lib/fleetops/parseApiErrors";
 import {
   assignmentsForCommit,
   extractStopsFromOrders,
@@ -20,52 +19,95 @@ import {
   runRouteOptimization,
 } from "@/lib/fleetops/routing";
 import { pickAllocationEngine } from "@/lib/fleetops/allocation";
+import RouteOrderPicker from "@/components/fleetops/routing/RouteOrderPicker";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Sparkles, Save } from "lucide-react";
 
 const STEPS = ["Stops", "Engine", "Optimize", "Save"];
 
-export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
+async function loadOrdersByIds(orderIds) {
+  const loaded = [];
+  for (const id of orderIds) {
+    try {
+      loaded.push(await fleetopsService.getOrder(id));
+    } catch {
+      /* skip missing */
+    }
+  }
+  return loaded;
+}
+
+export default function RouteOptimizationWizard({
+  orderIds = [],
+  allowOrderSelection = false,
+  onComplete,
+}) {
   const navigate = useNavigate();
+  const hasPrefilledOrders = orderIds.length > 0;
+  const needsOrderSelection = allowOrderSelection && !hasPrefilledOrders;
+
   const [step, setStep] = useState(0);
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!needsOrderSelection);
   const [busy, setBusy] = useState(false);
   const [engine, setEngine] = useState("greedy");
   const [engines, setEngines] = useState([]);
   const [result, setResult] = useState(null);
   const [routingSettings, setRoutingSettings] = useState({});
+  const [ordersConfirmed, setOrdersConfirmed] = useState(hasPrefilledOrders);
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
 
   const stops = useMemo(() => extractStopsFromOrders(orders), [orders]);
 
-  const load = useCallback(async () => {
+  const loadEngines = useCallback(async () => {
+    const [engineList, settings] = await Promise.all([
+      fleetopsService.getOrchestratorEngines().catch(() => []),
+      fleetopsService.getRoutingSettings().catch(() => ({})),
+    ]);
+    setEngines(engineList);
+    setRoutingSettings(settings);
+    setEngine(pickAllocationEngine(engineList, settings?.default_engine || "greedy"));
+  }, []);
+
+  const loadPrefilledOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const [engineList, settings] = await Promise.all([
-        fleetopsService.getOrchestratorEngines().catch(() => []),
-        fleetopsService.getRoutingSettings().catch(() => ({})),
-      ]);
-      setEngines(engineList);
-      setRoutingSettings(settings);
-      setEngine(pickAllocationEngine(engineList, settings?.default_engine || "greedy"));
-
-      const loaded = [];
-      for (const id of orderIds) {
-        try {
-          loaded.push(await fleetopsService.getOrder(id));
-        } catch {
-          /* skip missing */
-        }
-      }
-      setOrders(loaded);
+      await loadEngines();
+      setOrders(await loadOrdersByIds(orderIds));
+      setOrdersConfirmed(true);
     } finally {
       setLoading(false);
     }
-  }, [orderIds]);
+  }, [loadEngines, orderIds]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (hasPrefilledOrders) {
+      loadPrefilledOrders();
+    } else if (!needsOrderSelection) {
+      loadEngines().finally(() => setLoading(false));
+    }
+  }, [hasPrefilledOrders, needsOrderSelection, loadPrefilledOrders, loadEngines]);
+
+  const handleConfirmOrderSelection = async () => {
+    const ids = [...selectedKeys];
+    if (!ids.length) {
+      toast.error("Select at least one order");
+      return;
+    }
+    setBusy(true);
+    setLoading(true);
+    try {
+      await loadEngines();
+      setOrders(await loadOrdersByIds(ids));
+      setOrdersConfirmed(true);
+      setStep(0);
+    } catch (err) {
+      toast.error(parseApiError(err, "Failed to load selected orders"));
+    } finally {
+      setBusy(false);
+      setLoading(false);
+    }
+  };
 
   const mapMarkers = useMemo(
     () =>
@@ -90,7 +132,8 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
   const handleOptimize = async () => {
     setBusy(true);
     try {
-      const normalized = await runRouteOptimization({ orders, orderIds, engine });
+      const orderPublicIds = orders.map((o) => o.public_id || o.publicId || o.uuid || o.id).filter(Boolean);
+      const normalized = await runRouteOptimization({ orders, orderIds: orderPublicIds, engine });
       if (!normalized.assignments?.length) {
         const msg = normalized.raw?.message || "No route assignments returned. Check drivers/vehicles and order stops.";
         throw new Error(msg);
@@ -161,6 +204,24 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
     }
   };
 
+  if (needsOrderSelection && !ordersConfirmed) {
+    return (
+      <div className="space-y-4" data-testid="route-optimization-wizard">
+        <div className="overline">Step 1 · Select orders</div>
+        <p className="text-sm text-[#4B5563]">
+          Choose open orders to include in this route plan. You can also plan routes from the Orders map by selecting orders and clicking Plan routes.
+        </p>
+        <RouteOrderPicker
+          selectedKeys={selectedKeys}
+          onSelectedKeysChange={setSelectedKeys}
+          onContinue={handleConfirmOrderSelection}
+          continueLabel="Review stops"
+          disabled={busy}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="p-6 text-sm text-[#4B5563]" data-testid="route-wizard-loading">Loading orders…</div>;
   }
@@ -174,6 +235,28 @@ export default function RouteOptimizationWizard({ orderIds = [], onComplete }) {
           </span>
         ))}
       </div>
+
+      {needsOrderSelection && ordersConfirmed ? (
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span className="text-[#374151]">{orders.length} order(s) in plan</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8"
+            disabled={busy}
+            onClick={() => {
+              setOrders([]);
+              setOrdersConfirmed(false);
+              setResult(null);
+              setStep(0);
+            }}
+            data-testid="route-wizard-change-orders"
+          >
+            Change orders
+          </Button>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white border border-black/[0.08] rounded-md p-4 space-y-3 min-h-[320px]">

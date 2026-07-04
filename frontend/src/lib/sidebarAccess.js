@@ -1,5 +1,7 @@
 import { MOD } from "@yard/constants/permissions";
 import { PARKING_SIDEBAR_PERMISSIONS } from "@/lib/parkingSidebar";
+import { CONSOLE_ENGINES, canAccessEngine, SETTINGS_MODULE_ROUTE_TO_ENGINE } from "@/lib/engineAccess";
+import { SETTINGS_CONSOLE_LINKS } from "@/lib/settingsNavigation";
 
 /** Map Yard console sidebar routes to YMS module permissions. */
 export const YARD_SIDEBAR_PERMISSIONS = {
@@ -96,6 +98,28 @@ export function canAccessSidebarItem(item, sectionKey, ctx) {
     if (role === "supervisor" && !item.to.startsWith("/parking/supervisor")) return false;
     if (role === "operator" && !item.to.startsWith("/parking/operator")) return false;
     return ctx.canParkingModule?.(perm) ?? false;
+  }
+
+  if (sectionKey === "/settings") {
+    const consoleLink = SETTINGS_CONSOLE_LINKS.find((link) => link.to === item.to);
+    if (consoleLink) {
+      if (consoleLink.adminOnly && !ctx.isAdmin) return false;
+      return true;
+    }
+
+    const engineId = SETTINGS_MODULE_ROUTE_TO_ENGINE[item.to];
+    if (!engineId) return true;
+    const engine = CONSOLE_ENGINES.find((entry) => entry.id === engineId);
+    if (!engine) return false;
+    return canAccessEngine(engine, {
+      isConsoleAdmin: ctx.isAdmin,
+      isAdmin: ctx.isAdmin,
+      sessionScope: ctx.sessionScope,
+      hasPermission: ctx.hasPermission,
+      canFleetops: ctx.canFleetops,
+      canYardModule: ctx.canYardModule,
+      userPermissions: ctx.userPermissions,
+    });
   }
 
   if (sectionKey === "/iam") {
