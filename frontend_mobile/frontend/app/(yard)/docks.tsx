@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { useDockBoard } from "@/src/hooks/useDockBoard";
 import { useDockMutations } from "@/src/hooks/useDockMutations";
@@ -19,6 +20,8 @@ import { useQueueMutations } from "@/src/hooks/useQueueMutations";
 import { useDockResources } from "@/src/hooks/useDockResources";
 import { useDockCallableQueue } from "@/src/hooks/useDockCallableQueue";
 import { useDockReadiness } from "@/src/hooks/useDockReadiness";
+import { useDockPauseState } from "@/src/hooks/useDockPauseState";
+import { useDockCompleteState } from "@/src/hooks/useDockCompleteState";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { useYardVehicle360 } from "@/src/contexts/YardVehicle360Context";
 import { canAccessYardScreen } from "@/src/lib/moduleAccess";
@@ -30,12 +33,14 @@ import {
   type DockFilter,
 } from "@/src/lib/dockActions";
 import { dockSummaryFilter } from "@/src/lib/kpiNavigation";
+import { DEFAULT_PAUSE_REASON_CODE } from "@/src/lib/dockManageActions";
 import YardKpiStat from "@/src/components/yard/YardKpiStat";
 import DockDetailSheet from "@/src/components/yard/DockDetailSheet";
 import CreateDockSheet from "@/src/components/yard/CreateDockSheet";
 import WeighWeightSheet from "@/src/components/yard/WeighWeightSheet";
 import { formatWeightKg } from "@/src/services/weighingService";
-import type { DockBoardRow } from "@/src/services/dockService";
+import type { AssignVehicleResult, DockBoardRow } from "@/src/services/dockService";
+import { resolveActiveQueueEntryId } from "@/src/services/dockService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 import { formatYmsAlertMessage } from "@/src/lib/ymsErrors";
 import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
@@ -46,8 +51,52 @@ const FILTER_OPTIONS: { key: DockFilter; label: string }[] = [
   { key: "available", label: "Available" },
 ];
 
+function applyVehicleAssignment(
+  row: DockBoardRow,
+  input: {
+    queueEntryId: string;
+    vehicleId?: string;
+    queueNumber?: string;
+    plate?: string | null;
+    status?: string;
+  },
+): DockBoardRow {
+  return {
+    ...row,
+    hasActiveAssignment: true,
+    queueEntryId: input.queueEntryId,
+    vehicleId: input.vehicleId ?? row.vehicleId ?? null,
+    plate: input.plate ?? row.plate ?? null,
+    queueNumber: input.queueNumber ?? row.queueNumber ?? null,
+    loadingStatus: input.status ?? "DOCK_ASSIGNED",
+    vehicleStatus: input.status ?? "DOCK_ASSIGNED",
+    status: row.status === "AVAILABLE" ? "OCCUPIED" : row.status,
+  };
+}
+
+function clearVehicleAssignment(row: DockBoardRow): DockBoardRow {
+  return {
+    ...row,
+    hasActiveAssignment: false,
+    vehicleId: null,
+    queueEntryId: null,
+    appointmentId: null,
+    plate: null,
+    transporter: null,
+    queueNumber: null,
+    loadingStatus: null,
+    vehicleStatus: null,
+    progressPct: 0,
+    tareWeightKg: null,
+    grossWeightKg: null,
+    netWeightKg: null,
+    status: row.backendStatus === "OCCUPIED" || row.backendStatus === "LOADING" ? "AVAILABLE" : row.status,
+  };
+}
+
 export default function YardDocksScreen() {
   useYardMoreBackHandler();
+  const queryClient = useQueryClient();
   const { user, can, isYardAdmin } = useYardAuth();
   const { openVehicle360 } = useYardVehicle360();
   const params = useLocalSearchParams<{ q?: string; filter?: string }>();
@@ -73,6 +122,9 @@ export default function YardDocksScreen() {
   const resourcesEnabled =
     sheetOpen && Boolean(selectedRow) && (canAssignLabor || canAssignEquipment);
   const readinessEnabled = sheetOpen && Boolean(selectedRow?.vehicleId);
+  const pauseStateEnabled =
+    sheetOpen && Boolean(selectedRow?.vehicleId || selectedRow?.queueEntryId);
+  const completeStateEnabled = pauseStateEnabled;
   const callableEnabled = sheetOpen && canAssignVehicle && !selectedRow?.hasActiveAssignment;
 
   const { data: resourceData, isLoading: resourcesLoading, refetch: refetchResources } = useDockResources(
@@ -87,6 +139,16 @@ export default function YardDocksScreen() {
     isLoading: readinessLoading,
     refetch: refetchReadiness,
   } = useDockReadiness(selectedRow?.vehicleId, readinessEnabled);
+  const {
+    data: pauseState,
+    isLoading: pauseStateLoading,
+    refetch: refetchPauseState,
+  } = useDockPauseState(selectedRow?.vehicleId, selectedRow?.queueEntryId, pauseStateEnabled);
+  const {
+    data: completeState,
+    isLoading: completeStateLoading,
+    refetch: refetchCompleteState,
+  } = useDockCompleteState(selectedRow?.vehicleId, selectedRow?.queueEntryId, completeStateEnabled);
 
   useEffect(() => {
     const q = typeof params.q === "string" ? params.q.trim() : "";
@@ -107,11 +169,24 @@ export default function YardDocksScreen() {
     if (
       fresh.vehicleId !== selectedRow.vehicleId ||
       fresh.status !== selectedRow.status ||
-      fresh.hasActiveAssignment !== selectedRow.hasActiveAssignment
+      fresh.hasActiveAssignment !== selectedRow.hasActiveAssignment ||
+      fresh.labor?.id !== selectedRow.labor?.id ||
+      fresh.equipment?.id !== selectedRow.equipment?.id
     ) {
       setSelectedRow(fresh);
     }
   }, [data?.rows, selectedRow, sheetOpen]);
+
+  const refreshSelectedDock = useCallback(
+    async (dockId: string) => {
+      await queryClient.invalidateQueries({ queryKey: ["yard", "docks"] });
+      const result = await refetch();
+      const fresh = result.data?.rows.find((row) => row.id === dockId);
+      if (fresh) setSelectedRow(fresh);
+      return fresh;
+    },
+    [queryClient, refetch],
+  );
 
   const filteredRows = useMemo(
     () => filterDockRows(data?.rows || [], filter, search),
@@ -147,14 +222,47 @@ export default function YardDocksScreen() {
   const handleCompleteLoading = useCallback(async () => {
     if (!selectedRow?.vehicleId) return;
     try {
-      await mutations.completeLoading.mutateAsync(selectedRow.vehicleId);
-      Alert.alert("Loading complete", `Dock ${selectedRow.code} is ready for next truck.`);
-      closeSheet();
+      await mutations.completeLoading.mutateAsync({
+        vehicleId: selectedRow.vehicleId,
+        appointmentId: selectedRow.appointmentId,
+        dockId: selectedRow.id,
+        queueEntryId: selectedRow.queueEntryId,
+        note: "Loading completed from mobile dock board",
+      });
+      Alert.alert(
+        "Loading complete",
+        `Dock ${selectedRow.code} is still occupied. Record gross weight, then release the dock.`,
+      );
+      await refetchCompleteState();
       await refreshAll();
     } catch (err) {
       Alert.alert("Action failed", formatYmsAlertMessage(err));
     }
-  }, [closeSheet, mutations.completeLoading, refreshAll, selectedRow]);
+  }, [mutations.completeLoading, refetchCompleteState, refreshAll, selectedRow]);
+
+  const handleReleaseDock = useCallback(async () => {
+    if (!selectedRow?.vehicleId) return;
+    if (selectedRow.grossWeightKg == null) {
+      Alert.alert("Gross weight required", "Record gross weight before releasing the dock.");
+      setGrossOpen(true);
+      return;
+    }
+    try {
+      await mutations.releaseDockEntry.mutateAsync({
+        dockId: selectedRow.id,
+        row: {
+          vehicleId: selectedRow.vehicleId,
+          code: selectedRow.code,
+          grossWeightKg: selectedRow.grossWeightKg,
+        },
+      });
+      Alert.alert("Dock released", `${selectedRow.code} is ready for the next truck.`);
+      closeSheet();
+      await refreshAll();
+    } catch (err) {
+      Alert.alert("Release failed", formatYmsAlertMessage(err));
+    }
+  }, [closeSheet, mutations.releaseDockEntry, refreshAll, selectedRow]);
 
   const handleReportException = useCallback(
     async (exceptionType: string) => {
@@ -197,32 +305,36 @@ export default function YardDocksScreen() {
     try {
       await mutations.pauseLoading.mutateAsync({
         vehicleId: selectedRow.vehicleId,
+        appointmentId: selectedRow.appointmentId,
         dockId: selectedRow.id,
         queueEntryId: selectedRow.queueEntryId,
-        reasonCode: "GENERIC_DELAY",
+        reasonCode: DEFAULT_PAUSE_REASON_CODE,
         note: "Paused from mobile dock board",
       });
       Alert.alert("Loading paused", `Dock ${selectedRow.code}`);
+      await refetchPauseState();
       await refreshAll();
     } catch (err) {
       Alert.alert("Pause failed", formatYmsAlertMessage(err));
     }
-  }, [mutations.pauseLoading, refreshAll, selectedRow]);
+  }, [mutations.pauseLoading, refetchPauseState, refreshAll, selectedRow]);
 
   const handleResumeLoading = useCallback(async () => {
     if (!selectedRow) return;
     try {
       await mutations.resumeLoading.mutateAsync({
         vehicleId: selectedRow.vehicleId,
+        appointmentId: selectedRow.appointmentId,
         dockId: selectedRow.id,
         queueEntryId: selectedRow.queueEntryId,
       });
       Alert.alert("Loading resumed", `Dock ${selectedRow.code}`);
+      await refetchPauseState();
       await refreshAll();
     } catch (err) {
       Alert.alert("Resume failed", formatYmsAlertMessage(err));
     }
-  }, [mutations.resumeLoading, refreshAll, selectedRow]);
+  }, [mutations.resumeLoading, refetchPauseState, refreshAll, selectedRow]);
 
   const handleUpdateStatus = useCallback(
     async (status: string) => {
@@ -231,7 +343,11 @@ export default function YardDocksScreen() {
         if (status === "AVAILABLE" && selectedRow.vehicleId) {
           await mutations.releaseDockEntry.mutateAsync({
             dockId: selectedRow.id,
-            row: { vehicleId: selectedRow.vehicleId, code: selectedRow.code },
+            row: {
+              vehicleId: selectedRow.vehicleId,
+              code: selectedRow.code,
+              grossWeightKg: selectedRow.grossWeightKg,
+            },
           });
         } else {
           await mutations.patchDockStatus.mutateAsync({
@@ -257,16 +373,33 @@ export default function YardDocksScreen() {
       try {
         await mutations.assignLabor.mutateAsync({ dockId, laborId });
         Alert.alert("Labor assigned", `Team assigned to dock ${selectedRow.code}`);
-        const result = await refetch();
-        const fresh = result.data?.rows.find((row) => row.id === dockId);
-        if (fresh) setSelectedRow(fresh);
+        await refreshSelectedDock(dockId);
         await refetchResources();
+        const fresh = data?.rows.find((row) => row.id === dockId);
         if (fresh?.vehicleId) await refetchReadiness();
       } catch (err) {
         Alert.alert("Assign failed", formatYmsAlertMessage(err));
       }
     },
-    [mutations.assignLabor, refetch, refetchReadiness, refetchResources, selectedRow],
+    [data?.rows, mutations.assignLabor, refetchReadiness, refetchResources, refreshSelectedDock, selectedRow],
+  );
+
+  const handleUnassignLabor = useCallback(
+    async (laborId: string) => {
+      if (!selectedRow) return;
+      const dockId = selectedRow.id;
+      try {
+        await mutations.releaseLabor.mutateAsync(laborId);
+        Alert.alert("Labor unassigned", `Team removed from dock ${selectedRow.code}`);
+        await refreshSelectedDock(dockId);
+        await refetchResources();
+        const fresh = data?.rows.find((row) => row.id === dockId);
+        if (fresh?.vehicleId) await refetchReadiness();
+      } catch (err) {
+        Alert.alert("Unassign failed", formatYmsAlertMessage(err));
+      }
+    },
+    [data?.rows, mutations.releaseLabor, refetchReadiness, refetchResources, refreshSelectedDock, selectedRow],
   );
 
   const handleAssignEquipment = useCallback(
@@ -276,29 +409,79 @@ export default function YardDocksScreen() {
       try {
         await mutations.assignEquipment.mutateAsync({ dockId, equipmentId });
         Alert.alert("Equipment assigned", `Equipment assigned to dock ${selectedRow.code}`);
-        const result = await refetch();
-        const fresh = result.data?.rows.find((row) => row.id === dockId);
-        if (fresh) setSelectedRow(fresh);
+        await refreshSelectedDock(dockId);
         await refetchResources();
+        const fresh = data?.rows.find((row) => row.id === dockId);
         if (fresh?.vehicleId) await refetchReadiness();
       } catch (err) {
         Alert.alert("Assign failed", formatYmsAlertMessage(err));
       }
     },
-    [mutations.assignEquipment, refetch, refetchReadiness, refetchResources, selectedRow],
+    [data?.rows, mutations.assignEquipment, refetchReadiness, refetchResources, refreshSelectedDock, selectedRow],
+  );
+
+  const handleUnassignEquipment = useCallback(
+    async (equipmentId: string) => {
+      if (!selectedRow) return;
+      const dockId = selectedRow.id;
+      try {
+        await mutations.releaseEquipment.mutateAsync(equipmentId);
+        Alert.alert("Equipment unassigned", `Equipment removed from dock ${selectedRow.code}`);
+        await refreshSelectedDock(dockId);
+        await refetchResources();
+        const fresh = data?.rows.find((row) => row.id === dockId);
+        if (fresh?.vehicleId) await refetchReadiness();
+      } catch (err) {
+        Alert.alert("Unassign failed", formatYmsAlertMessage(err));
+      }
+    },
+    [data?.rows, mutations.releaseEquipment, refetchReadiness, refetchResources, refreshSelectedDock, selectedRow],
   );
 
   const handleReleaseResources = useCallback(async () => {
     if (!selectedRow) return;
+    const dockId = selectedRow.id;
     try {
-      await mutations.releaseResources.mutateAsync(selectedRow.id);
+      await mutations.releaseResources.mutateAsync(dockId);
       Alert.alert("Resources released", `Labor and equipment cleared from ${selectedRow.code}`);
+      await refreshSelectedDock(dockId);
       await refetchResources();
-      await refreshAll();
     } catch (err) {
       Alert.alert("Release failed", formatYmsAlertMessage(err));
     }
-  }, [mutations.releaseResources, refetchResources, refreshAll, selectedRow]);
+  }, [mutations.releaseResources, refetchResources, refreshSelectedDock, selectedRow]);
+
+  const handleUnassignVehicle = useCallback(async () => {
+    if (!selectedRow?.hasActiveAssignment) return;
+    const dockId = selectedRow.id;
+    try {
+      let queueEntryId = selectedRow.queueEntryId;
+      if (!queueEntryId) {
+        queueEntryId = await resolveActiveQueueEntryId(dockId, selectedRow.vehicleId);
+      }
+      if (!queueEntryId) {
+        Alert.alert(
+          "Unassign failed",
+          "Could not find the queue entry for this dock assignment. Pull to refresh and try again.",
+        );
+        return;
+      }
+      await mutations.unassignVehicle.mutateAsync(queueEntryId);
+      setSelectedRow((prev) => (prev && prev.id === dockId ? clearVehicleAssignment(prev) : prev));
+      Alert.alert("Vehicle unassigned", `${selectedRow.plate || "Vehicle"} removed from dock ${selectedRow.code}`);
+      await refreshSelectedDock(dockId);
+      await refetchCallable();
+      await refetchResources();
+    } catch (err) {
+      Alert.alert("Unassign failed", formatYmsAlertMessage(err));
+    }
+  }, [
+    mutations.unassignVehicle,
+    refetchCallable,
+    refetchResources,
+    refreshSelectedDock,
+    selectedRow,
+  ]);
 
   const handleGross = useCallback(
     async (weightKg: number) => {
@@ -314,33 +497,54 @@ export default function YardDocksScreen() {
         );
         setGrossOpen(false);
         await refreshAll();
+        await refetchCompleteState();
         const fresh = (await refetch()).data?.rows.find((row) => row.id === selectedRow.id);
         if (fresh) setSelectedRow(fresh);
       } catch (err) {
         Alert.alert("Gross failed", formatYmsAlertMessage(err));
       }
     },
-    [queueMutations.recordGross, refetch, refreshAll, selectedRow],
+    [queueMutations.recordGross, refetch, refetchCompleteState, refreshAll, selectedRow],
   );
 
   const handleAssignVehicle = useCallback(
     async (queueEntryId: string) => {
       if (!selectedRow) return;
       const dockId = selectedRow.id;
+      const picked = callableQueue.find((entry) => entry.id === queueEntryId);
       try {
-        await mutations.assignVehicle.mutateAsync({ dockId, queueEntryId });
+        const assigned = await mutations.assignVehicle.mutateAsync({ dockId, queueEntryId });
+        setSelectedRow((prev) =>
+          prev && prev.id === dockId
+            ? applyVehicleAssignment(prev, {
+                queueEntryId: assigned.queueEntryId,
+                vehicleId: assigned.vehicleId ?? picked?.vehicleId,
+                queueNumber: assigned.queueNumber,
+                plate: picked?.plate,
+                status: assigned.status,
+              })
+            : prev,
+        );
         Alert.alert("Vehicle assigned", `Queue entry assigned to dock ${selectedRow.code}`);
-        const result = await refetch();
-        const fresh = result.data?.rows.find((row) => row.id === dockId);
-        if (fresh) setSelectedRow(fresh);
+        await refreshSelectedDock(dockId);
         await refetchCallable();
         await refetchResources();
+        const fresh = data?.rows.find((row) => row.id === dockId);
         if (fresh?.vehicleId) await refetchReadiness();
       } catch (err) {
         Alert.alert("Assign failed", formatYmsAlertMessage(err));
       }
     },
-    [mutations.assignVehicle, refetch, refetchCallable, refetchResources, refetchReadiness, selectedRow],
+    [
+      callableQueue,
+      data?.rows,
+      mutations.assignVehicle,
+      refetchCallable,
+      refetchResources,
+      refetchReadiness,
+      refreshSelectedDock,
+      selectedRow,
+    ],
   );
 
   const handleQuickStart = useCallback(
@@ -523,6 +727,7 @@ export default function YardDocksScreen() {
         onClose={closeSheet}
         onStartLoading={() => void handleStartLoading()}
         onCompleteLoading={() => void handleCompleteLoading()}
+        onReleaseDock={() => void handleReleaseDock()}
         onReportException={(type) => void handleReportException(type)}
         onPauseLoading={() => void handlePauseLoading()}
         onResumeLoading={() => void handleResumeLoading()}
@@ -538,10 +743,17 @@ export default function YardDocksScreen() {
         resourcesLoading={resourcesLoading}
         onAssignLabor={(laborId) => void handleAssignLabor(laborId)}
         onAssignEquipment={(equipmentId) => void handleAssignEquipment(equipmentId)}
+        onUnassignLabor={(laborId) => void handleUnassignLabor(laborId)}
+        onUnassignEquipment={(equipmentId) => void handleUnassignEquipment(equipmentId)}
+        onUnassignVehicle={() => void handleUnassignVehicle()}
         onReleaseResources={() => void handleReleaseResources()}
         onGrossWeight={() => setGrossOpen(true)}
         readiness={readiness}
         readinessLoading={readinessLoading}
+        pauseState={pauseState}
+        pauseStateLoading={pauseStateLoading}
+        completeState={completeState}
+        completeStateLoading={completeStateLoading}
       />
 
       <WeighWeightSheet

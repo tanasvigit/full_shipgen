@@ -71,6 +71,7 @@ import {
     Clock,
     Layers,
     Code2,
+    LogOut,
 } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -389,6 +390,7 @@ const sections = {
                 { to: "/parking/operator/collect-payment", label: "Collect Payment", icon: CreditCard },
                 { to: "/parking/operator/qr-print", label: "QR Print", icon: Printer },
                 { to: "/parking/operator/vehicle-search", label: "Vehicle Search", icon: Search },
+                { to: "/parking/operator/exit-vehicle", label: "Exit Vehicle", icon: LogOut },
                 { to: "/parking/operator/recent-tickets", label: "Recent Tickets", icon: Clock },
                 { to: "/parking/operator/occupancy", label: "Occupancy", icon: Layers },
             ],

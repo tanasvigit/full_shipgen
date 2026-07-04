@@ -12,9 +12,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   BOOKING_GATES,
+  BOOKING_MATERIAL_CUSTOM,
   BOOKING_MATERIALS,
   BOOKING_REQUEST_TYPES,
-  BOOKING_SLOTS,
+  BOOKING_TIME_SLOT_OPTIONS,
+  normalizeBookingTimeSlot,
   todayIsoDate,
   validateBookingForm,
   type BookAppointmentForm,
@@ -33,7 +35,7 @@ const DEFAULT_FORM = (): BookAppointmentForm => ({
   driverName: "",
   reqType: "Loading",
   material: BOOKING_MATERIALS[0],
-  slot: "AM",
+  slot: "09:00",
   gate: "G1",
   date: todayIsoDate(),
   notes: "",
@@ -42,11 +44,15 @@ const DEFAULT_FORM = (): BookAppointmentForm => ({
 export default function BookAppointmentSheet({ visible, busy, onClose, onSubmit }: Props) {
   const [form, setForm] = useState<BookAppointmentForm>(DEFAULT_FORM());
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [materialIsCustom, setMaterialIsCustom] = useState(false);
+  const [customMaterial, setCustomMaterial] = useState("");
 
   useEffect(() => {
     if (visible) {
       setForm(DEFAULT_FORM());
       setErrors({});
+      setMaterialIsCustom(false);
+      setCustomMaterial("");
     }
   }, [visible]);
 
@@ -55,10 +61,30 @@ export default function BookAppointmentSheet({ visible, busy, onClose, onSubmit 
   };
 
   const handleSubmit = () => {
-    const nextErrors = validateBookingForm(form);
+    const payload = {
+      ...form,
+      material: materialIsCustom ? customMaterial.trim() : form.material,
+      slot: normalizeBookingTimeSlot(form.slot) || form.slot.trim(),
+    };
+    const nextErrors = validateBookingForm(payload);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    onSubmit(form);
+    onSubmit(payload);
+  };
+
+  const materialChipValue = materialIsCustom
+    ? BOOKING_MATERIAL_CUSTOM
+    : form.material;
+
+  const selectPresetMaterial = (value: string) => {
+    setMaterialIsCustom(false);
+    setCustomMaterial("");
+    patch("material", value);
+  };
+
+  const selectCustomMaterial = () => {
+    setMaterialIsCustom(true);
+    patch("material", customMaterial.trim() || BOOKING_MATERIAL_CUSTOM);
   };
 
   return (
@@ -104,25 +130,62 @@ export default function BookAppointmentSheet({ visible, busy, onClose, onSubmit 
             </Field>
             <Text style={styles.label}>Request type</Text>
             <ChipRow
-              options={BOOKING_REQUEST_TYPES}
+              options={[...BOOKING_REQUEST_TYPES]}
               value={form.reqType}
               onChange={(v) => patch("reqType", v)}
               testPrefix="book-appt-type"
             />
             <Text style={styles.label}>Material</Text>
             <ChipRow
-              options={[...BOOKING_MATERIALS]}
-              value={form.material}
-              onChange={(v) => patch("material", v)}
+              options={[...BOOKING_MATERIALS, BOOKING_MATERIAL_CUSTOM]}
+              value={materialChipValue}
+              onChange={(v) =>
+                v === BOOKING_MATERIAL_CUSTOM ? selectCustomMaterial() : selectPresetMaterial(v)
+              }
               testPrefix="book-appt-material"
             />
-            <Text style={styles.label}>Slot</Text>
-            <ChipRow
-              options={[...BOOKING_SLOTS]}
-              value={form.slot}
-              onChange={(v) => patch("slot", v)}
-              testPrefix="book-appt-slot"
-            />
+            {materialIsCustom ? (
+              <Field label="Custom material type" error={errors.material}>
+                <TextInput
+                  value={customMaterial}
+                  onChangeText={(v) => {
+                    setCustomMaterial(v);
+                    patch("material", v.trim() || BOOKING_MATERIAL_CUSTOM);
+                  }}
+                  placeholder="e.g. Rice Bags, Auto Parts"
+                  placeholderTextColor={colors.textMuted}
+                  style={styles.input}
+                  testID="book-appt-material-custom"
+                />
+              </Field>
+            ) : errors.material ? (
+              <Text style={styles.error}>{errors.material}</Text>
+            ) : null}
+            <Field label="Reporting time (24h)" error={errors.slot}>
+              <TextInput
+                value={form.slot}
+                onChangeText={(v) => patch("slot", v)}
+                placeholder="09:00"
+                placeholderTextColor={colors.textMuted}
+                style={styles.input}
+                keyboardType="numbers-and-punctuation"
+                autoCapitalize="none"
+                testID="book-appt-slot"
+              />
+              <Text style={styles.hint}>Enter HH:mm between 07:00 and 19:30</Text>
+            </Field>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickSlotRow}>
+              {BOOKING_TIME_SLOT_OPTIONS.map((time) => (
+                <TouchableOpacity
+                  key={time}
+                  style={[styles.quickSlotChip, form.slot === time && styles.quickSlotChipActive]}
+                  onPress={() => patch("slot", time)}
+                  testID={`book-appt-slot-pick-${time}`}
+                >
+                  <Text style={[styles.quickSlotText, form.slot === time && styles.quickSlotTextActive]}>{time}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <Text style={styles.label}>Gate</Text>
             <ChipRow
               options={[...BOOKING_GATES]}
@@ -238,6 +301,19 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   chipText: { fontSize: 11, fontWeight: "700", color: colors.textSecondary },
   chipTextActive: { color: "#fff" },
+  hint: { fontSize: 11, color: colors.textMuted, marginTop: 6 },
+  quickSlotRow: { gap: spacing.sm, paddingBottom: spacing.sm },
+  quickSlotChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    backgroundColor: colors.bg,
+  },
+  quickSlotChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  quickSlotText: { fontSize: 11, fontWeight: "700", color: colors.textSecondary },
+  quickSlotTextActive: { color: "#fff" },
   submitBtn: {
     margin: spacing.xl,
     marginTop: spacing.sm,

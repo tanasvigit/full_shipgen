@@ -44,13 +44,22 @@ function hasPermission(can: (permission: string) => boolean, permission: string)
   return can("*") || can(permission);
 }
 
-export function canCallQueueEntry(entry: Pick<QueueEntryRow, "status" | "displayStatus">) {
+export function hasQueueTareWeight(entry: { tareWeightKg?: number | null }) {
+  const value = entry.tareWeightKg;
+  return value != null && Number.isFinite(Number(value)) && Number(value) > 0;
+}
+
+function isQueueStatusCallable(entry: Pick<QueueEntryRow, "status" | "displayStatus">) {
   const status = String(entry.status || "").toUpperCase();
   const display = String(entry.displayStatus || "").toUpperCase();
   return (
     ["WAITING", "CHECKED_IN"].includes(status) ||
     ["WAITING", "READY_TO_CALL", "CHECKED_IN"].includes(display)
   );
+}
+
+export function canCallQueueEntry(entry: Pick<QueueEntryRow, "status" | "displayStatus" | "tareWeightKg">) {
+  return isQueueStatusCallable(entry) && hasQueueTareWeight(entry);
 }
 
 export function canAssignDockToEntry(entry: Pick<QueueEntryRow, "status">) {
@@ -66,6 +75,16 @@ export function resolveQueueActions(
   const callEnabled =
     hasPermission(can, YMS_PERMISSIONS.FLOW_CALL) && canCallQueueEntry(entry);
 
+  const callReason = callEnabled
+    ? undefined
+    : !hasPermission(can, YMS_PERMISSIONS.FLOW_CALL)
+      ? "You do not have permission to call vehicles"
+      : !isQueueStatusCallable(entry)
+        ? "Available when vehicle is waiting to be called"
+        : !hasQueueTareWeight(entry)
+          ? "Record tare weight (TW) before calling in"
+          : "Call in is not available for this entry";
+
   const assignEnabled =
     hasPermission(can, YMS_PERMISSIONS.FLOW_ASSIGN_DOCK) && canAssignDockToEntry(entry);
 
@@ -79,7 +98,7 @@ export function resolveQueueActions(
       label: "Call in",
       variant: "primary",
       enabled: callEnabled,
-      reason: callEnabled ? undefined : "Available when vehicle is waiting to be called",
+      reason: callReason,
     },
     {
       id: "assign_dock",

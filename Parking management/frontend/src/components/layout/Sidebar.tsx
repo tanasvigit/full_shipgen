@@ -42,6 +42,7 @@ const iconMap: Record<string, React.ReactNode> = {
   'Collect Payment': <CreditCard size={18} />,
   'QR Ticket Print': <Printer size={18} />,
   'Vehicle Search': <Search size={18} />,
+  'Exit Vehicle': <LogOut size={18} />,
   'Recent Tickets': <Clock size={18} />,
   'Operator Activity': <Activity size={18} />,
   'Floor Management': <Layers size={18} />,

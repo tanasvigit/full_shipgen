@@ -4,8 +4,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 
-from auth_rbac import PERM_YARD_EVENT_WRITE, require_permission
+from auth_rbac import PERM_LOADING_COMPLETE, PERM_YARD_EVENT_WRITE, require_permission
 from schemas import (
+    LoadingCompleteRequest,
+    LoadingCompleteStateOut,
     LoadingExceptionAssign,
     LoadingExceptionClose,
     LoadingExceptionCreate,
@@ -18,6 +20,8 @@ from schemas import (
 from services.loading_exceptions_service import (
     assign_loading_exception,
     close_loading_exception,
+    complete_loading_operation,
+    compute_loading_complete_state,
     compute_pause_state,
     create_loading_exception,
     get_loading_exception,
@@ -152,3 +156,28 @@ async def pause_state_endpoint(
     events, _ = await list_yard_events(limit=2000)
     state = compute_pause_state(events, vehicle_id=vehicle_id, queue_entry_id=queue_entry_id)
     return LoadingPauseStateOut(**state)
+
+
+@router.post("/complete")
+async def complete_loading_endpoint(
+    payload: LoadingCompleteRequest,
+    _auth=Depends(require_permission(PERM_LOADING_COMPLETE)),
+):
+    return await complete_loading_operation(
+        vehicle_id=payload.vehicle_id,
+        appointment_id=payload.appointment_id,
+        queue_entry_id=payload.queue_entry_id,
+        dock_id=payload.dock_id,
+        note=payload.note,
+        created_by=payload.created_by,
+    )
+
+
+@router.get("/complete-state", response_model=LoadingCompleteStateOut)
+async def complete_state_endpoint(
+    vehicle_id: Optional[str] = Query(None),
+    queue_entry_id: Optional[str] = Query(None),
+):
+    events, _ = await list_yard_events(limit=2000)
+    state = compute_loading_complete_state(events, vehicle_id=vehicle_id, queue_entry_id=queue_entry_id)
+    return LoadingCompleteStateOut(**state)

@@ -38,7 +38,6 @@ export function useGateMutations(gateId = "G1") {
   const toggleExitCheck = useMutation({
     mutationFn: ({ vehicleId, field, value }: { vehicleId: string; field: string; value: boolean }) =>
       updateExitChecklist(vehicleId, { [field]: value }, gateId),
-    onSuccess: invalidate,
   });
 
   const verifyExit = useMutation({
@@ -63,15 +62,17 @@ export function useGateMutations(gateId = "G1") {
     onSuccess: invalidate,
   });
 
-  const busy =
+  const checklistBusy = toggleExitCheck.isPending;
+  const actionBusy =
     markArrived.isPending ||
     approveEntry.isPending ||
     rejectEntry.isPending ||
-    toggleExitCheck.isPending ||
     verifyExit.isPending ||
     gateOut.isPending ||
     rejectExit.isPending ||
     scanBarcode.isPending;
+
+  const busy = actionBusy || checklistBusy;
 
   return {
     markArrived,
@@ -83,5 +84,7 @@ export function useGateMutations(gateId = "G1") {
     rejectExit,
     scanBarcode,
     busy,
+    actionBusy,
+    checklistBusy,
   };
 }

@@ -38,19 +38,33 @@ export function parseRequestType(shipmentReference?: string | null, remarks?: st
   const rm = String(remarks || "");
   if (ref.startsWith("Loading|") || ref.startsWith("[Loading]")) return "Loading";
   if (ref.startsWith("Unloading|") || ref.startsWith("[Unloading]")) return "Unloading";
+  if (ref.startsWith("Transit|") || ref.startsWith("[Transit]")) return "Transit";
+  if (ref.startsWith("Inter-Warehouse|") || ref.startsWith("[Inter-Warehouse]")) return "Inter-Warehouse";
   if (rm.includes("Request: Loading")) return "Loading";
   if (rm.includes("Request: Unloading")) return "Unloading";
+  if (rm.includes("Request: Transit")) return "Transit";
+  if (rm.includes("Request: Inter-Warehouse")) return "Inter-Warehouse";
   if (/unloading/i.test(ref)) return "Unloading";
+  if (/inter-warehouse/i.test(ref)) return "Inter-Warehouse";
+  if (/transit/i.test(ref)) return "Transit";
   return "Loading";
 }
 
 export function slotFromReportingTime(reportingTime?: string | null) {
-  if (!reportingTime) return "—";
-  const hour = Number(String(reportingTime).slice(11, 13));
-  if (Number.isNaN(hour)) return "—";
-  if (hour < 12) return "AM";
-  if (hour < 17) return "PM";
-  return "EVE";
+  if (!reportingTime) return "09:00";
+  const d = new Date(reportingTime);
+  if (Number.isNaN(d.getTime())) return "09:00";
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+export function normalizeLegacySlot(slot?: string | null) {
+  if (!slot) return null;
+  if (slot === "AM") return "09:00";
+  if (slot === "PM") return "14:00";
+  if (slot === "EVE") return "18:00";
+  return normalizeBookingTimeSlot(slot) || slot;
 }
 
 export function dateFromReportingTime(reportingTime?: string | null) {
@@ -79,7 +93,7 @@ export function mapAppointmentRow(
     plate: vehicle?.vehicle_number || "—",
     transporter: vehicle?.transporter_name || appointment.customer_name || "—",
     type: parseRequestType(appointment.shipment_reference, appointment.remarks),
-    slot: appointment.scheduled_slot || slotFromReportingTime(appointment.reporting_time),
+    slot: normalizeLegacySlot(appointment.scheduled_slot) || slotFromReportingTime(appointment.reporting_time),
     date,
     gate: appointment.gate_number || "G1",
     status: isAppointmentDelayed(appointment, vehicle) ? "DELAYED" : status,
@@ -137,8 +151,48 @@ export function appointmentDayKpis(rows: AppointmentRow[]) {
   };
 }
 
-export const BOOKING_REQUEST_TYPES = ["Loading", "Unloading"] as const;
-export const BOOKING_SLOTS = ["AM", "PM", "EVE"] as const;
+/** Align with YMS web console REQUEST_TYPES (appointmentsApi.js). */
+export const BOOKING_REQUEST_TYPES = [
+  "Loading",
+  "Unloading",
+  "Transit",
+  "Inter-Warehouse",
+] as const;
+
+/** 30-minute slots from 07:00 through 19:30 — matches YMS web BookSlotDialog. */
+export function buildBookingTimeSlotOptions() {
+  const slots: string[] = [];
+  for (let i = 0; i < 24; i += 1) {
+    const hour = 7 + Math.floor(i / 2);
+    if (hour >= 20) break;
+    slots.push(`${String(hour).padStart(2, "0")}:${i % 2 === 0 ? "00" : "30"}`);
+  }
+  return slots;
+}
+
+export const BOOKING_TIME_SLOT_OPTIONS = buildBookingTimeSlotOptions();
+
+export const BOOKING_SLOT_MIN_MINUTES = 7 * 60;
+export const BOOKING_SLOT_MAX_MINUTES = 19 * 60 + 30;
+
+export function normalizeBookingTimeSlot(value: string) {
+  const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+export function isValidBookingTimeSlot(value: string) {
+  const normalized = normalizeBookingTimeSlot(value);
+  if (!normalized) return false;
+  const [hour, minute] = normalized.split(":").map(Number);
+  const total = hour * 60 + minute;
+  return total >= BOOKING_SLOT_MIN_MINUTES && total <= BOOKING_SLOT_MAX_MINUTES;
+}
+
 export const BOOKING_GATES = ["G1", "G2", "G3", "G4"] as const;
 export const BOOKING_MATERIALS = [
   "General Cargo",
@@ -148,21 +202,27 @@ export const BOOKING_MATERIALS = [
   "Pharma — Cold",
 ] as const;
 
+export const BOOKING_MATERIAL_CUSTOM = "Custom" as const;
+
+export function isPresetMaterial(material: string) {
+  return (BOOKING_MATERIALS as readonly string[]).includes(material);
+}
+
 export type BookAppointmentForm = {
   plate: string;
   transporter: string;
   driverName: string;
   reqType: (typeof BOOKING_REQUEST_TYPES)[number];
   material: string;
-  slot: (typeof BOOKING_SLOTS)[number];
+  slot: string;
   gate: string;
   date: string;
   notes: string;
 };
 
 export function slotToReportingTime(date: string, slot: string) {
-  const hour = slot === "PM" ? "14" : slot === "EVE" ? "18" : "09";
-  return `${date}T${hour}:00:00`;
+  const normalized = normalizeBookingTimeSlot(slot) || "09:00";
+  return `${date}T${normalized}:00`;
 }
 
 export function formatShipmentReference(reqType: string, material: string) {
@@ -190,8 +250,14 @@ export function validateBookingForm(form: BookAppointmentForm): Record<string, s
   const errors: Record<string, string> = {};
   if (!form.plate.trim()) errors.plate = "Plate is required";
   if (!form.transporter.trim()) errors.transporter = "Transporter is required";
-  if (!form.material.trim()) errors.material = "Material is required";
+  const material = form.material.trim();
+  if (!material || material === BOOKING_MATERIAL_CUSTOM) {
+    errors.material = "Material type is required";
+  }
   if (!form.date.trim()) errors.date = "Date is required";
+  if (!isValidBookingTimeSlot(form.slot)) {
+    errors.slot = "Enter a valid time (HH:mm) between 07:00 and 19:30";
+  }
   return errors;
 }
 

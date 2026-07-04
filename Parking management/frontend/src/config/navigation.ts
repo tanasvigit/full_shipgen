@@ -39,6 +39,7 @@ export const operatorNav: NavItemDef[] = [
   { label: 'Collect Payment', path: '/operator/collect-payment', permission: PERMISSIONS.PAYMENTS_COLLECT },
   { label: 'QR Ticket Print', path: '/operator/qr-print', permission: PERMISSIONS.QR_PRINT },
   { label: 'Vehicle Search', path: '/operator/vehicle-search', permission: PERMISSIONS.VEHICLE_SEARCH },
+  { label: 'Exit Vehicle', path: '/operator/exit-vehicle', permission: PERMISSIONS.VEHICLE_SEARCH },
   { label: 'Recent Tickets', path: '/operator/recent-tickets', permission: PERMISSIONS.RECENT_TICKETS },
   { label: 'Settings', path: '/operator/settings', permission: PERMISSIONS.SETTINGS_MANAGE },
 ];

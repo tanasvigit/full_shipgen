@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
 import { MOBILE_EXCEPTION_TYPES, resolveDockActions } from "@/src/lib/dockActions";
-import { DOCK_STATUS_OPTIONS } from "@/src/lib/dockManageActions";
+import { DOCK_STATUS_OPTIONS, canUnassignVehicleFromDock, isResourceAssignedToDock } from "@/src/lib/dockManageActions";
 import type {
   CallableQueueOption,
   DockBoardRow,
@@ -19,6 +19,7 @@ import type {
   LaborOption,
 } from "@/src/services/dockService";
 import type { ResourceReadiness } from "@/src/lib/resourceGating";
+import type { LoadingPauseState, LoadingCompleteState } from "@/src/services/dockService";
 import { formatWeightKg } from "@/src/services/weighingService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
 
@@ -30,6 +31,7 @@ type Props = {
   onClose: () => void;
   onStartLoading: () => void;
   onCompleteLoading: () => void;
+  onReleaseDock: () => void;
   onReportException: (exceptionType: string) => void;
   onPauseLoading: () => void;
   onResumeLoading: () => void;
@@ -45,10 +47,17 @@ type Props = {
   resourcesLoading?: boolean;
   onAssignLabor: (laborId: string) => void;
   onAssignEquipment: (equipmentId: string) => void;
+  onUnassignLabor: (laborId: string) => void;
+  onUnassignEquipment: (equipmentId: string) => void;
+  onUnassignVehicle: () => void;
   onReleaseResources: () => void;
   onGrossWeight?: () => void;
   readiness?: ResourceReadiness | null;
   readinessLoading?: boolean;
+  pauseState?: LoadingPauseState | null;
+  pauseStateLoading?: boolean;
+  completeState?: LoadingCompleteState | null;
+  completeStateLoading?: boolean;
 };
 
 export default function DockDetailSheet({
@@ -59,6 +68,7 @@ export default function DockDetailSheet({
   onClose,
   onStartLoading,
   onCompleteLoading,
+  onReleaseDock,
   onReportException,
   onPauseLoading,
   onResumeLoading,
@@ -74,29 +84,43 @@ export default function DockDetailSheet({
   resourcesLoading,
   onAssignLabor,
   onAssignEquipment,
+  onUnassignLabor,
+  onUnassignEquipment,
+  onUnassignVehicle,
   onReleaseResources,
   onGrossWeight,
   readiness,
   readinessLoading,
+  pauseState,
+  pauseStateLoading,
+  completeState,
+  completeStateLoading,
 }: Props) {
   const [selectedQueueEntryId, setSelectedQueueEntryId] = useState<string | null>(null);
   useEffect(() => {
     setSelectedQueueEntryId(null);
-  }, [row?.id, visible]);
-  const actions = resolveDockActions(row, can, readiness);
+  }, [row?.id, row?.hasActiveAssignment, visible]);
+  const actions = resolveDockActions(row, can, readiness, pauseState, completeState);
   const badge = statusColor(row?.status || "available");
   const startAction = actions.find((action) => action.id === "start_loading");
   const completeAction = actions.find((action) => action.id === "complete_loading");
+  const releaseAction = actions.find((action) => action.id === "release_dock");
   const exceptionAction = actions.find((action) => action.id === "report_exception");
   const pauseAction = actions.find((action) => action.id === "pause_loading");
   const resumeAction = actions.find((action) => action.id === "resume_loading");
   const statusAction = actions.find((action) => action.id === "update_status");
   const showResourceAssign = Boolean(canAssignLabor || canAssignEquipment);
-  const showVehicleAssign = Boolean(canAssignVehicle && !row?.hasActiveAssignment);
+  const showVehicleUnassign = Boolean(
+    canAssignVehicle && row?.hasActiveAssignment && canUnassignVehicleFromDock(row),
+  );
+  const showVehicleAssign = Boolean(canAssignVehicle && !showVehicleUnassign);
+  const selectableCallableQueue = callableQueue.filter((entry) => entry.id !== row?.queueEntryId);
   const canWriteDock = can("*") || can(YMS_PERMISSIONS.DOCK_WRITE);
   const showGrossWeight = Boolean(
     canWriteDock && row?.hasActiveAssignment && onGrossWeight && row?.queueEntryId && row?.tareWeightKg != null,
   );
+  const awaitingRelease = Boolean(completeState?.awaitingRelease);
+  const needsGrossBeforeRelease = awaitingRelease && row?.grossWeightKg == null;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -220,10 +244,21 @@ export default function DockDetailSheet({
                     onPress={onCompleteLoading}
                     testID="dock-action-complete-loading"
                   />
-                  {pauseAction ? (
+                  {releaseAction?.enabled || awaitingRelease ? (
+                    <DockActionButton
+                      label={releaseAction?.label || "Release dock"}
+                      enabled={Boolean(releaseAction?.enabled)}
+                      hint={releaseAction?.reason}
+                      busy={actionBusy}
+                      variant="primary"
+                      onPress={onReleaseDock}
+                      testID="dock-action-release-dock"
+                    />
+                  ) : null}
+                  {pauseAction?.enabled ? (
                     <DockActionButton
                       label={pauseAction.label}
-                      enabled={Boolean(pauseAction.enabled)}
+                      enabled
                       hint={pauseAction.reason}
                       busy={actionBusy}
                       variant="primary"
@@ -231,10 +266,10 @@ export default function DockDetailSheet({
                       testID="dock-action-pause-loading"
                     />
                   ) : null}
-                  {resumeAction ? (
+                  {resumeAction?.enabled ? (
                     <DockActionButton
                       label={resumeAction.label}
-                      enabled={Boolean(resumeAction.enabled)}
+                      enabled
                       hint={resumeAction.reason}
                       busy={actionBusy}
                       variant="primary"
@@ -243,6 +278,29 @@ export default function DockDetailSheet({
                     />
                   ) : null}
                 </View>
+
+                {pauseState?.paused ? (
+                  <View style={styles.pauseBanner}>
+                    <Text style={styles.pauseBannerTitle}>Loading paused</Text>
+                    <Text style={styles.pauseBannerMeta}>
+                      {pauseState.pauseReason || "Operation paused"}
+                      {pauseState.pausedDurationMin ? ` · ${pauseState.pausedDurationMin} min` : ""}
+                    </Text>
+                  </View>
+                ) : pauseStateLoading || completeStateLoading ? (
+                  <ActivityIndicator color={colors.shipgenOrange} style={{ marginBottom: spacing.sm }} />
+                ) : null}
+
+                {awaitingRelease ? (
+                  <View style={styles.completeBanner}>
+                    <Text style={styles.completeBannerTitle}>Loading complete</Text>
+                    <Text style={styles.completeBannerMeta}>
+                      {needsGrossBeforeRelease
+                        ? "Record gross weight, then release the dock."
+                        : "Gross weight recorded — release the dock when ready."}
+                    </Text>
+                  </View>
+                ) : null}
 
                 {showGrossWeight ? (
                   <TouchableOpacity
@@ -273,33 +331,67 @@ export default function DockDetailSheet({
                   </View>
                 ) : null}
 
+                {showVehicleUnassign ? (
+                  <View style={styles.exceptionSection}>
+                    <Text style={styles.sectionTitle}>Assigned vehicle</Text>
+                    <TouchableOpacity
+                      style={[styles.exceptionRow, styles.selectedRow]}
+                      disabled={actionBusy}
+                      onPress={onUnassignVehicle}
+                      testID="dock-unassign-vehicle-row"
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.exceptionLabel}>{row.plate || "Vehicle"}</Text>
+                        <Text style={styles.resourceMeta}>
+                          {row.queueNumber ? `Queue ${row.queueNumber}` : "Assigned to this dock"}
+                          {" · tap to unassign"}
+                        </Text>
+                      </View>
+                      <Ionicons name="remove-circle" size={18} color={colors.error} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.releaseBtn}
+                      disabled={actionBusy}
+                      onPress={onUnassignVehicle}
+                      testID="dock-unassign-vehicle"
+                    >
+                      <Text style={styles.releaseBtnText}>Unassign vehicle</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+
                 {showVehicleAssign ? (
                   <View style={styles.exceptionSection}>
                     <Text style={styles.sectionTitle}>Assign vehicle</Text>
                     {callableLoading ? (
                       <ActivityIndicator color={colors.shipgenOrange} style={{ marginVertical: spacing.sm }} />
-                    ) : callableQueue.length ? (
+                    ) : selectableCallableQueue.length ? (
                       <>
-                        {callableQueue.map((entry) => {
+                        {selectableCallableQueue.map((entry) => {
                           const selected = selectedQueueEntryId === entry.id;
                           return (
                             <TouchableOpacity
                               key={entry.id}
                               style={[styles.exceptionRow, selected && styles.selectedRow]}
                               disabled={actionBusy}
-                              onPress={() => setSelectedQueueEntryId(entry.id)}
+                              onPress={() =>
+                                setSelectedQueueEntryId((current) =>
+                                  current === entry.id ? null : entry.id,
+                                )
+                              }
                               testID={`dock-assign-vehicle-${entry.id}`}
                             >
                               <View style={{ flex: 1 }}>
                                 <Text style={styles.exceptionLabel}>{entry.plate}</Text>
                                 <Text style={styles.resourceMeta}>
                                   Queue {entry.queueNumber} · {entry.status}
+                                  {selected ? " · tap to deselect" : ""}
                                 </Text>
                               </View>
                               {selected ? (
-                                <Ionicons name="checkmark-circle" size={18} color={colors.shipgenOrange} />
+                                <Ionicons name="remove-circle" size={18} color={colors.error} />
                               ) : (
-                                <Ionicons name="ellipse-outline" size={18} color={colors.textMuted} />
+                                <Ionicons name="add-circle-outline" size={18} color={colors.shipgenOrange} />
                               )}
                             </TouchableOpacity>
                           );
@@ -330,24 +422,33 @@ export default function DockDetailSheet({
                           <>
                             <Text style={styles.subsectionTitle}>Labor teams</Text>
                             {laborOptions.length ? (
-                              laborOptions.map((item) => (
-                                <TouchableOpacity
-                                  key={item.id}
-                                  style={styles.exceptionRow}
-                                  disabled={actionBusy}
-                                  onPress={() => onAssignLabor(item.id)}
-                                  testID={`dock-assign-labor-${item.id}`}
-                                >
-                                  <View style={{ flex: 1 }}>
-                                    <Text style={styles.exceptionLabel}>{item.teamCode}</Text>
-                                    <Text style={styles.resourceMeta}>
-                                      {item.teamName} · {item.status}
-                                      {item.assignedDockId === row?.id ? " · current" : ""}
-                                    </Text>
-                                  </View>
-                                  <Ionicons name="add-circle-outline" size={18} color={colors.shipgenOrange} />
-                                </TouchableOpacity>
-                              ))
+                              laborOptions.map((item) => {
+                                const isCurrent = isResourceAssignedToDock(item.assignedDockId, row?.id);
+                                return (
+                                  <TouchableOpacity
+                                    key={item.id}
+                                    style={[styles.exceptionRow, isCurrent && styles.selectedRow]}
+                                    disabled={actionBusy}
+                                    onPress={() =>
+                                      isCurrent ? onUnassignLabor(item.id) : onAssignLabor(item.id)
+                                    }
+                                    testID={`dock-assign-labor-${item.id}`}
+                                  >
+                                    <View style={{ flex: 1 }}>
+                                      <Text style={styles.exceptionLabel}>{item.teamCode}</Text>
+                                      <Text style={styles.resourceMeta}>
+                                        {item.teamName} · {item.status}
+                                        {isCurrent ? " · assigned" : ""}
+                                      </Text>
+                                    </View>
+                                    <Ionicons
+                                      name={isCurrent ? "remove-circle" : "add-circle-outline"}
+                                      size={18}
+                                      color={isCurrent ? colors.error : colors.shipgenOrange}
+                                    />
+                                  </TouchableOpacity>
+                                );
+                              })
                             ) : (
                               <Text style={styles.resourceMeta}>No available labor teams</Text>
                             )}
@@ -357,24 +458,33 @@ export default function DockDetailSheet({
                           <>
                             <Text style={styles.subsectionTitle}>Equipment</Text>
                             {equipmentOptions.length ? (
-                              equipmentOptions.map((item) => (
-                                <TouchableOpacity
-                                  key={item.id}
-                                  style={styles.exceptionRow}
-                                  disabled={actionBusy}
-                                  onPress={() => onAssignEquipment(item.id)}
-                                  testID={`dock-assign-equipment-${item.id}`}
-                                >
-                                  <View style={{ flex: 1 }}>
-                                    <Text style={styles.exceptionLabel}>{item.equipmentCode}</Text>
-                                    <Text style={styles.resourceMeta}>
-                                      {item.equipmentName} · {item.status}
-                                      {item.assignedDockId === row?.id ? " · current" : ""}
-                                    </Text>
-                                  </View>
-                                  <Ionicons name="add-circle-outline" size={18} color={colors.shipgenOrange} />
-                                </TouchableOpacity>
-                              ))
+                              equipmentOptions.map((item) => {
+                                const isCurrent = isResourceAssignedToDock(item.assignedDockId, row?.id);
+                                return (
+                                  <TouchableOpacity
+                                    key={item.id}
+                                    style={[styles.exceptionRow, isCurrent && styles.selectedRow]}
+                                    disabled={actionBusy}
+                                    onPress={() =>
+                                      isCurrent ? onUnassignEquipment(item.id) : onAssignEquipment(item.id)
+                                    }
+                                    testID={`dock-assign-equipment-${item.id}`}
+                                  >
+                                    <View style={{ flex: 1 }}>
+                                      <Text style={styles.exceptionLabel}>{item.equipmentCode}</Text>
+                                      <Text style={styles.resourceMeta}>
+                                        {item.equipmentName} · {item.status}
+                                        {isCurrent ? " · assigned" : ""}
+                                      </Text>
+                                    </View>
+                                    <Ionicons
+                                      name={isCurrent ? "remove-circle" : "add-circle-outline"}
+                                      size={18}
+                                      color={isCurrent ? colors.error : colors.shipgenOrange}
+                                    />
+                                  </TouchableOpacity>
+                                );
+                              })
                             ) : (
                               <Text style={styles.resourceMeta}>No available equipment</Text>
                             )}
@@ -556,6 +666,26 @@ const styles = StyleSheet.create({
   },
   actionText: { fontSize: 14, fontWeight: "800" },
   actionHint: { fontSize: 11, color: colors.textMuted, paddingHorizontal: 4 },
+  pauseBanner: {
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  pauseBannerTitle: { fontSize: 13, fontWeight: "800", color: "#9a3412" },
+  pauseBannerMeta: { fontSize: 12, color: "#c2410c", marginTop: 4 },
+  completeBanner: {
+    backgroundColor: "#ecfdf5",
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  completeBannerTitle: { fontSize: 13, fontWeight: "800", color: "#065f46" },
+  completeBannerMeta: { fontSize: 12, color: "#047857", marginTop: 4 },
   exceptionSection: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

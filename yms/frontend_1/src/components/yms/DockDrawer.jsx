@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import useYmsSyncRefresh from "../../hooks/useYmsSyncRefresh";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { useUI } from "../../contexts/UIContext";
@@ -20,6 +20,7 @@ import {
   Tag,
   Calendar,
   Scale,
+  Pause,
 } from "lucide-react";
 import docksApi, {
   getCallableQueueEntries,
@@ -37,7 +38,10 @@ import { formatDockTypeLabel } from "../../utils/dockTypeSelectors";
 import usePermissions from "../../hooks/usePermissions";
 import useBundlePermissionFlags from "../../hooks/useBundlePermissionFlags";
 import WeighGrossDialog from "./WeighGrossDialog";
+import WeighTareDialog from "./WeighTareDialog";
 import { formatWeightKg } from "../../utils/display";
+import { computePauseState } from "../../services/loadingPauseEngine";
+import loadingOpsApi from "../../services/loadingOpsApi";
 
 export const DockDrawer = () => {
   const { dock, closeDock } = useUI();
@@ -48,6 +52,7 @@ export const DockDrawer = () => {
     canWriteLabor,
     canWriteEquipment,
     canStartLoading,
+    canWriteYardEvent,
   } = usePermissions();
   const { dockBundleOptions } = useBundlePermissionFlags();
   const bundleOptions = dockBundleOptions;
@@ -67,6 +72,9 @@ export const DockDrawer = () => {
   const [availableLabor, setAvailableLabor] = useState([]);
   const [availableEquipment, setAvailableEquipment] = useState([]);
   const [grossOpen, setGrossOpen] = useState(false);
+  const [tareOpen, setTareOpen] = useState(false);
+  const [pauseState, setPauseState] = useState(null);
+  const twPromptedRef = useRef(null);
 
   const refresh = useCallback(async () => {
     if (!dock?.dockId) return;
@@ -105,9 +113,16 @@ export const DockDrawer = () => {
           setAssignmentLifecycle(
             buildDockAssignmentLifecycle(found.vehicle, found.queue, readinessRow)
           );
+          setPauseState(
+            computePauseState(bundle.events || [], {
+              vehicleId: found.currentVehicleId,
+              queueEntryId: found.queueEntryId,
+            })
+          );
         } else {
           setReadiness(null);
           setAssignmentLifecycle([]);
+          setPauseState(null);
         }
       }
     } catch (e) {
@@ -153,21 +168,70 @@ export const DockDrawer = () => {
     }
   };
 
+  useEffect(() => {
+    if (!open) twPromptedRef.current = null;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !row?.queueEntryId || !row?.hasActiveAssignment || row?.tareWeightKg != null) return;
+    if (twPromptedRef.current === row.queueEntryId) return;
+    twPromptedRef.current = row.queueEntryId;
+    toast.message("Tare weight (TW) required", {
+      description: "Record empty truck weight before starting loading.",
+    });
+    setTareOpen(true);
+  }, [open, row?.queueEntryId, row?.hasActiveAssignment, row?.tareWeightKg]);
+
   if (!open) return null;
 
   const hasActiveAssignment = !!row?.hasActiveAssignment;
+  const hasTareWeight = row?.tareWeightKg != null;
+  const hasGrossWeight = row?.grossWeightKg != null;
   const canAssign = canAssignDock && row?.status === "AVAILABLE" && !hasActiveAssignment && callable.length > 0;
   const canRelease = hasActiveAssignment && !!row?.currentVehicle;
+  const canReleaseNow = canRelease && hasGrossWeight;
   const showGrossWeight =
-    canWriteDock && hasActiveAssignment && row?.queueEntryId && row?.tareWeightKg != null;
+    canWriteDock && hasActiveAssignment && row?.queueEntryId && hasTareWeight;
+  const showTareWeight =
+    canWriteDock && hasActiveAssignment && row?.queueEntryId && !hasTareWeight;
   const lifecycleStage = resolveAssignmentLifecycleStage(row?.vehicle, row?.queue, readiness);
   const canStartLoadingNow =
     row?.queue &&
     lifecycleStage === "READY_FOR_LOADING" &&
-    canStartLoadingFromReadiness(readiness);
+    canStartLoadingFromReadiness(readiness) &&
+    hasTareWeight;
   const showStartLoading =
     row?.queue &&
     ["DOCK_ASSIGNED", "RESOURCE_PENDING", "READY_FOR_LOADING"].includes(row.queue.status);
+  const isLoading =
+    row?.queue?.status === "LOADING" || row?.vehicle?.status === "LOADING";
+  const dockOp =
+    row?.currentVehicleId && row?.queueEntryId
+      ? {
+          vehicleId: row.currentVehicleId,
+          appointmentId: row.appointmentId,
+          queueEntryId: row.queueEntryId,
+          dockId: row.id,
+        }
+      : null;
+  const canPause = canWriteYardEvent && isLoading && !pauseState?.paused;
+  const canResume = canWriteYardEvent && !!pauseState?.paused;
+
+  const promptTareWeight = () => {
+    toast.message("Tare weight (TW) required", {
+      description: "Record empty truck weight before starting loading.",
+    });
+    setTareOpen(true);
+  };
+
+  const handleStartLoading = () => {
+    if (!hasTareWeight) {
+      promptTareWeight();
+      return;
+    }
+    if (!canStartLoadingNow) return;
+    run(() => docksApi.startLoadingAtDock(row.id, bundleOptions), "Loading started");
+  };
 
   return (
     <>
@@ -319,7 +383,17 @@ export const DockDrawer = () => {
                     </div>
                   </div>
                   {canWriteDock && row.tareWeightKg == null ? (
-                    <p className="text-[10px] text-amber-700">Record tare weight in Virtual Queue before gross weighing.</p>
+                    <button
+                      type="button"
+                      disabled={working}
+                      onClick={() => setTareOpen(true)}
+                      className="w-full inline-flex items-center justify-center gap-1 border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-semibold py-2 rounded-md"
+                      data-testid="dock-tare-weight-open"
+                    >
+                      <Scale className="w-3 h-3" /> Enter Tare Weight (TW)
+                    </button>
+                  ) : canWriteDock && row.grossWeightKg == null ? (
+                    <p className="text-[10px] text-amber-700">Record gross weight before releasing the dock.</p>
                   ) : null}
                 </div>
               )}
@@ -466,6 +540,17 @@ export const DockDrawer = () => {
 
               {(canWriteDock || canTransitionVehicle) && (
               <div className="grid grid-cols-2 gap-2">
+                {showTareWeight && (
+                  <button
+                    type="button"
+                    disabled={working}
+                    onClick={() => setTareOpen(true)}
+                    className="inline-flex items-center justify-center gap-1 border border-amber-300 bg-amber-50 text-amber-900 text-[11px] font-semibold py-2 rounded-md col-span-2"
+                    data-testid="dock-tare-weight-action"
+                  >
+                    <Scale className="w-3 h-3" /> Tare Weight (TW)
+                  </button>
+                )}
                 {showGrossWeight && (
                   <button
                     type="button"
@@ -480,17 +565,21 @@ export const DockDrawer = () => {
                 {canTransitionVehicle && canStartLoading && showStartLoading && (
                   <button
                     type="button"
-                    disabled={working || !canStartLoading}
+                    disabled={working || !canStartLoading || (!hasTareWeight ? false : !canStartLoadingNow)}
                     title={
-                      !canStartLoadingNow && readiness?.missing?.length
-                        ? `Missing: ${readiness.missing.join(", ")}`
-                        : undefined
+                      !hasTareWeight
+                        ? "Enter tare weight (TW) first"
+                        : !canStartLoadingNow && readiness?.missing?.length
+                          ? `Missing: ${readiness.missing.join(", ")}`
+                          : undefined
                     }
-                    onClick={() => run(() => docksApi.startLoadingAtDock(row.id, bundleOptions), "Loading started")}
+                    onClick={handleStartLoading}
                     className={`inline-flex items-center justify-center gap-1 border text-[11px] font-semibold py-2 rounded-md ${
-                      canStartLoadingNow
-                        ? "border-violet-300 bg-violet-50 text-violet-800"
-                        : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+                      !hasTareWeight
+                        ? "border-amber-300 bg-amber-50 text-amber-800"
+                        : canStartLoadingNow
+                          ? "border-violet-300 bg-violet-50 text-violet-800"
+                          : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
                     }`}
                   >
                     <Play className="w-3 h-3" /> Start Loading
@@ -499,11 +588,40 @@ export const DockDrawer = () => {
                 {canWriteDock && canRelease && (
                   <button
                     type="button"
-                    disabled={working}
+                    disabled={working || !canReleaseNow}
+                    title={!hasGrossWeight ? "Record gross weight before release" : undefined}
                     onClick={() => run(() => docksApi.releaseDock(row.id, bundleOptions), "Dock released")}
-                    className="inline-flex items-center justify-center gap-1 border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-semibold py-2 rounded-md"
+                    className={`inline-flex items-center justify-center gap-1 border text-[11px] font-semibold py-2 rounded-md ${
+                      canReleaseNow
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                        : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+                    }`}
                   >
                     <CheckCircle2 className="w-3 h-3" /> Release
+                  </button>
+                )}
+                {canPause && dockOp && (
+                  <button
+                    type="button"
+                    disabled={working}
+                    onClick={() =>
+                      run(() => loadingOpsApi.pauseOperation(dockOp, "OTHER"), "Loading paused")
+                    }
+                    className="inline-flex items-center justify-center gap-1 border border-slate-300 text-[11px] font-semibold py-2 rounded-md"
+                  >
+                    <Pause className="w-3 h-3" /> Pause
+                  </button>
+                )}
+                {canResume && dockOp && (
+                  <button
+                    type="button"
+                    disabled={working}
+                    onClick={() =>
+                      run(() => loadingOpsApi.resumeOperation(dockOp), "Loading resumed")
+                    }
+                    className="inline-flex items-center justify-center gap-1 border border-emerald-300 bg-emerald-50 text-[11px] font-semibold py-2 rounded-md"
+                  >
+                    <Play className="w-3 h-3" /> Resume
                   </button>
                 )}
                 {canWriteDock && (
@@ -607,6 +725,16 @@ export const DockDrawer = () => {
         open={grossOpen}
         onOpenChange={setGrossOpen}
         row={row}
+        onRecorded={afterAction}
+      />
+      <WeighTareDialog
+        open={tareOpen}
+        onOpenChange={setTareOpen}
+        row={{
+          queueEntryId: row?.queueEntryId,
+          plate: row?.currentVehicle,
+          tareWeightKg: row?.tareWeightKg,
+        }}
         onRecorded={afterAction}
       />
     </>

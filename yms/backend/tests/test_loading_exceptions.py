@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from services.control_tower_alerts_service import compute_control_tower_alerts
 from services.loading_exceptions_service import (
+    compute_loading_complete_state,
     compute_pause_state,
     exception_severity,
 )
@@ -47,6 +48,31 @@ def test_compute_pause_state_resume_preserves_total():
     state = compute_pause_state(events, vehicle_id="v1", queue_entry_id=None, now=NOW)
     assert state["paused"] is True
     assert state["total_paused_min"] == 25  # 10 + 15
+
+
+def test_compute_loading_complete_state_awaiting_release():
+    started = NOW - timedelta(minutes=40)
+    completed = NOW - timedelta(minutes=5)
+    events = [
+        {"vehicle_id": "v1", "event_type": "LOADING_STARTED", "event_time": started},
+        {"vehicle_id": "v1", "event_type": "LOADING_COMPLETED", "event_time": completed},
+    ]
+    state = compute_loading_complete_state(events, vehicle_id="v1", queue_entry_id=None)
+    assert state["awaiting_release"] is True
+    assert state["loading_completed"] is True
+
+
+def test_compute_loading_complete_state_cleared_after_dock_release():
+    started = NOW - timedelta(minutes=40)
+    completed = NOW - timedelta(minutes=10)
+    released = NOW - timedelta(minutes=2)
+    events = [
+        {"vehicle_id": "v1", "event_type": "LOADING_STARTED", "event_time": started},
+        {"vehicle_id": "v1", "event_type": "LOADING_COMPLETED", "event_time": completed},
+        {"vehicle_id": "v1", "event_type": "DOCK_RELEASED", "event_time": released},
+    ]
+    state = compute_loading_complete_state(events, vehicle_id="v1", queue_entry_id=None)
+    assert state["awaiting_release"] is False
 
 
 def test_control_tower_loading_exception_alert():

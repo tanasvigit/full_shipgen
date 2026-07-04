@@ -19,7 +19,7 @@ import { useQueueMutations } from "@/src/hooks/useQueueMutations";
 import { useYardAuth } from "@/src/contexts/YardAuthContext";
 import { useYardVehicle360 } from "@/src/contexts/YardVehicle360Context";
 import { canAccessYardScreen, hasDocksModuleAccess } from "@/src/lib/moduleAccess";
-import { canCallQueueEntry, filterQueueEntries } from "@/src/lib/queueActions";
+import { canCallQueueEntry, filterQueueEntries, hasQueueTareWeight } from "@/src/lib/queueActions";
 import { dockChipNavigation } from "@/src/lib/kpiNavigation";
 import YardKpiStat from "@/src/components/yard/YardKpiStat";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
@@ -105,6 +105,23 @@ export default function YardQueueScreen() {
 
   const handleCall = useCallback(
     async (entry: QueueEntryRow) => {
+      if (!hasQueueTareWeight(entry)) {
+        Alert.alert(
+          "Tare weight required",
+          "Record empty truck weight (TW) before calling this vehicle in.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Enter tare",
+              onPress: () => {
+                setTareEntry(entry);
+                setTareOpen(true);
+              },
+            },
+          ],
+        );
+        return;
+      }
       try {
         await mutations.callEntry.mutateAsync(entry.queueEntryId);
         Alert.alert("Called in", `${entry.plate || "Vehicle"} has been called.`);
@@ -200,7 +217,7 @@ export default function YardQueueScreen() {
       >
         <Text style={styles.overline}>YARD · QUEUE</Text>
         <Text style={styles.title}>Virtual queue</Text>
-        <Text style={styles.subtitle}>Tap a vehicle to call it in or assign a dock.</Text>
+        <Text style={styles.subtitle}>Record tare weight, then call in and assign a dock.</Text>
 
         <View style={styles.searchRow}>
           <Ionicons name="search-outline" size={16} color={colors.textMuted} />
@@ -287,7 +304,7 @@ export default function YardQueueScreen() {
                     <Text style={styles.meta}>{entry.transporter || "Transporter"} · Dock {entry.dockCode || "—"}</Text>
                     <Text style={styles.meta}>
                       Wait {entry.waitingMin ?? 0} min · Priority {entry.priorityScore ?? 0}
-                      {entry.tareWeightKg != null ? ` · TW ${Number(entry.tareWeightKg).toLocaleString("en-IN")} kg` : ""}
+                      {entry.tareWeightKg != null ? ` · TW ${Number(entry.tareWeightKg).toLocaleString("en-IN")} kg` : " · TW required"}
                     </Text>
                     {entry.recommendedDock?.dockCode ? (
                       <Text style={styles.recLine}>Suggested dock {entry.recommendedDock.dockCode}</Text>

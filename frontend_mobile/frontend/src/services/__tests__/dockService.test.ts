@@ -16,7 +16,7 @@ describe("dockService permissions", () => {
   beforeEach(() => {
     mockedYmsRequest.mockReset();
   });
-  it("skips queue entries when includeQueue is false", async () => {
+  it("always loads queue entries for dock assignment state", async () => {
     mockedYmsRequest.mockImplementation(async (path: string) => {
       if (path.startsWith("/docks")) {
         return { items: [{ id: "d1", dock_code: "D-01", status: "AVAILABLE" }] };
@@ -24,13 +24,14 @@ describe("dockService permissions", () => {
       if (path.startsWith("/vehicles")) return { items: [] };
       if (path.startsWith("/labor")) return { items: [] };
       if (path.startsWith("/equipment")) return { items: [] };
+      if (path.startsWith("/queue-entries")) return { items: [] };
       throw new Error(`Unexpected path ${path}`);
     });
 
     const bundle = await fetchDockBoard({ includeQueue: false });
 
     expect(bundle.rows).toHaveLength(1);
-    expect(mockedYmsRequest).not.toHaveBeenCalledWith("/queue-entries?limit=500");
+    expect(mockedYmsRequest).toHaveBeenCalledWith("/queue-entries?limit=500");
   });
 
   it("returns no callable queue options when includeQueue is false", async () => {

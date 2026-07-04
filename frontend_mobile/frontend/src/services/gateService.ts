@@ -140,6 +140,24 @@ export async function updateExitChecklist(
   });
 }
 
+export function mergeExitChecklistUpdate(
+  current: GateVehicleContext,
+  api: Record<string, unknown>,
+): GateVehicleContext {
+  const mapped = mapGateContextFromApi(api);
+  if (!mapped) return current;
+  return {
+    ...current,
+    exitChecks: mapped.exitChecks,
+    exitApproved: mapped.exitApproved,
+    activityTab: mapped.activityTab ?? current.activityTab,
+    display: {
+      ...current.display,
+      status: mapped.display.status || current.display.status,
+    },
+  };
+}
+
 export async function verifyGateExit(vehicleId: string, gateId = GATE_ID, remarks?: string | null) {
   const ctx = await ymsRequest<Record<string, unknown>>(`/gate/vehicles/${vehicleId}/verify-exit`, {
     method: "POST",

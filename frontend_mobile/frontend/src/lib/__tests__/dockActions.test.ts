@@ -15,6 +15,8 @@ const supervisorCan = (permission: string) =>
     YMS_PERMISSIONS.LOADING_START,
     YMS_PERMISSIONS.LOADING_COMPLETE,
     YMS_PERMISSIONS.LOADING_MANAGE_EXCEPTIONS,
+    YMS_PERMISSIONS.DOCK_WRITE,
+    YMS_PERMISSIONS.YARD_EVENT_WRITE,
   ].includes(permission as typeof YMS_PERMISSIONS.LOADING_START);
 
 const baseRow = (overrides: Partial<DockBoardRow> = {}): DockBoardRow => ({
@@ -48,10 +50,16 @@ describe("dockActions", () => {
     expect(canStartLoading(baseRow({ hasActiveAssignment: false, vehicleId: null }))).toBe(false);
   });
 
-  it("allows complete loading only when status is loading", () => {
+  it("allows complete loading only when status is loading and not awaiting release", () => {
     expect(
       canCompleteLoading(baseRow({ loadingStatus: "LOADING", vehicleStatus: "LOADING", status: "LOADING" })),
     ).toBe(true);
+    expect(
+      canCompleteLoading(
+        baseRow({ loadingStatus: "LOADING", vehicleStatus: "LOADING", status: "LOADING" }),
+        { awaitingRelease: true },
+      ),
+    ).toBe(false);
     expect(canCompleteLoading(baseRow({ loadingStatus: "DOCK_ASSIGNED", status: "OCCUPIED" }))).toBe(false);
   });
 
@@ -76,6 +84,46 @@ describe("dockActions", () => {
     );
     expect(loading.find((action) => action.id === "start_loading")?.enabled).toBe(false);
     expect(loading.find((action) => action.id === "complete_loading")?.enabled).toBe(true);
+    expect(loading.find((action) => action.id === "release_dock")?.enabled).toBe(false);
+    expect(loading.find((action) => action.id === "pause_loading")?.enabled).toBe(true);
+    expect(loading.find((action) => action.id === "resume_loading")?.enabled).toBe(false);
+
+    const awaitingRelease = resolveDockActions(
+      baseRow({
+        loadingStatus: "LOADING",
+        vehicleStatus: "LOADING",
+        status: "LOADING",
+        grossWeightKg: 12000,
+      }),
+      supervisorCan,
+      null,
+      null,
+      { awaitingRelease: true },
+    );
+    expect(awaitingRelease.find((action) => action.id === "complete_loading")?.enabled).toBe(false);
+    expect(awaitingRelease.find((action) => action.id === "release_dock")?.enabled).toBe(true);
+    expect(awaitingRelease.find((action) => action.id === "pause_loading")?.enabled).toBe(false);
+
+    const awaitingReleaseNoGross = resolveDockActions(
+      baseRow({ loadingStatus: "LOADING", vehicleStatus: "LOADING", status: "LOADING" }),
+      supervisorCan,
+      null,
+      null,
+      { awaitingRelease: true },
+    );
+    expect(awaitingReleaseNoGross.find((action) => action.id === "release_dock")?.enabled).toBe(false);
+    expect(awaitingReleaseNoGross.find((action) => action.id === "release_dock")?.reason).toContain(
+      "gross weight",
+    );
+
+    const paused = resolveDockActions(
+      baseRow({ loadingStatus: "LOADING", vehicleStatus: "LOADING", status: "LOADING" }),
+      supervisorCan,
+      null,
+      { paused: true },
+    );
+    expect(paused.find((action) => action.id === "pause_loading")?.enabled).toBe(false);
+    expect(paused.find((action) => action.id === "resume_loading")?.enabled).toBe(true);
   });
 
   it("filters dock rows by filter and search", () => {

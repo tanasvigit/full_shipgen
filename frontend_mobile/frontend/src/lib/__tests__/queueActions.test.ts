@@ -3,6 +3,7 @@ import {
   canAssignDockToEntry,
   canCallQueueEntry,
   filterQueueEntries,
+  hasQueueTareWeight,
   resolveQueueActions,
 } from "@/src/lib/queueActions";
 import { summarizeDockAvailability } from "@/src/lib/queueActions";
@@ -15,9 +16,29 @@ const coordinatorCan = (permission: string) =>
   );
 
 describe("queueActions", () => {
-  it("allows call for waiting entries", () => {
-    expect(canCallQueueEntry({ status: "WAITING", displayStatus: "READY_TO_CALL" })).toBe(true);
-    expect(canCallQueueEntry({ status: "CALLED", displayStatus: "CALLED" })).toBe(false);
+  it("allows call for waiting entries with tare weight", () => {
+    expect(
+      canCallQueueEntry({ status: "WAITING", displayStatus: "READY_TO_CALL", tareWeightKg: 8500 }),
+    ).toBe(true);
+    expect(canCallQueueEntry({ status: "CALLED", displayStatus: "CALLED", tareWeightKg: 8500 })).toBe(false);
+  });
+
+  it("blocks call until tare weight is recorded", () => {
+    expect(canCallQueueEntry({ status: "WAITING", displayStatus: "READY_TO_CALL", tareWeightKg: null })).toBe(
+      false,
+    );
+    expect(hasQueueTareWeight({ tareWeightKg: 4000 })).toBe(true);
+    expect(hasQueueTareWeight({ tareWeightKg: null })).toBe(false);
+  });
+
+  it("explains missing tare on call action", () => {
+    const waiting = resolveQueueActions(
+      { queueEntryId: "q1", status: "WAITING", displayStatus: "READY_TO_CALL", tareWeightKg: null },
+      coordinatorCan,
+    );
+    const call = waiting.find((action) => action.id === "call");
+    expect(call?.enabled).toBe(false);
+    expect(call?.reason).toMatch(/tare weight/i);
   });
 
   it("allows dock assign only after call", () => {
@@ -27,14 +48,14 @@ describe("queueActions", () => {
 
   it("resolves call and assign actions for coordinator permissions", () => {
     const waiting = resolveQueueActions(
-      { queueEntryId: "q1", status: "WAITING", displayStatus: "READY_TO_CALL" },
+      { queueEntryId: "q1", status: "WAITING", displayStatus: "READY_TO_CALL", tareWeightKg: 8500 },
       coordinatorCan,
     );
     expect(waiting.find((action) => action.id === "call")?.enabled).toBe(true);
     expect(waiting.find((action) => action.id === "assign_dock")?.enabled).toBe(false);
 
     const called = resolveQueueActions(
-      { queueEntryId: "q1", status: "CALLED", displayStatus: "CALLED" },
+      { queueEntryId: "q1", status: "CALLED", displayStatus: "CALLED", tareWeightKg: 8500 },
       coordinatorCan,
     );
     expect(called.find((action) => action.id === "assign_dock")?.enabled).toBe(true);

@@ -34,9 +34,11 @@ import GateRejectSheet, { type GateRejectPayload } from "@/src/components/yard/G
 import {
   lookupGateVehicle,
   lookupQueryFromRow,
+  mergeExitChecklistUpdate,
   type GateActivityRow,
   type GateVehicleContext,
 } from "@/src/services/gateService";
+import { patchExitCheck } from "@/src/lib/gateChecklist";
 import { YmsApiError } from "@/src/lib/ymsApi";
 import { gateKpiSelection, type GateKpiKey } from "@/src/lib/kpiNavigation";
 import YardKpiStat from "@/src/components/yard/YardKpiStat";
@@ -90,11 +92,13 @@ export default function YardGateScreen() {
   }, [mode]);
 
   const loadVehicleContext = useCallback(
-    async (query: string) => {
+    async (query: string, options?: { silent?: boolean }) => {
       const trimmed = query.trim();
       if (!trimmed) return;
       setLookupQuery(trimmed);
-      setContextLoading(true);
+      if (!options?.silent) {
+        setContextLoading(true);
+      }
       setContextError(null);
       try {
         const ctx = await lookupGateVehicle(trimmed, data?.gateId || "G1");
@@ -108,7 +112,9 @@ export default function YardGateScreen() {
         setVehicleContext(null);
         setContextError(err instanceof YmsApiError ? err.message : "Unable to load vehicle.");
       } finally {
-        setContextLoading(false);
+        if (!options?.silent) {
+          setContextLoading(false);
+        }
       }
     },
     [data?.gateId],
@@ -131,7 +137,7 @@ export default function YardGateScreen() {
   const refreshAfterAction = useCallback(async () => {
     await refetch();
     if (lookupQuery) {
-      await loadVehicleContext(lookupQuery);
+      await loadVehicleContext(lookupQuery, { silent: true });
     }
   }, [loadVehicleContext, lookupQuery, refetch]);
 
@@ -199,21 +205,31 @@ export default function YardGateScreen() {
   const handleToggleExitCheck = useCallback(
     async (field: string, value: boolean) => {
       if (!vehicleContext) return;
+      const previous = vehicleContext;
+      setVehicleContext({
+        ...vehicleContext,
+        exitChecks: patchExitCheck(vehicleContext.exitChecks, field, value),
+      });
       try {
-        await mutations.toggleExitCheck.mutateAsync({
+        const updated = await mutations.toggleExitCheck.mutateAsync({
           vehicleId: vehicleContext.vehicleId,
           field,
           value,
         });
-        await loadVehicleContext(lookupQuery || vehicleContext.display.plate);
+        setVehicleContext((current) =>
+          current && current.vehicleId === previous.vehicleId
+            ? mergeExitChecklistUpdate(current, updated)
+            : current,
+        );
       } catch (err) {
+        setVehicleContext(previous);
         Alert.alert(
           "Update failed",
           err instanceof YmsApiError ? err.message : err instanceof Error ? err.message : "Please try again.",
         );
       }
     },
-    [loadVehicleContext, lookupQuery, mutations.toggleExitCheck, vehicleContext],
+    [mutations.toggleExitCheck, vehicleContext],
   );
 
   const submitSearch = useCallback(() => {
@@ -409,11 +425,11 @@ export default function YardGateScreen() {
         mode={mode}
         context={vehicleContext}
         loading={contextLoading}
-        actionBusy={mutations.busy}
+        actionBusy={mutations.actionBusy}
         error={contextError}
         can={can}
         onClose={closeSheet}
-        onRefresh={() => loadVehicleContext(lookupQuery)}
+        onRefresh={() => loadVehicleContext(lookupQuery, { silent: Boolean(vehicleContext) })}
         onAction={handleGateAction}
         onToggleExitCheck={handleToggleExitCheck}
       />

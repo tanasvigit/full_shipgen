@@ -24,6 +24,7 @@ export const PARKING_SIDEBAR_PERMISSIONS = {
   "/parking/operator/collect-payment": "payments.collect",
   "/parking/operator/qr-print": "qr.print",
   "/parking/operator/vehicle-search": "vehicle.search",
+  "/parking/operator/exit-vehicle": "vehicle.search",
   "/parking/operator/recent-tickets": "recent.tickets",
   "/parking/operator/settings": "settings.manage",
 };

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, statusColor } from "@/src/theme";
-import { resolveQueueActions } from "@/src/lib/queueActions";
+import { resolveQueueActions, hasQueueTareWeight } from "@/src/lib/queueActions";
 import type { DockOption, QueueEntryRow } from "@/src/services/queueService";
 import { formatWeightKg } from "@/src/services/weighingService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
@@ -48,6 +48,7 @@ export default function QueueEntrySheet({
   const callAction = actions.find((action) => action.id === "call");
   const overrideAction = actions.find((action) => action.id === "override");
   const canWriteQueue = can("*") || can(YMS_PERMISSIONS.QUEUE_WRITE);
+  const needsTare = entry != null && !hasQueueTareWeight(entry);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -82,7 +83,10 @@ export default function QueueEntrySheet({
                   <Text style={styles.metaLine}>
                     Dock {entry.dockCode || "—"} · {entry.bookingRef || entry.queueNumber || "—"}
                   </Text>
-                  <Text style={styles.metaLine}>Tare (TW): {formatWeightKg(entry.tareWeightKg)}</Text>
+                  <Text style={[styles.metaLine, needsTare && styles.metaWarn]}>
+                    Tare (TW): {formatWeightKg(entry.tareWeightKg)}
+                    {needsTare ? " · required before call in" : ""}
+                  </Text>
                   <Text style={styles.metaLine}>Gross (GW): {formatWeightKg(entry.grossWeightKg)}</Text>
                   <Text style={styles.metaLine}>Net (NW): {formatWeightKg(entry.netWeightKg)}</Text>
                 </View>
@@ -113,12 +117,22 @@ export default function QueueEntrySheet({
                 ) : null}
 
                 <View style={styles.actions}>
+                  {canWriteQueue && onTareWeight ? (
+                    <QueueActionButton
+                      label={needsTare ? "Enter tare weight" : "Tare weight"}
+                      enabled
+                      busy={actionBusy}
+                      variant={needsTare ? "primary" : "secondary"}
+                      onPress={onTareWeight}
+                      testID="queue-action-tare"
+                    />
+                  ) : null}
                   <QueueActionButton
                     label={callAction?.label || "Call in"}
                     enabled={Boolean(callAction?.enabled)}
                     hint={callAction?.reason}
                     busy={actionBusy}
-                    variant="primary"
+                    variant={needsTare ? "secondary" : "primary"}
                     onPress={onCall}
                     testID="queue-action-call"
                   />
@@ -131,16 +145,6 @@ export default function QueueEntrySheet({
                       variant="secondary"
                       onPress={onOverride}
                       testID="queue-action-override"
-                    />
-                  ) : null}
-                  {canWriteQueue && onTareWeight ? (
-                    <QueueActionButton
-                      label="Tare weight"
-                      enabled
-                      busy={actionBusy}
-                      variant="secondary"
-                      onPress={onTareWeight}
-                      testID="queue-action-tare"
                     />
                   ) : null}
                 </View>
@@ -260,6 +264,7 @@ const styles = StyleSheet.create({
   badge: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: "800" },
   metaLine: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
+  metaWarn: { color: "#b45309", fontWeight: "700" },
   recCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

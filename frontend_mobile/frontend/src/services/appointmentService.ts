@@ -4,6 +4,7 @@ import {
   formatShipmentReference,
   generateBookingRef,
   mapAppointmentRow,
+  normalizeBookingTimeSlot,
   slotToReportingTime,
   todayIsoDate,
   type AppointmentApiRow,
@@ -42,7 +43,8 @@ export async function fetchAppointmentsForDate(date = todayIsoDate()): Promise<A
 export async function createBooking(form: BookAppointmentForm) {
   const plate = form.plate.trim().toUpperCase();
   const bookingRef = generateBookingRef(form.date);
-  const reportingIso = new Date(slotToReportingTime(form.date, form.slot)).toISOString();
+  const slot = normalizeBookingTimeSlot(form.slot) || form.slot.trim();
+  const reportingIso = new Date(slotToReportingTime(form.date, slot)).toISOString();
 
   const vehicle = await ymsRequest<{ id: string }>("/vehicles", {
     method: "POST",
@@ -69,7 +71,7 @@ export async function createBooking(form: BookAppointmentForm) {
       shipment_reference: formatShipmentReference(form.reqType, form.material.trim()),
       booking_date: form.date,
       reporting_time: reportingIso,
-      scheduled_slot: form.slot,
+      scheduled_slot: slot,
       gate_number: form.gate,
       priority: 0,
       status: "SCHEDULED",
@@ -101,13 +103,14 @@ export async function rescheduleAppointment(
   appointmentId: string,
   patch: { date: string; slot: string; gate: string },
 ) {
-  const reportingIso = new Date(slotToReportingTime(patch.date, patch.slot)).toISOString();
+  const slot = normalizeBookingTimeSlot(patch.slot) || patch.slot.trim();
+  const reportingIso = new Date(slotToReportingTime(patch.date, slot)).toISOString();
   return ymsRequest<AppointmentApiRow>(`/appointments/${appointmentId}`, {
     method: "PATCH",
     body: {
       booking_date: patch.date,
       reporting_time: reportingIso,
-      scheduled_slot: patch.slot,
+      scheduled_slot: slot,
       gate_number: patch.gate,
       created_by: APPOINTMENT_CREATED_BY,
     },

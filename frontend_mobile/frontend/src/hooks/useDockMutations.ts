@@ -9,6 +9,9 @@ import {
   pauseLoadingAtDock,
   releaseDockResources,
   releaseDock,
+  releaseLaborFromDock,
+  releaseEquipmentFromDock,
+  unassignVehicleFromDock,
   resumeLoadingAtDock,
   startLoadingAtDock,
   updateDockStatus,
@@ -24,6 +27,8 @@ export function useDockMutations() {
     await queryClient.invalidateQueries({ queryKey: ["yard", "queue"] });
     await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "resources"] });
     await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "readiness"] });
+    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "pause-state"] });
+    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "complete-state"] });
   };
 
   const startLoading = useMutation({
@@ -32,7 +37,7 @@ export function useDockMutations() {
   });
 
   const completeLoading = useMutation({
-    mutationFn: (vehicleId: string) => completeLoadingAtDock(vehicleId),
+    mutationFn: (input: Parameters<typeof completeLoadingAtDock>[0]) => completeLoadingAtDock(input),
     onSuccess: invalidate,
   });
 
@@ -85,6 +90,21 @@ export function useDockMutations() {
     onSuccess: invalidate,
   });
 
+  const releaseLabor = useMutation({
+    mutationFn: (laborId: string) => releaseLaborFromDock(laborId),
+    onSuccess: invalidate,
+  });
+
+  const releaseEquipment = useMutation({
+    mutationFn: (equipmentId: string) => releaseEquipmentFromDock(equipmentId),
+    onSuccess: invalidate,
+  });
+
+  const unassignVehicle = useMutation({
+    mutationFn: (queueEntryId: string) => unassignVehicleFromDock(queueEntryId),
+    onSuccess: invalidate,
+  });
+
   const releaseDockEntry = useMutation({
     mutationFn: ({ dockId, row }: { dockId: string; row: Parameters<typeof releaseDock>[1] }) =>
       releaseDock(dockId, row),
@@ -103,6 +123,9 @@ export function useDockMutations() {
     assignEquipment.isPending ||
     assignVehicle.isPending ||
     releaseResources.isPending ||
+    releaseLabor.isPending ||
+    releaseEquipment.isPending ||
+    unassignVehicle.isPending ||
     releaseDockEntry.isPending;
 
   return {
@@ -117,6 +140,9 @@ export function useDockMutations() {
     assignEquipment,
     assignVehicle,
     releaseResources,
+    releaseLabor,
+    releaseEquipment,
+    unassignVehicle,
     releaseDockEntry,
     busy,
   };

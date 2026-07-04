@@ -432,6 +432,99 @@ def compute_pause_state(
     }
 
 
+def compute_loading_complete_state(
+    events: list[dict[str, Any]],
+    *,
+    vehicle_id: str | None,
+    queue_entry_id: str | None,
+) -> dict[str, Any]:
+    """True when LOADING_COMPLETED was recorded but the dock has not been released yet."""
+    relevant = _filter_loading_events(events, vehicle_id=vehicle_id, queue_entry_id=queue_entry_id)
+    last_started: datetime | None = None
+    last_completed: datetime | None = None
+    last_released: datetime | None = None
+    completed_at: Any | None = None
+
+    for event in relevant:
+        event_type = event.get("event_type")
+        event_time = _coerce_datetime(event.get("event_time"))
+        if event_type == "LOADING_STARTED" and event_time:
+            last_started = event_time
+        elif event_type == "LOADING_COMPLETED" and event_time:
+            last_completed = event_time
+            completed_at = event.get("event_time")
+        elif event_type == "DOCK_RELEASED" and event_time:
+            last_released = event_time
+
+    awaiting_release = False
+    if last_completed is not None:
+        started_ok = last_started is None or last_completed >= last_started
+        released_ok = last_released is None or last_released < last_completed
+        awaiting_release = started_ok and released_ok
+
+    return {
+        "awaiting_release": awaiting_release,
+        "loading_completed": awaiting_release,
+        "completed_at": completed_at if awaiting_release else None,
+    }
+
+
+async def complete_loading_operation(
+    *,
+    vehicle_id: str | None,
+    appointment_id: str | None,
+    queue_entry_id: str | None,
+    dock_id: str | None,
+    note: str | None,
+    created_by: str,
+) -> dict[str, Any]:
+    if not vehicle_id:
+        raise HTTPException(status_code=400, detail="vehicle_id is required")
+
+    from services.yms_service import get_vehicle, list_yard_events
+
+    vehicle = await get_vehicle(vehicle_id)
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    if str(vehicle.get("status") or "").upper() != "LOADING":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Cannot complete loading from status '{vehicle.get('status')}'. "
+                "Vehicle must be LOADING."
+            ),
+        )
+
+    events, _ = await list_yard_events(limit=2000)
+    pending = compute_loading_complete_state(
+        events,
+        vehicle_id=vehicle_id,
+        queue_entry_id=queue_entry_id,
+    )
+    if pending["awaiting_release"]:
+        raise HTTPException(
+            status_code=409,
+            detail="Loading already marked complete. Record gross weight and release the dock.",
+        )
+
+    event_note = note.strip() if note and note.strip() else "Loading completed at dock"
+    await create_yard_event(
+        vehicle_id=vehicle_id,
+        appointment_id=appointment_id,
+        queue_entry_id=queue_entry_id,
+        dock_id=dock_id,
+        event_type="LOADING_COMPLETED",
+        event_note=event_note,
+        created_by=created_by,
+    )
+
+    return {
+        "awaiting_release": True,
+        "loading_completed": True,
+        "completed_at": _now().isoformat(),
+    }
+
+
 async def pause_loading_operation(
     *,
     vehicle_id: str | None,

@@ -23,7 +23,6 @@ import {
   appointmentDayKpis,
   appointmentLookupQuery,
   filterAppointmentsByKpi,
-  filterAppointmentsBySlot,
   groupAppointmentsBySlot,
   todayIsoDate,
   type AppointmentKpiFilter,
@@ -34,8 +33,6 @@ import YardKpiStat from "@/src/components/yard/YardKpiStat";
 import { useYardMoreBackHandler } from "@/src/components/yard/YardMoreBackHandler";
 import { YmsApiError } from "@/src/lib/ymsApi";
 
-const SLOT_FILTERS = ["ALL", "AM", "PM", "EVE"] as const;
-
 export default function YardAppointmentsScreen() {
   useYardMoreBackHandler();
   const router = useRouter();
@@ -43,7 +40,6 @@ export default function YardAppointmentsScreen() {
   const today = todayIsoDate();
   const { data, isLoading, isRefetching, refetch, error } = useGateAppointments(today);
   const mutations = useAppointmentMutations();
-  const [slotFilter, setSlotFilter] = useState<(typeof SLOT_FILTERS)[number]>("ALL");
   const [kpiFilter, setKpiFilter] = useState<AppointmentKpiFilter>("all");
   const [bookOpen, setBookOpen] = useState(false);
   const [detailRow, setDetailRow] = useState<AppointmentRow | null>(null);
@@ -51,10 +47,7 @@ export default function YardAppointmentsScreen() {
   const allowed = canAccessYardScreen("appointments", can, isYardAdmin, user?.role);
   const canWrite = can("*") || can(YMS_PERMISSIONS.APPOINTMENT_WRITE);
 
-  const filteredRows = useMemo(() => {
-    const bySlot = filterAppointmentsBySlot(data?.rows ?? [], slotFilter);
-    return filterAppointmentsByKpi(bySlot, kpiFilter);
-  }, [data?.rows, kpiFilter, slotFilter]);
+  const filteredRows = useMemo(() => filterAppointmentsByKpi(data?.rows ?? [], kpiFilter), [data?.rows, kpiFilter]);
   const grouped = useMemo(() => groupAppointmentsBySlot(filteredRows), [filteredRows]);
   const kpis = useMemo(() => appointmentDayKpis(data?.rows ?? []), [data?.rows]);
 
@@ -165,21 +158,6 @@ export default function YardAppointmentsScreen() {
           />
         </View>
 
-        <View style={styles.slotRow}>
-          {SLOT_FILTERS.map((slot) => (
-            <TouchableOpacity
-              key={slot}
-              style={[styles.slotBtn, slotFilter === slot && styles.slotBtnActive]}
-              onPress={() => setSlotFilter(slot)}
-              testID={`appointments-slot-${slot}`}
-            >
-              <Text style={[styles.slotText, slotFilter === slot && styles.slotTextActive]}>
-                {slot === "ALL" ? "All slots" : slot}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         {isLoading ? (
           <Text style={styles.muted}>Loading appointments…</Text>
         ) : error ? (
@@ -188,11 +166,11 @@ export default function YardAppointmentsScreen() {
             <Text style={styles.muted}>{error instanceof Error ? error.message : "Check YMS service."}</Text>
           </View>
         ) : !filteredRows.length ? (
-          <Text style={styles.muted}>No appointments for this slot today.</Text>
+          <Text style={styles.muted}>No appointments for today.</Text>
         ) : (
           grouped.map(([slot, rows]) => (
             <View key={slot} style={styles.slotSection}>
-              <Text style={styles.sectionTitle}>Slot {slot} · {rows.length}</Text>
+              <Text style={styles.sectionTitle}>{slot} · {rows.length}</Text>
               {rows.map((row) => {
                 const badge = statusColor(row.status);
                 return (
@@ -268,18 +246,6 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
   kpiCard: { flex: 1 },
   kpiCardActive: { borderColor: colors.shipgenOrange },
-  slotRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.lg },
-  slotBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    backgroundColor: colors.surface,
-  },
-  slotBtnActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  slotText: { fontSize: 11, fontWeight: "800", color: colors.textSecondary },
-  slotTextActive: { color: "#fff" },
   slotSection: { marginBottom: spacing.lg },
   sectionTitle: { fontSize: 14, fontWeight: "800", color: colors.text, marginBottom: spacing.sm },
   rowCard: {

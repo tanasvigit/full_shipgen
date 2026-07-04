@@ -33,6 +33,12 @@ export function collectPayment(ticketId: string, paymentMethod: PaymentMethod): 
   }).then(normalizeTicket);
 }
 
+export function exitTicket(ticketId: string): Promise<ParkingTicket> {
+  return apiRequest<ParkingTicket>(`/tickets/${ticketId}/exit`, {
+    method: 'POST',
+  }).then(normalizeTicket);
+}
+
 export function getTicketQr(ticketId: string): Promise<{
   ticketId: string;
   vehicleNumber: string;

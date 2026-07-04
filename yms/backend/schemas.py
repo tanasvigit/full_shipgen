@@ -993,6 +993,21 @@ class LoadingPauseStateOut(BaseModel):
     total_paused_min: int = 0
 
 
+class LoadingCompleteRequest(BaseModel):
+    vehicle_id: Optional[str] = None
+    appointment_id: Optional[str] = None
+    queue_entry_id: Optional[str] = None
+    dock_id: Optional[str] = None
+    note: Optional[str] = Field(default=None, max_length=2000)
+    created_by: str = Field(default="loading-ops-ui", max_length=64)
+
+
+class LoadingCompleteStateOut(BaseModel):
+    awaiting_release: bool = False
+    loading_completed: bool = False
+    completed_at: Optional[datetime] = None
+
+
 class JourneyTimelineItemOut(BaseModel):
     eventType: str
     timestamp: Optional[str] = None

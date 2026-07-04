@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { Ticket, CreditCard, Printer, Search, Car, IndianRupee, AlertCircle } from 'lucide-react';
+import { Ticket, CreditCard, Printer, Search, Car, IndianRupee, AlertCircle, LogOut } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import { StatCard, StatusBadge, DataTable } from '../../components/ui';
 import { OccupancySummaryCard } from '../../components/parking';
@@ -14,6 +14,7 @@ const shortcuts = [
   { label: 'Collect Payment', path: '/operator/collect-payment', icon: CreditCard, description: 'Record payment for unpaid tickets' },
   { label: 'QR Ticket Print', path: '/operator/qr-print', icon: Printer, description: 'Reprint tickets for customers' },
   { label: 'Vehicle Search', path: '/operator/vehicle-search', icon: Search, description: 'Look up active or past tickets' },
+  { label: 'Exit Vehicle', path: '/operator/exit-vehicle', icon: LogOut, description: 'Mark a parked vehicle as exited' },
 ];
 
 export default function OperatorDashboard() {

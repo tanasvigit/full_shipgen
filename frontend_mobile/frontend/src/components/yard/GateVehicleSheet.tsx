@@ -57,7 +57,7 @@ export default function GateVehicleSheet({
             </TouchableOpacity>
           </View>
 
-          {loading ? (
+          {loading && !context ? (
             <View style={styles.centered}>
               <ActivityIndicator color={colors.shipgenOrange} />
               <Text style={styles.muted}>Loading vehicle context…</Text>

@@ -27,6 +27,7 @@ import CollectPaymentPage from './pages/operator/CollectPaymentPage';
 import QRPrintPage from './pages/operator/QRPrintPage';
 import VehicleSearchPage from './pages/operator/VehicleSearchPage';
 import RecentTicketsPage from './pages/operator/RecentTicketsPage';
+import ExitVehiclePage from './pages/operator/ExitVehiclePage';
 import SettingsPage from './pages/shared/SettingsPage';
 import FloorManagementPage from './pages/shared/FloorManagementPage';
 import OperatorOccupancyPage from './pages/operator/OperatorOccupancyPage';
@@ -94,6 +95,7 @@ export default function ParkingAppRoutes({ embedded = PARKING_EMBEDDED }: { embe
           <Route path={rp('/operator/collect-payment', embedded)} element={<ProtectedRoute permission={PERMISSIONS.PAYMENTS_COLLECT}><CollectPaymentPage /></ProtectedRoute>} />
           <Route path={rp('/operator/qr-print', embedded)} element={<ProtectedRoute permission={PERMISSIONS.QR_PRINT}><QRPrintPage /></ProtectedRoute>} />
           <Route path={rp('/operator/vehicle-search', embedded)} element={<ProtectedRoute permission={PERMISSIONS.VEHICLE_SEARCH}><VehicleSearchPage /></ProtectedRoute>} />
+          <Route path={rp('/operator/exit-vehicle', embedded)} element={<ProtectedRoute permission={PERMISSIONS.VEHICLE_SEARCH}><ExitVehiclePage /></ProtectedRoute>} />
           <Route path={rp('/operator/recent-tickets', embedded)} element={<ProtectedRoute permission={PERMISSIONS.RECENT_TICKETS}><RecentTicketsPage /></ProtectedRoute>} />
           <Route path={rp('/operator/settings', embedded)} element={<ProtectedRoute permission={PERMISSIONS.SETTINGS_MANAGE}><SettingsPage /></ProtectedRoute>} />
         </Route>

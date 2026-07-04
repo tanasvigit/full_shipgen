@@ -1690,6 +1690,87 @@ async def assign_dock(queue_entry_id: str, dock_id: str, created_by: str) -> dic
     return _to_dict(row)
 
 
+_UNASSIGNABLE_DOCK_QUEUE_STATUSES = frozenset(
+    {"DOCK_ASSIGNED", "RESOURCE_PENDING", "READY_FOR_LOADING"}
+)
+
+
+async def unassign_dock_from_queue(queue_entry_id: str, created_by: str) -> dict[str, Any]:
+    """Return a dock-assigned queue entry to CALLED and clear dock occupancy."""
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            queue = await get_queue_entry(queue_entry_id, conn=conn)
+            status = str(queue["status"] or "").upper()
+            if status not in _UNASSIGNABLE_DOCK_QUEUE_STATUSES:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Queue entry must be dock-assigned (not loading) to unassign",
+                )
+            dock_id = queue.get("dock_id")
+            if not dock_id:
+                raise HTTPException(status_code=409, detail="Queue entry has no dock assignment")
+
+            row = await conn.fetchrow(
+                """
+                UPDATE queue_entries
+                SET dock_id = NULL,
+                    dock_assigned_time = NULL,
+                    status = 'CALLED',
+                    updated_at = NOW()
+                WHERE id = $1::uuid
+                RETURNING *
+                """,
+                queue_entry_id,
+            )
+            await update_vehicle(
+                queue["vehicle_id"], {"status": "CALLED"}, conn=conn, internal=True
+            )
+            await update_appointment(
+                queue["appointment_id"], {"status": "CALLED"}, conn=conn, internal=True
+            )
+
+            dock = await get_dock(str(dock_id), conn=conn)
+            await conn.execute(
+                """
+                UPDATE docks SET
+                    status = 'AVAILABLE',
+                    current_vehicle_id = NULL,
+                    assigned_since = NULL,
+                    updated_at = NOW()
+                WHERE id = $1::uuid
+                """,
+                dock_id,
+            )
+            await _log_dock_event(
+                dock_id=str(dock_id),
+                event_type="DOCK_UNASSIGNED",
+                event_note=f"Vehicle unassigned from dock {dock['dock_code']}",
+                created_by=created_by,
+                vehicle_id=str(queue["vehicle_id"]),
+                queue_entry_id=queue_entry_id,
+                conn=conn,
+            )
+            await create_yard_event(
+                vehicle_id=queue["vehicle_id"],
+                appointment_id=queue["appointment_id"],
+                queue_entry_id=queue_entry_id,
+                dock_id=None,
+                event_type="DOCK_UNASSIGNED",
+                event_note=f"Unassigned from dock {dock['dock_code']}",
+                created_by=created_by,
+                conn=conn,
+            )
+            from services.resource_gating_service import sync_vehicle_readiness_status
+
+            await sync_vehicle_readiness_status(
+                str(queue["vehicle_id"]),
+                conn=conn,
+                created_by=created_by,
+            )
+    return _to_dict(row)
+
+
 async def _validate_loading_lifecycle_prerequisites(
     vehicle_id: str,
     current_status: str,

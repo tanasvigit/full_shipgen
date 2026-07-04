@@ -1,4 +1,5 @@
-import { ymsRequest } from "@/src/lib/ymsApi";
+import { ymsRequest, YmsApiError } from "@/src/lib/ymsApi";
+import { computeLoadingCompleteState } from "@/src/lib/loadingCompleteState";
 import { buildCallableQueueEntries } from "@/src/lib/dockResourceActions";
 import { parseYmsList } from "@/src/services/queueService";
 import { readQueueWeightKg } from "@/src/services/weighingService";
@@ -16,6 +17,11 @@ export const ACTIVE_DOCK_QUEUE_STATUSES = new Set([
   "READY_FOR_LOADING",
   "LOADING",
 ]);
+
+export function isActiveDockQueueEntry(queue: Record<string, unknown> | null | undefined) {
+  if (!queue) return false;
+  return ACTIVE_DOCK_QUEUE_STATUSES.has(String(queue.status || "").toUpperCase());
+}
 
 export type DockBoardRow = {
   id: string;
@@ -62,8 +68,7 @@ export type DockBoardBundle = {
 };
 
 function isActiveDockQueue(queue: Record<string, unknown> | null | undefined) {
-  if (!queue) return false;
-  return ACTIVE_DOCK_QUEUE_STATUSES.has(String(queue.status || "").toUpperCase());
+  return isActiveDockQueueEntry(queue);
 }
 
 function estimateProgress(queue: Record<string, unknown> | null, vehicle: Record<string, unknown> | null) {
@@ -148,19 +153,17 @@ function findEquipmentForDock(equipmentList: Record<string, unknown>[], dockId: 
   return equipmentList.find((row) => String(row.assigned_dock_id || "") === dockId) || null;
 }
 
-export async function fetchDockBoard(options?: { includeQueue?: boolean }): Promise<DockBoardBundle> {
-  const includeQueue = options?.includeQueue ?? false;
-
+export async function fetchDockBoard(_options?: { includeQueue?: boolean }): Promise<DockBoardBundle> {
   const [docksPayload, vehiclesPayload, laborPayload, equipmentPayload, queuePayload] = await Promise.all([
     ymsRequest<unknown>("/docks?limit=100"),
     ymsRequest<unknown>("/vehicles?limit=500"),
     ymsRequest<unknown>("/labor?limit=200"),
     ymsRequest<unknown>("/equipment?limit=200"),
-    includeQueue ? ymsRequest<unknown>("/queue-entries?limit=500") : Promise.resolve([]),
+    ymsRequest<unknown>("/queue-entries?limit=500"),
   ]);
 
   const docks = parseYmsList(docksPayload);
-  const queueEntries = includeQueue ? parseYmsList(queuePayload) : [];
+  const queueEntries = parseYmsList(queuePayload);
   const vehicles = parseYmsList(vehiclesPayload);
   const laborList = parseYmsList(laborPayload);
   const equipmentList = parseYmsList(equipmentPayload);
@@ -220,15 +223,46 @@ export async function startLoadingAtDock(vehicleId: string, operationType = "Loa
   });
 }
 
-export async function completeLoadingAtDock(vehicleId: string, operationType = "Loading") {
-  return ymsRequest<Record<string, unknown>>(`/flow/vehicles/${vehicleId}/transition`, {
-    method: "POST",
-    body: {
-      status: "COMPLETED",
-      event_note: `${operationType} completed at dock`,
-      created_by: DOCK_CREATED_BY,
-    },
-  });
+export async function completeLoadingAtDock(input: {
+  vehicleId: string;
+  appointmentId?: string | null;
+  dockId?: string | null;
+  queueEntryId?: string | null;
+  note?: string;
+}) {
+  const note = input.note || "Loading completed at dock";
+  try {
+    return await ymsRequest<LoadingCompleteState>("/loading-operations/complete", {
+      method: "POST",
+      body: {
+        vehicle_id: input.vehicleId,
+        appointment_id: input.appointmentId,
+        dock_id: input.dockId,
+        queue_entry_id: input.queueEntryId,
+        note,
+        created_by: DOCK_CREATED_BY,
+      },
+    });
+  } catch (err) {
+    if (!(err instanceof YmsApiError) || err.status !== 404) throw err;
+    await ymsRequest<Record<string, unknown>>("/yard-events", {
+      method: "POST",
+      body: {
+        vehicle_id: input.vehicleId,
+        appointment_id: input.appointmentId,
+        dock_id: input.dockId,
+        queue_entry_id: input.queueEntryId,
+        event_type: "LOADING_COMPLETED",
+        event_note: note,
+        created_by: DOCK_CREATED_BY,
+      },
+    });
+    return {
+      awaitingRelease: true,
+      loadingCompleted: true,
+      completedAt: new Date().toISOString(),
+    };
+  }
 }
 
 export type LoadingExceptionInput = {
@@ -344,7 +378,43 @@ export async function fetchCallableQueueOptions(options?: { includeQueue?: boole
   return buildCallableQueueEntries(parseYmsList(queuePayload), parseYmsList(vehiclesPayload));
 }
 
-export async function assignVehicleToDock(dockId: string, queueEntryId: string) {
+export type AssignVehicleResult = {
+  queueEntryId: string;
+  vehicleId?: string;
+  queueNumber?: string;
+  status?: string;
+};
+
+export async function resolveActiveQueueEntryId(dockId: string, vehicleId?: string | null) {
+  const payload = await ymsRequest<unknown>(`/queue-entries?limit=500`);
+  const entries = parseYmsList(payload);
+  const dockMatch = entries.find(
+    (entry) => String(entry.dock_id || "") === dockId && isActiveDockQueueEntry(entry),
+  );
+  if (dockMatch?.id) return String(dockMatch.id);
+  if (!vehicleId) return null;
+  const vehicleMatch = entries.find(
+    (entry) =>
+      String(entry.vehicle_id || "") === vehicleId &&
+      String(entry.dock_id || "") === dockId &&
+      isActiveDockQueueEntry(entry),
+  );
+  return vehicleMatch?.id ? String(vehicleMatch.id) : null;
+}
+
+function mapAssignVehicleResult(
+  queueEntryId: string,
+  payload: Record<string, unknown>,
+): AssignVehicleResult {
+  return {
+    queueEntryId: String(payload.id || queueEntryId),
+    vehicleId: payload.vehicle_id ? String(payload.vehicle_id) : undefined,
+    queueNumber: payload.queue_number ? String(payload.queue_number) : undefined,
+    status: payload.status ? String(payload.status) : undefined,
+  };
+}
+
+export async function assignVehicleToDock(dockId: string, queueEntryId: string): Promise<AssignVehicleResult> {
   try {
     const queue = await ymsRequest<Record<string, unknown>>(`/queue-entries/${queueEntryId}`);
     const status = String(queue.status || "").toUpperCase();
@@ -357,10 +427,11 @@ export async function assignVehicleToDock(dockId: string, queueEntryId: string) 
   } catch {
     // Queue detail may be unavailable for some roles — assign-dock flow still accepts the entry id.
   }
-  return ymsRequest<Record<string, unknown>>(`/flow/queue-entries/${queueEntryId}/assign-dock`, {
+  const result = await ymsRequest<Record<string, unknown>>(`/flow/queue-entries/${queueEntryId}/assign-dock`, {
     method: "POST",
     body: { dock_id: dockId },
   });
+  return mapAssignVehicleResult(queueEntryId, result);
 }
 
 export async function fetchResourceReadiness(vehicleId: string) {
@@ -377,8 +448,11 @@ export async function fetchResourceReadiness(vehicleId: string) {
 
 export async function releaseDock(
   dockId: string,
-  row: Pick<DockBoardRow, "vehicleId" | "code">,
+  row: Pick<DockBoardRow, "vehicleId" | "code" | "grossWeightKg">,
 ) {
+  if (!row.grossWeightKg) {
+    throw new Error("Record gross weight before releasing the dock");
+  }
   if (row.vehicleId) {
     return ymsRequest<Record<string, unknown>>(`/flow/vehicles/${row.vehicleId}/transition`, {
       method: "POST",
@@ -423,6 +497,27 @@ export async function releaseDockResources(dockId: string) {
   });
 }
 
+export async function releaseLaborFromDock(laborId: string) {
+  return ymsRequest<Record<string, unknown>>(`/labor/${laborId}/release`, {
+    method: "POST",
+    body: {},
+  });
+}
+
+export async function releaseEquipmentFromDock(equipmentId: string) {
+  return ymsRequest<Record<string, unknown>>(`/equipment/${equipmentId}/release`, {
+    method: "POST",
+    body: {},
+  });
+}
+
+export async function unassignVehicleFromDock(queueEntryId: string) {
+  return ymsRequest<Record<string, unknown>>(`/flow/queue-entries/${queueEntryId}/unassign-dock`, {
+    method: "POST",
+    body: {},
+  });
+}
+
 export async function updateDockStatus(dockId: string, status: string, notes?: string) {
   return ymsRequest<Record<string, unknown>>(`/docks/${dockId}`, {
     method: "PATCH",
@@ -437,6 +532,7 @@ export async function updateDockStatus(dockId: string, status: string, notes?: s
 
 export async function pauseLoadingAtDock(input: {
   vehicleId?: string | null;
+  appointmentId?: string | null;
   dockId?: string | null;
   queueEntryId?: string | null;
   reasonCode: string;
@@ -446,6 +542,7 @@ export async function pauseLoadingAtDock(input: {
     method: "POST",
     body: {
       vehicle_id: input.vehicleId,
+      appointment_id: input.appointmentId,
       dock_id: input.dockId,
       queue_entry_id: input.queueEntryId,
       reason_code: input.reasonCode,
@@ -457,6 +554,7 @@ export async function pauseLoadingAtDock(input: {
 
 export async function resumeLoadingAtDock(input: {
   vehicleId?: string | null;
+  appointmentId?: string | null;
   dockId?: string | null;
   queueEntryId?: string | null;
 }) {
@@ -464,9 +562,69 @@ export async function resumeLoadingAtDock(input: {
     method: "POST",
     body: {
       vehicle_id: input.vehicleId,
+      appointment_id: input.appointmentId,
       dock_id: input.dockId,
       queue_entry_id: input.queueEntryId,
       created_by: DOCK_CREATED_BY,
     },
   });
+}
+
+export type LoadingCompleteState = {
+  awaitingRelease: boolean;
+  loadingCompleted: boolean;
+  completedAt?: string | null;
+};
+
+async function fetchYardEventsForLoadingState() {
+  const payload = await ymsRequest<unknown>("/yard-events?limit=500");
+  return parseYmsList(payload) as Record<string, unknown>[];
+}
+
+export async function fetchLoadingCompleteState(input: {
+  vehicleId?: string | null;
+  queueEntryId?: string | null;
+}): Promise<LoadingCompleteState> {
+  try {
+    const params = new URLSearchParams();
+    if (input.vehicleId) params.set("vehicle_id", input.vehicleId);
+    if (input.queueEntryId) params.set("queue_entry_id", input.queueEntryId);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    const payload = await ymsRequest<Record<string, unknown>>(`/loading-operations/complete-state${suffix}`);
+    return {
+      awaitingRelease: Boolean(payload.awaiting_release),
+      loadingCompleted: Boolean(payload.loading_completed),
+      completedAt: payload.completed_at ? String(payload.completed_at) : null,
+    };
+  } catch (err) {
+    if (!(err instanceof YmsApiError) || err.status !== 404) throw err;
+    const events = await fetchYardEventsForLoadingState();
+    return computeLoadingCompleteState(events, input.vehicleId, input.queueEntryId);
+  }
+}
+
+export type LoadingPauseState = {
+  paused: boolean;
+  pausedSince?: string | null;
+  pauseReason?: string | null;
+  pausedDurationMin?: number;
+  totalPausedMin?: number;
+};
+
+export async function fetchLoadingPauseState(input: {
+  vehicleId?: string | null;
+  queueEntryId?: string | null;
+}): Promise<LoadingPauseState> {
+  const params = new URLSearchParams();
+  if (input.vehicleId) params.set("vehicle_id", input.vehicleId);
+  if (input.queueEntryId) params.set("queue_entry_id", input.queueEntryId);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const payload = await ymsRequest<Record<string, unknown>>(`/loading-operations/pause-state${suffix}`);
+  return {
+    paused: Boolean(payload.paused),
+    pausedSince: payload.paused_since ? String(payload.paused_since) : null,
+    pauseReason: payload.pause_reason ? String(payload.pause_reason) : null,
+    pausedDurationMin: Number(payload.paused_duration_min ?? 0),
+    totalPausedMin: Number(payload.total_paused_min ?? 0),
+  };
 }

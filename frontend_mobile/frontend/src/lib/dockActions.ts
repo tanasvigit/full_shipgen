@@ -1,6 +1,12 @@
 import type { DockBoardRow } from "@/src/services/dockService";
 import { YMS_PERMISSIONS } from "@/src/lib/ymsPermissions";
-import { canPauseLoading, canResumeLoading } from "@/src/lib/dockManageActions";
+import {
+  canCompleteLoading as canCompleteLoadingForRow,
+  canPauseLoading,
+  canReleaseDock,
+  canResumeLoading,
+  releaseDockBlockReason,
+} from "@/src/lib/dockManageActions";
 import {
   canStartLoadingForVehicleStatus,
   canStartLoadingFromReadiness,
@@ -12,6 +18,7 @@ export type DockFilter = "all" | "active" | "available" | "loading" | "delayed";
 export type DockActionId =
   | "start_loading"
   | "complete_loading"
+  | "release_dock"
   | "report_exception"
   | "pause_loading"
   | "resume_loading"
@@ -87,12 +94,14 @@ export function startLoadingBlockReason(
   return undefined;
 }
 
-export function canCompleteLoading(row: Pick<DockBoardRow, "vehicleId" | "loadingStatus" | "vehicleStatus" | "status">) {
-  if (!row.vehicleId) return false;
-  const vehicleStatus = resolveVehicleStatus(row);
-  const queueStatus = String(row.loadingStatus || "").toUpperCase();
-  return vehicleStatus === "LOADING" || queueStatus === "LOADING" || row.status === "LOADING";
+export function canCompleteLoading(
+  row: Pick<DockBoardRow, "vehicleId" | "loadingStatus" | "vehicleStatus" | "status">,
+  completeState?: { awaitingRelease?: boolean } | null,
+) {
+  return canCompleteLoadingForRow(row, completeState);
 }
+
+export { canReleaseDock } from "@/src/lib/dockManageActions";
 
 export function canReportException(row: Pick<DockBoardRow, "vehicleId" | "hasActiveAssignment">) {
   return Boolean(row.hasActiveAssignment && row.vehicleId);
@@ -102,22 +111,27 @@ export function resolveDockActions(
   row: DockBoardRow | null,
   can: (permission: string) => boolean,
   readiness?: ResourceReadiness | null,
+  pauseState?: { paused?: boolean } | null,
+  completeState?: { awaitingRelease?: boolean } | null,
 ): DockActionDef[] {
   if (!row) return [];
 
   const startEnabled =
     hasPermission(can, YMS_PERMISSIONS.LOADING_START) && canStartLoading(row, readiness);
   const completeEnabled =
-    hasPermission(can, YMS_PERMISSIONS.LOADING_COMPLETE) && canCompleteLoading(row);
+    hasPermission(can, YMS_PERMISSIONS.LOADING_COMPLETE) && canCompleteLoading(row, completeState);
+  const releaseEnabled =
+    hasPermission(can, YMS_PERMISSIONS.DOCK_WRITE) && canReleaseDock(row, completeState);
   const exceptionEnabled =
     (hasPermission(can, YMS_PERMISSIONS.LOADING_MANAGE_EXCEPTIONS) ||
       hasPermission(can, YMS_PERMISSIONS.YARD_EVENT_WRITE)) &&
     canReportException(row);
 
   const pauseEnabled =
-    hasPermission(can, YMS_PERMISSIONS.YARD_EVENT_WRITE) && canPauseLoading(row.loadingStatus);
+    hasPermission(can, YMS_PERMISSIONS.YARD_EVENT_WRITE) &&
+    canPauseLoading(row, pauseState, completeState);
   const resumeEnabled =
-    hasPermission(can, YMS_PERMISSIONS.YARD_EVENT_WRITE) && canResumeLoading(row);
+    hasPermission(can, YMS_PERMISSIONS.YARD_EVENT_WRITE) && canResumeLoading(pauseState);
 
   const statusEnabled = hasPermission(can, YMS_PERMISSIONS.DOCK_WRITE);
 
@@ -134,7 +148,18 @@ export function resolveDockActions(
       label: "Complete loading",
       variant: "primary",
       enabled: completeEnabled,
-      reason: completeEnabled ? undefined : "Start loading before completing",
+      reason: completeEnabled
+        ? undefined
+        : completeState?.awaitingRelease
+          ? "Loading already completed — release the dock when ready"
+          : "Start loading before completing",
+    },
+    {
+      id: "release_dock",
+      label: "Release dock",
+      variant: "primary",
+      enabled: releaseEnabled,
+      reason: releaseEnabled ? undefined : releaseDockBlockReason(row, completeState),
     },
     {
       id: "report_exception",

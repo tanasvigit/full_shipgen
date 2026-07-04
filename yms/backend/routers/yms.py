@@ -138,6 +138,7 @@ from services.yms_service import (
     update_dock,
     update_queue_entry,
     update_vehicle,
+    unassign_dock_from_queue,
 )
 
 
@@ -729,6 +730,15 @@ async def assign_dock_endpoint(
     _auth=Depends(require_permission(PERM_FLOW_ASSIGN_DOCK)),
 ):
     row = await assign_dock(queue_entry_id, payload.dock_id, created_by="operator")
+    return QueueEntryOut(**row)
+
+
+@router.post("/flow/queue-entries/{queue_entry_id}/unassign-dock", response_model=QueueEntryOut)
+async def unassign_dock_endpoint(
+    queue_entry_id: str,
+    _auth=Depends(require_permission(PERM_FLOW_ASSIGN_DOCK)),
+):
+    row = await unassign_dock_from_queue(queue_entry_id, created_by="operator")
     return QueueEntryOut(**row)
 
 
