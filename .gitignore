@@ -25,6 +25,7 @@ composer-auth.json
 docker/database/*
 docker/database/mysql/*
 errors/*.har
+logistics-dev-feature-dev/
 .talismanrc
 verdaccio/minio
 verdaccio/config/htpasswd
