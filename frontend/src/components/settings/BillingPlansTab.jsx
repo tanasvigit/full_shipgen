@@ -1,4 +1,4 @@
-import { PLANS } from "@/lib/subscription/plans";
+import { PLANS, planPriceLabel } from "@/lib/subscription/plans";
 import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -10,7 +10,7 @@ export default function BillingPlansTab() {
   return (
     <div className="space-y-4" data-testid="settings-billing">
       <p className="text-sm text-[#4B5563]">
-        Current plan: <strong>{plan.name}</strong> ({plan.priceLabel}). Stripe integration is not
+        Current plan: <strong>{plan.name}</strong> ({planPriceLabel(plan)}). Stripe integration is not
         connected yet — upgrades are stored locally for demo and QA.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -22,7 +22,7 @@ export default function BillingPlansTab() {
               className={`rounded-md border p-5 ${active ? "border-blue-500 bg-blue-50/50" : "border-black/[0.08] bg-white"}`}
             >
               <div className="font-semibold text-[#0A0E1A]">{p.name}</div>
-              <div className="text-lg font-mono mt-1">{p.priceLabel}</div>
+              <div className="text-lg font-mono mt-1">{planPriceLabel(p)}</div>
               <ul className="mt-4 space-y-1.5 text-xs text-[#374151]">
                 <li>{p.seats} team seats</li>
                 <li>{p.limits.ordersPerMonth === Infinity ? "Unlimited" : p.limits.ordersPerMonth} orders/mo</li>

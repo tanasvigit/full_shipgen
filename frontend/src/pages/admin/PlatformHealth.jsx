@@ -2,7 +2,7 @@ import PageHeader from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useDemoMode } from "@/contexts/DemoModeContext";
-import { PLANS } from "@/lib/subscription/plans";
+import { PLANS, planPriceLabel } from "@/lib/subscription/plans";
 import { RefreshCw } from "lucide-react";
 
 function StatusDot({ ok }) {
@@ -108,7 +108,7 @@ export default function PlatformHealth() {
             {Object.values(PLANS).map((p) => (
               <div key={p.id} className="border border-black/[0.06] rounded p-3">
                 <div className="font-medium text-sm">{p.name}</div>
-                <div className="text-xs text-[#6B7280]">{p.priceLabel}</div>
+                <div className="text-xs text-[#6B7280]">{planPriceLabel(p)}</div>
                 <div className="text-xs mt-2 text-[#374151]">{p.seats} seats</div>
               </div>
             ))}

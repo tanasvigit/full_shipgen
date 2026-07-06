@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
@@ -237,16 +238,28 @@ export default function TelematicsSetupWizard({ open, onOpenChange, onComplete }
                   {field.label || field.name}
                   {field.required ? " *" : ""}
                 </Label>
-                <Input
-                  id={`telematics-cred-${field.name}`}
-                  type={field.type === "password" ? "password" : "text"}
-                  placeholder={field.placeholder || ""}
-                  value={credentialFields[field.name] ?? ""}
-                  onChange={(e) =>
-                    setCredentialFields((prev) => ({ ...prev, [field.name]: e.target.value }))
-                  }
-                  data-testid={`telematics-wizard-cred-${field.name}`}
-                />
+                {field.type === "password" ? (
+                  <PasswordInput
+                    id={`telematics-cred-${field.name}`}
+                    placeholder={field.placeholder || ""}
+                    value={credentialFields[field.name] ?? ""}
+                    onChange={(e) =>
+                      setCredentialFields((prev) => ({ ...prev, [field.name]: e.target.value }))
+                    }
+                    data-testid={`telematics-wizard-cred-${field.name}`}
+                  />
+                ) : (
+                  <Input
+                    id={`telematics-cred-${field.name}`}
+                    type="text"
+                    placeholder={field.placeholder || ""}
+                    value={credentialFields[field.name] ?? ""}
+                    onChange={(e) =>
+                      setCredentialFields((prev) => ({ ...prev, [field.name]: e.target.value }))
+                    }
+                    data-testid={`telematics-wizard-cred-${field.name}`}
+                  />
+                )}
               </div>
             ))}
             {!selectedProvider?.required_fields?.length ? (

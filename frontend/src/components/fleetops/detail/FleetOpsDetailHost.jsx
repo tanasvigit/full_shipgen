@@ -3,12 +3,13 @@ import { ensureFleetopsEditPortal } from "@/components/fleetops/detail/fleetopsE
 import { useSearchParams } from "react-router-dom";
 import EntityDetailDrawer from "@/components/fleetops/detail/EntityDetailDrawer";
 import DetailUnsavedDialog from "@/components/fleetops/detail/DetailUnsavedDialog";
+import { PageLoader } from "@/components/loaders";
 import { useActiveFleetopsDetail } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import {
   FleetopsDetailDirtyProvider,
   useFleetopsDetailDirty,
 } from "@/hooks/fleetops/useFleetopsDetailDirty";
-import { PageLoader } from "@/components/loaders";
+import { FLEETOPS_DETAIL_DRAWER_WIDTH } from "@/domain/fleetops/detail/registry";
 
 const DETAIL_VIEWS = {
   driver: lazy(() => import("@/pages/fleetops/DriverDetail")),
@@ -104,8 +105,8 @@ function FleetOpsDetailHostInner() {
         open={Boolean(entityId && config)}
         onOpenChange={handleOpenChange}
         suspended={detailEditOpen}
-        width={config?.width ?? 720}
-        large={config?.large}
+        width={config?.width ?? FLEETOPS_DETAIL_DRAWER_WIDTH}
+        large={false}
         testId={config?.testId || "entity-detail-drawer"}
         accessibilityTitle={config?.label ? `${config.label} details` : "FleetOps detail"}
         dirty={isDirty}

@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import MapView from "@/components/common/MapView";
 import DataTable from "@/components/common/DataTable";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
-import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { Button } from "@/components/ui/button";
 import { fleetopsService } from "@/services/fleetops";
@@ -335,39 +334,40 @@ export default function RouteDetail({
     },
   ];
 
-  const drawerBody = (
-    <>
-      <DetailDrawerHeader
-        overline="Route"
-        title={routeTitle}
-        publicId={route?.public_id || route?.uuid || id}
-        status={routeStatus}
-        actions={headerActions}
-      />
-      <DetailDrawerTabs
-        value={activeTabProp || "map"}
-        onValueChange={onTabChange}
-        tabs={tabs}
-      />
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete route?</AlertDialogTitle>
-            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-
   if (embedded) {
-    return <div data-testid="route-detail-page">{drawerBody}</div>;
+    return (
+      <FleetopsDetailDrawerPage
+        testId="route-detail-page"
+        headerProps={{
+          overline: "Route",
+          title: routeTitle,
+          publicId: route?.public_id || route?.uuid || id,
+          status: routeStatus,
+          actions: headerActions,
+        }}
+        tabs={{
+          value: activeTabProp || "map",
+          onValueChange: onTabChange,
+          tabs,
+        }}
+        footer={
+          <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete route?</AlertDialogTitle>
+                <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        }
+      />
+    );
   }
 
   return (

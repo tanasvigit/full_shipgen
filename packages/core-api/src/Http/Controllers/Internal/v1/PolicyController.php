@@ -3,10 +3,14 @@
 namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
+use Fleetbase\Exports\PolicyExport;
 use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Models\Permission;
 use Fleetbase\Models\Policy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PolicyController extends FleetbaseController
 {
@@ -91,5 +95,19 @@ class PolicyController extends FleetbaseController
         $policy->delete();
 
         return response()->json(['status' => 'OK', 'message' => 'Policy deleted.']);
+    }
+
+    /**
+     * Export policies to excel or csv.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function export(ExportRequest $request)
+    {
+        $format     = $request->input('format', 'xlsx');
+        $selections = $request->array('selections');
+        $fileName   = trim(Str::slug('policies-' . date('Y-m-d-H:i')) . '.' . $format);
+
+        return Excel::download(new PolicyExport($selections), $fileName);
     }
 }

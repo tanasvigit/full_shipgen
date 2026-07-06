@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Activity, Package, Plus, MapPin, Radio, Zap } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { fleetopsService } from "@/services/fleetops";
+import { formatMoney } from "@/lib/formatMoney";
 import { mapDriver, mapOrder, statusLabel } from "@/lib/mappers";
 import { toast } from "sonner";
 import PageLoaderOverlay from "@/components/loaders/overlays/PageLoaderOverlay";
@@ -385,7 +386,7 @@ export default function Dashboard() {
                     <td className="px-5 py-3.5">
                       <StatusBadge status={o.status} label={statusLabel(o.status)} />
                     </td>
-                    <td className="px-5 py-3.5 font-mono text-[13px] tabular text-right text-[#0A0E1A]">₹{Number(o.total || 0).toFixed(2)}</td>
+                    <td className="px-5 py-3.5 font-mono text-[13px] tabular text-right text-[#0A0E1A]">{formatMoney(o.total || 0)}</td>
                   </tr>
                 ))}
               </tbody>

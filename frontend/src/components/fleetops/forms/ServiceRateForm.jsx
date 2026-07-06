@@ -1,10 +1,13 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useFormHandle } from "@/components/fleetops/forms/formUtils";
 import { serviceRateValuesFromApi } from "@/lib/fleetops/serviceRatePayloads";
+import { useTenant } from "@/contexts/TenantContext";
+import { getCurrencyOptions, getTenantCurrency } from "@/lib/tenant/locale";
 
 const CALC_METHODS = [
   { value: "fixed_rate", label: "Fixed rate" },
@@ -21,13 +24,22 @@ const defaults = {
   rateCalculationMethod: "fixed_rate",
   perDistanceFee: "",
   perDistanceUnit: "km",
-  currency: "INR",
+  currency: getTenantCurrency(),
 };
 
 export { serviceRateValuesFromApi };
 
 const ServiceRateForm = forwardRef(function ServiceRateForm({ formId, initialValues }, ref) {
-  const methods = useForm({ defaultValues: { ...defaults, ...initialValues } });
+  const { preferences } = useTenant();
+  const currencyOptions = useMemo(() => getCurrencyOptions(), []);
+  const isEdit = Boolean(initialValues?.publicId || initialValues?.name || initialValues?.baseFee);
+  const methods = useForm({
+    defaultValues: {
+      ...defaults,
+      currency: isEdit ? "" : preferences?.currency || getTenantCurrency(),
+      ...initialValues,
+    },
+  });
   const { register, watch, setValue } = methods;
   const rateCalculationMethod = watch("rateCalculationMethod");
 
@@ -80,7 +92,13 @@ const ServiceRateForm = forwardRef(function ServiceRateForm({ formId, initialVal
         </div>
         <div>
           <Label>Currency</Label>
-          <Input {...register("currency")} maxLength={3} />
+          <SearchableSelect
+            value={watch("currency") || ""}
+            onValueChange={(v) => setValue("currency", v, { shouldDirty: true })}
+            options={currencyOptions}
+            placeholder="Select currency"
+            data-testid="service-rate-currency"
+          />
         </div>
       </div>
       {rateCalculationMethod === "per_meter" && (

@@ -13,7 +13,6 @@ import {
     Check,
     ShoppingBag,
     Receipt,
-    IndianRupee,
     Code2,
     Boxes,
     Blocks,
@@ -34,12 +33,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PORTAL_NAME } from "@/lib/branding";
 import { getHeaderEngines } from "@/lib/engineAccess";
 import { useEngineAccessContext, isDashboardPathActive, useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
+import CurrencyNavIcon from "@/components/ui/currency-nav-icon";
 
 const engineIcons = {
     console: LayoutGrid,
     "fleet-ops": Truck,
     storefront: ShoppingBag,
-    ledger: IndianRupee,
     pallet: Boxes,
     yard: Warehouse,
     parking: Car,
@@ -115,7 +114,11 @@ export default function Header({ onOpenPalette }) {
                                 data-active={active ? "true" : "false"}
                                 className="engine-pill engine-pill--compact shrink-0"
                             >
-                                <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                                {e.iconKey === "ledger" ? (
+                                    <CurrencyNavIcon className="h-3.5 w-3.5" />
+                                ) : (
+                                    <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                                )}
                                 <span className="hidden lg:inline">{e.label}</span>
                             </Link>
                         );
@@ -205,8 +208,8 @@ export default function Header({ onOpenPalette }) {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button data-testid="user-menu-trigger" className="flex shrink-0 items-center gap-1 h-8 rounded-lg border border-transparent pl-0.5 pr-1.5 hover:border-black/[0.08] hover:bg-black/[0.04] transition-all">
-                                <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ring-1 ring-inset ring-white/20 ${user?.avatarColor || "bg-blue-600"}`}>
-                                    <span className="text-[10px] font-bold font-mono">{user?.avatarInitials || "U"}</span>
+                                <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ring-1 ring-inset ring-white/20 text-white ${user?.avatarColor || "bg-blue-600"}`}>
+                                    <span className="text-[10px] font-bold font-mono text-white">{user?.avatarInitials || "U"}</span>
                                 </div>
                                 <ChevronDown className="hidden h-3 w-3 shrink-0 text-[#4B5563] sm:block" strokeWidth={2} />
                             </button>

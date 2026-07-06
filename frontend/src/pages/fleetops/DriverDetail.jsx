@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import HealthBanner from "@/components/fleetops/health/HealthBanner";
 import { evaluateDriverCompliance } from "@/domain/fleetops/compliance/evaluateCompliance";
 import { useFleetopsWarnings } from "@/hooks/fleetops/useFleetopsWarnings";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import DetailDrawerLayout from "@/components/fleetops/detail/DetailDrawerLayout";
 import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
@@ -272,45 +272,84 @@ export default function DriverDetail({
     ...extensionTabs,
   ];
 
-  const drawerBody = (
-    <>
-      <DetailDrawerHeader
-        overline="Driver"
-        title={d.name}
-        publicId={d.publicId}
-        status={d.status}
-        statusLabel={statusLabel(d.status)}
-        healthIssues={complianceIssues}
-        lastUpdated={lastUpdated}
-        badges={
-          <>
-            {hosStatus && (
-              <StatusBadge
-                status={hosStatus.status || hosStatus.duty_status || "unknown"}
-                label={`HOS: ${hosStatus.status || hosStatus.duty_status || "—"}`}
+  if (embedded) {
+    return (
+      <FleetopsDetailDrawerPage
+        testId="driver-detail-page"
+        headerProps={{
+          overline: "Driver",
+          title: d.name,
+          publicId: d.publicId,
+          status: d.status,
+          statusLabel: statusLabel(d.status),
+          healthIssues: complianceIssues,
+          lastUpdated,
+          badges: (
+            <>
+              {hosStatus && (
+                <StatusBadge
+                  status={hosStatus.status || hosStatus.duty_status || "unknown"}
+                  label={`HOS: ${hosStatus.status || hosStatus.duty_status || "—"}`}
+                />
+              )}
+              {activeShift && (
+                <span className="text-xs font-mono text-[#374151]" data-testid="driver-active-shift-header">
+                  On shift
+                </span>
+              )}
+            </>
+          ),
+          onEdit: editDialog.openEdit,
+          editTestId: "driver-edit",
+        }}
+        tabs={{
+          value: tabValue,
+          onValueChange: handleTabChange,
+          tabs,
+        }}
+        footer={wrapDetailEditDialog(
+          embedded,
+          editDialog.open,
+          <FleetOpsFormDialog
+            detached={embedded}
+            open={editDialog.open}
+            onOpenChange={editDialog.setOpen}
+            title="Edit driver"
+            description="Updates driver profile, license, assignment, and routing constraints."
+            submitLabel="Save changes"
+            busy={editDialog.busy}
+            error={editDialog.error}
+            onSubmit={editDialog.handleSubmit}
+            testId="edit-driver-dialog"
+            size="xl"
+          >
+            {editDialog.open && (
+              <DriverForm
+                key={`driver-edit-${id}`}
+                ref={formRef}
+                formId="driver-edit-form"
+                initialValues={driverValuesFromApi(driverApi)}
+                vehicleOptions={lookups.vehicles}
+                vendorOptions={lookups.facilitators}
               />
             )}
-            {activeShift && (
-              <span className="text-xs font-mono text-[#374151]" data-testid="driver-active-shift-header">
-                On shift
-              </span>
-            )}
-          </>
-        }
-        onEdit={embedded ? editDialog.openEdit : () => editDialog.setOpen(true)}
-        editTestId="driver-edit"
-      />
-      <div className="px-4 pb-2">
-        {!embedded && (
-          <HealthBanner issues={complianceIssues} warnings={warnings} testId="driver-health-banner" />
+          </FleetOpsFormDialog>,
         )}
+      />
+    );
+  }
+
+  const drawerBody = (
+    <>
+      <div className="px-4 pb-2">
+        <HealthBanner issues={complianceIssues} warnings={warnings} testId="driver-health-banner" />
       </div>
       <DetailDrawerTabs value={tabValue} onValueChange={handleTabChange} tabs={tabs} />
       {wrapDetailEditDialog(
-        embedded,
+        false,
         editDialog.open,
         <FleetOpsFormDialog
-          detached={embedded}
+          detached={false}
           open={editDialog.open}
           onOpenChange={editDialog.setOpen}
           title="Edit driver"
@@ -336,10 +375,6 @@ export default function DriverDetail({
       )}
     </>
   );
-
-  if (embedded) {
-    return <div data-testid="driver-detail-page">{drawerBody}</div>;
-  }
 
   return (
     <div data-testid="driver-detail-page">

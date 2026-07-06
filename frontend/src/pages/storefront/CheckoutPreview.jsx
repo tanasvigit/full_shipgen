@@ -7,6 +7,7 @@ import { Minus, Plus, CreditCard, Truck, Trash2, ShoppingCart, CheckCircle2, Pac
 import { storefrontService } from "@/services/storefront";
 import { mapCart, mapProduct } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 
@@ -121,7 +122,7 @@ export default function CheckoutPreview() {
   }
 
   const displayLines = cart?.items?.length ? cart.items : lines;
-  const currency = cart?.currency || lines[0]?.currency || products[0]?.currency || "INR";
+  const currency = cart?.currency || lines[0]?.currency || products[0]?.currency || getTenantCurrency();
   const subtotal = cart?.subtotal ?? lines.reduce((s, l) => s + l.price * l.qty, 0);
 
   return (

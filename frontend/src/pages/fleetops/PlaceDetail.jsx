@@ -4,8 +4,7 @@ import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawe
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import PageHeader from "@/components/common/PageHeader";
 import MapView from "@/components/common/MapView";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
-import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import PlaceOrdersTab from "@/components/fleetops/detail/tabs/place/PlaceOrdersTab";
 import PlaceActivityTab from "@/components/fleetops/detail/tabs/place/PlaceActivityTab";
 import PlaceCommentsTab from "@/components/fleetops/detail/tabs/place/PlaceCommentsTab";
@@ -157,16 +156,113 @@ export default function PlaceDetail({
     </aside>
   );
 
-  const drawerBody = embedded ? (
-    <>
-      <DetailDrawerHeader
-        overline={`Place · ${String(p.type || "").replace(/_/g, " ")}`}
-        title={p.name}
-        publicId={p.publicId}
-        onEdit={embedded ? editDialog.openEdit : () => editDialog.setOpen(true)}
-        editTestId="place-edit"
-        actions={
-          canDelete
+  const placeTabs = [
+    {
+      id: "overview",
+      label: "Overview",
+      content: (
+        <div className="p-4 grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-4">
+          {mapBlock}
+          {sidebar}
+        </div>
+      ),
+    },
+    { id: "map", label: "Map", content: <div className="p-4">{mapBlock}</div> },
+    {
+      id: "orders",
+      label: "Orders",
+      content: <PlaceOrdersTab placeId={id} enabled={tabActive("orders")} />,
+    },
+    {
+      id: "contacts",
+      label: "Contacts",
+      content: (
+        <div className="p-4 text-sm text-[#374151] bg-white border border-black/[0.08] rounded-md m-4">
+          Contact: {p.phone || "—"} · Linked vendors load from place relationships when configured.
+        </div>
+      ),
+    },
+    {
+      id: "comments",
+      label: "Comments",
+      content: <PlaceCommentsTab placeId={id} enabled={tabActive("comments")} />,
+    },
+    {
+      id: "documents",
+      label: "Documents",
+      content: <PlaceDocumentsTab placeId={id} enabled={tabActive("documents")} />,
+    },
+    {
+      id: "rules",
+      label: "Rules",
+      content: <PlaceRulesTab placeId={id} enabled={tabActive("rules")} />,
+    },
+    {
+      id: "activity",
+      label: "Activity",
+      content: <PlaceActivityTab placeId={id} enabled={tabActive("activity")} />,
+    },
+  ];
+
+  const placeEditDialog = wrapDetailEditDialog(
+    embedded,
+    editDialog.open,
+    <FleetOpsFormDialog
+      detached={embedded}
+      open={editDialog.open}
+      onOpenChange={editDialog.setOpen}
+      title="Edit place"
+      description="Updates address, hours, dock code, and coordinates."
+      submitLabel="Save changes"
+      busy={editDialog.busy}
+      error={editDialog.error}
+      onSubmit={editDialog.handleSubmit}
+      testId="edit-place-dialog"
+      size="lg"
+    >
+      {editDialog.open && (
+        <PlaceForm key={`place-edit-${id}`} ref={formRef} formId="place-edit-form" initialValues={placeValuesFromApi(placeApi)} />
+      )}
+    </FleetOpsFormDialog>,
+  );
+
+  const placeDeleteDialog = (
+    <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && !deleteBusy && setDeleteOpen(open)}>
+      <AlertDialogContent data-testid="place-delete-dialog">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete place?</AlertDialogTitle>
+          <AlertDialogDescription>
+            <span className="font-medium text-[#1F2937]">{p.name}</span> will be removed. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 hover:bg-red-700"
+            disabled={deleteBusy}
+            onClick={(e) => {
+              e.preventDefault();
+              void handleDelete();
+            }}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  if (embedded) {
+    return (
+      <FleetopsDetailDrawerPage
+        testId="place-detail-page"
+        headerProps={{
+          overline: `Place · ${String(p.type || "").replace(/_/g, " ")}`,
+          title: p.name,
+          publicId: p.publicId,
+          onEdit: editDialog.openEdit,
+          editTestId: "place-edit",
+          actions: canDelete
             ? [
                 {
                   id: "delete",
@@ -176,109 +272,21 @@ export default function PlaceDetail({
                   icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
                 },
               ]
-            : []
+            : [],
+        }}
+        tabs={{
+          value: activeTabProp || "overview",
+          onValueChange: onTabChange,
+          tabs: placeTabs,
+        }}
+        footer={
+          <>
+            {placeEditDialog}
+            {placeDeleteDialog}
+          </>
         }
       />
-      <DetailDrawerTabs
-        value={activeTabProp || "overview"}
-        onValueChange={onTabChange}
-        tabs={[
-          {
-            id: "overview",
-            label: "Overview",
-            content: (
-              <div className="p-4 grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-4">
-                {mapBlock}
-                {sidebar}
-              </div>
-            ),
-          },
-          { id: "map", label: "Map", content: <div className="p-4">{mapBlock}</div> },
-          {
-            id: "orders",
-            label: "Orders",
-            content: <PlaceOrdersTab placeId={id} enabled={tabActive("orders")} />,
-          },
-          {
-            id: "contacts",
-            label: "Contacts",
-            content: (
-              <div className="p-4 text-sm text-[#374151] bg-white border border-black/[0.08] rounded-md m-4">
-                Contact: {p.phone || "—"} · Linked vendors load from place relationships when configured.
-              </div>
-            ),
-          },
-          {
-            id: "comments",
-            label: "Comments",
-            content: <PlaceCommentsTab placeId={id} enabled={tabActive("comments")} />,
-          },
-          {
-            id: "documents",
-            label: "Documents",
-            content: <PlaceDocumentsTab placeId={id} enabled={tabActive("documents")} />,
-          },
-          {
-            id: "rules",
-            label: "Rules",
-            content: <PlaceRulesTab placeId={id} enabled={tabActive("rules")} />,
-          },
-          {
-            id: "activity",
-            label: "Activity",
-            content: <PlaceActivityTab placeId={id} enabled={tabActive("activity")} />,
-          },
-        ]}
-      />
-      {wrapDetailEditDialog(
-        embedded,
-        editDialog.open,
-        <FleetOpsFormDialog
-          detached={embedded}
-          open={editDialog.open}
-          onOpenChange={editDialog.setOpen}
-          title="Edit place"
-          description="Updates address, hours, dock code, and coordinates."
-          submitLabel="Save changes"
-          busy={editDialog.busy}
-          error={editDialog.error}
-          onSubmit={editDialog.handleSubmit}
-          testId="edit-place-dialog"
-          size="lg"
-        >
-          {editDialog.open && (
-            <PlaceForm key={`place-edit-${id}`} ref={formRef} formId="place-edit-form" initialValues={placeValuesFromApi(placeApi)} />
-          )}
-        </FleetOpsFormDialog>,
-      )}
-      <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && !deleteBusy && setDeleteOpen(open)}>
-        <AlertDialogContent data-testid="place-delete-dialog">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete place?</AlertDialogTitle>
-            <AlertDialogDescription>
-              <span className="font-medium text-[#1F2937]">{p.name}</span> will be removed. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteBusy}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteBusy}
-              onClick={(e) => {
-                e.preventDefault();
-                void handleDelete();
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  ) : null;
-
-  if (embedded) {
-    return <div data-testid="place-detail-page">{drawerBody}</div>;
+    );
   }
 
   return (

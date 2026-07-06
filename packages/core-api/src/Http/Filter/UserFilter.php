@@ -2,6 +2,8 @@
 
 namespace Fleetbase\Http\Filter;
 
+use Illuminate\Support\Facades\Schema;
+
 class UserFilter extends Filter
 {
     public function queryForInternal()
@@ -46,6 +48,47 @@ class UserFilter extends Filter
     public function isUser()
     {
         $this->builder->whereIn('type', ['user', 'admin']);
+    }
+
+    /** Filter driver accounts (IAM type or FleetOps driver profile in this company). */
+    public function isDriver($value = null)
+    {
+        if (!$this->acceptsTruthyFilter($value)) {
+            return;
+        }
+
+        $companyUuid = $this->session->get('company');
+
+        $this->builder->where(function ($query) use ($companyUuid) {
+            $query->where('type', 'driver');
+
+            if (Schema::hasTable('drivers')) {
+                $query->orWhereExists(function ($sub) use ($companyUuid) {
+                    $sub->selectRaw(1)
+                        ->from('drivers')
+                        ->whereColumn('drivers.user_uuid', 'users.uuid')
+                        ->whereNull('drivers.deleted_at');
+                    if ($companyUuid) {
+                        $sub->where('drivers.company_uuid', $companyUuid);
+                    }
+                });
+            }
+        });
+    }
+
+    /** Filter customer accounts. */
+    public function isCustomer($value = null)
+    {
+        if (!$this->acceptsTruthyFilter($value)) {
+            return;
+        }
+
+        $this->builder->where('type', 'customer');
+    }
+
+    private function acceptsTruthyFilter($value): bool
+    {
+        return !($value === null || $value === '' || $value === false || $value === 0 || $value === '0');
     }
 
     public function query(?string $query)

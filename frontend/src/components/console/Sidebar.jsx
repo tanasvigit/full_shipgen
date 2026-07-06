@@ -61,7 +61,6 @@ import {
     Sparkles,
     AlertTriangle,
     DollarSign,
-    IndianRupee,
     ParkingCircle,
     QrCode,
     Ticket,
@@ -79,8 +78,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useYardPermissions } from "@/hooks/useYardPermissions";
 import { useParkingPermissions } from "@/hooks/useParkingPermissions";
 import { filterSidebarGroups } from "@/lib/sidebarAccess";
-import { isSettingsConsolePath } from "@/lib/settingsNavigation";
+import { isSettingsConsolePath, isSettingsModulePath } from "@/lib/settingsNavigation";
 import { useEngineAccessContext, isDashboardPathActive, useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
+import SettingsModuleBackLink from "@/components/console/SettingsModuleBackLink";
+import CurrencyNavIcon from "@/components/ui/currency-nav-icon";
 
 const sections = {
     "/": [
@@ -99,7 +100,7 @@ const sections = {
                 { to: "/fleet-ops/operations/orders", label: "Orders", icon: Package },
                 { to: "/fleet-ops/operations/routes", label: "Routes", icon: Route },
                 { to: "/fleet-ops/operations/schedule", label: "Schedule", icon: CalendarClock },
-                { to: "/fleet-ops/operations/service-rates", label: "Service rates", icon: IndianRupee },
+                { to: "/fleet-ops/operations/service-rates", label: "Service rates", currencyIcon: true },
                 { to: "/fleet-ops/operations/orchestrator", label: "Orchestrator", icon: Workflow },
                 { to: "/fleet-ops/operations/order-config", label: "Order config", icon: SettingsIcon },
             ],
@@ -146,7 +147,7 @@ const sections = {
                 { to: "/fleet-ops/admin/payloads", label: "Payloads", icon: PackageOpen },
                 { to: "/fleet-ops/admin/entities", label: "Entities", icon: Boxes },
                 { to: "/fleet-ops/admin/proofs", label: "Proofs", icon: BadgeCheck },
-                { to: "/fleet-ops/admin/purchase-rates", label: "Purchase rates", icon: Receipt },
+                { to: "/fleet-ops/admin/purchase-rates", label: "Purchase rates", currencyIcon: true },
                 { to: "/fleet-ops/admin/tracking-numbers", label: "Tracking numbers", icon: Hash },
                 { to: "/fleet-ops/admin/tracking-statuses", label: "Tracking statuses", icon: ListChecks },
             ],
@@ -468,6 +469,11 @@ export default function Sidebar() {
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#0066FF]/40 to-transparent" />
             <div className="px-5 py-5 border-b border-black/[0.06] relative overflow-hidden">
                 <div className={`absolute -top-8 -right-8 h-24 w-24 rounded-full bg-gradient-to-br ${section.accent} opacity-[0.18] blur-2xl`} />
+                {isSettingsModulePath(location.pathname) ? (
+                    <div className="relative mb-4">
+                        <SettingsModuleBackLink fullWidth />
+                    </div>
+                ) : null}
                 <div className="overline relative">{section.subtitle}</div>
                 <div className="font-display text-[22px] font-black tracking-[-0.04em] mt-1 relative text-[#0A0E1A]">{section.title}</div>
             </div>
@@ -497,7 +503,13 @@ export default function Sidebar() {
                                         {active && (
                                             <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-[#0066FF] shadow-[0_0_8px_rgba(0,102,255,0.5)]" />
                                         )}
-                                        <Icon className={`h-4 w-4 transition-colors ${active ? "text-[#0066FF]" : "text-[#4B5563] group-hover:text-[#0A0E1A]"}`} strokeWidth={1.75} />
+                                        {item.currencyIcon ? (
+                                            <CurrencyNavIcon
+                                                className={`transition-colors ${active ? "text-[#0066FF]" : "text-[#4B5563] group-hover:text-[#0A0E1A]"}`}
+                                            />
+                                        ) : (
+                                            <Icon className={`h-4 w-4 transition-colors ${active ? "text-[#0066FF]" : "text-[#4B5563] group-hover:text-[#0A0E1A]"}`} strokeWidth={1.75} />
+                                        )}
                                         <span className="flex-1 tracking-[-0.005em] font-medium">{item.label}</span>
                                         {item.badge && (
                                             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${

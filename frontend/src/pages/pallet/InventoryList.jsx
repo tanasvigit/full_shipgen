@@ -6,6 +6,7 @@ import QuickCreateDialog from "@/components/common/QuickCreateDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle, Download, PackageOpen } from "lucide-react";
 import { palletService } from "@/services/pallet";
+import { formatMoney } from "@/lib/formatMoney";
 import { parseApiError } from "@/lib/errors";
 import {
   aggregateInventoryBySku,
@@ -116,7 +117,7 @@ export default function InventoryList() {
       ),
     },
     { key: "threshold", header: "Min qty", render: (r) => <span className="font-mono text-xs text-[#374151]">{r.threshold}</span> },
-    { key: "cost", header: "Unit cost", sortable: true, render: (r) => <span className="font-mono tabular text-sm">₹{r.cost.toFixed(2)}</span> },
+    { key: "cost", header: "Unit cost", sortable: true, render: (r) => <span className="font-mono tabular text-sm">{formatMoney(r.cost)}</span> },
     {
       key: "lastReceived",
       header: "Updated",

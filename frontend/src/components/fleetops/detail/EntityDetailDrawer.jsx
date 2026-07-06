@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FLEETOPS_DETAIL_DRAWER_WIDTH } from "@/domain/fleetops/detail/registry";
 import { isDetailEditGuarded } from "@/hooks/fleetops/useFleetopsDetailDirty";
 import { isGooglePlacesDropdownEvent } from "@/lib/maps/placesAutocompleteDom";
 
@@ -13,7 +14,7 @@ export default function EntityDetailDrawer({
   open,
   onOpenChange,
   suspended = false,
-  width = 720,
+  width = FLEETOPS_DETAIL_DRAWER_WIDTH,
   large = false,
   testId = "entity-detail-drawer",
   accessibilityTitle = "FleetOps detail",

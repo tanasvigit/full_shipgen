@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useFleetopsSettings } from "@/hooks/fleetops/useFleetopsSettings";
 import { fleetopsService } from "@/services/fleetops";
 import { parseApiError } from "@/lib/errors";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 
 export default function PaymentsSettingsPage() {
   const { value, loading, save } = useFleetopsSettings("payments");
@@ -71,7 +72,7 @@ export default function PaymentsSettingsPage() {
         <div className="space-y-1.5">
           <Label>Currency</Label>
           <Input
-            value={form.currency || "INR"}
+            value={form.currency || getTenantCurrency()}
             onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
             data-testid="fleetops-settings-payments-currency"
           />

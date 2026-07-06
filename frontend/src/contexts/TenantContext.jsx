@@ -11,6 +11,7 @@ import {
   saveOnboardingState,
   savePreferences,
 } from "@/lib/tenant/storage";
+import { syncTenantLocalePrefs } from "@/lib/tenant/locale";
 import { DEFAULT_PLAN_ID, resolvePlan } from "@/lib/subscription/plans";
 import { fleetopsService } from "@/services/fleetops";
 import { PORTAL_TITLE } from "@/lib/branding";
@@ -22,13 +23,19 @@ export function TenantProvider({ children }) {
   const orgId = activeOrganization?.id || activeOrganization?.uuid || "default";
 
   const [branding, setBrandingState] = useState(() => loadBranding(orgId));
-  const [preferences, setPreferencesState] = useState(() => loadPreferences(orgId));
+  const [preferences, setPreferencesState] = useState(() => {
+    const prefs = loadPreferences(orgId);
+    syncTenantLocalePrefs(prefs);
+    return prefs;
+  });
   const [onboarding, setOnboardingState] = useState(() => loadOnboardingState(orgId));
 
   useEffect(() => {
     let active = true;
     const localBranding = loadBranding(orgId);
-    setPreferencesState(loadPreferences(orgId));
+    const localPreferences = loadPreferences(orgId);
+    syncTenantLocalePrefs(localPreferences);
+    setPreferencesState(localPreferences);
     setOnboardingState(loadOnboardingState(orgId));
     setBrandingState(localBranding);
     (async () => {
@@ -46,6 +53,10 @@ export function TenantProvider({ children }) {
       active = false;
     };
   }, [orgId]);
+
+  useEffect(() => {
+    syncTenantLocalePrefs(preferences);
+  }, [preferences.currency, preferences.timezone, preferences.locale]);
 
   useEffect(() => {
     applyTenantTheme(branding);
@@ -80,6 +91,7 @@ export function TenantProvider({ children }) {
       setPreferencesState((prev) => {
         const next = { ...prev, ...patch };
         savePreferences(orgId, next);
+        syncTenantLocalePrefs(next);
         return next;
       });
     },

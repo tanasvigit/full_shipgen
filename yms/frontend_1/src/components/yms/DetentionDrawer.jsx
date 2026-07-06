@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import detentionApi, { buildInvoicePayload, formatINR } from "../../services/detentionApi";
 import usePermissions from "../../hooks/usePermissions";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 
 export const DetentionDrawer = () => {
   const { detention, closeDetention } = useUI();
@@ -71,20 +73,22 @@ export const DetentionDrawer = () => {
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && closeDetention()}>
-      <SheetContent data-testid="detention-drawer" className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
-        <SheetHeader>
-          <SheetTitle className="font-display text-lg flex items-center gap-2">
-            <IndianRupee className="w-5 h-5" />
-            {row?.id || "Detention"}
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent data-testid="detention-drawer" hideClose className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
+        <YmsDrawerTopBar>
+          <SheetHeader className="p-0 text-left space-y-1">
+            <SheetTitle className="font-display text-lg flex items-center gap-2">
+              <IndianRupee className="w-5 h-5" />
+              {row?.id || "Detention"}
+            </SheetTitle>
+          </SheetHeader>
+        </YmsDrawerTopBar>
 
         {loading && !row ? (
-          <div className="py-12 flex justify-center text-slate-500 text-sm gap-2">
+          <div className={`${YMS_DRAWER_LOADING_CLASS} flex justify-center gap-2`}>
             <Loader2 className="w-4 h-4 animate-spin" /> Loading…
           </div>
         ) : row ? (
-          <div className="mt-4 space-y-4">
+          <YmsDrawerBody>
             <div className="flex items-center justify-between">
               <StatusPill status={row.status} />
               {row.isEstimated && (
@@ -216,9 +220,9 @@ export const DetentionDrawer = () => {
                 </ul>
               )}
             </div>
-          </div>
+          </YmsDrawerBody>
         ) : (
-          <p className="py-12 text-center text-sm text-slate-500">Record not found</p>
+          <p className={YMS_DRAWER_LOADING_CLASS}>Record not found</p>
         )}
       </SheetContent>
     </Sheet>

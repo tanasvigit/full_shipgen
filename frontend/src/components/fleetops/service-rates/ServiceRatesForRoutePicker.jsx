@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fleetopsService } from "@/services/fleetops";
 import { Label } from "@/components/ui/label";
+import { formatServiceRateMoney } from "@/lib/fleetops/serviceRatePayloads";
 
 /**
  * Load service rates applicable to a route (G011 for-route picker).
@@ -40,7 +41,9 @@ export default function ServiceRatesForRoutePicker({ routeId, value, onChange, d
         <SelectContent>
           {rates.map((r) => (
             <SelectItem key={r.uuid || r.id} value={String(r.uuid || r.id)}>
-              {r.service_name || r.serviceName || r.name || r.public_id} · {r.service_type || r.serviceType || "—"}
+              {r.service_name || r.serviceName || r.name || r.public_id}
+              {r.service_type || r.serviceType ? ` · ${r.service_type || r.serviceType}` : ""}
+              {(r.base_fee ?? r.baseFee) != null ? ` · ${formatServiceRateMoney(r)}` : ""}
             </SelectItem>
           ))}
         </SelectContent>

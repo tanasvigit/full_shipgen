@@ -3,6 +3,18 @@ import { getDetailExtensions } from "@/domain/fleetops/extensions/detailRegistry
  * FleetOps entity detail drawer registry — URLs, widths, tab contracts, extension hooks.
  */
 
+/** Canonical right-side drawer width (Orders reference layout). */
+export const FLEETOPS_DETAIL_DRAWER_WIDTH = 720;
+
+export function normalizeDetailDrawerConfig(config) {
+  if (!config) return null;
+  return {
+    ...config,
+    width: FLEETOPS_DETAIL_DRAWER_WIDTH,
+    large: false,
+  };
+}
+
 export const FLEETOPS_DETAIL_ENTITIES = {
   driver: {
     key: "driver",
@@ -54,7 +66,7 @@ export const FLEETOPS_DETAIL_ENTITIES = {
     param: "route",
     label: "Route",
     basePath: "/fleet-ops/operations/routes",
-    width: 840,
+    width: 720,
     large: false,
     testId: "route-detail-drawer",
   },
@@ -216,8 +228,8 @@ export const FLEETOPS_DETAIL_ENTITIES = {
     param: "manifest",
     label: "Manifest",
     basePath: "/fleet-ops/admin/manifests",
-    width: 960,
-    large: true,
+    width: 720,
+    large: false,
     testId: "manifest-detail-drawer",
   },
   payload: {
@@ -279,8 +291,8 @@ export const FLEETOPS_DETAIL_ENTITIES = {
     param: "serviceArea",
     label: "Service area",
     basePath: "/fleet-ops/service-areas",
-    width: 960,
-    large: true,
+    width: 720,
+    large: false,
     testId: "service-area-detail-drawer",
   },
   customField: {
@@ -295,13 +307,19 @@ export const FLEETOPS_DETAIL_ENTITIES = {
 };
 
 export function getEntityConfig(entityKey) {
-  return FLEETOPS_DETAIL_ENTITIES[entityKey] || null;
+  return normalizeDetailDrawerConfig(FLEETOPS_DETAIL_ENTITIES[entityKey] || null);
 }
 
 export function resolveEntityFromSearchParams(searchParams) {
   for (const config of Object.values(FLEETOPS_DETAIL_ENTITIES)) {
     const id = searchParams.get(config.param);
-    if (id) return { entity: config.key, entityId: id, config };
+    if (id) {
+      return {
+        entity: config.key,
+        entityId: id,
+        config: normalizeDetailDrawerConfig(config),
+      };
+    }
   }
   return { entity: null, entityId: null, config: null };
 }

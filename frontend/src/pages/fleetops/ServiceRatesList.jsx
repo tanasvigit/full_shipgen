@@ -12,11 +12,12 @@ import { fleetopsService } from "@/services/fleetops";
 import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 import { getCrudApi } from "@/lib/fleetops/crudApi";
 import {
+  formatServiceRateMoney,
+  serviceRateCurrency,
   serviceRateDisplayName,
   serviceRatePerDistanceLabel,
   serviceRateRowId,
 } from "@/lib/fleetops/serviceRatePayloads";
-import { formatMoney, normalizeDisplayCurrency } from "@/lib/formatMoney";
 import { toast } from "sonner";
 import { useFleetopsPermission } from "@/hooks/fleetops/useFleetopsPermission";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
@@ -168,7 +169,7 @@ export default function ServiceRatesList() {
       key: "base_fee",
       header: "Base fee",
       sortable: true,
-      render: (row) => formatMoney(row.base_fee ?? row.baseFee),
+      render: (row) => formatServiceRateMoney(row),
     },
     {
       key: "per_distance",
@@ -178,7 +179,7 @@ export default function ServiceRatesList() {
     {
       key: "currency",
       header: "Currency",
-      render: (row) => normalizeDisplayCurrency(row.currency),
+      render: (row) => serviceRateCurrency(row) || "—",
     },
     {
       key: "actions",

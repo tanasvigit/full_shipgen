@@ -3,10 +3,13 @@
  * Plan id can be set on organization.raw.plan or via tenant preferences override.
  */
 
+import { formatMoney } from "@/lib/formatMoney";
+
 export const PLANS = {
   starter: {
     id: "starter",
     name: "Starter",
+    monthlyPrice: 7999,
     priceLabel: "₹7,999/mo",
     seats: 3,
     limits: {
@@ -27,6 +30,7 @@ export const PLANS = {
   professional: {
     id: "professional",
     name: "Professional",
+    monthlyPrice: 24999,
     priceLabel: "₹24,999/mo",
     seats: 15,
     limits: {
@@ -72,6 +76,13 @@ export const DEFAULT_PLAN_ID = "professional";
 
 export function resolvePlan(planId) {
   return PLANS[planId] || PLANS[DEFAULT_PLAN_ID];
+}
+
+/** Tenant-aware monthly price label for billing UI. */
+export function planPriceLabel(plan) {
+  if (!plan) return "—";
+  if (plan.monthlyPrice == null) return plan.priceLabel || "Custom";
+  return `${formatMoney(plan.monthlyPrice)}/mo`;
 }
 
 export function planHasFeature(plan, featureKey) {

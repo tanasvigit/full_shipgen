@@ -38,7 +38,8 @@ export function buildUsersListApiParams(state, { listKind = "all" } = {}) {
   if (state.email?.trim()) params.email = state.email.trim();
   if (state.phone?.trim()) params.phone = state.phone.trim();
   if (listKind === "drivers") params.is_driver = 1;
-  if (listKind === "customers") params.is_customer = 1;
+  else if (listKind === "customers") params.is_customer = 1;
+  else params.is_user = 1;
   return params;
 }
 

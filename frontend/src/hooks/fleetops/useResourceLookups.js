@@ -47,7 +47,7 @@ function trackingNumberOption(row) {
 
 export function serviceQuoteOption(row) {
   const amount = row?.amount ?? row?.total;
-  const price = amount != null ? ` — ${formatMoney(amount)}` : "";
+  const price = amount != null ? ` — ${formatMoney(amount, row?.currency)}` : "";
   const opt = resourceOption(row, ["public_id", "request_id"]);
   if (!opt) return null;
   const uuid = String(row?.uuid || row?.id || opt.uuid || "");

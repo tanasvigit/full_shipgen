@@ -5,6 +5,7 @@ import Header from '../../components/layout/Header';
 import { StatusBadge } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { createUser, deleteUser, listUsers, updateUser } from '../../api/users';
+import PasswordInput from '../../components/ui/PasswordInput';
 import type { User, UserRole } from '../../types';
 
 const roleLabels: Record<UserRole, string> = {
@@ -413,12 +414,10 @@ export default function UserManagement() {
                   <label htmlFor="user-form-password" className="block text-sm font-medium text-slate-600 mb-1">
                     {modalMode === 'create' ? 'Password' : 'New Password'}
                   </label>
-                  <input
+                  <PasswordInput
                     id="user-form-password"
-                    type="password"
                     value={form.password}
                     onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder={modalMode === 'create' ? 'Set password' : 'Leave blank to keep current password'}
                     data-testid="user-form-password"
                   />

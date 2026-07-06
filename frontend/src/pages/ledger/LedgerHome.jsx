@@ -9,6 +9,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 import { ledgerService } from "@/services/ledger";
 import { mapInvoiceRow, mapLedgerTxn, statusLabelExt } from "@/lib/mappers";
 import { formatMoney, formatMoneyMinor, minorToMajor } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { formatRelativeApiTime } from "@/lib/formatRelativeApiTime";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
@@ -57,7 +58,7 @@ export default function LedgerHome() {
     load();
   }, [load]);
 
-  const currency = "INR";
+  const currency = getTenantCurrency();
 
   const kpis = useMemo(() => {
     const k = dashboard?.kpis || {};

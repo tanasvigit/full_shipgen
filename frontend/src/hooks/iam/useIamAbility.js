@@ -38,6 +38,7 @@ export function useIamAbility() {
       canCreateGroup: can("create", "group"),
       canUpdateGroup: can("update", "group"),
       canDeleteGroup: can("delete", "group"),
+      canExportGroup: can("export", "group"),
       canViewPolicy: can("view", "policy"),
       canCreatePolicy: can("create", "policy"),
       canUpdatePolicy: can("update", "policy"),

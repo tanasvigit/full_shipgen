@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Bell, Blocks, ChevronRight, Code2, HeartPulse, Rocket, ShieldCheck, User } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,21 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import BillingPlansTab from "@/components/settings/BillingPlansTab";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { apiClient } from "@/lib/api";
 import { parseApiError } from "@/lib/errors";
 import { getSettingsModuleEngines } from "@/lib/engineAccess";
 import { getSettingsConsoleLinks } from "@/lib/settingsNavigation";
 import { resolveConsoleAdmin } from "@/lib/consoleAccess";
+import { normalizeIamPhone } from "@/lib/iam/phone";
+import { settingsService } from "@/services/settings";
+import {
+  DEFAULT_TIMEZONE,
+  DISPLAY_CURRENCY,
+  getCurrencyOptions,
+  getTimezoneOptions,
+  localeForCurrency,
+} from "@/lib/tenant/locale";
 
 const MODULE_ICONS = {
   iam: ShieldCheck,
@@ -38,8 +48,13 @@ const NOTIFICATION_ITEMS = [
   { key: "dailySummary", title: "Daily summary", desc: "End-of-day operations report" },
 ];
 
+const SETTINGS_TABS = new Set(["org", "branding", "operations", "notifications", "billing", "modules"]);
+
 export default function Settings() {
-  const { activeOrganization, user, hasPermission, canFleetops, sessionScope } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab = SETTINGS_TABS.has(tabParam) ? tabParam : "org";
+  const { activeOrganization, user, hasPermission, canFleetops, sessionScope, refresh } = useAuth();
   const { branding, preferences, updateBranding, updatePreferences, tenantProfile } = useTenant();
 
   const isConsoleAdmin = useMemo(
@@ -66,13 +81,85 @@ export default function Settings() {
     [isConsoleAdmin],
   );
 
+  const currencyOptions = useMemo(() => getCurrencyOptions(), []);
+  const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
+
   const [orgName, setOrgName] = useState(activeOrganization?.name || "");
   const [contact, setContact] = useState("");
   const [description, setDescription] = useState("");
+  const [orgBusy, setOrgBusy] = useState(false);
+  const [orgError, setOrgError] = useState("");
+  const [orgLoading, setOrgLoading] = useState(false);
   const [mailboxTestBusy, setMailboxTestBusy] = useState("");
 
-  const saveOrg = () => {
-    toast.success("Organization profile saved");
+  const orgId = activeOrganization?.id || activeOrganization?.uuid;
+
+  const loadOrganization = useCallback(async () => {
+    if (!orgId) return;
+    setOrgLoading(true);
+    setOrgError("");
+    try {
+      const company = await settingsService.getCompany(orgId);
+      setOrgName(company?.name || activeOrganization?.name || "");
+      setContact(company?.phone || "");
+      setDescription(company?.description || "");
+      const patch = {};
+      patch.timezone = company?.timezone || DEFAULT_TIMEZONE;
+      patch.currency = company?.currency || DISPLAY_CURRENCY;
+      patch.locale = localeForCurrency(patch.currency);
+      updatePreferences(patch);
+    } catch (err) {
+      setOrgError(parseApiError(err, "Could not load organization profile."));
+    } finally {
+      setOrgLoading(false);
+    }
+  }, [orgId, activeOrganization?.name, updatePreferences]);
+
+  useEffect(() => {
+    void loadOrganization();
+  }, [loadOrganization]);
+
+  const saveOrg = async () => {
+    setOrgError("");
+    const trimmedName = orgName.trim();
+    if (!trimmedName) {
+      setOrgError("Organization name is required.");
+      return;
+    }
+    if (!orgId) {
+      setOrgError("No active organization selected.");
+      return;
+    }
+
+    const normalizedPhone = normalizeIamPhone(contact);
+    if (String(contact ?? "").trim() && !normalizedPhone) {
+      setOrgError("Primary contact phone must be a valid number (e.g. +15551234567).");
+      return;
+    }
+
+    setOrgBusy(true);
+    try {
+      await settingsService.updateCompany(orgId, {
+        name: trimmedName,
+        description: description.trim() || null,
+        ...(normalizedPhone ? { phone: normalizedPhone } : { phone: null }),
+        timezone: preferences.timezone || DEFAULT_TIMEZONE,
+        currency: preferences.currency || DISPLAY_CURRENCY,
+      });
+      updatePreferences({
+        timezone: preferences.timezone || DEFAULT_TIMEZONE,
+        currency: preferences.currency || DISPLAY_CURRENCY,
+        locale: localeForCurrency(preferences.currency || DISPLAY_CURRENCY),
+      });
+      await refresh();
+      toast.success("Organization profile saved");
+    } catch (err) {
+      const message = parseApiError(err, "Failed to save organization profile.");
+      setOrgError(message);
+      toast.error(message);
+    } finally {
+      setOrgBusy(false);
+    }
   };
 
   const saveBranding = () => {
@@ -88,6 +175,11 @@ export default function Settings() {
   const savePrefs = () => {
     updatePreferences(preferences);
     toast.success("Operational preferences saved");
+  };
+
+  const saveNotificationPrefs = () => {
+    updatePreferences({ notifications: preferences.notifications });
+    toast.success("Notification preferences saved");
   };
 
   const toggleNotif = (key, channel) => {
@@ -120,7 +212,10 @@ export default function Settings() {
         description="Company profile, branding, notifications, and billing for your tenant."
       />
       <div className="p-6 max-w-4xl">
-        <Tabs defaultValue="org">
+        <Tabs
+          value={activeTab}
+          onValueChange={(tab) => setSearchParams({ tab }, { replace: true })}
+        >
           <TabsList className="bg-[#F1F2F5] border border-black/[0.08] mb-5 flex-wrap h-auto">
             <TabsTrigger value="org" data-testid="settings-tab-org">
               Organization
@@ -147,7 +242,13 @@ export default function Settings() {
               <p className="text-xs text-[#6B7280]">
                 Tenant: <span className="font-mono">{tenantProfile.orgId}</span> · Plan:{" "}
                 {tenantProfile.planName}
+                {orgLoading ? " · Loading profile…" : ""}
               </p>
+              {orgError ? (
+                <p className="text-sm text-red-600" role="alert" data-testid="settings-org-error">
+                  {orgError}
+                </p>
+              ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">
@@ -175,20 +276,31 @@ export default function Settings() {
                   <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">
                     Currency
                   </Label>
-                  <Input
-                    value={preferences.currency}
-                    onChange={(e) => updatePreferences({ currency: e.target.value })}
-                    className="bg-[#F1F2F5] border-black/[0.08]"
+                  <SearchableSelect
+                    value={preferences.currency || DISPLAY_CURRENCY}
+                    onValueChange={(currency) =>
+                      updatePreferences({
+                        currency,
+                        locale: localeForCurrency(currency),
+                      })
+                    }
+                    options={currencyOptions}
+                    placeholder="Select currency"
+                    searchPlaceholder="Search currencies…"
+                    data-testid="settings-currency"
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">
                     Default timezone
                   </Label>
-                  <Input
-                    value={preferences.timezone}
-                    onChange={(e) => updatePreferences({ timezone: e.target.value })}
-                    className="bg-[#F1F2F5] border-black/[0.08]"
+                  <SearchableSelect
+                    value={preferences.timezone || DEFAULT_TIMEZONE}
+                    onValueChange={(timezone) => updatePreferences({ timezone })}
+                    options={timezoneOptions}
+                    placeholder="Select timezone"
+                    searchPlaceholder="Search timezones…"
+                    data-testid="settings-timezone"
                   />
                 </div>
               </div>
@@ -203,8 +315,13 @@ export default function Settings() {
                 />
               </div>
               <div className="flex justify-end">
-                <Button onClick={saveOrg} className="bg-blue-600 hover:bg-blue-700" data-testid="settings-save">
-                  Save changes
+                <Button
+                  onClick={() => void saveOrg()}
+                  disabled={orgBusy || orgLoading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="settings-save"
+                >
+                  {orgBusy ? "Saving…" : "Save changes"}
                 </Button>
               </div>
             </div>
@@ -348,6 +465,16 @@ export default function Settings() {
                 </div>
               );
             })}
+            <div className="flex justify-end">
+              <Button
+                onClick={saveNotificationPrefs}
+                variant="outline"
+                className="border-black/[0.08]"
+                data-testid="settings-notifications-save"
+              >
+                Save notification preferences
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="billing">

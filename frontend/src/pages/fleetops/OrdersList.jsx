@@ -6,6 +6,7 @@ import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { useOperationalIntelligence } from "@/hooks/fleetops/useOperationalIntelligence";
 import { useOrdersListShortcuts } from "@/hooks/fleetops/useOrdersListShortcuts";
 import { useOrdersListPage } from "@/hooks/fleetops/useOrdersListPage";
+import { formatMoney } from "@/lib/formatMoney";
 import { mapDriverRow, mapOrder, statusLabel } from "@/lib/mappers";
 import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtimeChannel";
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
@@ -269,7 +270,7 @@ export default function OrdersList() {
     driverId: { key: "driverId", header: "Driver", render: (row) => <span className="text-xs">{row.driverId ? String(row.driverId).slice(0, 8) : "—"}</span> },
     vehicleId: { key: "vehicleId", header: "Vehicle", render: (row) => <span className="text-xs">{row.vehicleId ? String(row.vehicleId).slice(0, 8) : "—"}</span> },
     eta: { key: "eta", header: "ETA", render: (row) => <span className="font-mono text-xs text-[#1F2937]">{row.eta}</span> },
-    total: { key: "total", header: "Total", sortable: true, render: (row) => <span className="font-mono tabular text-right">₹{Number(row.total || 0).toFixed(2)}</span>, className: "text-right" },
+    total: { key: "total", header: "Total", sortable: true, render: (row) => <span className="font-mono tabular text-right">{formatMoney(row.total || 0)}</span>, className: "text-right" },
     paymentStatus: { key: "paymentStatus", header: "Payment", render: (row) => <span className="text-xs capitalize">{row.paymentStatus || "—"}</span> },
     notes: { key: "notes", header: "Notes", render: (row) => <span className="text-xs text-[#374151] truncate max-w-[200px] inline-block">{row.notes || "—"}</span> },
   };
@@ -504,20 +505,22 @@ export default function OrdersList() {
 
         {view === "map" && (
           <div className="bg-white border border-black/[0.08] rounded-md overflow-hidden relative">
-            <OrderListMapOverlay
-              orders={filtered}
-              selectedKeys={selectedKeys}
-              onSelectedKeysChange={setSelectedKeys}
-              focusId={mapFocusId}
-              onFocusOrder={setMapFocusId}
-              canPlanRoutes={ability.canUpdateOrder || ability.isDispatcher}
-              canSchedule={ability.canUpdateOrder}
-              canAssign={ability.canAssignDriver}
-              onPlanRoute={() =>
-                navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedPlanRouteIds.join(","))}`)
-              }
-              onSchedule={() => setScheduleOpen(true)}
-            />
+            {!importOpen && !createOpen && !scheduleOpen && !orchestratorImportOpen ? (
+              <OrderListMapOverlay
+                orders={filtered}
+                selectedKeys={selectedKeys}
+                onSelectedKeysChange={setSelectedKeys}
+                focusId={mapFocusId}
+                onFocusOrder={setMapFocusId}
+                canPlanRoutes={ability.canUpdateOrder || ability.isDispatcher}
+                canSchedule={ability.canUpdateOrder}
+                canAssign={ability.canAssignDriver}
+                onPlanRoute={() =>
+                  navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(selectedPlanRouteIds.join(","))}`)
+                }
+                onSchedule={() => setScheduleOpen(true)}
+              />
+            ) : null}
             <div className="h-[min(600px,70vh)] md:h-[600px]">
               <MapView
                 markers={mapMarkers}

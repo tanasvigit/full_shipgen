@@ -1,5 +1,16 @@
 /** Console pages surfaced under Settings instead of the main console sidebar. */
 
+/** Full engines linked from Settings → Platform modules (IAM, Developers, Registry). */
+export const SETTINGS_MODULE_PREFIXES = ["/iam", "/developers", "/registry"];
+
+export const SETTINGS_MODULES_BACK_TO = "/settings?tab=modules";
+
+export function isSettingsModulePath(pathname) {
+  return SETTINGS_MODULE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export const SETTINGS_CONSOLE_LINKS = [
   {
     id: "notifications",

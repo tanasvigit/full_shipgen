@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
 import SimpleEntityForm, { valuesFromApi } from "@/components/fleetops/crud/SimpleEntityForm";
 import { useFleetopsFormDialog, useFormRef } from "@/components/fleetops/useFleetopsFormDialog";
@@ -224,15 +224,16 @@ export default function FleetopsCrudDetailPage({
 
   if (embedded) {
     return (
-      <div data-testid={`${testPrefix}-detail-page`}>
-        <DetailDrawerHeader
-          overline={config.singularLabel}
-          title={row.name}
-          publicId={row.publicId}
-          status={row.status}
-          onEdit={canUpdate && !config.readOnly ? () => editDialog.setOpen(true) : undefined}
-          editTestId={`${testPrefix}-edit`}
-          extraActions={
+      <FleetopsDetailDrawerPage
+        testId={`${testPrefix}-detail-page`}
+        headerProps={{
+          overline: config.singularLabel,
+          title: row.name,
+          publicId: row.publicId,
+          status: row.status,
+          onEdit: canUpdate && !config.readOnly ? () => editDialog.setOpen(true) : undefined,
+          editTestId: `${testPrefix}-edit`,
+          extraActions:
             canDelete && !config.readOnly ? (
               <DropdownMenuItem
                 className="text-red-600"
@@ -243,12 +244,11 @@ export default function FleetopsCrudDetailPage({
               >
                 <Trash2 className="h-4 w-4 mr-2" /> Delete
               </DropdownMenuItem>
-            ) : null
-          }
-        />
-        <div className="px-4 pb-4">{mainPanel}</div>
-        {wrapDetailEditDialog(embedded, editDialog.open, editDialogNode)}
-      </div>
+            ) : null,
+        }}
+        body={mainPanel}
+        footer={wrapDetailEditDialog(embedded, editDialog.open, editDialogNode)}
+      />
     );
   }
 

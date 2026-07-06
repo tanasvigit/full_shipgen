@@ -4,6 +4,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { useUI } from "../../contexts/UIContext";
 import StatusPill from "./StatusPill";
 import EditDockDialog from "./EditDockDialog";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 import { toast } from "sonner";
 import {
   Warehouse,
@@ -236,35 +238,37 @@ export const DockDrawer = () => {
   return (
     <>
       <Sheet open={open} onOpenChange={(o) => !o && closeDock()}>
-        <SheetContent data-testid="dock-drawer" className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
-          <SheetHeader>
-            <SheetTitle className="font-display text-lg flex items-center gap-2">
-              <Warehouse className="w-5 h-5" />
-              {row?.name || "Dock"}
-            </SheetTitle>
-            {row && (
-              <div className="flex items-center gap-2 mt-1">
-                <span className="font-mono-yms text-[11px] text-slate-500">{row.code}</span>
-                {canWriteDock && (
-                <button type="button" onClick={() => setEditOpen(true)} className="p-1 rounded border border-slate-200" title="Edit">
-                  <Pencil className="w-3 h-3" />
-                </button>
-                )}
-                {canWriteDock && (
-                <button type="button" onClick={handleDelete} className="p-1 rounded border border-red-200 text-red-700" title="Delete">
-                  <Trash2 className="w-3 h-3" />
-                </button>
-                )}
-              </div>
-            )}
-          </SheetHeader>
+        <SheetContent data-testid="dock-drawer" hideClose className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
+          <YmsDrawerTopBar>
+            <SheetHeader className="p-0 text-left space-y-1">
+              <SheetTitle className="font-display text-lg flex items-center gap-2">
+                <Warehouse className="w-5 h-5" />
+                {row?.name || "Dock"}
+              </SheetTitle>
+              {row && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono-yms text-[11px] text-slate-500">{row.code}</span>
+                  {canWriteDock && (
+                  <button type="button" onClick={() => setEditOpen(true)} className="p-1 rounded border border-slate-200" title="Edit">
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  )}
+                  {canWriteDock && (
+                  <button type="button" onClick={handleDelete} className="p-1 rounded border border-red-200 text-red-700" title="Delete">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                  )}
+                </div>
+              )}
+            </SheetHeader>
+          </YmsDrawerTopBar>
 
           {loading && !row ? (
-            <div className="py-12 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
+            <div className={`${YMS_DRAWER_LOADING_CLASS} flex items-center justify-center gap-2`}>
               <Loader2 className="w-4 h-4 animate-spin" /> Loading…
             </div>
           ) : row ? (
-            <div className="mt-4 space-y-4">
+            <YmsDrawerBody>
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <StatusPill status={row.status} />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-sm">
@@ -709,9 +713,9 @@ export const DockDrawer = () => {
                   Open vehicle / queue view
                 </button>
               )}
-            </div>
+            </YmsDrawerBody>
           ) : (
-            <div className="py-8 text-center text-sm text-slate-500">Dock not found</div>
+            <div className={`${YMS_DRAWER_LOADING_CLASS} py-8`}>Dock not found</div>
           )}
           {working && (
             <div className="fixed bottom-4 right-4 bg-slate-900 text-white text-xs px-3 py-2 rounded-md flex items-center gap-2">

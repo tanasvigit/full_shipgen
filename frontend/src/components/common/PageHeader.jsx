@@ -36,7 +36,11 @@ export default function PageHeader({ overline, title, description, actions, brea
                             <p className="text-[14px] text-[#374151] mt-2.5 max-w-2xl leading-relaxed">{description}</p>
                         )}
                     </div>
-                    {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+                    {actions && (
+                        <div className="flex flex-wrap items-center gap-2 shrink-0 max-w-full">
+                            {actions}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

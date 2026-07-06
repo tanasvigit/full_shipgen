@@ -26,6 +26,7 @@ class InviteUserRequest extends FleetbaseRequest
         return [
             'user.email' => 'required|email',
             'user.name'  => 'required',
+            'user.type'  => 'sometimes|in:user,driver,customer',
         ];
     }
 

@@ -9,6 +9,7 @@ import { useFormHandle } from "@/components/fleetops/forms/formUtils";
 import { useResourceLookups, serviceQuoteOption } from "@/hooks/fleetops/useResourceLookups";
 import { fleetopsService } from "@/services/fleetops";
 import { parseApiError } from "@/lib/errors";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { toast } from "sonner";
 import {
   buildEntityApiPayload,
@@ -134,7 +135,7 @@ export const PayloadForm = forwardRef(function PayloadForm({ formId, initialValu
           />
         </div>
         <div><Label>COD amount</Label><Input {...register("cod_amount")} data-testid="field-cod-amount" /></div>
-        <div><Label>COD currency</Label><Input {...register("cod_currency")} data-testid="field-cod-currency" placeholder="INR" maxLength={3} /></div>
+        <div><Label>COD currency</Label><Input {...register("cod_currency")} data-testid="field-cod-currency" placeholder={getTenantCurrency()} maxLength={3} /></div>
         <div>
           <Label>COD payment method</Label>
           <Select value={watch("cod_payment_method") || ""} onValueChange={(v) => setValue("cod_payment_method", v)}>

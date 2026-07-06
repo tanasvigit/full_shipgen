@@ -31,12 +31,13 @@ export const iamService = {
     return unwrapEntity(response.data, ["user"]);
   },
 
-  async inviteUser({ email, name, role_uuid }) {
+  async inviteUser({ email, name, role_uuid, type }) {
     const response = await apiClient.post("/users/invite-user", {
       user: {
         email,
         name: name || email.split("@")[0],
         role_uuid: role_uuid || undefined,
+        ...(type === "driver" || type === "customer" ? { type } : {}),
       },
     });
     return response.data;
@@ -53,6 +54,18 @@ export const iamService = {
     return unwrapEntity(response.data, ["user"]);
   },
 
+  /** Current session user — PATCH /users/me */
+  async updateOwnProfile(fields) {
+    const body =
+      fields?.user != null
+        ? fields
+        : {
+            user: fields,
+          };
+    const response = await apiClient.patch("/users/me", body);
+    return unwrapEntity(response.data, ["user"]);
+  },
+
   /** Current session user — GET /users/two-fa */
   async getTwoFactorSettings() {
     const response = await apiClient.get("/users/two-fa", { loading: false });
@@ -62,6 +75,24 @@ export const iamService = {
   /** Current session user — POST /users/two-fa */
   async saveTwoFactorSettings(twoFaSettings) {
     const response = await apiClient.post("/users/two-fa", { twoFaSettings });
+    return response.data;
+  },
+
+  /** Current session user — POST /users/validate-password */
+  async validateCurrentPassword(password) {
+    const response = await apiClient.post("/users/validate-password", {
+      password,
+      password_confirmation: password,
+    });
+    return response.data;
+  },
+
+  /** Current session user — POST /users/change-password */
+  async changeOwnPassword({ password, password_confirmation }) {
+    const response = await apiClient.post("/users/change-password", {
+      password,
+      password_confirmation,
+    });
     return response.data;
   },
 

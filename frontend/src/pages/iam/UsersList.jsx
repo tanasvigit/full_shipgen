@@ -302,7 +302,13 @@ export default function UsersList() {
         user={passwordUser}
         onSuccess={reload}
       />
-      <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} roles={roles} onInvited={() => reload()} />
+      <InviteUserDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        roles={roles}
+        userType={listKind === "drivers" ? "driver" : listKind === "customers" ? "customer" : "user"}
+        onInvited={() => reload()}
+      />
       <CreateUserDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

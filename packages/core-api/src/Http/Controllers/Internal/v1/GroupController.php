@@ -36,7 +36,10 @@ class GroupController extends FleetbaseController
     {
         try {
             $record = $this->model->createRecordFromRequest($request, null, function (&$request, &$group) {
-                $users = $request->input('group.users');
+                $users = $request->input('group.users', []);
+                if (!is_array($users)) {
+                    $users = [];
+                }
 
                 foreach ($users as $id) {
                     GroupUser::firstOrCreate([
@@ -67,11 +70,14 @@ class GroupController extends FleetbaseController
     {
         try {
             $record = $this->model->updateRecordFromRequest($request, $id, function (&$request, &$group) {
-                $users = $request->input('group.users');
+                $users = $request->input('group.users', []);
+                if (!is_array($users)) {
+                    $users = [];
+                }
 
                 // users should always be an array of user ids
                 // we will first delete all group users where id is not in this array
-                GroupUser::whereNotIn('user_uuid', $users)->delete();
+                GroupUser::where('group_uuid', $group->uuid)->whereNotIn('user_uuid', $users)->delete();
 
                 foreach ($users as $id) {
                     GroupUser::firstOrCreate([
@@ -100,9 +106,10 @@ class GroupController extends FleetbaseController
      */
     public static function export(ExportRequest $request)
     {
-        $format   = $request->input('format', 'xlsx');
-        $fileName = trim(Str::slug('groups-' . date('Y-m-d-H:i')) . '.' . $format);
+        $format     = $request->input('format', 'xlsx');
+        $selections = $request->array('selections');
+        $fileName   = trim(Str::slug('groups-' . date('Y-m-d-H:i')) . '.' . $format);
 
-        return Excel::download(new GroupExport(), $fileName);
+        return Excel::download(new GroupExport($selections), $fileName);
     }
 }

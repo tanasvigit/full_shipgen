@@ -21,6 +21,8 @@ import { fetchResourceReadiness } from "../../services/docksApi";
 import { safeDisplayValue } from "../../utils/display";
 import ymsApi from "../../services/ymsApi";
 import ResourceReadinessPanel from "./ResourceReadinessPanel";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 import usePermissions from "../../hooks/usePermissions";
 
 const SLOTS = Array.from({ length: 24 }, (_, i) => `${String(7 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 === 0 ? "00" : "30"}`).filter((s) => parseInt(s) < 20);
@@ -157,18 +159,20 @@ export const AppointmentDrawer = () => {
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && closeAppointment()}>
-      <SheetContent data-testid="appointment-drawer" className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
-        <SheetHeader>
-          <SheetTitle className="font-display text-lg flex items-center gap-2">
-            <CalendarClock className="w-5 h-5" />
-            {row?.bookingRef || "Appointment"}
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent data-testid="appointment-drawer" hideClose className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
+        <YmsDrawerTopBar>
+          <SheetHeader className="p-0 text-left space-y-1">
+            <SheetTitle className="font-display text-lg flex items-center gap-2">
+              <CalendarClock className="w-5 h-5" />
+              {row?.bookingRef || "Appointment"}
+            </SheetTitle>
+          </SheetHeader>
+        </YmsDrawerTopBar>
 
         {loading && !row ? (
-          <div className="py-12 text-center text-sm text-slate-500">Loading…</div>
+          <div className={YMS_DRAWER_LOADING_CLASS}>Loading…</div>
         ) : row ? (
-          <div className="mt-4 space-y-4">
+          <YmsDrawerBody>
             <div className="flex items-center justify-between">
               <StatusPill status={row.status} />
               <span className="font-mono-yms text-[11px] text-slate-500">{row.type}</span>
@@ -388,7 +392,7 @@ export const AppointmentDrawer = () => {
             >
               <MapPin className="w-3 h-3" /> Open vehicle / queue view
             </button>
-          </div>
+          </YmsDrawerBody>
         ) : null}
       </SheetContent>
     </Sheet>

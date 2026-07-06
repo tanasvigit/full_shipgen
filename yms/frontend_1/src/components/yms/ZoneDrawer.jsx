@@ -8,6 +8,7 @@ import {
 import yardZonesApi from "../../services/yardZonesApi";
 import { useUI } from "../../contexts/UIContext";
 import ZoneDetailBadge from "./ZoneDetailBadge";
+import YmsDrawerCloseButton from "./YmsDrawerCloseButton";
 
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
@@ -80,6 +81,7 @@ export const ZoneDrawer = ({ zoneId, open, onOpenChange, onEdit, onDeleted, rece
       <SheetContent
         data-testid="zone-drawer"
         side="right"
+        hideClose
         className="w-full sm:max-w-md p-0 overflow-y-auto thin-scroll bg-white border-l border-slate-200"
       >
         <SheetHeader className="sr-only">
@@ -87,12 +89,13 @@ export const ZoneDrawer = ({ zoneId, open, onOpenChange, onEdit, onDeleted, rece
         </SheetHeader>
 
         <div className="bg-slate-900 text-white px-5 py-5">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <ZoneDetailBadge zone={zone} size="sm" className="mx-0 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="font-display text-lg font-bold leading-tight truncate">{zone?.name || "—"}</div>
               <div className="font-mono-yms text-[11px] text-slate-400 mt-0.5">{zone?.zoneCode || "—"}</div>
             </div>
+            <YmsDrawerCloseButton onDark className="shrink-0" />
           </div>
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <StatusPill status={zone?.status || "ACTIVE"} />

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { MAP_CONTEXT_MENU_Z } from "@/lib/maps/mapUiLayers";
 
 /**
  * Map context menu for vehicle/driver markers (G078).
@@ -49,7 +50,7 @@ export default function MapMarkerContextMenu({ marker, position, onClose, onOpen
   return createPortal(
     <div
       ref={ref}
-      className="fixed z-[2000] min-w-[160px] bg-white border border-black/[0.1] rounded-md shadow-lg py-1 text-sm"
+      className={`fixed ${MAP_CONTEXT_MENU_Z} min-w-[160px] bg-white border border-black/[0.1] rounded-md shadow-lg py-1 text-sm`}
       style={{ left: position.x, top: position.y }}
       data-testid="map-marker-context-menu"
       role="menu"

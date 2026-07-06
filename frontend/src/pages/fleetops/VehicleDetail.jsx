@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
 import VehicleOrdersTab from "@/components/fleetops/detail/tabs/vehicle/VehicleOrdersTab";
@@ -10,7 +10,6 @@ import VehicleWorkOrdersTab from "@/components/fleetops/detail/tabs/vehicle/Vehi
 import VehicleMaintenanceTab from "@/components/fleetops/detail/tabs/vehicle/VehicleMaintenanceTab";
 import MapView from "@/components/common/MapView";
 import { DetailLoadingState, resolveDetailEntityId, wrapDetailEditDialog } from "@/lib/fleetops/detailEmbedded";
-import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
 import { useFormDirtyBridge } from "@/hooks/fleetops/useFormDirtyBridge";
 import StatusBadge from "@/components/common/StatusBadge";
 import FleetOpsFormDialog from "@/components/fleetops/FleetOpsFormDialog";
@@ -341,30 +340,28 @@ export default function VehicleDetail({
 
   if (embedded) {
     return (
-      <div className="min-h-0 pb-8" data-testid="vehicle-detail-page">
-        <DetailDrawerHeader
-          overline={`Vehicle · ${v.plate}`}
-          title={v.name}
-          publicId={v.publicId}
-          status={v.status}
-          statusLabel={statusLabel(v.status)}
-          healthIssues={complianceIssues}
-          onEdit={editDialog.openEdit}
-          editTestId="vehicle-edit"
-        />
-        <div className="px-4 pb-2">
-          <HealthBanner issues={complianceIssues} warnings={warnings} testId="vehicle-health-banner" />
-        </div>
-        <div className="px-4 pb-4 space-y-4">
-          {telemetryRow}
-          <DetailDrawerTabs
-            tabs={drawerTabs}
-            value={activeTabProp || "info"}
-            onValueChange={onTabChange}
-          />
-        </div>
-        {editDialogNode}
-      </div>
+      <FleetopsDetailDrawerPage
+        testId="vehicle-detail-page"
+        headerProps={{
+          overline: `Vehicle · ${v.plate}`,
+          title: v.name,
+          publicId: v.publicId,
+          status: v.status,
+          statusLabel: statusLabel(v.status),
+          healthIssues: complianceIssues,
+          onEdit: editDialog.openEdit,
+          editTestId: "vehicle-edit",
+        }}
+        banner={<HealthBanner issues={complianceIssues} warnings={warnings} testId="vehicle-health-banner" />}
+        prependTabs={telemetryRow}
+        prependTabsClassName="px-4 pb-2 space-y-4"
+        tabs={{
+          tabs: drawerTabs,
+          value: activeTabProp || "info",
+          onValueChange: onTabChange,
+        }}
+        footer={editDialogNode}
+      />
     );
   }
 

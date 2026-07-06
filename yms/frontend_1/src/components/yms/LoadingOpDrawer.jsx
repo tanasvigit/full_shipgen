@@ -15,6 +15,8 @@ import { fetchResourceReadiness } from "../../services/docksApi";
 import ResourceReadinessPanel from "./ResourceReadinessPanel";
 import { canStartLoadingFromReadiness, canStartLoadingForVehicleStatus } from "../../utils/resourceGating";
 import usePermissions from "../../hooks/usePermissions";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 import useBundlePermissionFlags from "../../hooks/useBundlePermissionFlags";
 
 export const LoadingOpDrawer = () => {
@@ -94,18 +96,20 @@ export const LoadingOpDrawer = () => {
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && closeLoadingOp()}>
-      <SheetContent data-testid="loading-op-drawer" className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
-        <SheetHeader>
-          <SheetTitle className="font-display text-lg flex items-center gap-2">
-            <PackageCheck className="w-5 h-5" />
-            {op?.operationType || "Operation"} — {op?.plate}
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent data-testid="loading-op-drawer" hideClose className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
+        <YmsDrawerTopBar>
+          <SheetHeader className="p-0 text-left space-y-1">
+            <SheetTitle className="font-display text-lg flex items-center gap-2">
+              <PackageCheck className="w-5 h-5" />
+              {op?.operationType || "Operation"} — {op?.plate}
+            </SheetTitle>
+          </SheetHeader>
+        </YmsDrawerTopBar>
 
         {loading && !op ? (
-          <div className="py-12 text-center text-sm text-slate-500">Loading…</div>
+          <div className={YMS_DRAWER_LOADING_CLASS}>Loading…</div>
         ) : op ? (
-          <div className="mt-4 space-y-4">
+          <YmsDrawerBody>
             <div className="flex items-center justify-between gap-2">
               <StatusPill status={op.paused ? "WAITING" : op.displayStatus === "LOADING" ? "LOADING" : "DOCK_ASSIGNED"} />
               <span className="font-mono-yms text-[11px] text-slate-500">{op.dockCode}</span>
@@ -337,12 +341,12 @@ export const LoadingOpDrawer = () => {
                 </ul>
               )}
             </div>
-          </div>
+          </YmsDrawerBody>
         ) : (
-          <div className="py-8 text-center text-sm text-slate-500">Operation not found</div>
+          <div className={`${YMS_DRAWER_LOADING_CLASS} py-8`}>Operation not found</div>
         )}
         {working && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 mt-4">
+          <div className="flex items-center gap-2 text-xs text-slate-500 mt-4 px-5 pb-4">
             <Loader2 className="w-3 h-3 animate-spin" /> Processing…
           </div>
         )}

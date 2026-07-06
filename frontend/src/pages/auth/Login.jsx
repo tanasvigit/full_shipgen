@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +19,6 @@ export default function Login() {
     const redirectTo = searchParams.get("redirect") || "/";
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showPw, setShowPw] = useState(false);
     const [remember, setRemember] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -104,26 +104,15 @@ export default function Login() {
                             Forgot →
                         </Link>
                     </div>
-                    <div className="relative">
-                        <Input
-                            id="password"
-                            type={showPw ? "text" : "password"}
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="h-12 bg-[#F5F6F8] border-black/[0.06] focus-visible:ring-2 focus-visible:ring-[#0066FF]/30 focus-visible:border-[#0066FF] pr-12 transition-all rounded-lg text-[14px] font-mono text-[#0A0E1A]"
-                            data-testid="login-password"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPw(!showPw)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 grid place-items-center text-[#4B5563] hover:text-[#0A0E1A] hover:bg-black/[0.05] rounded-md transition-all"
-                            aria-label={showPw ? "Hide password" : "Show password"}
-                        >
-                            {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                    </div>
+                    <PasswordInput
+                        id="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="h-12 bg-[#F5F6F8] border-black/[0.06] focus-visible:ring-2 focus-visible:ring-[#0066FF]/30 focus-visible:border-[#0066FF] transition-all rounded-lg text-[14px] font-mono text-[#0A0E1A]"
+                        data-testid="login-password"
+                    />
                 </div>
                 <label className="flex items-center gap-2.5 text-xs text-[#374151] select-none cursor-pointer">
                     <Checkbox

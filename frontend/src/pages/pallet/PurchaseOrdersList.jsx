@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, ScrollText } from "lucide-react";
 import { palletService } from "@/services/pallet";
 import { mapPurchaseOrderRow, mapPalletSupplier, mapPalletWarehouse, statusLabelPallet } from "@/lib/mappers";
-import { formatMoney } from "@/lib/formatMoney";
+import { formatMoney, amountFieldLabel } from "@/lib/formatMoney";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 
@@ -172,7 +172,7 @@ export default function PurchaseOrdersList() {
           { key: "expected", label: "Expected delivery", placeholder: todayIso(), col: "half" },
           { key: "reference", label: "Reference code", placeholder: "PO-2026-0001", col: "half" },
           { key: "items", label: "Items (count)", type: "number", min: 0, defaultValue: "1", col: "half" },
-          { key: "total", label: "Total (INR)", type: "number", min: 0, step: 0.01, defaultValue: "0", col: "half" },
+          { key: "total", label: amountFieldLabel("Total"), type: "number", min: 0, step: 0.01, defaultValue: "0", col: "half" },
           { key: "description", label: "Description", placeholder: "Optional notes" },
         ]}
         onSubmit={handleCreate}

@@ -12,6 +12,7 @@ use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\Internal\AcceptCompanyInvite;
 use Fleetbase\Http\Requests\Internal\InviteUserRequest;
 use Fleetbase\Http\Requests\Internal\ResendUserInvite;
+use Fleetbase\Http\Requests\Internal\UpdateOwnProfileRequest;
 use Fleetbase\Http\Requests\Internal\UpdatePasswordRequest;
 use Fleetbase\Http\Requests\Internal\ValidatePasswordRequest;
 use Fleetbase\Http\Requests\UpdateUserRequest;
@@ -456,15 +457,18 @@ class UserController extends FleetbaseController
         }
 
         // Brand-new user — create a pending record then invite.
+        $inviteType = $request->input('user.type');
+        $userType   = in_array($inviteType, ['driver', 'customer'], true) ? $inviteType : 'user';
+
         $data['company_uuid'] = $company->uuid;
         $data['status']       = 'pending';
-        $data['type']         = 'user';
+        $data['type']         = $userType;
         $data['created_at']   = Carbon::now();
 
         $user = User::create($data);
 
         // Set user type
-        $user->setUserType('user');
+        $user->setUserType($userType);
 
         // Assign to user
         $user->assignCompany($company, $request->input('user.role_uuid'));
@@ -938,6 +942,7 @@ class UserController extends FleetbaseController
      *
      * @return \Illuminate\Http\Response
      */
+    #[SkipAuthorizationCheck]
     public function validatePassword(ValidatePasswordRequest $request)
     {
         return response()->json(['status' => 'ok']);
@@ -948,6 +953,7 @@ class UserController extends FleetbaseController
      *
      * @return \Illuminate\Http\Response
      */
+    #[SkipAuthorizationCheck]
     public function changeUserPassword(UpdatePasswordRequest $request)
     {
         $user               = $request->user();
@@ -961,6 +967,46 @@ class UserController extends FleetbaseController
         $user->changePassword($newPassword);
 
         return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Update the authenticated user's own profile (name, email, phone, timezone).
+     *
+     * @return \Illuminate\Http\Response
+     */
+    #[SkipAuthorizationCheck]
+    public function updateCurrentUser(UpdateOwnProfileRequest $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->error('No user session found', 401);
+        }
+
+        try {
+            $input = Arr::only(
+                (array) $this->model->getApiPayloadFromRequest($request),
+                ['name', 'email', 'phone', 'timezone']
+            );
+
+            if (empty($input)) {
+                return response()->error('No profile fields provided.');
+            }
+
+            $user->update($input);
+            $user->refresh();
+
+            $this->resource::wrap($this->resourceSingularlName);
+
+            return response()->json([
+                'user' => new $this->resource($user),
+            ]);
+        } catch (\Exception $e) {
+            return response()->error($e->getMessage());
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->error($e->getMessage());
+        } catch (FleetbaseRequestValidationException $e) {
+            return response()->error($e->getErrors());
+        }
     }
 
     /**

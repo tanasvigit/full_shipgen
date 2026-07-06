@@ -2,7 +2,7 @@ import QuickCreateDialog from "@/components/common/QuickCreateDialog";
 import { iamService } from "@/services/iam";
 import { UserPlus } from "lucide-react";
 
-export default function InviteUserDialog({ open, onOpenChange, roles, onInvited }) {
+export default function InviteUserDialog({ open, onOpenChange, roles, onInvited, userType = "user" }) {
   return (
     <QuickCreateDialog
       open={open}
@@ -30,6 +30,7 @@ export default function InviteUserDialog({ open, onOpenChange, roles, onInvited 
           email: values.email,
           name: values.name || values.email.split("@")[0],
           role_uuid: role?.id,
+          type: userType === "driver" || userType === "customer" ? userType : undefined,
         });
         onInvited?.(response);
         const existing = response?.invited === true;

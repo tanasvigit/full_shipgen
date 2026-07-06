@@ -22,6 +22,8 @@ import equipmentApi, {
   getEquipmentEvents,
 } from "../../services/equipmentApi";
 import CurrentAssignmentPanel from "./CurrentAssignmentPanel";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 import useBundlePermissionFlags from "../../hooks/useBundlePermissionFlags";
 
 export const EquipmentDrawer = () => {
@@ -152,20 +154,22 @@ export const EquipmentDrawer = () => {
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && closeEquipment()}>
-      <SheetContent data-testid="equipment-drawer" className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
-        <SheetHeader>
-          <SheetTitle className="font-display text-lg flex items-center gap-2">
-            <Wrench className="w-5 h-5" />
-            {row?.name || "Equipment"}
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent data-testid="equipment-drawer" hideClose className="w-full sm:max-w-md overflow-y-auto max-h-[100dvh] flex flex-col p-0">
+        <YmsDrawerTopBar>
+          <SheetHeader className="p-0 text-left space-y-1">
+            <SheetTitle className="font-display text-lg flex items-center gap-2">
+              <Wrench className="w-5 h-5" />
+              {row?.name || "Equipment"}
+            </SheetTitle>
+          </SheetHeader>
+        </YmsDrawerTopBar>
 
         {loading && !row ? (
-          <div className="py-12 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
+          <div className={`${YMS_DRAWER_LOADING_CLASS} flex items-center justify-center gap-2`}>
             <Loader2 className="w-4 h-4 animate-spin" /> Loading…
           </div>
         ) : row ? (
-          <div className="mt-4 space-y-4">
+          <YmsDrawerBody>
             <div className="flex items-center justify-between flex-wrap gap-2">
               <StatusPill status={row.status} />
               <span className="font-mono-yms text-[11px] text-slate-500">{row.code}</span>
@@ -419,9 +423,9 @@ export const EquipmentDrawer = () => {
                 </ul>
               )}
             </div>
-          </div>
+          </YmsDrawerBody>
         ) : (
-          <div className="py-12 text-center text-sm text-slate-500">Equipment not found</div>
+          <div className={YMS_DRAWER_LOADING_CLASS}>Equipment not found</div>
         )}
       </SheetContent>
     </Sheet>

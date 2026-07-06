@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import ymsApi from "../../services/ymsApi";
 import queueApi from "../../services/queueApi";
+import YmsDrawerCloseButton from "./YmsDrawerCloseButton";
 import vehiclesApi, {
   JOURNEY_STEPS,
   buildTimelineTimes,
@@ -197,6 +198,7 @@ export const VehicleDrawer = () => {
       <SheetContent
         data-testid="vehicle-drawer"
         side="right"
+        hideClose
         className="w-full sm:max-w-md p-0 overflow-y-auto thin-scroll bg-white border-l border-slate-200 max-h-[100dvh] flex flex-col"
       >
         <SheetHeader className="sr-only">
@@ -204,7 +206,7 @@ export const VehicleDrawer = () => {
         </SheetHeader>
 
         <div className="bg-slate-900 text-white px-5 py-5">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <div className="w-12 h-12 bg-amber-400 rounded-md flex items-center justify-center shrink-0">
               <Truck className="w-6 h-6 text-slate-900" />
             </div>
@@ -214,6 +216,7 @@ export const VehicleDrawer = () => {
                 {reference} · {formatVehicleType(v?.vehicle_type)}
               </div>
             </div>
+            <YmsDrawerCloseButton onDark className="shrink-0" />
           </div>
           <div className="mt-4 flex items-center gap-2 flex-wrap">
             <StatusPill status={currentStage} />

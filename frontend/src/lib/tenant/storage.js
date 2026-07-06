@@ -1,5 +1,5 @@
 import { PORTAL_NAME } from "@/lib/branding";
-import { DISPLAY_CURRENCY } from "@/lib/formatMoney";
+import { DEFAULT_TIMEZONE, DISPLAY_CURRENCY } from "@/lib/tenant/locale";
 
 const BRANDING_KEY = "fleetops.tenant.branding";
 const PREFS_KEY = "fleetops.tenant.preferences";
@@ -13,7 +13,7 @@ export const DEFAULT_BRANDING = {
 };
 
 export const DEFAULT_PREFERENCES = {
-  timezone: "Asia/Kolkata",
+  timezone: DEFAULT_TIMEZONE,
   currency: DISPLAY_CURRENCY,
   locale: "en-IN",
   notifications: {
@@ -54,8 +54,11 @@ export function loadPreferences(orgId) {
   try {
     const raw = localStorage.getItem(`${PREFS_KEY}.${orgId || "default"}`);
     const parsed = raw ? { ...DEFAULT_PREFERENCES, ...JSON.parse(raw) } : { ...DEFAULT_PREFERENCES };
-    if (!parsed.currency || parsed.currency === "USD") {
+    if (!parsed.currency) {
       parsed.currency = DISPLAY_CURRENCY;
+    }
+    if (!parsed.timezone) {
+      parsed.timezone = DEFAULT_TIMEZONE;
     }
     return parsed;
   } catch {

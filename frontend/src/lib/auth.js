@@ -21,6 +21,8 @@ const mapUser = (user) => {
     id: user?.id || user?.uuid || user?.public_id,
     name: user?.name || user?.full_name || "User",
     email: user?.email || "",
+    phone: user?.phone || "",
+    timezone: user?.timezone || "",
     role: roleName,
     isAdmin: Boolean(
       user?.is_admin ||
@@ -34,7 +36,7 @@ const mapUser = (user) => {
       .join("")
       .slice(0, 2)
       .toUpperCase(),
-    avatarColor: "bg-blue-600",
+    avatarColor: "bg-blue-600 text-white",
     permissions: resolveEffectivePermissions(user),
     policies: user?.policies || [],
     raw: user,

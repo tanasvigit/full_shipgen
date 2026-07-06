@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormSection from "@/components/fleetops/FormSection";
 import EntityAsyncSelect from "@/components/fleetops/EntityAsyncSelect";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -115,7 +116,7 @@ const DriverForm = forwardRef(function DriverForm(
           {mode === "create" && (
             <div className="space-y-1.5 md:col-span-2">
               <Label className="text-xs font-mono uppercase text-[#374151]">Password (optional)</Label>
-              <Input type="password" {...register("password")} className="bg-[#F5F6F8] border-black/[0.08]" data-testid="driver-field-password" />
+              <PasswordInput {...register("password")} className="bg-[#F5F6F8] border-black/[0.08]" data-testid="driver-field-password" />
             </div>
           )}
         </div>

@@ -173,7 +173,7 @@ export default function GroupsList() {
             <Button variant="outline" size="sm" onClick={() => reload()} className="h-9" data-testid="groups-refresh">
               <RefreshCw className="h-3.5 w-3.5" />
             </Button>
-            {ability.canUpdateGroup && (
+            {ability.canExportGroup && (
               <Button variant="outline" size="sm" onClick={handleExport} className="h-9" data-testid="groups-export">
                 <Download className="h-3.5 w-3.5 mr-1" /> Export
               </Button>

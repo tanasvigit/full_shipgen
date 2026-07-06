@@ -4,7 +4,7 @@ import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailFieldGrid from "@/components/fleetops/detail/DetailFieldGrid";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -119,30 +119,35 @@ export default function ManifestDetail({ embedded = false, entityId: entityIdPro
   }
 
   const detailBody = (
-    <div className={embedded ? "px-4 pb-6 space-y-6" : "p-6 space-y-6"}>
+    <div className={embedded ? "space-y-4" : "p-6 space-y-4"}>
       {manifest && (
-        <DetailFieldGrid
-          fields={[
-            { label: "Public ID", value: row.publicId },
-            { label: "Status", value: row.status },
-            { label: "Driver", value: manifest.driver?.name || manifest.driver_uuid || "—" },
-            {
-              label: "Vehicle",
-              value:
-                manifest.vehicle?.name ||
-                manifest.vehicle?.plate_number ||
-                manifest.vehicle_uuid ||
-                "—",
-            },
-            {
-              label: "Scheduled",
-              value: manifest.scheduled_date ? String(manifest.scheduled_date).slice(0, 10) : "—",
-            },
-            { label: "Stops", value: String(stops.length) },
-          ]}
-        />
+        <div className="bg-white border border-black/[0.08] rounded-md p-5" data-testid="manifest-overview-fields">
+          <DetailFieldGrid
+            fields={[
+              { label: "Public ID", value: row.publicId, mono: true },
+              {
+                label: "Status",
+                value: row.status ? <StatusBadge status={row.status} label={row.status} /> : "—",
+              },
+              { label: "Driver", value: manifest.driver?.name || manifest.driver_uuid || "—" },
+              {
+                label: "Vehicle",
+                value:
+                  manifest.vehicle?.name ||
+                  manifest.vehicle?.plate_number ||
+                  manifest.vehicle_uuid ||
+                  "—",
+              },
+              {
+                label: "Scheduled",
+                value: manifest.scheduled_date ? String(manifest.scheduled_date).slice(0, 10) : "—",
+              },
+              { label: "Stops", value: String(stops.length) },
+            ]}
+          />
+        </div>
       )}
-      <section className="rounded-md border border-black/[0.08] p-4" data-testid="manifest-stops-section">
+      <section className="bg-white border border-black/[0.08] rounded-md p-5" data-testid="manifest-stops-section">
         <div className="overline mb-3">Manifest stops</div>
         <DataTable
           testid="manifest-stops-table"
@@ -193,13 +198,14 @@ export default function ManifestDetail({ embedded = false, entityId: entityIdPro
 
   if (embedded) {
     return (
-      <div data-testid="manifest-detail-page">
-        <DetailDrawerHeader
-          overline="Manifest"
-          title={row?.name || row?.publicId || "Manifest"}
-          publicId={row?.publicId}
-          status={row?.status}
-          actions={[
+      <FleetopsDetailDrawerPage
+        testId="manifest-detail-page"
+        headerProps={{
+          overline: "Manifest",
+          title: row?.name || row?.publicId || "Manifest",
+          publicId: row?.publicId,
+          status: row?.status,
+          actions: [
             {
               id: "refresh",
               label: "Refresh",
@@ -216,8 +222,8 @@ export default function ManifestDetail({ embedded = false, entityId: entityIdPro
               disabled: busy,
               testId: "manifest-cancel",
             },
-          ]}
-          extraActions={
+          ],
+          extraActions: (
             <DropdownMenuItem
               className="text-red-600"
               onClick={() => {
@@ -227,10 +233,10 @@ export default function ManifestDetail({ embedded = false, entityId: entityIdPro
             >
               <Trash2 className="h-4 w-4 mr-2" /> Delete
             </DropdownMenuItem>
-          }
-        />
-        {detailBody}
-      </div>
+          ),
+        }}
+        body={detailBody}
+      />
     );
   }
 

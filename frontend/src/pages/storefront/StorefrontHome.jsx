@@ -8,6 +8,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { storefrontService } from "@/services/storefront";
 import { mapCatalog, mapProduct } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 
@@ -68,7 +69,7 @@ export default function StorefrontHome() {
     return days.map((day, i) => ({ day, v: Math.round(base * (0.85 + (i % 3) * 0.08)) }));
   }, [metrics]);
 
-  const currency = metrics?.currency || products[0]?.currency || "INR";
+  const currency = metrics?.currency || products[0]?.currency || getTenantCurrency();
 
   return (
     <div data-testid="storefront-home">

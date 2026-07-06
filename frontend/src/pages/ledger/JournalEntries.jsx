@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowDownRight, ArrowUpRight, CheckCircle2, Circle, NotebookPen } from "lucide-react";
 import { ledgerService } from "@/services/ledger";
 import { mapAccount, mapJournalEntry, statusLabelExt } from "@/lib/mappers";
-import { formatMoney, majorToMinor } from "@/lib/formatMoney";
+import { formatMoney, majorToMinor, amountFieldLabel } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 
@@ -55,7 +56,7 @@ export default function JournalEntries() {
         debit_account_uuid: v.debitAccount,
         credit_account_uuid: v.creditAccount,
         amount: majorToMinor(parseFloat(v.amount) || 0),
-        currency: "INR",
+        currency: getTenantCurrency(),
         description: v.description.trim(),
         entry_date: v.date || todayIso(),
       });
@@ -162,14 +163,14 @@ export default function JournalEntries() {
         open={open}
         onOpenChange={setOpen}
         title="New journal entry"
-        description="Record a manual debit-credit pair (amounts in INR, stored in paise on the server)."
+        description={`Record a manual debit-credit pair (amounts in ${getTenantCurrency()}, stored in paise on the server).`}
         icon={NotebookPen}
         submitLabel={submitting ? "Creating…" : "Create entry"}
         testid="new-je-dialog"
         fields={[
           { key: "description", label: "Description", placeholder: "Office supplies purchase", required: true },
           { key: "date", label: "Date", defaultValue: todayIso(), col: "half" },
-          { key: "amount", label: "Amount (INR)", type: "number", min: 0.01, step: 0.01, defaultValue: "100", required: true, col: "half" },
+          { key: "amount", label: amountFieldLabel(), type: "number", min: 0.01, step: 0.01, defaultValue: "100", required: true, col: "half" },
           {
             key: "debitAccount",
             label: "Debit account",

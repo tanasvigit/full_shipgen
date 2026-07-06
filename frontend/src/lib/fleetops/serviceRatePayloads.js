@@ -1,5 +1,8 @@
 /** Map service rate form values ↔ /int/v1 service-rates API fields. */
 
+import { formatRecordMoney } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
+
 function omitEmpty(obj) {
   return Object.fromEntries(
     Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== ""),
@@ -31,7 +34,7 @@ export function serviceRateValuesFromApi(row = {}) {
     rateCalculationMethod: method,
     perDistanceFee,
     perDistanceUnit,
-    currency: row.currency || "INR",
+    currency: row.currency ? String(row.currency).trim().toUpperCase() : "",
     publicId: row.public_id || "",
   };
 }
@@ -39,7 +42,7 @@ export function serviceRateValuesFromApi(row = {}) {
 export function buildServiceRateApiPayload(values = {}) {
   const serviceName = String(values.name ?? values.service_name ?? "").trim();
   const serviceType = String(values.service_type ?? values.serviceType ?? "").trim();
-  const currency = String(values.currency || "INR").trim().toUpperCase().slice(0, 3);
+  const currency = String(values.currency || getTenantCurrency()).trim().toUpperCase().slice(0, 3);
 
   let rateCalculationMethod =
     values.rate_calculation_method ?? values.rateCalculationMethod ?? "fixed_rate";
@@ -77,7 +80,7 @@ export function buildServiceRateApiPayload(values = {}) {
     per_meter_unit: perMeterUnit,
   });
 
-  if (!payload.currency) payload.currency = "INR";
+  if (!payload.currency) payload.currency = getTenantCurrency();
   if (!payload.rate_calculation_method) payload.rate_calculation_method = "fixed_rate";
 
   return payload;
@@ -91,11 +94,31 @@ export function serviceRateDisplayName(row = {}) {
   return row.service_name || row.serviceName || row.name || row.public_id || row.uuid || row.id || "—";
 }
 
+export function serviceRateCurrency(row = {}) {
+  const code = row.currency ?? row.service_quote?.currency;
+  if (code != null && String(code).trim() !== "") {
+    return String(code).trim().toUpperCase();
+  }
+  return "";
+}
+
+/** Format a service-rate money field using the record currency only. */
+export function formatServiceRateMoney(row = {}, amount) {
+  const value =
+    amount ??
+    row.base_fee ??
+    row.baseFee ??
+    row.per_meter_flat_rate_fee ??
+    row.perMeterFlatRateFee;
+  if (value == null || value === "") return "—";
+  return formatRecordMoney(value, serviceRateCurrency(row));
+}
+
 export function serviceRatePerDistanceLabel(row = {}) {
   const method = row.rate_calculation_method || row.rateCalculationMethod;
   if (method !== "per_meter") return "—";
   const fee = row.per_meter_flat_rate_fee ?? row.perMeterFlatRateFee;
   if (fee == null || fee === "") return "—";
   const unit = row.per_meter_unit || row.perMeterUnit || "km";
-  return `${fee} / ${unit}`;
+  return `${formatRecordMoney(fee, serviceRateCurrency(row))} / ${unit}`;
 }

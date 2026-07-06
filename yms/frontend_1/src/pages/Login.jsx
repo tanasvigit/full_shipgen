@@ -5,6 +5,7 @@ import { fetchAuthMe } from "../services/authApi";
 import { resolvePostLoginPath } from "../utils/authRedirect";
 import BrandLogo from "../components/common/BrandLogo";
 import { Button } from "../components/ui/button";
+import { PasswordInput } from "../components/ui/password-input";
 
 const PASSWORD_HINT =
   "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
@@ -80,10 +81,9 @@ export default function Login() {
             <label htmlFor="password" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
               data-testid="login-password"
-              type="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

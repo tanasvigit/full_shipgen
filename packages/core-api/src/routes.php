@@ -250,6 +250,7 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                                 });
                                 $router->fleetbaseRoutes('users', null, [], function ($router, $controller) {
                                     $router->get('me', $controller('current'));
+                                    $router->patch('me', $controller('updateCurrentUser'));
                                     $router->match(['get', 'post'], 'export', $controller('export'));
                                     $router->patch('deactivate/{id}', $controller('deactivate'));
                                     $router->patch('activate/{id}', $controller('activate'));
@@ -270,9 +271,15 @@ Route::prefix(config('fleetbase.api.routing.prefix', '/'))->namespace('Fleetbase
                                 }
                                 );
                                 $router->fleetbaseRoutes('user-devices');
-                                $router->fleetbaseRoutes('groups');
-                                $router->fleetbaseRoutes('roles');
-                                $router->fleetbaseRoutes('policies');
+                                $router->fleetbaseRoutes('groups', null, [], function ($router, $controller) {
+                                    $router->match(['get', 'post'], 'export', $controller('export'));
+                                });
+                                $router->fleetbaseRoutes('roles', null, [], function ($router, $controller) {
+                                    $router->match(['get', 'post'], 'export', $controller('export'));
+                                });
+                                $router->fleetbaseRoutes('policies', null, [], function ($router, $controller) {
+                                    $router->match(['get', 'post'], 'export', $controller('export'));
+                                });
                                 $router->fleetbaseRoutes('permissions');
                                 $router->fleetbaseRoutes('extensions');
                                 $router->fleetbaseRoutes('categories');

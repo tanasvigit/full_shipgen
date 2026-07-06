@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import PasswordField from "../components/common/PasswordField";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
@@ -358,10 +359,10 @@ export default function UserManagement() {
               </select>
             </FormField>
             <FormField label="Password" error={createErrors.password}>
-              <input className={FIELD_CLASS} type="password" value={createForm.password} onChange={(e) => setCreateForm((s) => ({ ...s, password: e.target.value }))} />
+              <PasswordField className={FIELD_CLASS} value={createForm.password} onChange={(e) => setCreateForm((s) => ({ ...s, password: e.target.value }))} />
             </FormField>
             <FormField label="Confirm Password" error={createErrors.confirmPassword}>
-              <input className={FIELD_CLASS} type="password" value={createForm.confirmPassword} onChange={(e) => setCreateForm((s) => ({ ...s, confirmPassword: e.target.value }))} />
+              <PasswordField className={FIELD_CLASS} value={createForm.confirmPassword} onChange={(e) => setCreateForm((s) => ({ ...s, confirmPassword: e.target.value }))} />
             </FormField>
             <FormField label="Status">
               <select className={FIELD_CLASS} value={createForm.status} onChange={(e) => setCreateForm((s) => ({ ...s, status: e.target.value }))}>
@@ -418,10 +419,10 @@ export default function UserManagement() {
           </DialogHeader>
           <div className="space-y-3">
             <FormField label="New Password" error={resetErrors.password}>
-              <input className={FIELD_CLASS} type="password" value={resetForm.password} onChange={(e) => setResetForm((s) => ({ ...s, password: e.target.value }))} />
+              <PasswordField className={FIELD_CLASS} value={resetForm.password} onChange={(e) => setResetForm((s) => ({ ...s, password: e.target.value }))} />
             </FormField>
             <FormField label="Confirm Password" error={resetErrors.confirmPassword}>
-              <input className={FIELD_CLASS} type="password" value={resetForm.confirmPassword} onChange={(e) => setResetForm((s) => ({ ...s, confirmPassword: e.target.value }))} />
+              <PasswordField className={FIELD_CLASS} value={resetForm.confirmPassword} onChange={(e) => setResetForm((s) => ({ ...s, confirmPassword: e.target.value }))} />
             </FormField>
           </div>
           <DialogFooter>

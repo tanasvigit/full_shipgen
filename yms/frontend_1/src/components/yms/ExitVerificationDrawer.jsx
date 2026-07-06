@@ -11,6 +11,8 @@ import gateManagementApi, { canApproveExit, GATE_ID } from "../../services/gateM
 import { parseRequestType, slotFromReportingTime } from "../../services/appointmentsApi";
 import { safeDisplayValue } from "../../utils/display";
 import usePermissions from "../../hooks/usePermissions";
+import YmsDrawerTopBar from "./YmsDrawerTopBar";
+import YmsDrawerBody, { YMS_DRAWER_LOADING_CLASS } from "./YmsDrawerBody";
 
 const ExitChecklist = memo(function ExitChecklist({
   exitChecks,
@@ -166,20 +168,22 @@ export const ExitVerificationDrawer = () => {
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && closeExitVerification()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto thin-scroll max-h-[100dvh] flex flex-col p-0">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5" />
-            Exit Verification
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent hideClose className="w-full sm:max-w-lg overflow-y-auto thin-scroll max-h-[100dvh] flex flex-col p-0">
+        <YmsDrawerTopBar>
+          <SheetHeader className="p-0 text-left space-y-1">
+            <SheetTitle className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5" />
+              Exit Verification
+            </SheetTitle>
+          </SheetHeader>
+        </YmsDrawerTopBar>
 
         {loading && !detail ? (
-          <div className="py-16 flex justify-center">
+          <div className={`${YMS_DRAWER_LOADING_CLASS} py-16 flex justify-center`}>
             <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
           </div>
         ) : (
-          <div className="mt-4 space-y-5 text-[12px]">
+          <YmsDrawerBody className="text-[12px]" spaceY={5}>
             <div className="flex items-start gap-3 border border-slate-200 rounded-md p-3">
               <Truck className="w-5 h-5 text-slate-600 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -297,7 +301,7 @@ export const ExitVerificationDrawer = () => {
               )}
             </div>
             )}
-          </div>
+          </YmsDrawerBody>
         )}
       </SheetContent>
     </Sheet>

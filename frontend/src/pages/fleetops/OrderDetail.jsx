@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/common/PageHeader";
 import StatusBadge from "@/components/common/StatusBadge";
-import DetailDrawerHeader from "@/components/fleetops/detail/DetailDrawerHeader";
+import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetailDrawerPage";
 import DetailDrawerTabs from "@/components/fleetops/detail/DetailDrawerTabs";
 import OrderTrackingTab from "@/components/fleetops/detail/tabs/order/OrderTrackingTab";
 import OrderFinancialsTab from "@/components/fleetops/detail/tabs/order/OrderFinancialsTab";
@@ -438,18 +438,19 @@ export default function OrderDetail({
 
   if (embedded) {
     return (
-      <div data-testid="order-detail-page">
-        <DetailDrawerHeader
-          overline={`Order · ${order.trackingNumber}`}
-          title={order.customer.name}
-          publicId={order.publicId}
-          status={order.status}
-          statusLabel={statusLabel(order.status)}
-          lastUpdated={order.updatedAt ? new Date(order.updatedAt).toLocaleString() : null}
-          syncState={syncState}
-          onEdit={editable ? (embedded ? editDialog.openEdit : () => editDialog.setOpen(true)) : undefined}
-          editTestId="order-edit"
-          actions={[
+      <FleetopsDetailDrawerPage
+        testId="order-detail-page"
+        headerProps={{
+          overline: `Order · ${order.trackingNumber}`,
+          title: order.customer.name,
+          publicId: order.publicId,
+          status: order.status,
+          statusLabel: statusLabel(order.status),
+          lastUpdated: order.updatedAt ? new Date(order.updatedAt).toLocaleString() : null,
+          syncState,
+          onEdit: editable ? editDialog.openEdit : undefined,
+          editTestId: "order-edit",
+          actions: [
             ...headerOpsActions,
             {
               id: "refresh",
@@ -459,59 +460,61 @@ export default function OrderDetail({
               disabled: actionPending,
               icon: <RefreshCw className="h-3.5 w-3.5 mr-1" />,
             },
-          ]}
-        />
-        <div className="px-4 pb-2">
-          <HealthBanner warnings={warnings} testId="order-health-banner" />
-        </div>
-        <DetailDrawerTabs
-          value={activeTabProp || "overview"}
-          onValueChange={onTabChange}
-          tabs={orderTabs}
-        />
-        <AssignDriverDialog
-          open={assignOpen}
-          onOpenChange={setAssignOpen}
-          orderId={id}
-          order={order}
-          initialDriverId={driver?.id || rawOrder?.driver_assigned_uuid || rawOrder?.driver_uuid}
-          initialVehicleId={vehicle?.id || rawOrder?.vehicle_assigned_uuid || rawOrder?.vehicle_uuid}
-          onAssigned={refetch}
-        />
-        <OrderLabelDialog
-          open={labelOpen}
-          onOpenChange={setLabelOpen}
-          orderId={id}
-          orderPublicId={order.publicId}
-        />
-        <OrderScheduleDialog
-          open={scheduleOpen}
-          onOpenChange={setScheduleOpen}
-          orderId={id}
-          driverId={driver?.id}
-          onScheduled={refetch}
-        />
-        <OrderMetadataDialog
-          open={metadataOpen}
-          onOpenChange={setMetadataOpen}
-          orderId={id}
-          meta={rawOrder?.meta}
-          onSaved={refetch}
-        />
-        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <AlertDialogContent data-testid="order-delete-dialog">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this order?</AlertDialogTitle>
-              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteOrder}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        {editDialogBlock}
-      </div>
+          ],
+        }}
+        banner={<HealthBanner warnings={warnings} testId="order-health-banner" />}
+        tabs={{
+          value: activeTabProp || "overview",
+          onValueChange: onTabChange,
+          tabs: orderTabs,
+        }}
+        footer={
+          <>
+            <AssignDriverDialog
+              open={assignOpen}
+              onOpenChange={setAssignOpen}
+              orderId={id}
+              order={order}
+              initialDriverId={driver?.id || rawOrder?.driver_assigned_uuid || rawOrder?.driver_uuid}
+              initialVehicleId={vehicle?.id || rawOrder?.vehicle_assigned_uuid || rawOrder?.vehicle_uuid}
+              onAssigned={refetch}
+            />
+            <OrderLabelDialog
+              open={labelOpen}
+              onOpenChange={setLabelOpen}
+              orderId={id}
+              orderPublicId={order.publicId}
+            />
+            <OrderScheduleDialog
+              open={scheduleOpen}
+              onOpenChange={setScheduleOpen}
+              orderId={id}
+              driverId={driver?.id}
+              onScheduled={refetch}
+            />
+            <OrderMetadataDialog
+              open={metadataOpen}
+              onOpenChange={setMetadataOpen}
+              orderId={id}
+              meta={rawOrder?.meta}
+              onSaved={refetch}
+            />
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogContent data-testid="order-delete-dialog">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+                  <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteOrder}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            {editDialogBlock}
+          </>
+        }
+      />
     );
   }
 

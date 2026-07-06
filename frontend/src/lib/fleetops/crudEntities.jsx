@@ -10,7 +10,11 @@ import { deviceEventLabel } from "@/lib/fleetops/connectivityResourcePayloads";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { formatMoney, formatMoneyField } from "@/lib/formatMoney";
-import { serviceRatePerDistanceLabel } from "@/lib/fleetops/serviceRatePayloads";
+import {
+  formatServiceRateMoney,
+  serviceRateCurrency,
+  serviceRatePerDistanceLabel,
+} from "@/lib/fleetops/serviceRatePayloads";
 
 /** Coerce API values (including nested relations) to a render-safe string. */
 export function scalarLabel(value) {
@@ -757,14 +761,14 @@ export const CRUD_ENTITIES = {
       { key: "type", header: "Type", sortable: true, render: (r) => <span className="text-[#0066FF] font-medium">{r.raw?.type || r.type || "—"}</span> },
       { key: "pickup", header: "Pickup", render: (r) => r.raw?.pickup?.name || r.raw?.pickup_name || r.raw?.pickup?.public_id || "—" },
       { key: "dropoff", header: "Dropoff", render: (r) => r.raw?.dropoff?.name || r.raw?.dropoff_name || r.raw?.dropoff?.public_id || "—" },
-      { key: "cod", header: "COD", render: (r) => (r.raw?.cod_amount != null ? formatMoney(r.raw.cod_amount) : "—") },
+      { key: "cod", header: "COD", render: (r) => (r.raw?.cod_amount != null ? formatMoney(r.raw.cod_amount, r.raw?.cod_currency) : "—") },
       { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
     ],
     displayFields: (raw) => [
       { label: "Type", value: raw?.type || "—" },
       { label: "Pickup", value: raw?.pickup?.name || raw?.pickup?.public_id || "—" },
       { label: "Dropoff", value: raw?.dropoff?.name || raw?.dropoff?.public_id || "—" },
-      { label: "COD", value: raw?.cod_amount != null ? formatMoney(raw.cod_amount) : "—" },
+      { label: "COD", value: raw?.cod_amount != null ? formatMoney(raw.cod_amount, raw?.cod_currency) : "—" },
       { label: "Payment method", value: raw?.cod_payment_method || "—" },
     ],
   },
@@ -881,7 +885,7 @@ export const CRUD_ENTITIES = {
           purchaseRateRef(raw?.service_quote) ||
           raw?.service_quote_id ||
           (raw?.service_quote?.amount != null
-            ? formatMoney(raw.service_quote.amount)
+            ? formatMoney(raw.service_quote.amount, raw.service_quote?.currency ?? raw?.currency)
             : null) ||
           "—",
       },
@@ -889,7 +893,10 @@ export const CRUD_ENTITIES = {
         label: "Amount",
         value:
           raw?.amount != null || raw?.service_quote?.amount != null
-            ? formatMoney(raw?.amount ?? raw?.service_quote?.amount)
+            ? formatMoney(
+                raw?.amount ?? raw?.service_quote?.amount,
+                raw?.currency ?? raw?.service_quote?.currency,
+              )
             : "—",
       },
       {
@@ -1006,19 +1013,19 @@ export const CRUD_ENTITIES = {
       {
         key: "base_fee",
         header: "Base fee",
-        render: (r) => formatMoney(r.raw?.base_fee),
+        render: (r) => formatServiceRateMoney(r.raw || {}),
       },
       { key: "per_distance", header: "Per distance", render: (r) => serviceRatePerDistanceLabel(r.raw || {}) },
-      { key: "currency", header: "Currency", render: (r) => "INR" },
+      { key: "currency", header: "Currency", render: (r) => serviceRateCurrency(r.raw || {}) || "—" },
       { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
     ],
     displayFields: (raw) => [
       { label: "Name", value: raw?.service_name || "—" },
       { label: "Service type", value: raw?.service_type || "—" },
       { label: "Calculation method", value: raw?.rate_calculation_method || "—" },
-      { label: "Base fee", value: formatMoney(raw?.base_fee) },
+      { label: "Base fee", value: formatServiceRateMoney(raw || {}) },
       { label: "Per distance", value: serviceRatePerDistanceLabel(raw || {}) },
-      { label: "Currency", value: "INR" },
+      { label: "Currency", value: serviceRateCurrency(raw || {}) || "—" },
     ],
   },
   fleet: {

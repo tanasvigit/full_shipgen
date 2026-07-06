@@ -86,7 +86,7 @@ export default function NotificationsTray() {
         >
           <Bell className="h-4 w-4 text-[#374151]" strokeWidth={1.75} />
           {unread > 0 && (
-            <span className="absolute top-1 right-1 h-4 min-w-4 px-1 grid place-items-center bg-blue-600 text-[#0A0E1A] text-[9px] font-mono font-bold rounded-sm">
+            <span className="absolute top-1 right-1 h-4 min-w-4 px-1 grid place-items-center bg-blue-600 text-white text-[9px] font-mono font-bold rounded-sm">
               {unread}
             </span>
           )}

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import LoadingButton from "@/components/loaders/indicators/LoadingButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -190,9 +191,8 @@ export default function Onboard() {
 
         <div className="space-y-1.5">
           <Label htmlFor="onboard-password">Password</Label>
-          <Input
+          <PasswordInput
             id="onboard-password"
-            type="password"
             value={form.password}
             onChange={(e) => setField("password", e.target.value)}
             data-testid="onboard-password"
@@ -207,9 +207,8 @@ export default function Onboard() {
 
         <div className="space-y-1.5">
           <Label htmlFor="onboard-password-confirmation">Confirm password</Label>
-          <Input
+          <PasswordInput
             id="onboard-password-confirmation"
-            type="password"
             value={form.password_confirmation}
             onChange={(e) => setField("password_confirmation", e.target.value)}
             data-testid="onboard-password-confirmation"

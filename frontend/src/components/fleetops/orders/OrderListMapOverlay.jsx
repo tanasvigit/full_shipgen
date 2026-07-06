@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/common/StatusBadge";
 import { statusLabel } from "@/lib/mappers";
 import { Route, Calendar, UserPlus, X } from "lucide-react";
+import { MAP_FLOATING_PANEL_Z } from "@/lib/maps/mapUiLayers";
 
 export default function OrderListMapOverlay({
   orders = [],
@@ -29,7 +30,7 @@ export default function OrderListMapOverlay({
 
   return (
     <div
-      className="absolute top-3 left-3 z-[500] w-[min(320px,90vw)] max-h-[70%] overflow-hidden flex flex-col bg-white/95 backdrop-blur border border-black/[0.1] rounded-lg shadow-lg"
+      className={`absolute top-3 left-3 ${MAP_FLOATING_PANEL_Z} w-[min(320px,90vw)] max-h-[70%] overflow-hidden flex flex-col bg-white/95 backdrop-blur border border-black/[0.1] rounded-lg shadow-lg`}
       data-testid="orders-map-overlay"
     >
       <div className="px-3 py-2 border-b border-black/[0.08] flex items-center justify-between">

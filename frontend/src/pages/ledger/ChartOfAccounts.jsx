@@ -7,6 +7,7 @@ import { Plus, Download, TrendingUp, TrendingDown, BookText } from "lucide-react
 import { ledgerService } from "@/services/ledger";
 import { mapAccount } from "@/lib/mappers";
 import { formatMoney } from "@/lib/formatMoney";
+import { getTenantCurrency } from "@/lib/tenant/locale";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
 
@@ -106,7 +107,7 @@ export default function ChartOfAccounts() {
           code: v.code.trim(),
           name: v.name.trim(),
           type: API_TYPE[v.type] || v.type?.toLowerCase(),
-          currency: "INR",
+          currency: getTenantCurrency(),
         },
       });
       await load();

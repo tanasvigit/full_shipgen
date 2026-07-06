@@ -11,8 +11,10 @@ import { mapStoreCustomer } from "@/lib/mappers";
 import { toast } from "sonner";
 import { PORTAL_NAME } from "@/lib/branding";
 import { parseApiError } from "@/lib/errors";
+import { formatMoney } from "@/lib/formatMoney";
 
 export default function PromotionsList() {
+  const promoBodyPlaceholder = `This weekend only — get 20% off every order over ${formatMoney(2000)}.`;
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState("all");
@@ -150,7 +152,7 @@ export default function PromotionsList() {
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="This weekend only — get 20% off every order over ₹2,000."
+              placeholder={promoBodyPlaceholder}
               className="bg-[#F1F2F5] border-black/[0.08] min-h-[120px]"
               data-testid="promotion-body"
             />

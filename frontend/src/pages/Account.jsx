@@ -1,5 +1,6 @@
 import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -13,14 +14,18 @@ import { parseTwoFaSettings, resolveTwoFaAfterSave } from "@/lib/iam/twoFa";
 import TwoFaConfirmDialog from "@/components/iam/TwoFaConfirmDialog";
 import { features } from "@/lib/features";
 import { parseApiError } from "@/lib/errors";
+import { normalizeIamPhone } from "@/lib/iam/phone";
+
+const PASSWORD_HINT =
+    "At least 8 characters with uppercase, lowercase, a number, and a symbol (not found in known breaches).";
 
 export default function Account() {
-    const { user, organizations, activeOrganization, switchOrganization } = useAuth();
+    const { user, organizations, activeOrganization, switchOrganization, refresh } = useAuth();
     const currentUser = user || {
         name: "User",
         email: "",
         role: "Member",
-        avatarColor: "bg-blue-600",
+        avatarColor: "bg-blue-600 text-white",
         avatarInitials: "U",
     };
     const [twoFa, setTwoFa] = useState(false);
@@ -30,6 +35,25 @@ export default function Account() {
     const [activeTab, setActiveTab] = useState("profile");
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pendingTwoFa, setPendingTwoFa] = useState(null);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordBusy, setPasswordBusy] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
+    const [timezone, setTimezone] = useState("");
+    const [profileBusy, setProfileBusy] = useState(false);
+    const [profileError, setProfileError] = useState("");
+
+    useEffect(() => {
+        if (!user) return;
+        setName(user.name || "");
+        setEmail(user.email || "");
+        setPhone(user.phone || "");
+        setTimezone(user.timezone || user.raw?.timezone || "");
+    }, [user?.id, user?.name, user?.email, user?.phone, user?.timezone, user?.raw?.timezone]);
 
     const loadTwoFa = useCallback(async () => {
         setTwoFaLoading(true);
@@ -80,6 +104,80 @@ export default function Account() {
         setConfirmOpen(true);
     };
 
+    const handleProfileUpdate = async () => {
+        setProfileError("");
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+        const trimmedTimezone = timezone.trim();
+
+        if (!trimmedName) {
+            setProfileError("Name is required.");
+            return;
+        }
+        if (!trimmedEmail) {
+            setProfileError("Email is required.");
+            return;
+        }
+
+        const normalizedPhone = normalizeIamPhone(phone);
+        if (String(phone ?? "").trim() && !normalizedPhone) {
+            setProfileError("Phone must be a valid number (e.g. +15551234567).");
+            return;
+        }
+
+        setProfileBusy(true);
+        try {
+            await iamService.updateOwnProfile({
+                name: trimmedName,
+                email: trimmedEmail,
+                ...(normalizedPhone ? { phone: normalizedPhone } : { phone: null }),
+                ...(trimmedTimezone ? { timezone: trimmedTimezone } : {}),
+            });
+            await refresh();
+            toast.success("Profile updated");
+        } catch (err) {
+            const message = parseApiError(err, "Failed to update profile.");
+            setProfileError(message);
+            toast.error(message);
+        } finally {
+            setProfileBusy(false);
+        }
+    };
+
+    const handlePasswordUpdate = async () => {
+        setPasswordError("");
+        if (!currentPassword.trim()) {
+            setPasswordError("Enter your current password.");
+            return;
+        }
+        if (!newPassword.trim()) {
+            setPasswordError("Enter a new password.");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordError("New password and confirmation do not match.");
+            return;
+        }
+        setPasswordBusy(true);
+        try {
+            await iamService.validateCurrentPassword(currentPassword);
+            await iamService.changeOwnPassword({
+                password: newPassword,
+                password_confirmation: confirmPassword,
+            });
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            toast.success("Password updated");
+        } catch (err) {
+            const message = parseApiError(err, "Failed to update password.");
+            setPasswordError(message);
+            toast.error(message);
+        } finally {
+            setPasswordBusy(false);
+        }
+    };
+
     return (
         <div data-testid="account-page">
             <PageHeader
@@ -98,8 +196,8 @@ export default function Account() {
                     <TabsContent value="profile" className="space-y-5">
                         <div className="bg-white border border-black/[0.08] rounded-md p-5">
                             <div className="flex items-center gap-4 mb-6">
-                                <div className={`h-16 w-16 ${currentUser.avatarColor} grid place-items-center rounded-md`}>
-                                    <span className="font-mono font-bold text-lg">{currentUser.avatarInitials}</span>
+                                <div className={`h-16 w-16 text-white ${currentUser.avatarColor} grid place-items-center rounded-md`}>
+                                    <span className="font-mono font-bold text-lg text-white">{currentUser.avatarInitials}</span>
                                 </div>
                                 <div>
                                     <div className="font-display text-xl font-bold tracking-tight">{currentUser.name}</div>
@@ -109,24 +207,60 @@ export default function Account() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Full name</Label>
-                                    <Input defaultValue={currentUser.name} className="bg-[#F1F2F5] border-black/[0.08]" data-testid="account-name" />
+                                    <Input
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="bg-[#F1F2F5] border-black/[0.08]"
+                                        data-testid="account-name"
+                                    />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Email</Label>
-                                    <Input defaultValue={currentUser.email} className="bg-[#F1F2F5] border-black/[0.08]" data-testid="account-email" />
+                                    <Input
+                                        type="email"
+                                        autoComplete="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="bg-[#F1F2F5] border-black/[0.08]"
+                                        data-testid="account-email"
+                                    />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Phone</Label>
-                                    <Input defaultValue={currentUser.phone} className="bg-[#F1F2F5] border-black/[0.08]" data-testid="account-phone" />
+                                    <Input
+                                        type="tel"
+                                        autoComplete="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder="+15551234567"
+                                        className="bg-[#F1F2F5] border-black/[0.08]"
+                                        data-testid="account-phone"
+                                    />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Timezone</Label>
-                                    <Input defaultValue={currentUser.timezone} className="bg-[#F1F2F5] border-black/[0.08]" data-testid="account-timezone" />
+                                    <Input
+                                        value={timezone}
+                                        onChange={(e) => setTimezone(e.target.value)}
+                                        placeholder="America/New_York"
+                                        className="bg-[#F1F2F5] border-black/[0.08]"
+                                        data-testid="account-timezone"
+                                    />
                                 </div>
                             </div>
+                            {profileError ? (
+                                <p className="text-sm text-red-600 mt-4" role="alert" data-testid="account-profile-error">
+                                    {profileError}
+                                </p>
+                            ) : null}
                             <div className="flex justify-end mt-5">
-                                <Button onClick={() => toast.success("Profile updated")} className="bg-blue-600 hover:bg-blue-700" data-testid="account-save">
-                                    Save changes
+                                <Button
+                                    onClick={() => void handleProfileUpdate()}
+                                    disabled={profileBusy}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    data-testid="account-save"
+                                >
+                                    {profileBusy ? "Saving…" : "Save changes"}
                                 </Button>
                             </div>
                         </div>
@@ -155,19 +289,59 @@ export default function Account() {
                                 />
                             </div>
                             ) : null}
-                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${features.twoFaEnabled ? "pt-4 border-t border-black/[0.08]" : ""}`}>
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Current password</Label>
-                                    <Input type="password" placeholder="••••••••" className="bg-[#F1F2F5] border-black/[0.08]" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">New password</Label>
-                                    <Input type="password" placeholder="••••••••" className="bg-[#F1F2F5] border-black/[0.08]" />
+                            <div className={`space-y-4 ${features.twoFaEnabled ? "pt-4 border-t border-black/[0.08]" : ""}`}>
+                                <p className="text-xs text-[#4B5563]">{PASSWORD_HINT}</p>
+                                {passwordError ? (
+                                    <p className="text-sm text-red-600" role="alert" data-testid="account-password-error">
+                                        {passwordError}
+                                    </p>
+                                ) : null}
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Current password</Label>
+                                        <PasswordInput
+                                            autoComplete="current-password"
+                                            placeholder="••••••••"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            className="bg-[#F1F2F5] border-black/[0.08]"
+                                            data-testid="account-current-password"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">New password</Label>
+                                            <PasswordInput
+                                                autoComplete="new-password"
+                                                placeholder="••••••••"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="bg-[#F1F2F5] border-black/[0.08]"
+                                                data-testid="account-new-password"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs uppercase tracking-wider font-mono text-[#374151]">Confirm new password</Label>
+                                            <PasswordInput
+                                                autoComplete="new-password"
+                                                placeholder="••••••••"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className="bg-[#F1F2F5] border-black/[0.08]"
+                                                data-testid="account-confirm-password"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex justify-end">
-                                <Button onClick={() => toast.success("Password updated")} className="bg-blue-600 hover:bg-blue-700">
-                                    Update password
+                                <Button
+                                    onClick={() => void handlePasswordUpdate()}
+                                    disabled={passwordBusy}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    data-testid="account-update-password"
+                                >
+                                    {passwordBusy ? "Updating…" : "Update password"}
                                 </Button>
                             </div>
                         </div>

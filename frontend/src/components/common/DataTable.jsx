@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatScalarForDisplay } from "@/lib/mappers";
 import SectionLoaderOverlay from "@/components/loaders/overlays/SectionLoaderOverlay";
-import { SearchLoader } from "@/components/loaders/indicators/LoadingIndicators";
 
 /**
  * Lightweight data table for the Fleetbase console.
@@ -130,9 +129,7 @@ export default function DataTable({
                                 className="pl-9 h-9 bg-[#F5F6F8] border-black/[0.08] focus-visible:border-cyan-accent/60 focus-visible:ring-1 focus-visible:ring-cyan-accent text-sm rounded-lg"
                                 data-testid={`${testid}-search`}
                                 aria-busy={loading}
-                                disabled={loading}
                             />
-                            {loading && <SearchLoader className="absolute right-3 top-1/2 -translate-y-1/2" />}
                         </div>
                     )}
                     {toolbarLeft}
