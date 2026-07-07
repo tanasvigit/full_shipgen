@@ -391,6 +391,21 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: OPTIMIZE_DEPS,
     },
+    build: {
+      sourcemap: false,
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return null;
+            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) return "vendor-react";
+            if (id.includes("@tanstack/react-query") || id.includes("axios") || id.includes("swr")) return "vendor-data";
+            if (id.includes("leaflet") || id.includes("@vis.gl/react-google-maps")) return "vendor-maps";
+            return "vendor";
+          },
+        },
+      },
+    },
     server: {
       fs: {
         allow: [path.resolve(__dirname, "..")],

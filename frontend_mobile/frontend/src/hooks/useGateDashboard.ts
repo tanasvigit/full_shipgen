@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ymsRequest } from "@/src/lib/ymsApi";
+import { yardPollingOptions } from "@/src/hooks/polling";
 
 export type GateDashboard = {
   gateId: string;
@@ -12,7 +13,7 @@ export type GateDashboard = {
     exitHolding: number;
     exitedToday: number;
   };
-  activity: Array<{
+  activity: {
     vehicleId: string;
     plate?: string;
     transporter?: string;
@@ -21,13 +22,13 @@ export type GateDashboard = {
     slot?: string;
     status?: string;
     activityTab?: string;
-  }>;
+  }[];
 };
 
 export function useGateDashboard(gateId = "G1") {
   return useQuery({
     queryKey: ["yard", "gate", "dashboard", gateId],
     queryFn: () => ymsRequest<GateDashboard>(`/gate/dashboard?gate_id=${encodeURIComponent(gateId)}`),
-    refetchInterval: 30_000,
+    ...yardPollingOptions,
   });
 }

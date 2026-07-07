@@ -14,9 +14,10 @@ export function useOperationalIntelligence(orders = [], drivers = []) {
     const metrics = computeOperationalMetrics(orders, drivers);
     const risks = evaluateFleetDeliveryRisks(orders, drivers);
     const suggestions = buildDispatcherSuggestions(orders, drivers);
+    const driverById = new Map(drivers.map((driver) => [String(driver.id), driver]));
     const riskByOrderId = new Map();
     for (const order of orders) {
-      const driver = drivers.find((d) => String(d.id) === String(order.driverId));
+      const driver = driverById.get(String(order.driverId));
       riskByOrderId.set(order.id, evaluateOrderDeliveryRisks(order, { driver }));
     }
     return { metrics, risks, suggestions, riskByOrderId };

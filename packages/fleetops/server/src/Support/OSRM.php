@@ -31,6 +31,13 @@ class OSRM
         return $timeout > 0 ? $timeout : 30;
     }
 
+    protected static function requestRetries(): int
+    {
+        $retries = (int) config('fleetops.osrm.retries', 1);
+
+        return $retries >= 0 ? $retries : 1;
+    }
+
     /**
      * Get the route between two points.
      *
@@ -97,9 +104,13 @@ class OSRM
     {
         $cacheKey    = 'getRouteFromCoordinatesString:' . md5($coordinates . serialize($queryParameters));
 
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         try {
             $url         = static::baseUrl() . "/route/v1/driving/{$coordinates}";
-            $response    = Http::timeout(static::requestTimeout())->get($url, $queryParameters);
+            $response    = Http::retry(static::requestRetries(), 250)->timeout(static::requestTimeout())->get($url, $queryParameters);
             $data        = $response->json();
 
             // Check for the presence of the encoded polyline in each route and decode it if found
@@ -118,8 +129,10 @@ class OSRM
         } catch (\Exception $e) {
             Log::warning('OSRM request timeout or error', ['error' => $e->getMessage(), 'coordinates' => $coordinates]);
 
-            // Return empty response structure on error
-            return ['code' => 'Error', 'routes' => []];
+            $fallback = ['code' => 'Error', 'routes' => []];
+            Cache::put($cacheKey, $fallback, 30);
+
+            return $fallback;
         }
     }
 

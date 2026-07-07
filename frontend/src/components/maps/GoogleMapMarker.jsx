@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 
-export default function GoogleMapMarker({ marker, selected, onMarkerClick, onMarkerContextMenu }) {
+function GoogleMapMarker({ marker, selected, onMarkerClick, onMarkerContextMenu }) {
   const map = useMap();
   const color = marker.color || "#0066FF";
 
@@ -51,7 +51,9 @@ export default function GoogleMapMarker({ marker, selected, onMarkerClick, onMar
       listeners.forEach((listener) => listener.remove());
       gMarker.setMap(null);
     };
-  }, [map, marker, selected, color, onMarkerClick, onMarkerContextMenu]);
+  }, [map, marker.id, marker.lat, marker.lng, marker.label, marker.popup, selected, color, onMarkerClick, onMarkerContextMenu]);
 
   return null;
 }
+
+export default memo(GoogleMapMarker);

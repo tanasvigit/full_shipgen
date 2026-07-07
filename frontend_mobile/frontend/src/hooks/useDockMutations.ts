@@ -23,12 +23,14 @@ export function useDockMutations() {
   const queryClient = useQueryClient();
 
   const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["yard", "docks"] });
-    await queryClient.invalidateQueries({ queryKey: ["yard", "queue"] });
-    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "resources"] });
-    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "readiness"] });
-    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "pause-state"] });
-    await queryClient.invalidateQueries({ queryKey: ["yard", "docks", "complete-state"] });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["yard", "docks", "board"] }),
+      queryClient.invalidateQueries({ queryKey: ["yard", "queue", "bundle"] }),
+      queryClient.invalidateQueries({ queryKey: ["yard", "docks", "resources"] }),
+      queryClient.invalidateQueries({ queryKey: ["yard", "docks", "readiness"] }),
+      queryClient.invalidateQueries({ queryKey: ["yard", "docks", "pause-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["yard", "docks", "complete-state"] }),
+    ]);
   };
 
   const startLoading = useMutation({

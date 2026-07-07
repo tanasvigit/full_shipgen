@@ -1,17 +1,25 @@
 <?php
 
 $redis_host = env('REDIS_HOST', '127.0.0.1');
-$redis_database = env('REDIS_DATABASE', '0');
+$redis_database = (int) env('REDIS_DATABASE', 0);
 $redis_password = env('REDIS_PASSWORD', null);
+$cacheUrl = getenv('CACHE_URL') ?: getenv('REDIS_URL');
 
-if ($cacheUrl = getenv('CACHE_URL')) {
+if ($cacheUrl) {
     $url = parse_url($cacheUrl);
 
-    $redis_host = $url['host'];
-    if (isset($url['pass'])) {
-        $redis_password = $url['pass'];
+    if (is_array($url)) {
+        if (isset($url['host'])) {
+            $redis_host = $url['host'];
+        }
+        if (isset($url['pass'])) {
+            $redis_password = $url['pass'];
+        }
+        $pathDb = isset($url['path']) ? ltrim($url['path'], '/') : '';
+        if (is_numeric($pathDb)) {
+            $redis_database = (int) $pathDb;
+        }
     }
-    $redis_database = isset($url['path']) ? substr($url['path'], 1) : 'cache';
 }
 
 /*
@@ -45,7 +53,7 @@ return [
         'host' => $redis_host,
         'password' => $redis_password,
         'port' => env('REDIS_PORT', 6379),
-        'database' => $redis_database . '_sql_cache',
+        'database' => $redis_database + 1,
     ],
 
     'cache' => [
@@ -53,7 +61,7 @@ return [
         'host' => $redis_host,
         'password' => $redis_password,
         'port' => env('REDIS_PORT', 6379),
-        'database' => $redis_database . '_cache',
+        'database' => $redis_database + 2,
     ],
 
     'geocode-cache' => [
@@ -61,6 +69,6 @@ return [
         'host' => $redis_host,
         'password' => $redis_password,
         'port' => env('REDIS_PORT', 6379),
-        'database' => $redis_database . '_geocode_cache',
+        'database' => $redis_database + 3,
     ],
 ];

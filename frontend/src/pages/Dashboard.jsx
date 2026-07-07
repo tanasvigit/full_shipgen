@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import { useEngineDashboardRoute } from "@/hooks/useEngineAccessContext";
 import KpiCard from "@/components/common/KpiCard";
@@ -12,10 +12,6 @@ import { fleetopsService } from "@/services/fleetops";
 import { formatMoney } from "@/lib/formatMoney";
 import { mapDriver, mapOrder, statusLabel } from "@/lib/mappers";
 import { toast } from "sonner";
-import PageLoaderOverlay from "@/components/loaders/overlays/PageLoaderOverlay";
-import { useOperationalIntelligence } from "@/hooks/fleetops/useOperationalIntelligence";
-import OperationalMetricsStrip from "@/components/fleetops/intelligence/OperationalMetricsStrip";
-import RiskAlertsBar from "@/components/fleetops/intelligence/RiskAlertsBar";
 import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtimeChannel";
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
 import FleetMetricsWidget from "@/components/fleetops/dashboard/FleetMetricsWidget";
@@ -29,6 +25,8 @@ const accentByLabel = {
 };
 
 const HOURS = ["00", "04", "08", "12", "16", "20"];
+const DASHBOARD_ORDERS_LIMIT = 100;
+const DASHBOARD_DRIVERS_LIMIT = 200;
 
 function buildHourly(orders) {
   const bins = Object.fromEntries(HOURS.map((h) => [h, 0]));
@@ -42,21 +40,52 @@ function buildHourly(orders) {
   return HOURS.map((hr) => ({ hr, v: bins[hr] }));
 }
 
+function pickMetricValue(metrics, keys) {
+  if (!metrics || typeof metrics !== "object") return null;
+  for (const key of keys) {
+    const value = metrics[key];
+    if (value != null && typeof value !== "object") return value;
+  }
+  return null;
+}
+
 export default function Dashboard() {
   const dashboardRoute = useEngineDashboardRoute();
   const [ordersState, setOrdersState] = useState([]);
   const [driversState, setDriversState] = useState([]);
+  const [fleetMetrics, setFleetMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const lastRealtimeRefreshRef = useRef(0);
 
   const liveOrders = ordersState.filter((o) => ["en_route", "dispatched"].includes(o.status));
   const liveDrivers = driversState.filter((d) => d.status === "online");
+
+  const refreshDashboardData = useCallback(async () => {
+    try {
+      const { orders, drivers, metrics } = await fleetopsService.loadDashboardSnapshot({
+        ordersLimit: DASHBOARD_ORDERS_LIMIT,
+        driversLimit: DASHBOARD_DRIVERS_LIMIT,
+      });
+      setOrdersState(orders.map(mapOrder));
+      setDriversState(drivers.map(mapDriver));
+      if (metrics) setFleetMetrics(metrics);
+    } catch {
+      /* silent background refresh */
+    }
+  }, []);
 
   useEffect(() => {
     registerDashboardWidget({
       key: "fleet-metrics-core",
       order: 10,
-      render: ({ orders, drivers, vehicles, routes }) => (
-        <FleetMetricsWidget orders={orders} drivers={drivers} vehicles={vehicles} routes={routes} />
+      render: ({ orders, drivers, vehicles, routes, metrics }) => (
+        <FleetMetricsWidget
+          orders={orders}
+          drivers={drivers}
+          vehicles={vehicles}
+          routes={routes}
+          apiMetrics={metrics}
+        />
       ),
     });
     registerIamDashboardWidgets();
@@ -68,7 +97,7 @@ export default function Dashboard() {
 
     const pollDriversOnly = async () => {
       try {
-        const driversResponse = await fleetopsService.listDrivers();
+        const driversResponse = await fleetopsService.listDrivers({ limit: DASHBOARD_DRIVERS_LIMIT });
         if (cancelledPoll) return;
         setDriversState(driversResponse.map(mapDriver));
       } catch {
@@ -79,13 +108,14 @@ export default function Dashboard() {
     const load = async () => {
       setLoading(true);
       try {
-        const [ordersResponse, driversResponse] = await Promise.all([
-          fleetopsService.listOrders(),
-          fleetopsService.listDrivers(),
-        ]);
+        const { orders, drivers, metrics } = await fleetopsService.loadDashboardSnapshot({
+          ordersLimit: DASHBOARD_ORDERS_LIMIT,
+          driversLimit: DASHBOARD_DRIVERS_LIMIT,
+        });
         if (!active) return;
-        setOrdersState(ordersResponse.map(mapOrder));
-        setDriversState(driversResponse.map(mapDriver));
+        setOrdersState(orders.map(mapOrder));
+        setDriversState(drivers.map(mapDriver));
+        if (metrics) setFleetMetrics(metrics);
       } catch {
         if (active) toast.error("Could not load dashboard data.");
       } finally {
@@ -107,31 +137,28 @@ export default function Dashboard() {
   useFleetopsRealtimeChannel(
     companyChannel,
     () => {
-      void (async () => {
-        try {
-          const [ordersResponse, driversResponse] = await Promise.all([
-            fleetopsService.listOrders(),
-            fleetopsService.listDrivers(),
-          ]);
-          setOrdersState(ordersResponse.map(mapOrder));
-          setDriversState(driversResponse.map(mapDriver));
-        } catch {
-          /* silent background refresh */
-        }
-      })();
+      const now = Date.now();
+      if (now - lastRealtimeRefreshRef.current < 5000) return;
+      lastRealtimeRefreshRef.current = now;
+      void refreshDashboardData();
     },
     { enabled: Boolean(companyChannel), debounceMs: 1200 },
   );
-
-  const { metrics, risks } = useOperationalIntelligence(ordersState, driversState);
 
   const ordersByHour = useMemo(() => buildHourly(ordersState), [ordersState]);
   const maxBar = Math.max(1, ...ordersByHour.map((d) => d.v));
   const dashboardWidgets = getDashboardWidgets();
 
   const kpis = useMemo(() => {
-    const open = ordersState.filter((o) => !["delivered", "canceled"].includes(o.status)).length;
-    const delivered = ordersState.filter((o) => o.status === "delivered").length;
+    const open =
+      pickMetricValue(fleetMetrics, ["open_orders", "open_orders_count", "active_orders", "orders_open"]) ??
+      ordersState.filter((o) => !["delivered", "canceled"].includes(o.status)).length;
+    const delivered =
+      pickMetricValue(fleetMetrics, ["delivered_orders", "delivered_orders_count", "orders_delivered"]) ??
+      ordersState.filter((o) => o.status === "delivered").length;
+    const activeDriverCount =
+      pickMetricValue(fleetMetrics, ["active_drivers", "active_drivers_count", "drivers_active", "online_drivers"]) ??
+      liveDrivers.length;
     const mk = (id, label, value, series) => ({
       id,
       label,
@@ -142,10 +169,10 @@ export default function Dashboard() {
     });
     return [
       mk("open", "Open orders", open, ordersByHour.map((x) => x.v)),
-      mk("drivers", "Active drivers", liveDrivers.length, liveDrivers.map((_, i) => i)),
+      mk("drivers", "Active drivers", activeDriverCount, liveDrivers.map((_, i) => i)),
       mk("done", "Delivered (total)", delivered, ordersState.slice(0, 7).map((o, i) => (o.status === "delivered" ? i + 2 : i))),
     ];
-  }, [ordersState, liveDrivers.length, ordersByHour]);
+  }, [ordersState, liveDrivers, ordersByHour, fleetMetrics]);
 
   const recentActivity = useMemo(
     () =>
@@ -163,7 +190,7 @@ export default function Dashboard() {
     [ordersState],
   );
 
-  const mapMarkers = [
+  const mapMarkers = useMemo(() => [
     ...liveDrivers.map((d) => ({
       id: d.id,
       lat: d.location.lat,
@@ -181,19 +208,18 @@ export default function Dashboard() {
       popup: `${o.customer.name} · ${statusLabel(o.status)}`,
       color: "#EA580C",
     })),
-  ];
+  ], [liveDrivers, liveOrders]);
 
   if (dashboardRoute !== "/") {
     return <Navigate to={dashboardRoute} replace />;
   }
 
   return (
-    <PageLoaderOverlay loading={loading && ordersState.length === 0} message="Loading dashboard…" testId="dashboard-page-loader">
     <div data-testid="dashboard-page" className="bg-[#F5F6F8] min-h-full">
       <PageHeader
         overline="Operations · Live"
         title="Command Center"
-        description={loading ? "Loading live operations data…" : "Real-time snapshot of orders and drivers across your tenant."}
+        description={loading ? "Refreshing live operations data…" : "Real-time snapshot of orders and drivers across your tenant."}
         actions={
           <>
             <Button
@@ -225,7 +251,7 @@ export default function Dashboard() {
             <KpiCard
               key={k.id}
               label={k.label}
-              value={k.value}
+              value={loading && ordersState.length === 0 && driversState.length === 0 ? "—" : k.value}
               delta={k.delta}
               trend={k.trend}
               series={k.series}
@@ -235,18 +261,14 @@ export default function Dashboard() {
           ))}
         </div>
         <div className="bg-[#F5F6F8]" data-testid="dashboard-widgets-zone">
-          <div className="mb-4">
-            <FleetMetricsWidget orders={ordersState} drivers={driversState} vehicles={[]} routes={[]} />
-          </div>
-          {dashboardWidgets
-            .filter((widget) => widget.key !== "fleet-metrics-core")
-            .map((widget) => (
+          {dashboardWidgets.map((widget) => (
             <div key={widget.key} className="mb-4">
               {widget.render({
                 orders: ordersState,
                 drivers: driversState,
                 vehicles: [],
                 routes: [],
+                metrics: fleetMetrics,
               })}
             </div>
           ))}
@@ -434,6 +456,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-    </PageLoaderOverlay>
   );
 }

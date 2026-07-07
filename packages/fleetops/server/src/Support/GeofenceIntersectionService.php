@@ -134,19 +134,25 @@ class GeofenceIntersectionService
         // 5. Detect EXITS: geofences the driver was inside but is no
         //    longer inside (not in the current ST_Contains result set).
         // ----------------------------------------------------------------
-        foreach ($currentStates as $geofenceUuid => $state) {
-            if ($state->is_inside && !in_array($geofenceUuid, $currentlyInsideUuids)) {
-                $geofence = $state->geofence_type === 'service_area'
-                    ? ServiceArea::where('uuid', $geofenceUuid)->first()
-                    : Zone::where('uuid', $geofenceUuid)->first();
+        $exitStates = $currentStates->filter(function ($state, $geofenceUuid) use ($currentlyInsideUuids) {
+            return $state->is_inside && !in_array($geofenceUuid, $currentlyInsideUuids);
+        });
+        $zoneExitUuids = $exitStates->where('geofence_type', 'zone')->keys()->values()->all();
+        $serviceAreaExitUuids = $exitStates->where('geofence_type', 'service_area')->keys()->values()->all();
+        $zoneExitMap = !empty($zoneExitUuids) ? Zone::whereIn('uuid', $zoneExitUuids)->get()->keyBy('uuid') : collect();
+        $serviceAreaExitMap = !empty($serviceAreaExitUuids) ? ServiceArea::whereIn('uuid', $serviceAreaExitUuids)->get()->keyBy('uuid') : collect();
 
-                if ($geofence) {
-                    $crossings[] = [
-                        'type'          => 'exited',
-                        'geofence'      => $geofence,
-                        'geofence_type' => $state->geofence_type,
-                    ];
-                }
+        foreach ($exitStates as $geofenceUuid => $state) {
+            $geofence = $state->geofence_type === 'service_area'
+                ? $serviceAreaExitMap->get($geofenceUuid)
+                : $zoneExitMap->get($geofenceUuid);
+
+            if ($geofence) {
+                $crossings[] = [
+                    'type'          => 'exited',
+                    'geofence'      => $geofence,
+                    'geofence_type' => $state->geofence_type,
+                ];
             }
         }
 

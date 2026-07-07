@@ -4,6 +4,7 @@ import { useMap } from "@vis.gl/react-google-maps";
 export default function GoogleMapBounds({ markers = [], routePoints = [], routeTrails = [], geofence, zoom = 12, fitOnce = false }) {
   const map = useMap();
   const hasFitRef = useRef(false);
+  const lastBoundsSignatureRef = useRef("");
 
   useEffect(() => {
     if (!map || !window.google?.maps) return;
@@ -42,6 +43,9 @@ export default function GoogleMapBounds({ markers = [], routePoints = [], routeT
     }
 
     if (count === 0) return;
+    const signature = `${count}:${bounds.toUrlValue()}:${zoom}`;
+    if (signature === lastBoundsSignatureRef.current) return;
+    lastBoundsSignatureRef.current = signature;
     if (count === 1) {
       map.setCenter(bounds.getCenter());
       map.setZoom(zoom);

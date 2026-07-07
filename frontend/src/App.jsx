@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import "@/App.css";
@@ -13,12 +14,12 @@ import TwoFA from "@/pages/auth/TwoFA";
 import Onboard from "@/pages/auth/Onboard";
 import OnboardVerifyEmail from "@/pages/auth/OnboardVerifyEmail";
 
-import Dashboard from "@/pages/Dashboard";
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
 import Notifications from "@/pages/Notifications";
 import Account from "@/pages/Account";
 import Settings from "@/pages/Settings";
 
-import OrdersList from "@/pages/fleetops/OrdersList";
+const OrdersList = lazy(() => import("@/pages/fleetops/OrdersList"));
 import OrderNew from "@/pages/fleetops/OrderNew";
 import DriversList from "@/pages/fleetops/DriversList";
 import VehiclesList from "@/pages/fleetops/VehiclesList";
@@ -86,7 +87,7 @@ import TelematicsList from "@/pages/fleetops/connectivity/TelematicsList";
 import DevicesList from "@/pages/fleetops/connectivity/DevicesList";
 import SensorsList from "@/pages/fleetops/connectivity/SensorsList";
 import DeviceEventsList from "@/pages/fleetops/connectivity/DeviceEventsList";
-import FleetTrackingHub from "@/pages/fleetops/connectivity/FleetTrackingHub";
+const FleetTrackingHub = lazy(() => import("@/pages/fleetops/connectivity/FleetTrackingHub"));
 import VehicleDevicesAdmin from "@/pages/fleetops/connectivity/VehicleDevicesAdmin";
 import MaintenanceSchedulesList from "@/pages/fleetops/maintenance/MaintenanceSchedulesList";
 import MaintenancesList from "@/pages/fleetops/maintenance/MaintenancesList";
@@ -132,6 +133,7 @@ import TrackingStatusesList from "@/pages/fleetops/admin/TrackingStatusesList";
 function App() {
     return (
         <div className="App">
+            <Suspense fallback={<div className="min-h-screen w-full bg-[#F5F6F8]" />}>
                 <Routes>
                     <Route element={<AuthLayout />}>
                         <Route path="/install" element={<Navigate to="/auth" replace />} />
@@ -396,6 +398,7 @@ function App() {
 
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+            </Suspense>
             <Toaster theme="dark" position="bottom-right" />
         </div>
     );

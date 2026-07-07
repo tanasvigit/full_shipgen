@@ -91,6 +91,8 @@ const RESOURCES = {
 
 const toPayloadKey = (entityKey) => entityKey.replace(/([A-Z])/g, "_$1").toLowerCase();
 const DAY3_STORE_KEY = "fleetops_day3_store_v1";
+const DEVICE_CACHE_TTL_MS = 30_000;
+let liveDeviceCache = { at: 0, rows: [] };
 
 const readDay3Store = () => {
   if (typeof window === "undefined") return {};
@@ -104,6 +106,16 @@ const readDay3Store = () => {
 const writeDay3Store = (next) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(DAY3_STORE_KEY, JSON.stringify(next));
+};
+
+const getCachedDevices = async () => {
+  const now = Date.now();
+  if (now - liveDeviceCache.at < DEVICE_CACHE_TTL_MS && Array.isArray(liveDeviceCache.rows)) {
+    return liveDeviceCache.rows;
+  }
+  const rows = await fleetopsService.listDevice().catch(() => []);
+  liveDeviceCache = { at: now, rows };
+  return rows;
 };
 
 const attachGenericCrud = (service, methodPrefix, candidates, entityKey, listKeys) => {
@@ -1563,6 +1575,16 @@ export const fleetopsService = {
     return response.data?.metrics || response.data || {};
   },
 
+  /** Bounded snapshot for Command Center — avoids unbounded list scans on dashboard boot. */
+  async loadDashboardSnapshot({ ordersLimit = 100, driversLimit = 200 } = {}) {
+    const [orders, drivers, metrics] = await Promise.all([
+      this.listOrders({ limit: ordersLimit }).catch(() => []),
+      this.listDrivers({ limit: driversLimit }).catch(() => []),
+      this.getFleetOpsMetrics().catch(() => null),
+    ]);
+    return { orders, drivers, metrics };
+  },
+
   async getTenantBranding() {
     try {
       const response = await apiClient.get("/settings/branding", { loading: false, silent: true });
@@ -1883,10 +1905,7 @@ export const fleetopsService = {
             .get("/fleet-ops/live/drivers", { params, loading: false })
             .then((r) => unwrapList(r.data, ["drivers", "data"]))
             .catch(() => []);
-    const [devices, drivers] = await Promise.all([
-      fleetopsService.listDevice().catch(() => []),
-      driversPromise,
-    ]);
+    const [devices, drivers] = await Promise.all([getCachedDevices(), driversPromise]);
     return enrichLiveVehicles(vehicles, { devices, drivers });
   },
 

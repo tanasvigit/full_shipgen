@@ -4,15 +4,25 @@ import { fleetopsService } from "@/services/fleetops";
 /**
  * Ember key-metrics widget — loads GET /fleet-ops/metrics/ (G051).
  */
-export default function FleetMetricsWidget({ orders = [], drivers = [], vehicles = [], routes = [], className = "" }) {
-  const [apiMetrics, setApiMetrics] = useState(null);
+export default function FleetMetricsWidget({
+  orders = [],
+  drivers = [],
+  vehicles = [],
+  routes = [],
+  apiMetrics: apiMetricsProp,
+  className = "",
+}) {
+  const [apiMetricsFetched, setApiMetricsFetched] = useState(null);
 
   useEffect(() => {
+    if (apiMetricsProp != null) return;
     fleetopsService
       .getFleetOpsMetrics()
-      .then(setApiMetrics)
-      .catch(() => setApiMetrics(null));
-  }, []);
+      .then(setApiMetricsFetched)
+      .catch(() => setApiMetricsFetched(null));
+  }, [apiMetricsProp]);
+
+  const apiMetrics = apiMetricsProp ?? apiMetricsFetched;
 
   const cards = useMemo(() => {
     if (apiMetrics && typeof apiMetrics === "object" && Object.keys(apiMetrics).length > 0) {

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import ArcSpinner from "@/components/loaders/Spinner/ArcSpinner";
+import BrandLoaderContent from "@/components/loaders/Spinner/BrandLoaderContent";
 import { cn } from "@/lib/utils";
 
 function PageLoaderOverlay({
@@ -15,19 +15,20 @@ function PageLoaderOverlay({
       {loading && (
         <div
           className={cn(
-            "fleetbase-loader-viewport fleetbase-loader-viewport--interactive",
-            "flex flex-col gap-2 bg-[var(--loader-overlay)] backdrop-blur-[2px] fleetbase-loader-fade-in",
+            "fleetbase-loader-viewport fleetbase-loader-viewport--brand fleetbase-loader-viewport--interactive",
+            "fleetbase-loader-fade-in",
           )}
           data-testid={testId}
           role="status"
           aria-live="polite"
+          aria-busy="true"
+          aria-label={message}
         >
-          <ArcSpinner size="md" testId={`${testId}-spinner`} />
-          {message && (
-            <p className="text-xs font-medium text-[var(--loader-message)]" data-testid={`${testId}-message`}>
-              {message}
-            </p>
-          )}
+          <BrandLoaderContent
+            message={message}
+            spinnerTestId={`${testId}-spinner`}
+            messageTestId={`${testId}-message`}
+          />
         </div>
       )}
     </div>

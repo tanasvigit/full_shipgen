@@ -8,7 +8,7 @@ export const LOGO_SWOOSH_ANIMATION = "fleetbase-logo-swoosh-flow";
 export const ARC_SPINNER_CLASS = LOGO_LOADER_CLASS;
 /** @deprecated use LOGO_STREAK_ANIMATION */
 export const ARC_SPIN_ANIMATION = LOGO_STREAK_ANIMATION;
-export const ARC_SPIN_DURATION = "0.9s";
+export const ARC_SPIN_DURATION = "0.55s";
 
 export async function assertLogoLoaderStructure(spinner: Locator) {
   await expect(spinner).toBeVisible();

@@ -10,6 +10,9 @@ const SIZES = {
   xl: 96,
 };
 
+/** Full-viewport loaders — matches boot splash in index.html (84×52). */
+export const BRAND_LOADER_VIEWPORT_SIZE = "md";
+
 const LOGO_SRC = "/logo.png";
 
 /** ShipGen logo loader — orange streaks + blue swoosh slide (replaces arc spinner). */

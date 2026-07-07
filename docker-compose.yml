@@ -84,8 +84,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       TELEMETRY_DISABLED: "true"
       REGISTRY_PREINSTALLED_EXTENSIONS: "true"
     depends_on:
@@ -98,20 +98,24 @@ services:
 
   queue:
     <<: *fleetbase-api-common
-    command: ["php", "artisan", "queue:work"]
+    command: ["php", "artisan", "queue:work", "--sleep=1", "--tries=3", "--timeout=90", "--max-jobs=1000", "--max-time=3600"]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "php", "artisan", "queue:status"]
-      interval: 30s
-      timeout: 10s
+      test:
+        [
+          "CMD-SHELL",
+          "for pid in $$(pidof php 2>/dev/null); do tr '\\0' ' ' </proc/$$pid/cmdline | grep -q 'artisan queue:work' && exit 0; done; exit 1",
+        ]
+      interval: 60s
+      timeout: 5s
       retries: 3
     environment:
       DATABASE_URL: "mysql://root@database/fleetbase"
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       TELEMETRY_DISABLED: "true"
       REGISTRY_PREINSTALLED_EXTENSIONS: "true"
     depends_on:
@@ -147,6 +151,7 @@ services:
       - "8000:80"
     environment:
       GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET:-shipgen-gateway-dev-secret}
+      GATEWAY_AUTH_CACHE_ENABLED: ${GATEWAY_AUTH_CACHE_ENABLED:-0}
     depends_on:
       iam-service:
         condition: service_started
@@ -176,8 +181,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
@@ -216,8 +221,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
@@ -261,8 +266,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
@@ -301,8 +306,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
@@ -341,8 +346,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost
@@ -384,8 +389,8 @@ services:
       QUEUE_CONNECTION: redis
       CACHE_DRIVER: redis
       CACHE_PATH: /fleetbase/api/storage/framework/cache
-      CACHE_URL: tcp://cache
-      REDIS_URL: tcp://cache
+      CACHE_URL: redis://cache:6379/0
+      REDIS_URL: redis://cache:6379/0
       REDIS_HOST: cache
       SESSION_DRIVER: redis
       SESSION_DOMAIN: localhost

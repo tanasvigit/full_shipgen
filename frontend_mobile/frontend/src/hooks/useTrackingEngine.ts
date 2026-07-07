@@ -19,7 +19,7 @@ export function useTrackingEngine(orderId?: string, mode: TrackingMode = "active
     }
 
     void bindTrackingOrder(orderId, mode).then(sync);
-    const timer = setInterval(sync, 2_000);
+    const timer = setInterval(sync, 5_000);
 
     return () => {
       clearInterval(timer);

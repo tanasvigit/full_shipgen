@@ -33,6 +33,7 @@ class OrderTracker
 
     /** @var bool Flag to indicate if the order has multiple dropoff points */
     protected bool $isMultipleDropOrder = false;
+    protected array $routeResponseCache = [];
 
     /**
      * Constructor for OrderTracker.
@@ -119,7 +120,7 @@ class OrderTracker
         }
 
         try {
-            $response = OSRM::getRouteFromPoints($points);
+            $response = $this->getRouteFromPointsCached($points);
             if (isset($response['code']) && $response['code'] === 'Ok') {
                 $route = Arr::first($response['routes']);
                 if ($route) {
@@ -148,7 +149,7 @@ class OrderTracker
         }
 
         try {
-            $response = OSRM::getRouteFromPoints($points);
+            $response = $this->getRouteFromPointsCached($points);
             if (isset($response['code']) && $response['code'] === 'Ok') {
                 $route = Arr::first($response['routes']);
                 if ($route) {
@@ -194,7 +195,7 @@ class OrderTracker
         }
 
         try {
-            $response = OSRM::getRoute($start, $end);
+            $response = $this->getRouteBetweenPointsCached($start, $end);
             if (isset($response['code']) && $response['code'] === 'Ok') {
                 $route = Arr::first($response['routes']);
                 if ($route) {
@@ -229,7 +230,7 @@ class OrderTracker
         }
 
         try {
-            $response           = OSRM::getRoute($start, $end);
+            $response           = $this->getRouteBetweenPointsCached($start, $end);
             if (isset($response['code']) && $response['code'] === 'Ok') {
                 $route = Arr::first($response['routes']);
                 if ($route) {
@@ -264,7 +265,7 @@ class OrderTracker
         }
 
         try {
-            $response = OSRM::getRoute($start, $end);
+            $response = $this->getRouteBetweenPointsCached($start, $end);
             if (isset($response['code']) && $response['code'] === 'Ok') {
                 $route = Arr::first($response['routes']);
                 if ($route) {
@@ -595,5 +596,25 @@ class OrderTracker
                 'last_waypoint_completed'             => $orderProgressPercentage === 100 || $this->order->status === 'completed',
             ];
         });
+    }
+
+    protected function getRouteFromPointsCached(array $points): array
+    {
+        $key = 'points:' . md5(serialize($points));
+        if (!isset($this->routeResponseCache[$key])) {
+            $this->routeResponseCache[$key] = OSRM::getRouteFromPoints($points);
+        }
+
+        return $this->routeResponseCache[$key];
+    }
+
+    protected function getRouteBetweenPointsCached(Point $start, Point $end): array
+    {
+        $key = 'route:' . $start->getLat() . ':' . $start->getLng() . ':' . $end->getLat() . ':' . $end->getLng();
+        if (!isset($this->routeResponseCache[$key])) {
+            $this->routeResponseCache[$key] = OSRM::getRoute($start, $end);
+        }
+
+        return $this->routeResponseCache[$key];
     }
 }

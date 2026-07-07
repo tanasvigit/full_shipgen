@@ -1,5 +1,6 @@
 export { default as ArcSpinner } from "./Spinner/ArcSpinner";
-export { default as LogoLoader } from "./Spinner/LogoLoader";
+export { default as LogoLoader, BRAND_LOADER_VIEWPORT_SIZE } from "./Spinner/LogoLoader";
+export { default as BrandLoaderContent } from "./Spinner/BrandLoaderContent";
 export { default as GlobalLoaderOverlay } from "./overlays/GlobalLoaderOverlay";
 export { default as FullscreenOverlay } from "./overlays/FullscreenOverlay";
 export { default as PageLoaderOverlay } from "./overlays/PageLoaderOverlay";

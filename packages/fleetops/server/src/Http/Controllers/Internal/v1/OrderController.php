@@ -398,6 +398,10 @@ class OrderController extends FleetOpsController
     {
         /** @var \Illuminate\Database\Eloquent\Collection $orders */
         $orders = Order::whereIn('uuid', $request->input('ids'))->get();
+        $canceledTrackingNumbers = TrackingStatus::whereIn('tracking_number_uuid', $orders->pluck('tracking_number_uuid')->filter()->unique()->values())
+            ->where('code', 'CANCELED')
+            ->pluck('tracking_number_uuid')
+            ->flip();
 
         $count      = $orders->count();
         $failed     = [];
@@ -409,8 +413,7 @@ class OrderController extends FleetOpsController
                 continue;
             }
 
-            $trackingStatusExists = TrackingStatus::where(['tracking_number_uuid' => $order->tracking_number_uuid, 'code' => 'CANCELED'])->exists();
-            if ($trackingStatusExists) {
+            if ($canceledTrackingNumbers->has($order->tracking_number_uuid)) {
                 $failed[] = $order->uuid;
                 continue;
             }
@@ -439,6 +442,10 @@ class OrderController extends FleetOpsController
     {
         /** @var Order */
         $orders = Order::whereIn('uuid', $request->input('ids'))->get();
+        $canceledTrackingNumbers = TrackingStatus::whereIn('tracking_number_uuid', $orders->pluck('tracking_number_uuid')->filter()->unique()->values())
+            ->where('code', 'CANCELED')
+            ->pluck('tracking_number_uuid')
+            ->flip();
 
         $count      = $orders->count();
         $failed     = [];
@@ -450,8 +457,7 @@ class OrderController extends FleetOpsController
                 continue;
             }
 
-            $trackingStatusExists = TrackingStatus::where(['tracking_number_uuid' => $order->tracking_number_uuid, 'code' => 'CANCELED'])->exists();
-            if ($trackingStatusExists) {
+            if ($canceledTrackingNumbers->has($order->tracking_number_uuid)) {
                 $failed[] = $order->uuid;
                 continue;
             }

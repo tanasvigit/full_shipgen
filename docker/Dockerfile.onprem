@@ -16,21 +16,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pecl channel-update pecl.php.net || true
+
 RUN install-php-extensions \
     pdo_mysql \
     gd \
     bcmath \
-    redis \
     intl \
     zip \
     gmp \
-    apcu \
     opcache \
-    memcached \
-    imagick \
     sockets \
     pcntl \
     @composer
+
+# Optional PECL modules; do not fail whole image if PECL is unavailable.
+RUN install-php-extensions redis || true
+RUN install-php-extensions memcached || true
+RUN install-php-extensions imagick || true
+RUN install-php-extensions apcu || install-php-extensions apcu-beta || true
 
 RUN curl -fsSL -o php-geos.zip \
       https://github.com/libgeos/php-geos/archive/dfe1ab17b0f155cc315bc13c75689371676e02e1.zip \

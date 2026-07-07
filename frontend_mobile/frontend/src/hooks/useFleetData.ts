@@ -27,17 +27,6 @@ type FleetDataState = {
   notifications: NotificationItem[];
 };
 
-const EMPTY_DATA: FleetDataState = {
-  orders: [],
-  drivers: [],
-  vehicles: [],
-  routes: [],
-  places: [],
-  issues: [],
-  fuelLogs: [],
-  notifications: [],
-};
-
 export function useFleetData() {
   const { authReady, isAuthenticated, activeOrganization, canFleetops, user } = useAuth();
   const companyUuid = activeOrganization?.uuid || null;
@@ -49,47 +38,63 @@ export function useFleetData() {
   const canListIssues = canList("issue") || isDriver;
   const canListFuel = canList("fuel-report") || canList("fuel_report") || isDriver;
 
+  const commonQueryOptions = {
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  } as const;
+
   const results = useQueries({
     queries: [
       {
         queryKey: [...queryKeys.fleet(companyUuid), "orders"] as const,
         enabled,
         queryFn: () => fleetService.listOrders(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "drivers"] as const,
         enabled: enabled && canList("driver"),
         queryFn: () => fleetService.listDrivers(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "vehicles"] as const,
         enabled: enabled && canList("vehicle"),
         queryFn: () => fleetService.listVehicles(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "routes"] as const,
         enabled: enabled && canList("route"),
         queryFn: () => fleetService.listRoutes(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "places"] as const,
         enabled: enabled && canList("place"),
         queryFn: () => fleetService.listPlaces(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "issues"] as const,
         enabled: enabled && canListIssues,
         queryFn: () => fleetService.listIssues(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "fuel"] as const,
         enabled: enabled && canListFuel,
         queryFn: () => fleetService.listFuelLogs(),
+        ...commonQueryOptions,
       },
       {
         queryKey: [...queryKeys.fleet(companyUuid), "notifications"] as const,
         enabled,
         queryFn: () => fleetService.listNotifications(),
+        staleTime: 15_000,
+        gcTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
       },
     ],
   });

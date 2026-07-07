@@ -8,6 +8,8 @@
   --loader-message: #374151;
   --loader-overlay: rgba(255, 255, 255, 0.72);
   --loader-progress: #0066ff;
+  --loader-streak-duration: 0.55s;
+  --loader-swoosh-duration: 0.65s;
 }
 
 .dark,
@@ -99,14 +101,14 @@
 .fleetbase-logo-loader__streaks {
   transform-box: fill-box;
   transform-origin: 28% 50%;
-  animation: fleetbase-logo-streak-flow 0.9s ease-in-out infinite;
+  animation: fleetbase-logo-streak-flow var(--loader-streak-duration) ease-in-out infinite;
   will-change: transform, opacity;
 }
 
 .fleetbase-logo-loader__swoosh {
   transform-box: fill-box;
   transform-origin: 55% 65%;
-  animation: fleetbase-logo-swoosh-flow 1.05s ease-in-out infinite;
+  animation: fleetbase-logo-swoosh-flow var(--loader-swoosh-duration) ease-in-out infinite;
   will-change: transform, opacity;
 }
 
@@ -125,6 +127,28 @@
   justify-content: center;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+.fleetbase-loader-viewport.fleetbase-loader-viewport--brand {
+  flex-direction: column;
+  gap: 12px;
+  background: #f5f6f8;
+}
+
+.fleetbase-loader-viewport.fleetbase-loader-viewport--stacked {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fleetbase-loader-brand-message {
+  margin: 0;
+  padding: 0 1.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--loader-message);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: center;
 }
 
 .fleetbase-loader-viewport--interactive {
@@ -154,7 +178,7 @@
   background: var(--loader-progress);
   border-radius: 0 2px 2px 0;
   transform: translateX(-100%);
-  animation: fleetbase-progress-indeterminate 1.1s ease-in-out infinite;
+  animation: fleetbase-progress-indeterminate 0.75s ease-in-out infinite;
   will-change: transform;
 }
 

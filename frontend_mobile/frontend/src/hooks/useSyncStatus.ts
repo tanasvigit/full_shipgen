@@ -40,7 +40,7 @@ export function useSyncStatus() {
     void refresh();
     const timer = setInterval(() => {
       void refresh();
-    }, 3_000);
+    }, 10_000);
     const unsub = subscribeNetwork(() => {
       void refresh();
     });

@@ -50,15 +50,18 @@ export default function FleetTrackingHub() {
   const [routeTrails, setRouteTrails] = useState([]);
   const [mapContextMenu, setMapContextMenu] = useState(null);
   const companyChannel = resolveCompanyChannelId();
+  const liveParams = useMemo(
+    () => (fleetFilter !== "all" ? { fleet: fleetFilter, fleet_id: fleetFilter } : {}),
+    [fleetFilter],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = fleetFilter !== "all" ? { fleet: fleetFilter, fleet_id: fleetFilter } : {};
-      const drivers = await fleetopsService.getLiveDrivers(params).catch(() => []);
+      const drivers = await fleetopsService.getLiveDrivers(liveParams).catch(() => []);
       const [v, o, f] = await Promise.all([
-        fleetopsService.getLiveVehicles(params, { drivers }).catch(() => []),
-        fleetopsService.getLiveOrders(params).catch(() => []),
+        fleetopsService.getLiveVehicles(liveParams, { drivers }).catch(() => []),
+        fleetopsService.getLiveOrders(liveParams).catch(() => []),
         fleetopsService.listFleets().catch(() => []),
       ]);
       setDrivers(drivers);
@@ -70,13 +73,28 @@ export default function FleetTrackingHub() {
     } finally {
       setLoading(false);
     }
-  }, [fleetFilter]);
+  }, [liveParams]);
+
+  const refreshLiveState = useCallback(async () => {
+    try {
+      const drivers = await fleetopsService.getLiveDrivers(liveParams).catch(() => []);
+      const [v, o] = await Promise.all([
+        fleetopsService.getLiveVehicles(liveParams, { drivers }).catch(() => []),
+        fleetopsService.getLiveOrders(liveParams).catch(() => []),
+      ]);
+      setDrivers(drivers);
+      setVehicles(v);
+      setOrders(o);
+    } catch {
+      /* silent realtime refresh */
+    }
+  }, [liveParams]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  useFleetopsRealtimeChannel(companyChannel, () => load(), {
+  useFleetopsRealtimeChannel(companyChannel, () => refreshLiveState(), {
     enabled: Boolean(companyChannel),
     debounceMs: 800,
   });

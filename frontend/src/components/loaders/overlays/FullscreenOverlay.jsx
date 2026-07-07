@@ -1,5 +1,5 @@
 import { memo } from "react";
-import ArcSpinner from "@/components/loaders/Spinner/ArcSpinner";
+import BrandLoaderContent from "@/components/loaders/Spinner/BrandLoaderContent";
 import { cn } from "@/lib/utils";
 
 function FullscreenOverlay({ open, message = "Loading…", testId = "fullscreen-loader" }) {
@@ -8,18 +8,16 @@ function FullscreenOverlay({ open, message = "Loading…", testId = "fullscreen-
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[99990] flex items-center justify-center",
-        "bg-[var(--loader-overlay)] backdrop-blur-[2px] fleetbase-loader-fade-in",
+        "fleetbase-loader-viewport fleetbase-loader-viewport--brand fleetbase-loader-fade-in",
+        "z-[99990]",
       )}
       data-testid={testId}
       role="status"
       aria-live="polite"
       aria-busy="true"
+      aria-label={message}
     >
-      <div className="flex flex-col items-center gap-3">
-        <ArcSpinner size="lg" />
-        <span className="text-sm font-medium text-[var(--loader-message)]">{message}</span>
-      </div>
+      <BrandLoaderContent message={message} messageTestId={`${testId}-message`} />
     </div>
   );
 }

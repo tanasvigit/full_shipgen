@@ -146,7 +146,6 @@ export default function LeafletMapView({
         hasFitRef.current = true;
       }
     }
-    setTimeout(() => map.invalidateSize(), 50);
   }, [
     markers,
     routePoints,
