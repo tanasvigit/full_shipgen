@@ -19,7 +19,9 @@ export default function OrderLabelDialog({ open, onOpenChange, orderId, orderPub
       setError(null);
       setPdfSrc(null);
       try {
-        const data = await fleetopsService.getOrderLabel(orderId, "base64");
+        const data = await fleetopsService.getOrderLabel(orderId, "base64", {
+          publicId: orderPublicId,
+        });
         const b64 = typeof data === "string" ? data : data?.base64 || data?.content;
         if (!b64) throw new Error("No label data returned.");
         if (active) setPdfSrc(`data:application/pdf;base64,${b64}`);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { platformLogin } from "@yard/services/authApi";
 import { useAuth as useYardAuth } from "@yard/contexts/AuthContext";
@@ -19,39 +19,47 @@ export default function YardPlatformSession({ children }) {
   const { user, isYardOnlySession, sessionScope, hasPermission, canFleetops } = useAuth();
   const isConsoleAdmin = resolveConsoleAdmin(user, { canFleetops, hasPermission });
   const { refresh, ready, isAuthenticated } = useYardAuth();
-  const [bridgeState, setBridgeState] = useState(() =>
-    getAccessToken() || getRefreshToken() ? "ready" : "pending",
-  );
-  const attemptedRef = useRef(false);
+  const [bridgeState, setBridgeState] = useState("pending");
 
   useEffect(() => {
-    if (bridgeState === "ready" || attemptedRef.current) return;
+    if (bridgeState === "ready") return undefined;
+
+    let cancelled = false;
+
+    const markReady = async () => {
+      try {
+        await refresh();
+        if (!cancelled) setBridgeState("ready");
+      } catch {
+        if (!cancelled) setBridgeState("failed");
+      }
+    };
+
     if (getAccessToken() || getRefreshToken()) {
-      setBridgeState("ready");
-      return;
+      void markReady();
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isYardOnlySession || sessionScope === SESSION_SCOPE.YARD_ONLY) {
       setBridgeState("failed");
       navigate("/auth?redirect=/yard", { replace: true });
-      return;
+      return undefined;
     }
 
     const shipgenAuth = authStorage.get();
     if (!shipgenAuth?.token) {
       setBridgeState("failed");
       navigate("/auth?redirect=/yard", { replace: true });
-      return;
+      return undefined;
     }
 
     if (!isConsoleAdmin) {
       setBridgeState("failed");
       navigate(yardPath("/unauthorized"), { replace: true });
-      return;
+      return undefined;
     }
-
-    attemptedRef.current = true;
-    let cancelled = false;
 
     (async () => {
       try {
@@ -60,6 +68,11 @@ export default function YardPlatformSession({ children }) {
         await refresh();
         if (!cancelled) setBridgeState("ready");
       } catch {
+        if (cancelled) return;
+        if (getAccessToken() || getRefreshToken()) {
+          await markReady();
+          return;
+        }
         if (!cancelled) setBridgeState("failed");
       }
     })();
@@ -75,7 +88,7 @@ export default function YardPlatformSession({ children }) {
     }
   }, [isAuthenticated, bridgeState]);
 
-  if (bridgeState === "pending" || (!ready && bridgeState !== "failed")) {
+  if (bridgeState === "pending" || (bridgeState === "ready" && !ready)) {
     return <SuspenseFallback message="Opening Yard…" />;
   }
 

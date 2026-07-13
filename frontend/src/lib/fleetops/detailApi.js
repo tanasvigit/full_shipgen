@@ -48,8 +48,13 @@ export async function fetchOrderTracker(orderId) {
 /** Order comment thread. */
 export async function fetchOrderComments(orderId) {
   const id = String(orderId);
-  const payload = await tryGet(ORDER_KEYS.map((k) => `/${k}/${id}/comments`));
-  return unwrapList(payload, ["comments"]);
+  try {
+    const payload = await tryGet(["/comments"], { subject_uuid: id, limit: 100 });
+    return unwrapList(payload, ["comments"]);
+  } catch {
+    const payload = await tryGet(ORDER_KEYS.map((k) => `/${k}/${id}/comments`));
+    return unwrapList(payload, ["comments"]);
+  }
 }
 
 /** Positions for a subject (driver uuid). */

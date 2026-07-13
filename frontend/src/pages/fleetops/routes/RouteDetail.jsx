@@ -7,7 +7,7 @@ import FleetopsDetailDrawerPage from "@/components/fleetops/detail/FleetopsDetai
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { Button } from "@/components/ui/button";
 import { fleetopsService } from "@/services/fleetops";
-import { normalizeOptimizationResult, resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
+import { normalizeOptimizationResult, resolveOrderIdsFromRoute, buildRouteStopRows, resolveRoutePickupDropoff, resolveOrderPlaces, resolveStopLocationName } from "@/lib/fleetops/routing";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { useFleetopsDetailDrawer } from "@/hooks/fleetops/useFleetopsDetailDrawer";
 import { DetailLoadingState, resolveDetailEntityId } from "@/lib/fleetops/detailEmbedded";
@@ -36,8 +36,10 @@ function stopWaypointsFromRoute(route) {
 }
 
 function markersFromRoute(route) {
-  const details = route?.details || {};
+  if (!route) return [];
+  const details = route.details || {};
   const stops = details?.stops?.length ? details.stops : details?.assignments || [];
+  const places = resolveOrderPlaces(route);
   if (!Array.isArray(stops)) return [];
   return stops
     .map((s, i) => ({
@@ -45,7 +47,7 @@ function markersFromRoute(route) {
       lat: s.lat ?? s.latitude,
       lng: s.lng ?? s.longitude,
       label: String((s.sequence ?? i) + 1),
-      popup: s.name || s.type || s.order_id || s.orderId,
+      popup: resolveStopLocationName(s, places),
       color: s.type === "pickup" ? "#10B981" : s.type === "dropoff" ? "#F59E0B" : "#0066FF",
     }))
     .filter((m) => m.lat != null && m.lng != null);
@@ -164,29 +166,8 @@ export default function RouteDetail({
     }
   };
 
-  const stopRows = useMemo(() => {
-    const stops = route?.details?.stops || [];
-    if (stops.length) {
-      return stops.map((s, i) => ({
-        id: s.id || `${s.order_id || s.orderId}-${i}`,
-        sequence: s.sequence ?? i + 1,
-        orderId: s.order_id || s.orderId,
-        type: s.type,
-        driverId: s.driver_id || s.driverId,
-        distance: s.distance,
-        duration: s.duration,
-      }));
-    }
-    const assignments = route?.details?.assignments || [];
-    return assignments.map((a, i) => ({
-      id: a.order_id || i,
-      sequence: a.sequence ?? i + 1,
-      orderId: a.order_id,
-      driverId: a.driver_id,
-      distance: a.distance,
-      duration: a.duration,
-    }));
-  }, [route]);
+  const stopRows = useMemo(() => buildRouteStopRows(route), [route]);
+  const routePlaces = useMemo(() => resolveRoutePickupDropoff(route), [route]);
 
   if (!id) {
     return <div className="p-8 text-[#374151]">Route not found.</div>;
@@ -262,12 +243,19 @@ export default function RouteDetail({
 
   const linkedOrderBlock =
     route?.order_public_id || route?.order_uuid ? (
-      <p className="text-sm text-[#374151]">
-        Linked order:{" "}
-        <DetailEntityLink entityKey="order" entityId={route.order_uuid || route.order_public_id}>
-          {route.order_public_id || route.order_uuid}
-        </DetailEntityLink>
-      </p>
+      <div className="space-y-1">
+        <p className="text-sm text-[#374151]">
+          Linked order:{" "}
+          <DetailEntityLink entityKey="order" entityId={route.order_uuid || route.order_public_id}>
+            {route.order_public_id || route.order_uuid}
+          </DetailEntityLink>
+        </p>
+        {(routePlaces.pickup !== "—" || routePlaces.dropoff !== "—") && (
+          <p className="text-xs text-[#4B5563]">
+            {routePlaces.pickup} <span className="text-[#9CA3AF]">→</span> {routePlaces.dropoff}
+          </p>
+        )}
+      </div>
     ) : null;
 
   const stopsTable =
@@ -277,6 +265,11 @@ export default function RouteDetail({
         columns={[
           { key: "sequence", header: "#", render: (r) => r.sequence },
           { key: "type", header: "Type", render: (r) => r.type || "—" },
+          {
+            key: "location",
+            header: "Location",
+            render: (r) => <span className="text-xs text-[#374151]">{r.location || "—"}</span>,
+          },
           {
             key: "orderId",
             header: "Order",
@@ -289,8 +282,17 @@ export default function RouteDetail({
                 "—"
               ),
           },
-          { key: "driverId", header: "Driver", render: (r) => r.driverId || "—" },
-          { key: "distance", header: "Distance (m)", render: (r) => r.distance ?? "—" },
+          { key: "driver", header: "Driver", render: (r) => r.driver || "—" },
+          {
+            key: "distance",
+            header: "Distance",
+            render: (r) => {
+              const meters = r.distance;
+              if (meters == null || meters === "") return "—";
+              const n = Number(meters);
+              return Number.isFinite(n) && n > 1000 ? `${(n / 1000).toFixed(1)} km` : `${meters} m`;
+            },
+          },
           { key: "duration", header: "Duration (s)", render: (r) => r.duration ?? "—" },
         ]}
         data={stopRows}

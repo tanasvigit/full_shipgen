@@ -213,6 +213,11 @@ export async function resolveGoogleRoute(routePoints, options = {}) {
   if (cached) return cached;
 
   const straight = waypoints;
+
+  if (isLiveGpsTrail(routePoints)) {
+    return { path: straight, status: "ok", source: "geometry" };
+  }
+
   let lastError = "";
 
   if (apiKey) {

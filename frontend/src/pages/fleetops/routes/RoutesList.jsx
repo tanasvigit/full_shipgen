@@ -5,9 +5,10 @@ import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, RefreshCw, Route as RouteIcon, Sparkles, Trash2 } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { fleetopsService } from "@/services/fleetops";
-import { resolveOrderIdsFromRoute } from "@/lib/fleetops/routing";
+import { resolveOrderIdsFromRoute, resolveRoutePickupDropoff } from "@/lib/fleetops/routing";
+import RouteRowActions from "@/components/fleetops/routing/RouteRowActions";
 import { useFleetopsAbility } from "@/hooks/fleetops/useFleetopsAbility";
 import { toast } from "sonner";
 import { parseApiError } from "@/lib/errors";
@@ -45,6 +46,7 @@ export default function RoutesList() {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((row) => {
+      const { pickup, dropoff } = resolveRoutePickupDropoff(row);
       const haystack = [
         row.public_id,
         row.order_public_id,
@@ -53,6 +55,10 @@ export default function RoutesList() {
         row.order_status,
         row.driver?.name,
         row.driver?.public_id,
+        pickup,
+        dropoff,
+        row.payload?.pickup_name,
+        row.payload?.dropoff_name,
       ]
         .filter(Boolean)
         .join(" ")
@@ -94,6 +100,22 @@ export default function RoutesList() {
       render: (row) => row.driver?.name || row.driver?.public_id || "—",
     },
     {
+      key: "pickup",
+      header: "Pickup",
+      render: (row) => {
+        const { pickup } = resolveRoutePickupDropoff(row);
+        return <span className="text-xs text-[#374151]">{pickup}</span>;
+      },
+    },
+    {
+      key: "dropoff",
+      header: "Drop-off",
+      render: (row) => {
+        const { dropoff } = resolveRoutePickupDropoff(row);
+        return <span className="text-xs text-[#374151]">{dropoff}</span>;
+      },
+    },
+    {
       key: "stops",
       header: "Stops",
       render: (row) => row.details?.stops?.length ?? row.details?.assignments?.length ?? row.stop_count ?? "—",
@@ -121,69 +143,39 @@ export default function RoutesList() {
         const rid = routeId(row);
         const orderIds = resolveOrderIdsFromRoute(row);
         return (
-          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => openDetail(rid)}>
-              View
-            </Button>
-            {canPlan && orderIds.length > 0 && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                data-testid={`route-replan-${rid}`}
-                onClick={() =>
-                  navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(orderIds.join(","))}`)
-                }
-              >
-                <RouteIcon className="h-3 w-3 mr-1" /> Re-plan
-              </Button>
-            )}
-            {canPlan && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                data-testid={`route-optimize-${rid}`}
-                onClick={async () => {
-                  try {
-                    await fleetopsService.optimizeRoutes({
-                      route: row,
-                      route_uuid: rid,
-                      orders: orderIds,
-                    });
-                    toast.success("Optimized");
-                    load();
-                  } catch (err) {
-                    toast.error(parseApiError(err, "Optimize failed"));
-                  }
-                }}
-              >
-                <Sparkles className="h-3 w-3 mr-1" /> Optimize
-              </Button>
-            )}
-            {ability.canDeleteOrder && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs text-red-600"
-                onClick={async () => {
-                  if (!window.confirm("Delete this route?")) return;
-                  try {
-                    await fleetopsService.deleteRoute(rid);
-                    toast.success("Deleted");
-                    load();
-                  } catch (err) {
-                    toast.error(parseApiError(err, "Delete failed"));
-                  }
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
+          <RouteRowActions
+            routeId={rid}
+            orderIds={orderIds}
+            canPlan={canPlan}
+            canDelete={ability.canDeleteOrder}
+            onView={() => openDetail(rid)}
+            onReplan={() =>
+              navigate(`/fleet-ops/operations/routes/new?order_ids=${encodeURIComponent(orderIds.join(","))}`)
+            }
+            onOptimize={async () => {
+              try {
+                await fleetopsService.optimizeRoutes({
+                  route: row,
+                  route_uuid: rid,
+                  orders: orderIds,
+                });
+                toast.success("Optimized");
+                load();
+              } catch (err) {
+                toast.error(parseApiError(err, "Optimize failed"));
+              }
+            }}
+            onDelete={async () => {
+              if (!window.confirm("Delete this route?")) return;
+              try {
+                await fleetopsService.deleteRoute(rid);
+                toast.success("Deleted");
+                load();
+              } catch (err) {
+                toast.error(parseApiError(err, "Delete failed"));
+              }
+            }}
+          />
         );
       },
     },

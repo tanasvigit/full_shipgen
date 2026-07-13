@@ -19,11 +19,13 @@ export default function DriverPositionsTab({ driverId, driver, enabled }) {
     { enabled: enabled && positionIds.length > 0 },
   );
 
-  const routePoints = useMemo(() => {
-    const pts = (positions || [])
+  const routeTrails = useMemo(() => {
+    const points = (positions || [])
       .map(positionToLatLng)
-      .filter((p) => p.lat && p.lng);
-    return pts.map((p) => [p.lat, p.lng]);
+      .filter((p) => p.lat && p.lng)
+      .map((p) => [p.lat, p.lng]);
+    if (points.length < 2) return [];
+    return [{ id: "driver-gps-trail", points, color: "#059669", highlighted: true }];
   }, [positions]);
 
   const last = positions?.[positions.length - 1];
@@ -71,7 +73,8 @@ export default function DriverPositionsTab({ driverId, driver, enabled }) {
         <div className="h-[360px]">
           <MapView
             markers={[marker]}
-            routePoints={routePoints.length > 1 ? routePoints : undefined}
+            routeTrails={routeTrails}
+            snapToRoad={false}
             testid="driver-map"
           />
         </div>

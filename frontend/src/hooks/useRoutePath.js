@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { normalizeWaypoints, resolveGoogleRoute } from "@/lib/maps/googleRoute";
+import { isLiveGpsTrail, normalizeWaypoints, resolveGoogleRoute } from "@/lib/maps/googleRoute";
 
 /**
  * Resolve a Google road-snapped path for stop waypoints.
@@ -28,7 +28,7 @@ export function useRoutePath(routePoints, { enabled = true, snapToRoad = true } 
       return undefined;
     }
 
-    if (!snapToRoad) {
+    if (!snapToRoad || isLiveGpsTrail(routePoints)) {
       setState({ path: waypoints, status: "ok", source: "straight", error: undefined });
       return undefined;
     }
@@ -49,7 +49,7 @@ export function useRoutePath(routePoints, { enabled = true, snapToRoad = true } 
     return () => {
       cancelled = true;
     };
-  }, [enabled, snapToRoad, waypoints]);
+  }, [enabled, snapToRoad, waypoints, routePoints]);
 
   return state;
 }

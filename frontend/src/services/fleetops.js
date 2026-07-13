@@ -39,6 +39,7 @@ import { buildServiceRateApiPayload } from "@/lib/fleetops/serviceRatePayloads";
 import { FLEETOPS_MORPH, warrantyPayload } from "@/lib/fleetops/maintenancePayloads";
 import { orgStorage } from "@/lib/storage";
 import { filesService } from "@/services/files";
+import { ROUTE_ORDER_WITH } from "@/lib/fleetops/routing/routePlaceUtils";
 
 const RESOURCES = {
   orders: ["orders"],
@@ -425,6 +426,25 @@ export const fleetopsService = {
     }
   },
 
+  /** Service rate service_type values — order types, then order config keys. */
+  async listServiceTypes() {
+    const types = await this.listOrderTypes();
+    if (types.length > 0) return types;
+
+    try {
+      const configs = await this.listOrderConfigs();
+      return configs
+        .map((config) => ({
+          key: config.key,
+          name: config.name,
+          description: config.description,
+        }))
+        .filter((config) => config.key);
+    } catch {
+      return [];
+    }
+  },
+
   async optimizeOrderRoute(orderId) {
     const id = String(orderId);
     let lastError;
@@ -554,10 +574,18 @@ export const fleetopsService = {
   async listOrderComments(orderId) {
     const id = String(orderId);
     try {
-      const payload = await tryCandidates(RESOURCES.orders, "get", `/${id}/comments`);
-      return unwrapList(payload, ["comments"]);
+      const response = await apiClient.get("/comments", {
+        params: { subject_uuid: id, limit: 100 },
+        loading: false,
+      });
+      return unwrapList(response.data, ["comments"]);
     } catch {
-      return [];
+      try {
+        const payload = await tryCandidates(RESOURCES.orders, "get", `/${id}/comments`);
+        return unwrapList(payload, ["comments"]);
+      } catch {
+        return [];
+      }
     }
   },
 
@@ -774,13 +802,19 @@ export const fleetopsService = {
     throw lastError;
   },
 
-  async getOrderLabel(orderId, format = "base64") {
-    const id = String(orderId);
+  async getOrderLabel(orderId, format = "base64", { publicId, type = "order" } = {}) {
+    const id = String(publicId || orderId);
+    const params = { format };
+    // Internal label route infers subject type from public_id prefix (order_*, entity_*).
+    // UUID-only lookups must pass an explicit type.
+    if (!id.includes("_")) {
+      params.type = type;
+    }
     let lastError;
     for (const candidate of RESOURCES.orders) {
       try {
         const response = await apiClient.get(`/${candidate}/label/${id}`, {
-          params: { format },
+          params,
           loading: false,
         });
         const payload = response.data;
@@ -1237,7 +1271,10 @@ export const fleetopsService = {
 
   async listRoutes(params = {}) {
     try {
-      const query = { with: "order", ...params };
+      const query = {
+        with: ROUTE_ORDER_WITH,
+        ...params,
+      };
       const payload = await tryCandidatesQuery(RESOURCES.routes, "get", "", undefined, query);
       return unwrapList(payload, ["routes"]);
     } catch {
@@ -1246,9 +1283,36 @@ export const fleetopsService = {
   },
 
   async getRoute(routeId, params = {}) {
-    const query = { with: "order", ...params };
+    const query = { with: ROUTE_ORDER_WITH, ...params };
     const payload = await tryCandidatesQuery(RESOURCES.routes, "get", `/${routeId}`, undefined, query);
-    return unwrapEntity(payload, ["route"]);
+    const route = unwrapEntity(payload, ["route"]);
+    return this.enrichRoute(route);
+  },
+
+  async enrichRoute(route) {
+    if (!route) return route;
+
+    const { resolveOrderIdsFromRoute } = await import("@/lib/fleetops/routing/resolveOrderIdsFromRoute");
+    const { routeHasPlaceData, resolveRouteDriver } = await import("@/lib/fleetops/routing/routePlaceUtils");
+
+    const orderIds = resolveOrderIdsFromRoute(route);
+    const needsOrder = (!routeHasPlaceData(route) || !resolveRouteDriver(route)) && orderIds.length > 0;
+    if (!needsOrder) return route;
+
+    const orderKey = route.order_uuid || orderIds[0];
+    try {
+      const order = await this.getOrder(orderKey, {
+        with: "payload.pickup,payload.dropoff,driverAssigned",
+      });
+      return {
+        ...route,
+        order,
+        payload: order.payload || route.payload,
+        driver: route.driver || order.driverAssigned || order.driver_assigned,
+      };
+    } catch {
+      return route;
+    }
   },
 
   async createRoute(body = {}) {

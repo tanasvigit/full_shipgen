@@ -13,6 +13,7 @@ import { useFleetopsRealtimeChannel } from "@/hooks/fleetops/useFleetopsRealtime
 import { resolveCompanyChannelId } from "@/domain/fleetops/realtime/socketConfig";
 import { parseApiError } from "@/lib/errors";
 import { coordsFromGeoPoint } from "@/lib/fleetops/geofence";
+import { resolveOrderPickupDropoff } from "@/lib/fleetops/routing/routePlaceUtils";
 
 const MAX_MARKERS = 500;
 
@@ -116,7 +117,13 @@ export default function FleetTrackingHub() {
     if (showOrders) {
       for (const o of orders) {
         const drop = o.dropoff || o.payload?.dropoff || o;
-        const m = toMarker({ ...drop, name: o.public_id || o.publicId || "Order" }, "order", "#F59E0B");
+        const { pickup, dropoff } = resolveOrderPickupDropoff(o);
+        const orderLabel = o.public_id || o.publicId || "Order";
+        const m = toMarker(
+          { ...drop, name: `${orderLabel}: ${pickup} → ${dropoff}` },
+          "order",
+          "#F59E0B",
+        );
         if (m) out.push(m);
       }
     }

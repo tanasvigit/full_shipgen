@@ -16,10 +16,16 @@ test.describe("FleetOps Day 1 — Service rates", () => {
     await expect(page.getByTestId("service-rate-create-dialog")).toBeVisible({ timeout: 15_000 });
     const form = page.getByTestId("service-rate-form-page");
     const nameInput = form.locator("div", { hasText: /^Name/ }).locator("input");
-    const typeInput = form.locator("div", { hasText: /^Service type/ }).locator("input");
     const feeInput = form.locator("div", { hasText: /^Base fee$/ }).locator("input");
     await nameInput.fill(seed.label);
-    await typeInput.fill("delivery");
+    await form.getByTestId("service-rate-type").click();
+    const typeOption = page.getByRole("option").first();
+    if (!(await typeOption.isVisible({ timeout: 5_000 }).catch(() => false))) {
+      test.skip(true, "No service types available from GET /orders/types");
+      return;
+    }
+    const selectedTypeLabel = ((await typeOption.textContent()) || "delivery").trim();
+    await typeOption.click();
     await feeInput.fill("12.5");
 
     const createPromise = page.waitForResponse(
@@ -40,9 +46,10 @@ test.describe("FleetOps Day 1 — Service rates", () => {
     await expect(page.getByTestId("service-rate-edit-dialog")).toBeVisible({ timeout: 15_000 });
     const editForm = page.getByTestId("service-rate-form-page");
     const editFeeInput = editForm.locator("div", { hasText: /^Base fee$/ }).locator("input");
-    await expect(editForm.locator("div", { hasText: /^Service type/ }).locator("input")).toHaveValue("delivery", {
-      timeout: 45_000,
-    });
+    await expect(editForm.locator("div", { hasText: /^Service type/ }).getByTestId("service-rate-type")).toContainText(
+      selectedTypeLabel.split(" (")[0],
+      { timeout: 45_000 },
+    );
     await expect(editFeeInput).toHaveValue(/^(12\.5|125)$/, { timeout: 45_000 });
 
     await editFeeInput.fill("15");

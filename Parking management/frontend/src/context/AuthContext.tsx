@@ -3,7 +3,7 @@ import { roleHasPermission } from '../config/permissions';
 import type { Permission } from '../config/permissions';
 import type { User, UserRole, AuthState } from '../types';
 import * as authApi from '../api/auth';
-import { ApiError } from '../api/client';
+import { ApiError, getToken } from '../api/client';
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -18,11 +18,20 @@ function toUserRole(role: string): UserRole {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [isInitializing, setIsInitializing] = useState(true);
+  // Match Yard: only block on restore when a token already exists.
+  const [isInitializing, setIsInitializing] = useState(() => Boolean(getToken()));
 
   useEffect(() => {
     let active = true;
 
+    if (!getToken()) {
+      setIsInitializing(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setIsInitializing(true);
     authApi
       .restoreSession()
       .then((session) => {

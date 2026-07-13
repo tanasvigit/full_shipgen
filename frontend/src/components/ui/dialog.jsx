@@ -22,8 +22,6 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
       Z_INDEX.modalOverlay,
       className
     )}
-    onPointerDown={(e) => e.stopPropagation()}
-    onClick={(e) => e.stopPropagation()}
     {...props} />
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
@@ -38,6 +36,8 @@ const DialogContent = React.forwardRef(({ className, overlayClassName, children,
         Z_INDEX.modal,
         className
       )}
+      // Keep dialog body clicks from bubbling into page handlers (maps/tables).
+      // Do not stopPropagation on the overlay — Radix needs that event to dismiss on outside click.
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
       {...radixPlacesAutocompleteOutsideProps}

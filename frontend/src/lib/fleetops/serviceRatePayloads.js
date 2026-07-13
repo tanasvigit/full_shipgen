@@ -3,6 +3,39 @@
 import { formatRecordMoney } from "@/lib/formatMoney";
 import { getTenantCurrency } from "@/lib/tenant/locale";
 
+/** Normalize GET /orders/types rows for service rate service_type dropdowns. */
+export function normalizeServiceTypeOptions(types = []) {
+  const seen = new Set();
+  const options = [];
+
+  for (const row of types) {
+    const value = String(row?.key || row?.slug || row?.id || "").trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    options.push({
+      value,
+      label: row?.name || row?.label || value,
+      description: row?.description || "",
+    });
+  }
+
+  return options.sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function mergeServiceTypeOptions(apiTypes = [], extraValues = []) {
+  const options = [...normalizeServiceTypeOptions(apiTypes)];
+  const seen = new Set(options.map((o) => o.value));
+
+  for (const raw of extraValues) {
+    const value = String(raw || "").trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    options.push({ value, label: value, description: "" });
+  }
+
+  return options.sort((a, b) => a.label.localeCompare(b.label));
+}
+
 function omitEmpty(obj) {
   return Object.fromEntries(
     Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== ""),

@@ -3,6 +3,7 @@ import DataTable from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fleetopsService } from "@/services/fleetops";
+import { resolveOrderPickupDropoff } from "@/lib/fleetops/routing";
 import { parseApiError } from "@/lib/errors";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
@@ -94,12 +95,12 @@ export default function RouteOrderPicker({
     {
       key: "pickup",
       header: "Pickup",
-      render: (row) => row.payload?.pickup?.name || row.pickup?.name || "—",
+      render: (row) => resolveOrderPickupDropoff(row).pickup,
     },
     {
       key: "dropoff",
-      header: "Dropoff",
-      render: (row) => row.payload?.dropoff?.name || row.dropoff?.name || "—",
+      header: "Drop-off",
+      render: (row) => resolveOrderPickupDropoff(row).dropoff,
     },
     {
       key: "driver",

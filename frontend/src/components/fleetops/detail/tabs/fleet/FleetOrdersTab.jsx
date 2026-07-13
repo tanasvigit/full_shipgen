@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import StatusBadge from "@/components/common/StatusBadge";
 import DetailEntityLink from "@/components/fleetops/detail/DetailEntityLink";
 import { TableSkeleton } from "@/components/loaders";
+import { useDetailTabData } from "@/hooks/fleetops/useDetailTabData";
 import { formatMoney } from "@/lib/formatMoney";
 import { queryOrders } from "@/lib/fleetops/detailApi";
 import { mapOrder, statusLabel } from "@/lib/mappers";

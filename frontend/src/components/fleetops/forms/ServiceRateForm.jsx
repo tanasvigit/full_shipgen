@@ -1,11 +1,12 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useFormHandle } from "@/components/fleetops/forms/formUtils";
-import { serviceRateValuesFromApi } from "@/lib/fleetops/serviceRatePayloads";
+import { normalizeServiceTypeOptions, serviceRateValuesFromApi } from "@/lib/fleetops/serviceRatePayloads";
+import { fleetopsService } from "@/services/fleetops";
 import { useTenant } from "@/contexts/TenantContext";
 import { getCurrencyOptions, getTenantCurrency } from "@/lib/tenant/locale";
 
@@ -32,6 +33,8 @@ export { serviceRateValuesFromApi };
 const ServiceRateForm = forwardRef(function ServiceRateForm({ formId, initialValues }, ref) {
   const { preferences } = useTenant();
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [typesLoading, setTypesLoading] = useState(true);
   const isEdit = Boolean(initialValues?.publicId || initialValues?.name || initialValues?.baseFee);
   const methods = useForm({
     defaultValues: {
@@ -42,6 +45,31 @@ const ServiceRateForm = forwardRef(function ServiceRateForm({ formId, initialVal
   });
   const { register, watch, setValue } = methods;
   const rateCalculationMethod = watch("rateCalculationMethod");
+  const serviceType = watch("serviceType");
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      setTypesLoading(true);
+      try {
+        const rows = await fleetopsService.listServiceTypes();
+        if (active) setServiceTypes(normalizeServiceTypeOptions(rows));
+      } finally {
+        if (active) setTypesLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const serviceTypeOptions = useMemo(() => {
+    const options = [...serviceTypes];
+    if (serviceType && !options.some((option) => option.value === serviceType)) {
+      options.unshift({ value: serviceType, label: serviceType, description: "Current value" });
+    }
+    return options;
+  }, [serviceTypes, serviceType]);
 
   useFormHandle(ref, methods, () => {
     const values = methods.getValues();
@@ -64,11 +92,28 @@ const ServiceRateForm = forwardRef(function ServiceRateForm({ formId, initialVal
       </div>
       <div>
         <Label>Service type *</Label>
-        <Input
-          {...register("serviceType", { required: true })}
-          placeholder="e.g. delivery, standard"
-          data-testid="service-rate-type"
-        />
+        <Select
+          value={serviceType || ""}
+          onValueChange={(value) => setValue("serviceType", value, { shouldDirty: true, shouldValidate: true })}
+          disabled={typesLoading || serviceTypeOptions.length === 0}
+        >
+          <SelectTrigger data-testid="service-rate-type">
+            <SelectValue placeholder={typesLoading ? "Loading service types…" : "Select service type"} />
+          </SelectTrigger>
+          <SelectContent>
+            {serviceTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+                {option.label !== option.value ? ` (${option.value})` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!typesLoading && serviceTypeOptions.length === 0 ? (
+          <p className="text-xs text-amber-700 mt-1">
+            No service types available. Add an order config under FleetOps → Order config, then refresh.
+          </p>
+        ) : null}
       </div>
       <div>
         <Label>Calculation method</Label>

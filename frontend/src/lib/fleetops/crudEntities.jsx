@@ -15,6 +15,7 @@ import {
   serviceRateCurrency,
   serviceRatePerDistanceLabel,
 } from "@/lib/fleetops/serviceRatePayloads";
+import { resolveOrderPickupDropoff } from "@/lib/fleetops/routing/routePlaceUtils";
 
 /** Coerce API values (including nested relations) to a render-safe string. */
 export function scalarLabel(value) {
@@ -759,18 +760,21 @@ export const CRUD_ENTITIES = {
     fields: [],
     listColumns: [
       { key: "type", header: "Type", sortable: true, render: (r) => <span className="text-[#0066FF] font-medium">{r.raw?.type || r.type || "—"}</span> },
-      { key: "pickup", header: "Pickup", render: (r) => r.raw?.pickup?.name || r.raw?.pickup_name || r.raw?.pickup?.public_id || "—" },
-      { key: "dropoff", header: "Dropoff", render: (r) => r.raw?.dropoff?.name || r.raw?.dropoff_name || r.raw?.dropoff?.public_id || "—" },
+      { key: "pickup", header: "Pickup", render: (r) => resolveOrderPickupDropoff(r.raw || r).pickup },
+      { key: "dropoff", header: "Drop-off", render: (r) => resolveOrderPickupDropoff(r.raw || r).dropoff },
       { key: "cod", header: "COD", render: (r) => (r.raw?.cod_amount != null ? formatMoney(r.raw.cod_amount, r.raw?.cod_currency) : "—") },
       { key: "publicId", header: "Public ID", render: (r) => <span className="font-mono text-xs">{r.publicId}</span> },
     ],
-    displayFields: (raw) => [
+    displayFields: (raw) => {
+      const places = resolveOrderPickupDropoff(raw);
+      return [
       { label: "Type", value: raw?.type || "—" },
-      { label: "Pickup", value: raw?.pickup?.name || raw?.pickup?.public_id || "—" },
-      { label: "Dropoff", value: raw?.dropoff?.name || raw?.dropoff?.public_id || "—" },
+      { label: "Pickup", value: places.pickup },
+      { label: "Drop-off", value: places.dropoff },
       { label: "COD", value: raw?.cod_amount != null ? formatMoney(raw.cod_amount, raw?.cod_currency) : "—" },
       { label: "Payment method", value: raw?.cod_payment_method || "—" },
-    ],
+    ];
+    },
   },
   entity: {
     key: "entity",

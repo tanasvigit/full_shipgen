@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { platformLogin } from "@pms/api/auth";
 import { getToken } from "@pms/api/client";
@@ -16,37 +16,48 @@ export default function ParkingPlatformSession({ children }) {
   const { isParkingOnlySession, sessionScope, hasPermission, canFleetops, user: shipgenUser } = useAuth();
   const isConsoleAdmin = resolveConsoleAdmin(shipgenUser, { canFleetops, hasPermission });
   const { reloadSession, user: parkingUser, isInitializing } = useParkingAuth();
-  const [bridgeState, setBridgeState] = useState(() => (getToken() ? "ready" : "pending"));
-  const attemptedRef = useRef(false);
+  const [bridgeState, setBridgeState] = useState("pending");
 
   useEffect(() => {
-    if (bridgeState === "ready" || attemptedRef.current) return;
+    if (bridgeState === "ready") return undefined;
+
+    let cancelled = false;
+
+    const markReady = async () => {
+      try {
+        await reloadSession();
+        if (!cancelled) setBridgeState("ready");
+      } catch {
+        if (!cancelled) setBridgeState("failed");
+      }
+    };
+
+    // Token already present (refresh, or Strict Mode run that finished login after cancel).
     if (getToken()) {
-      setBridgeState("ready");
-      return;
+      void markReady();
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isParkingOnlySession || sessionScope === SESSION_SCOPE.PARKING_ONLY) {
       setBridgeState("failed");
       navigate("/auth?redirect=/parking", { replace: true });
-      return;
+      return undefined;
     }
 
     const shipgenAuth = authStorage.get();
     if (!shipgenAuth?.token) {
       setBridgeState("failed");
       navigate("/auth?redirect=/parking", { replace: true });
-      return;
+      return undefined;
     }
 
     if (!isConsoleAdmin) {
       setBridgeState("failed");
       navigate(parkingPath("/unauthorized"), { replace: true });
-      return;
+      return undefined;
     }
-
-    attemptedRef.current = true;
-    let cancelled = false;
 
     (async () => {
       try {
@@ -55,6 +66,11 @@ export default function ParkingPlatformSession({ children }) {
         await reloadSession();
         if (!cancelled) setBridgeState("ready");
       } catch {
+        if (cancelled) return;
+        if (getToken()) {
+          await markReady();
+          return;
+        }
         if (!cancelled) setBridgeState("failed");
       }
     })();
@@ -70,7 +86,7 @@ export default function ParkingPlatformSession({ children }) {
     }
   }, [parkingUser, bridgeState]);
 
-  if (bridgeState === "pending" || (isInitializing && bridgeState !== "failed")) {
+  if (bridgeState === "pending" || (bridgeState === "ready" && isInitializing && !parkingUser)) {
     return <SuspenseFallback message="Opening Parking…" />;
   }
 

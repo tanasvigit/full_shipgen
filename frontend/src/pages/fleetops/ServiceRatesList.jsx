@@ -13,6 +13,7 @@ import { CRUD_ENTITIES } from "@/lib/fleetops/crudEntities";
 import { getCrudApi } from "@/lib/fleetops/crudApi";
 import {
   formatServiceRateMoney,
+  mergeServiceTypeOptions,
   serviceRateCurrency,
   serviceRateDisplayName,
   serviceRatePerDistanceLabel,
@@ -40,19 +41,32 @@ export default function ServiceRatesList() {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState([]);
 
   const load = useCallback(async () => {
     if (!canView) {
       setRows([]);
+      setServiceTypeOptions([]);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      setRows(await api.list());
+      const [rateRows, apiTypes] = await Promise.all([
+        api.list(),
+        fleetopsService.listServiceTypes().catch(() => []),
+      ]);
+      setRows(rateRows);
+      setServiceTypeOptions(
+        mergeServiceTypeOptions(
+          apiTypes,
+          rateRows.map((row) => row.service_type || row.serviceType).filter(Boolean),
+        ),
+      );
     } catch (err) {
       toast.error(parseApiError(err, "Failed to load service rates"));
       setRows([]);
+      setServiceTypeOptions([]);
     } finally {
       setLoading(false);
     }
@@ -84,7 +98,7 @@ export default function ServiceRatesList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.get("create"), canCreate]);
 
-  const types = [...new Set(rows.map((r) => r.service_type || r.serviceType).filter(Boolean))];
+  const types = serviceTypeOptions;
   const filtered =
     typeFilter === "all" ? rows : rows.filter((r) => (r.service_type || r.serviceType) === typeFilter);
   const tableRows = filtered.map((row) => ({ ...row, id: serviceRateRowId(row) }));
@@ -253,8 +267,8 @@ export default function ServiceRatesList() {
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               {types.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
                 </SelectItem>
               ))}
             </SelectContent>
