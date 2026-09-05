@@ -1,0 +1,15 @@
+# Dev frontend — Vite HMR with bind-mounted sources (see docker-compose.dev.yml).
+# Build context: repo root.
+FROM node:20-alpine
+
+WORKDIR /workspace/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/docker-entrypoint.dev.sh /usr/local/bin/frontend-dev-entrypoint.sh
+RUN chmod +x /usr/local/bin/frontend-dev-entrypoint.sh
+
+EXPOSE 5173
+
+ENTRYPOINT ["/usr/local/bin/frontend-dev-entrypoint.sh"]

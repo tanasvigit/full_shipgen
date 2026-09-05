@@ -1,85 +1,110 @@
-import { apiClient } from "@/lib/api";
+import { apiClient, getLastApiSuccessAt } from "@/lib/api";
 import { env } from "@/lib/env";
 import { fleetopsRealtimeManager } from "@/domain/fleetops/realtime/registry";
 import { parseApiError } from "@/lib/errors";
 
-/** Paths that exist on Fleetbase API — avoid bare `/` or `/settings` (404/500 noise). */
-const HEALTH_PROBE_PATHS = ["/settings/branding", "/users/me"];
+/**
+ * Single lightweight probe — avoid stacking /settings/branding + /users/me on startup
+ * when auth bootstrap and PlatformContext already hit related /int/v1 paths.
+ * Congestion through the Vite proxy otherwise causes 6–20s hangs → false degraded banner.
+ */
+const HEALTH_PROBE_PATH = "/settings/platform";
+const HEALTH_TIMEOUT_MS = 5000;
+/** If auth/API traffic succeeded recently, treat probe timeout as congestion not outage. */
+const RECENT_SUCCESS_MS = 20000;
 
 const silentRequest = {
   loading: false,
-  timeout: 6000,
+  timeout: HEALTH_TIMEOUT_MS,
   silent: true,
   validateStatus: () => true,
 };
 
+function isTimeoutOrAbort(err) {
+  const code = err?.code || err?.name || "";
+  const message = String(err?.message || err?.friendlyMessage || "");
+  return (
+    code === "ECONNABORTED" ||
+    code === "ERR_CANCELED" ||
+    code === "CanceledError" ||
+    code === "AbortError" ||
+    /timeout|aborted|canceled|cancelled/i.test(message)
+  );
+}
+
 /**
  * Probe API reachability without throwing or spamming the console.
  * 5xx on a probe path → degraded (server up, endpoint unhealthy).
- * Network failure → unreachable.
+ * Network failure → unreachable (unless recent successful API traffic).
  */
 export async function checkApiHealth() {
   const started = Date.now();
-  let lastStatus = null;
-  let lastError = null;
-  let sawReachable4xx = false;
+  const path = HEALTH_PROBE_PATH;
 
-  for (const path of HEALTH_PROBE_PATHS) {
-    try {
-      const response = await apiClient.get(path, silentRequest);
-      const status = response?.status ?? 0;
-      lastStatus = status;
-      const latencyMs = Date.now() - started;
+  try {
+    const response = await apiClient.get(path, silentRequest);
+    const status = response?.status ?? 0;
+    const latencyMs = Date.now() - started;
 
-      if (status >= 200 && status < 400) {
-        return {
-          ok: true,
-          degraded: false,
-          latencyMs,
-          url: `${env.API_BASE_URL}${path}`,
-          status,
-          probe: path,
-          settings: path === "/settings/branding" && status < 400 ? response.data : null,
-        };
-      }
-
-      // 4xx on probe paths often means endpoint unsupported for this backend shape,
-      // not that API connectivity is down. Keep probing other paths before degrading.
-      if (status >= 400 && status < 500) {
-        sawReachable4xx = true;
-        continue;
-      }
-
-      if (status >= 500) {
-        lastError = `HTTP ${status} on ${path}`;
-        continue;
-      }
-    } catch (err) {
-      lastError = parseApiError(err, "API unreachable");
+    if (status >= 200 && status < 400) {
+      return {
+        ok: true,
+        degraded: false,
+        latencyMs,
+        url: `${env.API_BASE_URL}${path}`,
+        status,
+        probe: path,
+        settings: null,
+      };
     }
-  }
 
-  const latencyMs = Date.now() - started;
-  if (lastStatus != null && lastStatus >= 500) {
+    // 4xx means the API answered — connectivity is fine.
+    if (status >= 400 && status < 500) {
+      return {
+        ok: true,
+        degraded: false,
+        latencyMs,
+        url: `${env.API_BASE_URL}${path}`,
+        status,
+        probe: path,
+        settings: null,
+      };
+    }
+
+    if (status >= 500) {
+      return {
+        ok: false,
+        degraded: true,
+        latencyMs,
+        url: `${env.API_BASE_URL}${path}`,
+        status,
+        error: `HTTP ${status} on ${path}`,
+        settings: null,
+      };
+    }
+  } catch (err) {
+    const latencyMs = Date.now() - started;
+    const recentOk = Date.now() - getLastApiSuccessAt() < RECENT_SUCCESS_MS;
+
+    // Vite proxy queues under load; auth bootstrap may have just succeeded.
+    if (isTimeoutOrAbort(err) && recentOk) {
+      return {
+        ok: true,
+        degraded: false,
+        latencyMs,
+        url: `${env.API_BASE_URL}${path}`,
+        status: 0,
+        probe: "recent-success",
+        settings: null,
+      };
+    }
+
     return {
       ok: false,
       degraded: true,
       latencyMs,
       url: env.API_BASE_URL,
-      status: lastStatus,
-      error: lastError || `HTTP ${lastStatus}`,
-      settings: null,
-    };
-  }
-
-  if (sawReachable4xx) {
-    return {
-      ok: true,
-      degraded: false,
-      latencyMs,
-      url: env.API_BASE_URL,
-      status: lastStatus ?? 0,
-      probe: "fallback-4xx",
+      error: parseApiError(err, "API unreachable"),
       settings: null,
     };
   }
@@ -87,9 +112,9 @@ export async function checkApiHealth() {
   return {
     ok: false,
     degraded: true,
-    latencyMs,
+    latencyMs: Date.now() - started,
     url: env.API_BASE_URL,
-    error: lastError || "API unreachable",
+    error: "API unreachable",
     settings: null,
   };
 }
@@ -99,6 +124,7 @@ export function getWebsocketHealth() {
   return {
     ok: state === "connected",
     state: state || "unknown",
+    // idle/connecting/unknown are normal before FleetOps realtime starts — not degraded.
     degraded: state === "degraded" || state === "disconnected",
   };
 }

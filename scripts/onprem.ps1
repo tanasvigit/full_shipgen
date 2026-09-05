@@ -30,7 +30,7 @@ Write-Host ""
 Write-Host "On-prem stack is up." -ForegroundColor Green
 Write-Host "  API:     http://localhost:8000"
 Write-Host "  Console: http://localhost:4200"
-Write-Host "  React:   cd frontend; npm run dev  -> http://localhost:5173"
+Write-Host "  React:   powershell -File scripts/dev-ui.ps1  (Vite HMR) or cd frontend; npm run dev"
 Write-Host ""
 Write-Host "Fresh DB: clear docker/database/mysql, then run: powershell -File scripts/migrate-docker.ps1"
 Write-Host "Routing:  powershell -File scripts/setup-osrm.ps1  (once), then osrm services start with compose"

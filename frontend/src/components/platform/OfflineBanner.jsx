@@ -5,8 +5,9 @@ export default function OfflineBanner() {
 
   if (online && !isDegraded) return null;
 
-  const apiDegraded = health?.api?.degraded || (health && !health.api?.ok);
-  const wsDegraded = health?.websocket?.degraded || (health && !health.websocket?.ok);
+  // Use explicit degraded flags — websocket `ok` is false while idle/connecting on Yard.
+  const apiDegraded = Boolean(health?.api?.degraded) || (Boolean(health) && health.api?.ok === false);
+  const wsDegraded = Boolean(health?.websocket?.degraded);
 
   const message = !online
     ? "You are offline. Changes will sync when connectivity returns."

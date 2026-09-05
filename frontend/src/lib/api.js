@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { getAdapter } from "axios";
 import { env } from "@/lib/env";
 import { parseApiError } from "@/lib/errors";
 import { authStorage, orgStorage } from "@/lib/storage";
@@ -22,6 +22,31 @@ function releaseLoading(config) {
 const getErrorMessage = (error, fallback = "Something went wrong. Please try again.") =>
   parseApiError(error, fallback);
 
+/** Wall-clock of last successful apiClient response — used by health soft-fail. */
+let lastApiSuccessAt = 0;
+
+export function getLastApiSuccessAt() {
+  return lastApiSuccessAt;
+}
+
+/**
+ * Collapse duplicate in-flight GETs (StrictMode remount + health + auth bootstrap)
+ * into one network hop through the Vite proxy.
+ */
+const defaultAdapter = getAdapter(axios.defaults.adapter);
+const inflightGets = new Map();
+
+function coalesceGetKey(config) {
+  if (config?.coalesce === false) return null;
+  const method = String(config?.method || "get").toLowerCase();
+  if (method !== "get") return null;
+  const url = axios.getUri(config);
+  const headers = config.headers || {};
+  const auth = headers.Authorization || headers.authorization || "";
+  const company = headers["X-Company"] || headers["x-company"] || "";
+  return `${url}::${auth}::${company}`;
+}
+
 export const apiClient = axios.create({
   baseURL: env.API_BASE_URL,
   timeout: env.API_TIMEOUT_MS,
@@ -29,6 +54,31 @@ export const apiClient = axios.create({
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
+  },
+  adapter: async (config) => {
+    const key = coalesceGetKey(config);
+    if (!key) {
+      return defaultAdapter(config);
+    }
+
+    const existing = inflightGets.get(key);
+    if (existing) {
+      return existing.then(
+        (response) => ({ ...response, config, request: response.request }),
+        (error) => {
+          const next = error && typeof error === "object" ? { ...error, config } : error;
+          return Promise.reject(next);
+        },
+      );
+    }
+
+    const pending = defaultAdapter(config).finally(() => {
+      if (inflightGets.get(key) === pending) {
+        inflightGets.delete(key);
+      }
+    });
+    inflightGets.set(key, pending);
+    return pending;
   },
 });
 
@@ -48,6 +98,7 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => {
+    lastApiSuccessAt = Date.now();
     releaseLoading(response.config);
     loadingManager.reconcileApiTokens();
     return response;

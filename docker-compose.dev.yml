@@ -1,0 +1,53 @@
+# Hot-reload React console (Vite) — bind-mount sources, no image rebuild on UI edits.
+#
+# Usage (from repo root):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   # or:
+#   powershell -File scripts/dev-ui.ps1
+#
+# UI:  http://localhost:5173  (Vite HMR)
+# API: http://localhost:8000
+#
+# Production static nginx frontend: omit this file (plain `docker compose up -d`).
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    image: shipgen-frontend-dev:local
+    # Replace production nginx port map (5173:80) — do not merge with it.
+    ports: !override
+      - "5173:5173"
+    environment:
+      # Vite server-side proxy target only (browser uses same-origin /int/v1 via env.js).
+      VITE_PROXY_TARGET: http://gateway:80
+      VITE_SOCKET_HOST: http://socket:8000
+      VITE_YMS_API_BASE_URL: /api/yms
+      VITE_PMS_API_BASE_URL: /api/pms
+      VITE_YARD_BASE_PATH: /yard
+      VITE_PMS_BASE_PATH: /parking
+      # Windows / Docker Desktop: reliable file watching
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      ENABLE_HEALTH_CHECK: "true"
+    volumes: !override
+      - ./frontend:/workspace/frontend
+      - ./yms/frontend_1:/workspace/yms/frontend_1
+      - "./Parking management/frontend:/workspace/Parking management/frontend"
+      # Keep Linux node_modules in a volume (host mount would hide image deps / break on Windows).
+      - frontend_node_modules:/workspace/frontend/node_modules
+    depends_on:
+      gateway:
+        condition: service_started
+      socket:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173/health/simple"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 90s
+
+volumes:
+  frontend_node_modules:

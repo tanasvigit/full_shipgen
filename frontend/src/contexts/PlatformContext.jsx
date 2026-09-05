@@ -8,6 +8,8 @@ import { runPlatformHealthCheck } from "@/services/platformHealth";
 const PlatformContext = createContext(null);
 
 const HEALTH_POLL_MS = 120000;
+/** Let auth bootstrap /settings finish before an extra health probe competes for the Vite proxy. */
+const HEALTH_START_DELAY_MS = 2500;
 
 export function PlatformProvider({ children }) {
   const { isAuthenticated, isYardOnlySession, authReady } = useAuth();
@@ -18,6 +20,11 @@ export function PlatformProvider({ children }) {
   const [health, setHealth] = useState(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const refreshInFlight = useRef(false);
+  const healthRef = useRef(null);
+
+  useEffect(() => {
+    healthRef.current = health;
+  }, [health]);
 
   useEffect(() => {
     setConfigIssues(validateRuntimeConfig());
@@ -27,7 +34,11 @@ export function PlatformProvider({ children }) {
     let active = true;
     (async () => {
       try {
-        const response = await apiClient.get("/settings/platform", { loading: false, silent: true });
+        const response = await apiClient.get("/settings/platform", {
+          loading: false,
+          silent: true,
+          timeout: 10000,
+        });
         if (active && response?.data) {
           setRemoteMapConfig(response.data);
         }
@@ -52,12 +63,12 @@ export function PlatformProvider({ children }) {
   }, []);
 
   const refreshHealth = useCallback(async () => {
-    if (refreshInFlight.current) return health;
+    if (refreshInFlight.current) return healthRef.current;
     if (!authReady || !isAuthenticated || isYardOnlySession) {
       return null;
     }
     if (typeof document !== "undefined" && document.visibilityState === "hidden") {
-      return health;
+      return healthRef.current;
     }
 
     refreshInFlight.current = true;
@@ -83,9 +94,12 @@ export function PlatformProvider({ children }) {
 
   useEffect(() => {
     if (!authReady || !isAuthenticated || isYardOnlySession) return undefined;
-    void refreshHealth();
+    const startId = setTimeout(() => void refreshHealth(), HEALTH_START_DELAY_MS);
     const id = setInterval(() => void refreshHealth(), HEALTH_POLL_MS);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(startId);
+      clearInterval(id);
+    };
   }, [authReady, isAuthenticated, isYardOnlySession, refreshHealth]);
 
   const isDegraded = useMemo(() => {

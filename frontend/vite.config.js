@@ -1,4 +1,6 @@
 import fs from "fs";
+import http from "node:http";
+import https from "node:https";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
@@ -286,11 +288,33 @@ const OPTIMIZE_DEPS = [
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
-  const apiHost = (env.VITE_API_HOST || "http://localhost:8000").replace(/\/+$/, "");
+  // Proxy target only (Vite server → gateway). Browser API host stays same-origin via env.js.
+  // Docker Compose sets VITE_PROXY_TARGET=http://gateway:80; host `npm run dev` defaults to :8000.
+  const apiHost = (env.VITE_PROXY_TARGET || env.VITE_API_HOST || "http://localhost:8000").replace(
+    /\/+$/,
+    "",
+  );
+  const socketHost = (env.VITE_SOCKET_HOST || "http://localhost:38000").replace(/\/+$/, "");
   const ymsApiBase = env.VITE_YMS_API_BASE_URL || "/api/yms";
   const pmsApiBase = env.VITE_PMS_API_BASE_URL || "/api/pms";
   const yardBasePath = env.VITE_YARD_BASE_PATH || "/yard";
   const pmsBasePath = env.VITE_PMS_BASE_PATH || "/parking";
+  const usePolling =
+    env.CHOKIDAR_USEPOLLING === "true" ||
+    env.WATCHPACK_POLLING === "true" ||
+    process.env.CHOKIDAR_USEPOLLING === "true";
+  // Reuse TCP connections to the gateway — Vite's default proxy opens a new socket
+  // per request and queues badly under Docker + chokidar polling (startup storm → ~20s).
+  const proxyAgent = apiHost.startsWith("https")
+    ? new https.Agent({ keepAlive: true, maxSockets: 64 })
+    : new http.Agent({ keepAlive: true, maxSockets: 64 });
+  const apiProxy = {
+    target: apiHost,
+    changeOrigin: true,
+    agent: proxyAgent,
+    timeout: 20000,
+    proxyTimeout: 20000,
+  };
 
   return {
     plugins: [
@@ -398,32 +422,47 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (!id.includes("node_modules")) return null;
-            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) return "vendor-react";
-            if (id.includes("@tanstack/react-query") || id.includes("axios") || id.includes("swr")) return "vendor-data";
-            if (id.includes("leaflet") || id.includes("@vis.gl/react-google-maps")) return "vendor-maps";
+            // Match only the React runtime packages — not @radix-ui/react-*,
+            // @emotion/react, react-leaflet, etc. Broad "includes('react')"
+            // splits create circular chunk init and runtime:
+            // Cannot read properties of undefined (reading 'createContext').
+            const norm = id.replace(/\\/g, "/");
+            if (
+              /\/node_modules\/(react|react-dom|scheduler)\//.test(norm) ||
+              /\/node_modules\/react-router(-dom)?\//.test(norm)
+            ) {
+              return "vendor-react";
+            }
+            if (norm.includes("/@tanstack/react-query/") || norm.includes("/axios/") || norm.includes("/swr/")) {
+              return "vendor-data";
+            }
+            if (norm.includes("/leaflet/") || norm.includes("/@vis.gl/react-google-maps/")) {
+              return "vendor-maps";
+            }
             return "vendor";
           },
         },
       },
     },
     server: {
+      host: true,
       fs: {
         allow: [path.resolve(__dirname, "..")],
       },
       port: 5173,
+      // When Vite runs in Docker, the browser still connects to localhost:5173 for HMR.
+      hmr: {
+        clientPort: Number(env.VITE_HMR_CLIENT_PORT || process.env.VITE_HMR_CLIENT_PORT || 5173),
+      },
       proxy: {
         "/socketcluster": {
-          target: "http://localhost:38000",
+          target: socketHost,
           ws: true,
           changeOrigin: true,
         },
-        "/int/v1": {
-          target: apiHost,
-          changeOrigin: true,
-        },
+        "/int/v1": { ...apiProxy },
         "/fleet-ops": {
-          target: apiHost,
-          changeOrigin: true,
+          ...apiProxy,
           bypass(req) {
             const pathname = (req.url || "").split("?")[0];
             const accept = req.headers?.accept || "";
@@ -437,36 +476,18 @@ export default defineConfig(({ mode }) => {
             return req.url;
           },
         },
-        "/ledger": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/storefront": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/pallet": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/registry": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/~registry": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/api/yms": {
-          target: apiHost,
-          changeOrigin: true,
-        },
-        "/api/pms": {
-          target: apiHost,
-          changeOrigin: true,
-        },
+        "/ledger": { ...apiProxy },
+        "/storefront": { ...apiProxy },
+        "/pallet": { ...apiProxy },
+        "/registry": { ...apiProxy },
+        "/~registry": { ...apiProxy },
+        "/api/yms": { ...apiProxy },
+        "/api/pms": { ...apiProxy },
       },
       watch: {
+        usePolling,
+        // Poll less aggressively in Docker so proxy requests are not starved.
+        interval: usePolling ? Number(env.CHOKIDAR_INTERVAL || process.env.CHOKIDAR_INTERVAL || 1000) : undefined,
         ignored: [
           "**/.git/**",
           "**/build/**",

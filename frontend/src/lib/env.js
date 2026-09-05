@@ -1,26 +1,16 @@
 const trimTrailingSlash = (value) => (value ? value.replace(/\/+$/, "") : "");
 
-const apiHostFromLocation =
-  typeof window !== "undefined" && window.location?.origin
-    ? window.location.origin
-    : "http://localhost:8000";
-
+/**
+ * Browser always uses same-origin so /int/v1 (and module roots) hit the Vite or
+ * nginx proxy — never call the gateway on :8000 from the page.
+ * VITE_API_HOST is only a non-browser fallback (e.g. tests without window).
+ */
 function resolveApiHost() {
-  const configured = trimTrailingSlash(import.meta.env.VITE_API_HOST || "");
-  if (!configured) return apiHostFromLocation;
-
-  // Vite dev (e.g. :5173) must not call the gateway (:8000) directly — browser CORS blocks it.
-  if (import.meta.env.DEV && typeof window !== "undefined") {
-    try {
-      if (new URL(configured).origin !== window.location.origin) {
-        return apiHostFromLocation;
-      }
-    } catch {
-      return apiHostFromLocation;
-    }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
   }
-
-  return configured;
+  const configured = trimTrailingSlash(import.meta.env.VITE_API_HOST || "");
+  return configured || "http://localhost:8000";
 }
 
 const API_HOST = resolveApiHost();
