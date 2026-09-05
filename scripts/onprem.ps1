@@ -12,7 +12,7 @@ Write-Host "Checking runtime paths for fleetbase.io..." -ForegroundColor Cyan
 & "$Root\scripts\check-no-fleetbase-io-runtime.ps1"
 
 if (-not $NoBuild) {
-    Write-Host "Building API image (fleetbase-api-onprem:local) — first run can take 20+ minutes..." -ForegroundColor Cyan
+    Write-Host "Building API image (fleetbase-api-onprem:local) - first run can take 20+ minutes..." -ForegroundColor Cyan
     docker compose build application
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }

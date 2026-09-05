@@ -84,8 +84,10 @@ RUN mkdir -p /var/www/.cache/composer \
 COPY packages /fleetbase/packages
 COPY api/composer.json api/composer.lock /fleetbase/api/
 
-# Run as root during image build so composer.lock is writable; vendor/ is baked into the image.
-RUN composer update \
+# Composer 2.9+ blocks packages with security advisories during resolve (e.g. dompdf via laravel-dompdf).
+# Allow install so on-prem images still build; upgrade dompdf when FleetOps supports a patched range.
+RUN composer config --no-interaction audit.block-insecure false \
+    && composer update \
     fleetbase/core-api \
     fleetbase/fleetops-api \
     fleetbase/registry-bridge \
